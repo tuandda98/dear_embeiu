@@ -13,6 +13,8 @@ import '../../widgets/money/add_transaction_sheet.dart';
 import '../../widgets/money/money_ui.dart';
 import '../../widgets/segmented_pill.dart';
 import '../../widgets/sub_screen_header.dart';
+// ── expenses (đợt 2) ── stage 3B
+import 'money_goal_screen.dart' show MoneyGoalScreen;
 
 /// Shared scaffold of the money sub-screens: dawnBlush, chip header, list.
 class _MoneyPage extends StatelessWidget {
@@ -106,7 +108,10 @@ class _MoneyWalletsScreenState extends State<MoneyWalletsScreen> {
     ];
     void open(MoneyWallet w) => Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => MoneyWalletScreen(book: _book, walletId: w.id),
+        // ── expenses (đợt 2) ── stage 3B: a fund opens its own screen.
+        builder: (_) => w.isGoal
+            ? MoneyGoalScreen(book: _book, walletId: w.id)
+            : MoneyWalletScreen(book: _book, walletId: w.id),
       ),
     );
 

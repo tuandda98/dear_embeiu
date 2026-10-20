@@ -6066,4 +6066,279 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneySearchPeriod => 'Date range';
+
+  @override
+  String get moneyGoalSaved => 'We\'ve saved';
+
+  @override
+  String get moneyGoalSavedMine => 'Saved';
+
+  @override
+  String moneyGoalTargetOf(String amount) {
+    return 'Goal $amount';
+  }
+
+  @override
+  String moneyGoalLeft(String left, String date, String perMonth) {
+    return '$left to go. To make $date, we need about $perMonth a month.';
+  }
+
+  @override
+  String moneyGoalLeftMine(String left, String date, String perMonth) {
+    return '$left to go. To make $date, I need about $perMonth a month.';
+  }
+
+  @override
+  String moneyGoalLeftOnly(String left) {
+    return '$left to go.';
+  }
+
+  @override
+  String get moneyGoalNoDeadline =>
+      'No deadline yet. Add one to see how much to save each month.';
+
+  @override
+  String moneyGoalReachedOn(String date) {
+    return 'Full on $date';
+  }
+
+  @override
+  String moneyGoalReached(String trip) {
+    return 'Done. Time to plan $trip, and log trip costs straight from this fund.';
+  }
+
+  @override
+  String get moneyGoalEach => 'Who put in what';
+
+  @override
+  String moneyGoalEachSemantics(String name, String a, String b, String left) {
+    return '$name put in $a, I put in $b, $left still to go';
+  }
+
+  @override
+  String get moneyGoalHistory => 'Contributions';
+
+  @override
+  String moneyGoalTimes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyGoalHistoryEmpty =>
+      'Nothing put in yet. Start with as little as 50k.';
+
+  @override
+  String get moneyGoalHistoryPartial =>
+      'Couldn\'t load older history, showing recent contributions.';
+
+  @override
+  String get moneyContribute => 'Add to fund';
+
+  @override
+  String get moneySpendFromFund => 'Spend from fund';
+
+  @override
+  String moneyContributeTitle(String wallet) {
+    return 'Add to $wallet';
+  }
+
+  @override
+  String get moneyContributeWho => 'Who\'s putting in';
+
+  @override
+  String get moneyContributeFrom => 'From wallet';
+
+  @override
+  String moneyContributeSave(String amount) {
+    return 'Put in $amount';
+  }
+
+  @override
+  String moneyContributed(String amount, String wallet) {
+    return 'Put $amount into $wallet';
+  }
+
+  @override
+  String moneyContributedFull(String wallet) {
+    return '$wallet is full';
+  }
+
+  @override
+  String get moneyContributeHint => 'Amount to put in';
+
+  @override
+  String get moneyPickFund => 'Which fund?';
+
+  @override
+  String get moneyNoFundYet =>
+      'No shared fund yet. Create one, like “Đà Lạt trip”, and put in together.';
+
+  @override
+  String moneySettlePaysMe(String name) {
+    return '$name pays me back';
+  }
+
+  @override
+  String moneySettlePaysPartner(String name) {
+    return 'I pay $name back';
+  }
+
+  @override
+  String get moneySettlePartial => 'Edit for a partial payment';
+
+  @override
+  String get moneySettleAll => 'All of it';
+
+  @override
+  String moneySettleHalf(String amount) {
+    return 'Half · $amount';
+  }
+
+  @override
+  String get moneySettleToOwn => 'Add it to my wallet';
+
+  @override
+  String get moneySettleToOwnSub =>
+      'Adds a line to my book, not counted as income';
+
+  @override
+  String get moneySettleFromOwnSub =>
+      'Adds a line to my book, not counted as spending';
+
+  @override
+  String moneySettleNoteThem(String name) {
+    return 'The app doesn\'t move any money. Tap below once $name has sent it or handed over cash. This evens out the shared book and doesn\'t count as spending.';
+  }
+
+  @override
+  String moneySettleNoteMe(String name) {
+    return 'The app doesn\'t move any money. Tap below once the money has reached $name. This evens out the shared book and doesn\'t count as spending.';
+  }
+
+  @override
+  String get moneySettleDo => 'Mark as settled';
+
+  @override
+  String moneySettleTooMuch(String amount) {
+    return 'At most $amount';
+  }
+
+  @override
+  String moneySettleWhy(String amount) {
+    return 'Why $amount';
+  }
+
+  @override
+  String moneySettleLegend(String name, int n) {
+    return 'Plus: I covered $name. Minus: $name covered me. $n treats and shared-wallet payments don\'t count.';
+  }
+
+  @override
+  String moneySettleLegendNoTreat(String name) {
+    return 'Plus: I covered $name. Minus: $name covered me. Shared-wallet payments don\'t count.';
+  }
+
+  @override
+  String get moneySettleSum => 'Total';
+
+  @override
+  String moneySettleEarlier(String date) {
+    return 'Everything before $date';
+  }
+
+  @override
+  String moneySettleRowSub(String date, String name, String split) {
+    return '$date · $name paid · $split';
+  }
+
+  @override
+  String moneySettleRowBack(String date, String name) {
+    return '$date · $name paid back';
+  }
+
+  @override
+  String moneySettledThem(String name, String amount) {
+    return 'Recorded: $name paid back $amount';
+  }
+
+  @override
+  String moneySettledMe(String name, String amount) {
+    return 'Recorded: I paid $name back $amount';
+  }
+
+  @override
+  String get moneySettledEven => 'we\'re even now';
+
+  @override
+  String moneySettledLeft(String amount) {
+    return '$amount still open';
+  }
+
+  @override
+  String moneySettledIn(String wallet, String amount) {
+    return '$wallet +$amount';
+  }
+
+  @override
+  String moneySettledOut(String wallet, String amount) {
+    return '$wallet −$amount';
+  }
+
+  @override
+  String get moneyLogFromDecision => 'Log the cost';
+
+  @override
+  String get moneyReminderBody1 => 'Anything from today you haven\'t logged?';
+
+  @override
+  String get moneyReminderBody2 =>
+      'Log the rest of today\'s spending, it takes under a minute';
+
+  @override
+  String get moneyReminderBody3 =>
+      'It\'s evening. Take a look at what went out today';
+
+  @override
+  String get moneyReminderSettingTitle => 'Evening spending reminder';
+
+  @override
+  String get moneyReminderSettingSubtitle =>
+      'Once an evening. Skipped on days you\'ve already logged something.';
+
+  @override
+  String get moneyMenuReminder => 'Evening reminder';
+
+  @override
+  String get moneyProfileSub => 'Wallets, spending and shared funds';
+
+  @override
+  String moneyNotifGoal(String name, String percent) {
+    return '$name just chipped in, the fund is at $percent%';
+  }
+
+  @override
+  String moneyNotifGoalReached(String wallet) {
+    return '$wallet is full!';
+  }
+
+  @override
+  String get moneyNotifGoalReachedSub =>
+      'We hit the goal together. Time to plan it.';
+
+  @override
+  String get moneyNotifBudget80 => 'We\'ve used 80% of this month\'s budget';
+
+  @override
+  String get moneyNotifBudget100 => 'We\'ve used up this month\'s budget';
+
+  @override
+  String moneyNotifBudgetSub(String month) {
+    return 'Shared book · $month';
+  }
 }

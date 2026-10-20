@@ -237,6 +237,48 @@ class NotificationTapRouter {
       pendingCompose.value = false;
     }
   }
+
+  // ── expenses (đợt 2) ── stage 3B
+  /// [pendingHomeFocus] value for a tapped `money_goal` /
+  /// `money_goal_reached` / `money_budget` push or inbox item: HomeScreen
+  /// opens Sổ tiền on the shared book (+ the fund in [pendingMoney]).
+  static const String focusMoney = 'money';
+
+  /// The fund to open (`money_goal*`; null for `money_budget`) and where the
+  /// tap came from (`push` / `inbox`, for `money_screen_open`). Set BEFORE
+  /// the focus value, like [pendingRpsGameId].
+  static final ValueNotifier<({String? walletId, String from})?> pendingMoney =
+      ValueNotifier<({String? walletId, String from})?>(null);
+
+  static void consumeMoneyRequest() {
+    if (pendingMoney.value != null) {
+      pendingMoney.value = null;
+    }
+  }
+
+  /// The ONE money route, used by the push tap AND the notification center
+  /// (CLAUDE.md §6: the two maps must agree). Returns false for any other
+  /// type. Sổ tiền sits on top of Home, so the tab is Home (0).
+  static bool routeMoney(
+    String? type, {
+    String? walletId,
+    required String from,
+  }) {
+    if (type != 'money_goal' &&
+        type != 'money_goal_reached' &&
+        type != 'money_budget') {
+      return false;
+    }
+    pendingMoney.value = (
+      walletId: type == 'money_budget' || (walletId ?? '').isEmpty
+          ? null
+          : walletId,
+      from: from,
+    );
+    pendingHomeTab.value = 0;
+    pendingHomeFocus.value = focusMoney;
+    return true;
+  }
 }
 
 /// Home tab indices a deep-link can target (mirror HomeScreen's IndexedStack).
@@ -549,6 +591,8 @@ class PushNotificationService {
       message.data['type'] as String?,
       (message.data['photoId'] as String?)?.trim(),
       gameId: (message.data['gameId'] as String?)?.trim(),
+      // ── expenses (đợt 2) ──
+      walletId: (message.data['walletId'] as String?)?.trim(),
     );
   }
 
@@ -567,6 +611,8 @@ class PushNotificationService {
         data['type'] as String?,
         (data['photoId'] as String?)?.toString().trim(),
         gameId: data['gameId']?.toString().trim(),
+        // ── expenses (đợt 2) ──
+        walletId: data['walletId']?.toString().trim(),
       );
     } catch (_) {
       _applyRoute(payload, null);
@@ -576,7 +622,12 @@ class PushNotificationService {
   /// Routes a notification (push tap OR a foreground banner tap) to the home tab
   /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
   /// change, no malformed analytics event).
-  void _applyRoute(String? type, String? photoId, {String? gameId}) {
+  void _applyRoute(
+    String? type,
+    String? photoId, {
+    String? gameId,
+    String? walletId,
+  }) {
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
@@ -660,6 +711,17 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusRpsHistory;
+        break;
+      // ── expenses (đợt 2) ── Sổ tiền, shared book (+ the fund). Same
+      // helper as the notification center.
+      case 'money_goal':
+      case 'money_goal_reached':
+      case 'money_budget':
+        NotificationTapRouter.routeMoney(
+          type,
+          walletId: walletId,
+          from: 'push',
+        );
         break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't

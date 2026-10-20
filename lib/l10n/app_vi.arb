@@ -5819,5 +5819,476 @@
   "moneySearchPeriod": "Khoảng ngày",
   "@moneySearchPeriod": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyGoalSaved": "Chúng mình đã góp",
+  "@moneyGoalSaved": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalSavedMine": "Đã để dành",
+  "@moneyGoalSavedMine": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalTargetOf": "Mục tiêu {amount}",
+  "@moneyGoalTargetOf": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalLeft": "Còn {left}. Để kịp {date}, mỗi tháng chúng mình cần để dành khoảng {perMonth}.",
+  "@moneyGoalLeft": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "perMonth": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalLeftMine": "Còn {left}. Để kịp {date}, mỗi tháng mình cần để dành khoảng {perMonth}.",
+  "@moneyGoalLeftMine": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "perMonth": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalLeftOnly": "Còn {left}.",
+  "@moneyGoalLeftOnly": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalNoDeadline": "Chưa đặt hạn. Thêm hạn để biết mỗi tháng cần để dành bao nhiêu.",
+  "@moneyGoalNoDeadline": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalReachedOn": "Đủ ngày {date}",
+  "@moneyGoalReachedOn": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalReached": "Đủ rồi. Lên lịch đi {trip} thôi, tiền chi chuyến đi ghi thẳng từ quỹ này.",
+  "@moneyGoalReached": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalEach": "Mỗi người góp",
+  "@moneyGoalEach": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalEachSemantics": "{name} góp {a}, mình góp {b}, còn thiếu {left}",
+  "@moneyGoalEachSemantics": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalHistory": "Lịch sử góp",
+  "@moneyGoalHistory": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalTimes": "{count} lần",
+  "@moneyGoalTimes": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyGoalHistoryEmpty": "Chưa có lần góp nào. Góp lần đầu, dù chỉ 50k.",
+  "@moneyGoalHistoryEmpty": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalHistoryPartial": "Chưa tải được lịch sử cũ, đang hiện các lần góp gần đây.",
+  "@moneyGoalHistoryPartial": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContribute": "Góp vào quỹ",
+  "@moneyContribute": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySpendFromFund": "Chi từ quỹ",
+  "@moneySpendFromFund": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContributeTitle": "Góp vào {wallet}",
+  "@moneyContributeTitle": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributeWho": "Ai góp",
+  "@moneyContributeWho": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContributeFrom": "Lấy từ ví",
+  "@moneyContributeFrom": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContributeSave": "Góp {amount}",
+  "@moneyContributeSave": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributed": "Đã góp {amount} vào {wallet}",
+  "@moneyContributed": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributedFull": "{wallet} đủ rồi",
+  "@moneyContributedFull": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributeHint": "Số tiền góp",
+  "@moneyContributeHint": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyPickFund": "Góp vào quỹ nào?",
+  "@moneyPickFund": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNoFundYet": "Chưa có quỹ chung nào. Tạo một quỹ, vd “Quỹ Đà Lạt”, rồi cùng góp.",
+  "@moneyNoFundYet": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettlePaysMe": "{name} trả lại cho mình",
+  "@moneySettlePaysMe": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettlePaysPartner": "Mình trả lại cho {name}",
+  "@moneySettlePaysPartner": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettlePartial": "Sửa được nếu trả một phần",
+  "@moneySettlePartial": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleAll": "Trả hết",
+  "@moneySettleAll": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleHalf": "Một nửa · {amount}",
+  "@moneySettleHalf": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleToOwn": "Ghi tiền về ví của mình",
+  "@moneySettleToOwn": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleToOwnSub": "Thêm 1 dòng ở sổ của mình, không tính là thu nhập",
+  "@moneySettleToOwnSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleFromOwnSub": "Thêm 1 dòng ở sổ của mình, không tính là chi tiêu",
+  "@moneySettleFromOwnSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleNoteThem": "App không chuyển tiền giúp. Bấm nút dưới sau khi {name} đã chuyển khoản hoặc đưa tiền mặt. Khoản này cân lại sổ chung, không tính là chi tiêu.",
+  "@moneySettleNoteThem": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleNoteMe": "App không chuyển tiền giúp. Bấm nút dưới sau khi mình đã chuyển khoản hoặc đưa tiền mặt cho {name}. Khoản này cân lại sổ chung, không tính là chi tiêu.",
+  "@moneySettleNoteMe": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleDo": "Đánh dấu đã thanh toán",
+  "@moneySettleDo": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleTooMuch": "Tối đa {amount}",
+  "@moneySettleTooMuch": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleWhy": "Vì sao là {amount}",
+  "@moneySettleWhy": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleLegend": "Dấu cộng: mình ứng cho {name}. Dấu trừ: {name} ứng cho mình. {n} khoản “mời” và các khoản trả từ Ví chung không tính.",
+  "@moneySettleLegend": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneySettleLegendNoTreat": "Dấu cộng: mình ứng cho {name}. Dấu trừ: {name} ứng cho mình. Các khoản trả từ Ví chung không tính.",
+  "@moneySettleLegendNoTreat": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleSum": "Cộng lại",
+  "@moneySettleSum": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettleEarlier": "Các khoản trước {date}",
+  "@moneySettleEarlier": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleRowSub": "{date} · {name} trả · {split}",
+  "@moneySettleRowSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "split": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettleRowBack": "{date} · {name} đã trả lại",
+  "@moneySettleRowBack": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettledThem": "Đã ghi {name} trả lại {amount}",
+  "@moneySettledThem": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettledMe": "Đã ghi mình trả lại {name} {amount}",
+  "@moneySettledMe": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettledEven": "hai bên đang ngang nhau",
+  "@moneySettledEven": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySettledLeft": "còn {amount} chưa trả",
+  "@moneySettledLeft": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettledIn": "{wallet} cộng {amount}",
+  "@moneySettledIn": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySettledOut": "{wallet} trừ {amount}",
+  "@moneySettledOut": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLogFromDecision": "Ghi chi",
+  "@moneyLogFromDecision": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderBody1": "Hôm nay có khoản nào chưa ghi không?",
+  "@moneyReminderBody1": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderBody2": "Ghi nốt chi tiêu hôm nay, mất chưa tới một phút",
+  "@moneyReminderBody2": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderBody3": "Tối rồi, xem hôm nay mình tiêu bao nhiêu nhé",
+  "@moneyReminderBody3": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderSettingTitle": "Nhắc ghi chi tiêu buổi tối",
+  "@moneyReminderSettingTitle": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderSettingSubtitle": "Mỗi tối một lần. Hôm nào đã ghi khoản thì thôi không nhắc.",
+  "@moneyReminderSettingSubtitle": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyMenuReminder": "Nhắc tối",
+  "@moneyMenuReminder": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyProfileSub": "Ví, chi tiêu và quỹ chung",
+  "@moneyProfileSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifGoal": "{name} vừa góp vào quỹ, giờ được {percent}%",
+  "@moneyNotifGoal": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNotifGoalReached": "{wallet} đủ rồi!",
+  "@moneyNotifGoalReached": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNotifGoalReachedSub": "Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.",
+  "@moneyNotifGoalReachedSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifBudget80": "Tháng này chúng mình đã tiêu 80% ngân sách",
+  "@moneyNotifBudget80": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifBudget100": "Tháng này chúng mình tiêu hết ngân sách rồi",
+  "@moneyNotifBudget100": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifBudgetSub": "Sổ chung · {month}",
+  "@moneyNotifBudgetSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
   }
 }

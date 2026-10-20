@@ -146,6 +146,24 @@ class MoneyService {
   Future<bool> hasAnyTx() async =>
       (await _pair(_txs).limit(1).get()).docs.isNotEmpty;
 
+  // ── expenses (đợt 2) ── stage 3B
+  /// Every entry into / out of [walletId], all time (the fund screen's
+  /// history and "Mỗi người góp"). Two reads on the existing
+  /// `(memberUids, inWalletId|outWalletId)` indexes; no orderBy (that would
+  /// need a third index) — the caller sorts.
+  // ponytail: capped at [limit] per side; a fund with more entries than that
+  // shows the newest it got. Add a date index + paging if funds grow that big.
+  Future<List<MoneyTx>> fetchWalletTx(
+    String walletId, {
+    int limit = 500,
+  }) async {
+    final r = await Future.wait([
+      _pair(_txs).where('inWalletId', isEqualTo: walletId).limit(limit).get(),
+      _pair(_txs).where('outWalletId', isEqualTo: walletId).limit(limit).get(),
+    ]);
+    return [for (final s in r) ..._parseTx(s)];
+  }
+
   /// The other half of a linked pair when it is not in memory. Both halves
   /// are written by the same person ([createdBy]); a partner's shared entry
   /// carrying the same linkId is not it.

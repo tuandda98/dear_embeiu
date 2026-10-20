@@ -27,19 +27,34 @@ import 'money_first_run.dart';
 import 'money_report_screen.dart';
 import 'money_search_screen.dart';
 import 'money_wallets_screen.dart';
+// ── expenses (đợt 2) ── stage 3B
+import '../../services/money_analytics.dart';
+import '../../widgets/money/money_reminder_tile.dart';
+import '../../widgets/money/settle_sheet.dart';
+import 'money_goal_screen.dart';
 
 // ── expenses (đợt 2) · stage 3A: budgets / report / search entry points ──
 void _openSub(BuildContext context, Widget screen) =>
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
 
 /// Opens Sổ tiền ([book] null = the tab used last on this phone).
-Future<void> openMoneyScreen(BuildContext context, {MoneyBookKind? book}) =>
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: const RouteSettings(name: 'MoneyScreen'),
-        builder: (_) => MoneyScreen(initialBook: book),
-      ),
-    );
+/// ── expenses (đợt 2) ── stage 3B: [focusWalletId] (a `money_goal*` push /
+/// inbox tap) opens that fund on top; [from] feeds `money_screen_open`.
+Future<void> openMoneyScreen(
+  BuildContext context, {
+  MoneyBookKind? book,
+  String? focusWalletId,
+  String from = 'home',
+}) {
+  AnalyticsService.instance.logMoneyScreenOpen(from);
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      settings: const RouteSettings(name: 'MoneyScreen'),
+      builder: (_) =>
+          MoneyScreen(initialBook: book, focusWalletId: focusWalletId),
+    ),
+  );
+}
 
 /// "Sổ tiền" overview (design §3.2 + §15): Của mình · Chung, the month card,
 /// who-paid lanes (shared), Gần đây, Tiêu vào đâu (own), wallets, the
@@ -48,9 +63,13 @@ Future<void> openMoneyScreen(BuildContext context, {MoneyBookKind? book}) =>
 /// Stage 3 adds search (⌕), budgets, report, settle-up; their entry points
 /// stay hidden until then rather than opening a "coming soon" page.
 class MoneyScreen extends StatefulWidget {
-  const MoneyScreen({super.key, this.initialBook});
+  const MoneyScreen({super.key, this.initialBook, this.focusWalletId});
 
   final MoneyBookKind? initialBook;
+
+  // ── expenses (đợt 2) ── stage 3B
+  /// Shared fund to open once the wallets are in (push / inbox tap).
+  final String? focusWalletId;
 
   @override
   State<MoneyScreen> createState() => _MoneyScreenState();
@@ -65,6 +84,26 @@ class _MoneyScreenState extends State<MoneyScreen> {
   bool _fabShown = true;
   bool _sharedStarterAsked = false;
   MoneyWriteError? _shownError;
+  // ── expenses (đợt 2) ── stage 3B
+  late String? _focusWallet = widget.focusWalletId;
+
+  /// A `money_goal*` tap: open that fund once the shared wallets are known
+  /// (gone / not a fund / no shared book any more → just the overview).
+  void _openFocusedFund(MoneyProvider money) {
+    final id = _focusWallet;
+    if (id == null) return;
+    final s = money.shared;
+    // Wallets not in yet → try again on the next build.
+    if (s == null || (!s.walletsFromServer && s.wallets.isEmpty)) return;
+    _focusWallet = null;
+    final w = s.wallets.where((x) => x.id == id).firstOrNull;
+    if (w == null || !w.isGoal) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        openMoneyGoal(context, book: MoneyBookKind.shared, walletId: id);
+      }
+    });
+  }
 
   static MoneyBookKind _lastTab() {
     if (!Hive.isBoxOpen(_prefsBox)) return MoneyBookKind.shared;
@@ -197,6 +236,22 @@ class _MoneyScreenState extends State<MoneyScreen> {
                 _push(MoneyReportScreen(book: _book, month: _month));
               },
             ),
+            // ── expenses (đợt 2) ── stage 3B: Nhắc tối (D18).
+            ListTile(
+              leading: const Icon(IconsaxPlusLinear.notification_bing),
+              title: Text(l10n.moneyMenuReminder),
+              minTileHeight: 52,
+              onTap: () {
+                Navigator.of(sheet).pop();
+                showMoneySheet<void>(
+                  context,
+                  builder: (_) => const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    child: MoneyReminderTile(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -219,6 +274,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
       _book = MoneyBookKind.own;
     }
     _surfaceWriteError(money);
+    _openFocusedFund(money);
     if (_book == MoneyBookKind.shared) _ensureSharedStarter(money);
     final firstRun = _book == MoneyBookKind.own && money.needsFirstRun;
     final state = money.book(_book);
@@ -1037,18 +1093,37 @@ class _LanesCard extends StatelessWidget {
             const ShimmerSkeleton(width: 150, height: 13),
             const SizedBox(height: 6),
             const ShimmerSkeleton(width: 120, height: 20),
-          ] else ...[
-            Text(
-              balanceLabel,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+          ] else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        balanceLabel,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      MoneyAmountText(balance.abs(), size: 20),
+                    ],
+                  ),
+                ),
+                // ── expenses (đợt 2) ── stage 3B: hidden once even (§4).
+                if (balance != 0) ...[
+                  const SizedBox(width: 12),
+                  MoneyOutlineButton(
+                    label: l10n.moneySettle,
+                    onPressed: () => SettleSheet.show(context),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 2),
-            MoneyAmountText(balance.abs(), size: 20),
-          ],
           if (balanceSub != null) ...[
             const SizedBox(height: 2),
             Text(
@@ -1345,8 +1420,10 @@ class _WalletsCard extends StatelessWidget {
       for (final w in active)
         if (w.isGoal) w,
     ];
-    void open(MoneyWallet w) =>
-        onOpen(MoneyWalletScreen(book: book, walletId: w.id));
+    void open(MoneyWallet w) => w.isGoal
+        // ── expenses (đợt 2) ── stage 3B
+        ? onOpen(MoneyGoalScreen(book: book, walletId: w.id))
+        : onOpen(MoneyWalletScreen(book: book, walletId: w.id));
 
     String? sharedSub(MoneyWallet w) {
       final each = MoneyMath.contributionsBy(
@@ -1405,10 +1482,16 @@ class _WalletsCard extends StatelessWidget {
                 : _skeletonRow(w),
           Align(
             alignment: Alignment.centerLeft,
-            child: MoneyLink(
-              label: l10n.moneyManageWallets,
-              onTap: () => onOpen(MoneyWalletsScreen(book: book)),
-            ),
+            child: shared
+                // ── expenses (đợt 2) ── stage 3B (design: shared card link).
+                ? MoneyLink(
+                    label: l10n.moneyContribute,
+                    onTap: () => pickFundToContribute(context),
+                  )
+                : MoneyLink(
+                    label: l10n.moneyManageWallets,
+                    onTap: () => onOpen(MoneyWalletsScreen(book: book)),
+                  ),
           ),
         ],
       ),

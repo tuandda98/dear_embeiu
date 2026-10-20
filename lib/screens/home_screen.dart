@@ -73,6 +73,8 @@ import 'rps_history_screen.dart' show openRpsHistory;
 import '../models/money.dart';
 import '../providers/money_provider.dart';
 import '../widgets/money/money_home_entry.dart';
+import '../utils/money_flows.dart' show moneyLoggedToday;
+import 'money/money_screen.dart' show openMoneyScreen;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -433,6 +435,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DailyQuestionProvider? _dqProvider;
   MoodProvider? _moodProvider;
   DecisionProvider? _decisionProvider;
+  // ── expenses (đợt 2) ── stage 3B: evening reminder 1210–1211 follows it.
+  MoneyProvider? _moneyProvider;
   LocaleProvider? _localeProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
@@ -536,6 +540,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // today's picks change.
     _decisionProvider = context.read<DecisionProvider>();
     _decisionProvider!.addListener(_refreshDecisionReminder);
+    // ── expenses (đợt 2) ── stage 3B: Sổ tiền evening reminder (D18) — re-arm
+    // on open, drop today's slot once anything is logged today.
+    _moneyProvider = context.read<MoneyProvider>();
+    _moneyProvider!.addListener(_refreshMoneyEvening);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshMoneyEvening());
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
     // Home-screen widget "hôm nay" line (widget-today D5a): recomputed from the
     // same streams as the constellation whenever one of them changes.
@@ -652,6 +661,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
     _localeProvider?.removeListener(_onLocaleChangedForWidget);
     _decisionProvider?.removeListener(_refreshDecisionReminder);
+    // ── expenses (đợt 2) ──
+    _moneyProvider?.removeListener(_refreshMoneyEvening);
     _bgHintTimer?.cancel();
     _stopChatPresence();
     WidgetsBinding.instance.removeObserver(this);
@@ -681,6 +692,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _refreshDecisionReminder();
       // ── expenses (đợt 2) ──
       context.read<MoneyProvider>().refreshDay();
+      _refreshMoneyEvening();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -835,6 +847,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     context.read<ReminderProvider>().refreshDecisionReminder(
       coupleActive: !couple.isWaitingForPartner,
       decidedToday: decisions.todayEat != null,
+      l10n: context.l10n,
+    );
+  }
+
+  // ── expenses (đợt 2) ── stage 3B
+  /// Arms the Sổ tiền evening reminder (1210 today + 1211 tomorrow, D18);
+  /// today's slot goes once I logged anything dated today in either book.
+  /// The provider debounces, so firing on every money update is cheap.
+  void _refreshMoneyEvening() {
+    final money = _moneyProvider;
+    final uid = money?.uid;
+    if (!mounted || money == null || uid == null) {
+      return;
+    }
+    context.read<ReminderProvider>().refreshMoneyEvening(
+      loggedToday: moneyLoggedToday(
+        [
+          ...money.visibleTxs(MoneyBookKind.own),
+          ...money.visibleTxs(MoneyBookKind.shared),
+        ],
+        uid,
+        money.today,
+      ),
       l10n: context.l10n,
     );
   }
@@ -1104,6 +1139,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _openRpsGameRoute(gameId);
       case NotificationTapRouter.focusRpsHistory:
         _openRpsHistoryRoute();
+      // ── expenses (đợt 2) ── stage 3B: money_goal / money_goal_reached /
+      // money_budget → Sổ tiền, shared book (+ the fund for money_goal*).
+      case NotificationTapRouter.focusMoney:
+        final target = NotificationTapRouter.pendingMoney.value;
+        NotificationTapRouter.consumeMoneyRequest();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          openMoneyScreen(
+            context,
+            book: MoneyBookKind.shared,
+            focusWalletId: target?.walletId,
+            from: target?.from ?? 'push',
+          );
+        });
       default:
         break;
     }

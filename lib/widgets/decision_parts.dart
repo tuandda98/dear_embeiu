@@ -19,6 +19,12 @@ import '../services/push_notification_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../utils/decision_suggester.dart';
+// ── expenses (đợt 2) ──
+import '../models/money.dart' show kMoneyNoteMax;
+import '../providers/money_provider.dart';
+import '../services/money_service.dart';
+import '../utils/money_flows.dart' show moneyDecisionPrefill;
+import 'money/add_transaction_sheet.dart';
 
 // Moved to the pure utils file (the background push handler needs it too).
 export '../utils/decision_suggester.dart' show decisionDisplayName;
@@ -427,6 +433,33 @@ Future<void> openDecisionPhoto(BuildContext context, Decision d) {
   );
 }
 
+// ── expenses (đợt 2) ── D20 ─────────────────────────────────────────────────
+
+/// "Ghi chi" from a pick: the add-entry sheet with Ăn ngoài / Đi chơi, the
+/// pick as the note, today, `source: decision`; shared book for an active
+/// couple, own book while waiting.
+Future<void> openDecisionSpend(BuildContext context, Decision d) {
+  final couple = context.read<CoupleProvider>().couple;
+  final p = moneyDecisionPrefill(
+    eat: d.kind == DecisionKind.eat,
+    coupleActive: couple != null && !couple.isWaitingForPartner,
+    hasShared: context.read<MoneyProvider>().hasShared,
+  );
+  final note = decisionDisplayName(
+    d.kind,
+    d.result,
+    d.resultId,
+    english: decisionIsEnglish(context),
+  ).trim();
+  return AddTransactionSheet.show(
+    context,
+    book: p.book,
+    categoryId: p.categoryId,
+    note: note.length > kMoneyNoteMax ? note.substring(0, kMoneyNoteMax) : note,
+    source: 'decision',
+  );
+}
+
 // ── Result sheet (design B) ────────────────────────────────────────────────
 
 Future<void> showDecisionResultSheet(BuildContext context, Decision d) {
@@ -623,6 +656,14 @@ class _DecisionResultSheet extends StatelessWidget {
                   icon: IconsaxPlusLinear.clock,
                   onPressed: () => close(() => openDecisionHistory(outer)),
                 ),
+                // ── expenses (đợt 2) ── D20: "Ghi chi" for a food / place
+                // pick (a secondary link — the sheet keeps one primary).
+                if (!isCustom && MoneyService.isAvailable)
+                  DecisionLinkButton(
+                    label: l10n.moneyLogFromDecision,
+                    icon: IconsaxPlusLinear.wallet_add,
+                    onPressed: () => close(() => openDecisionSpend(outer, d)),
+                  ),
                 if (isCustom)
                   DecisionLinkButton(
                     label: l10n.decisionAskAnother,

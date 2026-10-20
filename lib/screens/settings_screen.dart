@@ -34,6 +34,9 @@ import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
 import 'lunar_calendar_screen.dart';
 import 'reminders_screen.dart';
+// ── expenses (đợt 2) ──
+import '../services/money_service.dart';
+import '../widgets/money/money_reminder_tile.dart';
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
 ///
@@ -514,6 +517,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     (p) => p.couple != null && !p.couple!.isWaitingForPartner,
                   )) ...[
                     const _DecisionReminderTile(),
+                    _rowDivider(),
+                  ],
+                  // ── expenses (đợt 2) ── Sổ tiền evening reminder (D18):
+                  // solo couples too; hidden without Firebase (no book).
+                  if (MoneyService.isAvailable) ...[
+                    const MoneyReminderTile(),
                     _rowDivider(),
                   ],
                   // AI-personalised daily questions (endless-questions,
