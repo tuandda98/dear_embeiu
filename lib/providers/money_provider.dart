@@ -331,13 +331,21 @@ class MoneyProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Day rolled over / app resumed: move the live windows, and re-read the
-  /// sums (the partner may have edited an entry older than the window).
+  /// Day rolled over: move the live windows (the new window re-reads sums).
+  /// Called after every Home build, so it must stay a no-op on the same day:
+  /// re-subscribing fires the tx listener, which re-reads the sums itself.
   void refreshDay() {
     for (final s in [_own, _shared]) {
-      if (s == null) continue;
-      if (s.windowFrom != _windowFrom()) _listenTx(s);
-      _scheduleSums(s);
+      if (s != null && s.windowFrom != _windowFrom()) _listenTx(s);
+    }
+  }
+
+  /// App resumed: [refreshDay], then re-read the sums once (the partner may
+  /// have edited an entry older than the window while we were away).
+  void onResume() {
+    refreshDay();
+    for (final s in [_own, _shared]) {
+      if (s != null) _scheduleSums(s);
     }
   }
 

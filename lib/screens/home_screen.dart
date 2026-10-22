@@ -780,7 +780,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // ── weather (đợt 2) ── refresh if this phone's copy is ≥ 30 min old.
       context.read<WeatherProvider>().onResume();
       // ── expenses (đợt 2) ──
-      context.read<MoneyProvider>().refreshDay();
+      context.read<MoneyProvider>().onResume();
       _refreshMoneyEvening();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
