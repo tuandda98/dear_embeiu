@@ -831,14 +831,24 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Bỏ ngân sách này'));
       await tester.pumpAndSettle();
-      expect(money.deleted.single, (kind: MoneyBookKind.shared, id: 'food'));
+      // Hidden at once, deleted only after the undo window (Tester Low:
+      // undo used to recreate the doc and lose `alerted`).
+      expect(money.budgetFor(MoneyBookKind.shared, 'food'), isNull);
+      expect(money.deleted, isEmpty);
       await tester.tap(find.text('Hoàn tác'));
       await tester.pump();
-      expect(money.set.last, (
-        kind: MoneyBookKind.shared,
-        cat: 'food',
-        amount: 2000000,
-      ));
+      expect(money.budgetFor(MoneyBookKind.shared, 'food')?.amount, 2000000);
+      expect(money.set, hasLength(1)); // no re-create
+      await tester.pump(const Duration(seconds: 6));
+      expect(money.deleted, isEmpty);
+
+      // No undo: the delete goes out after 5 s.
+      await tester.tap(find.text('Ăn uống'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bỏ ngân sách này'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      expect(money.deleted.single, (kind: MoneyBookKind.shared, id: 'food'));
     });
   });
 

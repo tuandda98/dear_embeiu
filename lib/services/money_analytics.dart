@@ -9,6 +9,10 @@ class MoneyAnalyticsEvents {
   MoneyAnalyticsEvents._();
 
   static const String txAdd = 'money_tx_add';
+  static const String txEdit = 'money_tx_edit';
+  static const String txDelete = 'money_tx_delete';
+  static const String walletAdd = 'money_wallet_add';
+  static const String goalAdd = 'money_goal_add';
   static const String settle = 'money_settle';
   static const String goalReached = 'money_goal_reached';
   static const String screenOpen = 'money_screen_open';
@@ -27,6 +31,8 @@ class MoneyAnalyticsEvents {
   // home / profile / decision / push / inbox / reminder
   static const String pFrom = 'from';
   static const String pOn = 'on';
+  static const String pUndone = 'undone';
+  static const String pHasDeadline = 'has_deadline';
 }
 
 extension MoneyAnalytics on AnalyticsService {
@@ -71,6 +77,39 @@ extension MoneyAnalytics on AnalyticsService {
       },
     );
   }
+
+  void logMoneyTxEdit(MoneyBookKind book) => logEvent(
+    MoneyAnalyticsEvents.txEdit,
+    params: {MoneyAnalyticsEvents.pBook: book.name},
+  );
+
+  /// Once per "Xoá": [undone] when "Hoàn tác" ran inside the undo window.
+  void logMoneyTxDelete(MoneyBookKind book, {required bool undone}) => logEvent(
+    MoneyAnalyticsEvents.txDelete,
+    params: {
+      MoneyAnalyticsEvents.pBook: book.name,
+      MoneyAnalyticsEvents.pUndone: undone,
+    },
+  );
+
+  /// A wallet the user made (not the starter ones); a fund logs
+  /// [logMoneyGoalAdd] instead.
+  void logMoneyWalletAdd(MoneyBookKind book, MoneyWalletType type) => logEvent(
+    MoneyAnalyticsEvents.walletAdd,
+    params: {
+      MoneyAnalyticsEvents.pBook: book.name,
+      MoneyAnalyticsEvents.pType: type.name,
+    },
+  );
+
+  void logMoneyGoalAdd(MoneyBookKind book, {required bool hasDeadline}) =>
+      logEvent(
+        MoneyAnalyticsEvents.goalAdd,
+        params: {
+          MoneyAnalyticsEvents.pBook: book.name,
+          MoneyAnalyticsEvents.pHasDeadline: hasDeadline,
+        },
+      );
 
   void logMoneySettle() => logEvent(MoneyAnalyticsEvents.settle);
 

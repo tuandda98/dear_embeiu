@@ -45,11 +45,12 @@ class MoneyGoalView {
 }
 
 /// "Đủ rồi. Lên lịch đi Đà Lạt thôi": the fund's name without the "Quỹ" /
-/// "Fund" word in front ("Quỹ Đà Lạt" → "Đà Lạt").
+/// "Fund" word in front ("Quỹ Đà Lạt" → "Đà Lạt"). Only the word with its
+/// tone mark: "Quy Nhơn" is a place, not "Quỹ Nhơn".
 String moneyTripName(String walletName) {
   final n = walletName.trim();
   final m = RegExp(
-    r'^(quỹ|qũy|quy|fund)\s+(.+)$',
+    r'^(quỹ|qũy|fund)\s+(.+)$',
     caseSensitive: false,
   ).firstMatch(n);
   if (m != null) return m.group(2)!;

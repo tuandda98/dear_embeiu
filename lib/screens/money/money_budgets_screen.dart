@@ -598,27 +598,19 @@ class _MoneyBudgetSheetState extends State<MoneyBudgetSheet> {
     }
   }
 
-  Future<void> _remove() async {
+  void _remove() {
     final b = _existing;
     if (b == null) return;
     final money = context.read<MoneyProvider>();
     final l10n = context.l10n;
     final book = widget.book;
-    setState(() => _busy = true);
-    try {
-      await money.deleteBudget(book, b.id);
-      if (!mounted) return;
-      Navigator.of(context).pop((
-        message: l10n.moneyBudgetRemoved(_nameOf(b.categoryId)),
-        undo: () =>
-            money.setBudget(book, categoryId: b.categoryId, amount: b.amount),
-      ));
-    } catch (e) {
-      debugPrint('money: delete budget failed: $e');
-      if (!mounted) return;
-      setState(() => _busy = false);
-      showMoneySnack(context, message: l10n.moneyWriteFailed);
-    }
+    // Deleted after the undo window, like an entry: "Hoàn tác" keeps the
+    // same doc (and its `alerted` marks — no second 80/100 % push).
+    money.scheduleBudgetDelete(book, b);
+    Navigator.of(context).pop((
+      message: l10n.moneyBudgetRemoved(_nameOf(b.categoryId)),
+      undo: () => money.undoBudgetDelete(book, b.id),
+    ));
   }
 
   @override

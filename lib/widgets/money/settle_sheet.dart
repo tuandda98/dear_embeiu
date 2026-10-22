@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +22,9 @@ class _SettleResult {
 
   final String message;
   final String? detail;
-  final VoidCallback undo;
+
+  /// null = nothing was written (already even when re-checked).
+  final VoidCallback? undo;
 }
 
 /// Who pays whom back and how much (all of it / half / a typed part), the
@@ -44,9 +48,11 @@ class SettleSheet extends StatefulWidget {
       context,
       message: r.message,
       detail: r.detail,
-      actionLabel: context.l10n.moneyUndo,
+      actionLabel: r.undo == null ? null : context.l10n.moneyUndo,
       onAction: r.undo,
-      duration: MoneyProvider.deleteDelay,
+      duration: r.undo == null
+          ? const Duration(seconds: 4)
+          : MoneyProvider.deleteDelay,
     );
   }
 
@@ -56,11 +62,15 @@ class SettleSheet extends StatefulWidget {
 
 class _SettleSheetState extends State<SettleSheet> {
   final TextEditingController _amount = TextEditingController();
-  late final int _balance;
-  late final ({String payer, int amount}) _plan;
+  late int _balance;
+  late ({String payer, int amount}) _plan;
   bool _toOwn = true;
   String? _walletId;
   bool _busy = false;
+
+  /// Inline line above the button: the re-check found a new number, or
+  /// couldn't reach the server (Tester Med — no settle on a cached number).
+  String? _notice;
 
   MoneyProvider get _money => context.read<MoneyProvider>();
   bool get _partnerPays => _plan.payer != _money.uid;
@@ -94,6 +104,10 @@ class _SettleSheetState extends State<SettleSheet> {
         (wallets.any((w) => w.id == fallback) ? fallback : null) ??
         wallets.firstOrNull?.id;
     _toOwn = _walletId != null;
+    // Opened on a cached number: fetch the server's now, Save waits for it.
+    if (money.shared?.netSumsStale ?? false) {
+      unawaited(money.refreshCoupleBalance());
+    }
   }
 
   @override
@@ -112,6 +126,55 @@ class _SettleSheetState extends State<SettleSheet> {
     setState(() => _amount.text = '$v');
   }
 
+  /// Re-reads the balance from the server. true = still [_plan]; otherwise
+  /// the sheet shows the new number (or "no network") and nothing is
+  /// written. Already even → closes with a note.
+  Future<bool> _recheck() async {
+    final money = _money;
+    final l10n = context.l10n;
+    setState(() {
+      _busy = true;
+      _notice = null;
+    });
+    final fresh = await money.refreshCoupleBalance();
+    if (!mounted) return false;
+    final plan = fresh == null
+        ? null
+        : MoneyMath.settlementFor(
+            fresh,
+            me: money.uid ?? '',
+            partner: money.partnerUid,
+          );
+    if (fresh == null) {
+      setState(() {
+        _busy = false;
+        _notice = l10n.moneySettleOffline;
+      });
+      return false;
+    }
+    if (plan == null) {
+      Navigator.of(
+        context,
+      ).pop(_SettleResult(l10n.moneySettleAlreadyEven, null, null));
+      return false;
+    }
+    if (plan == _plan) return true;
+    setState(() {
+      _busy = false;
+      _balance = fresh;
+      _plan = plan;
+      _amount.text = '${plan.amount}';
+      _notice = l10n.moneySettleChanged(vnd(context, plan.amount));
+    });
+    return false;
+  }
+
+  /// Button while the sums are a cached copy: fetch, don't write.
+  Future<void> _resync() async {
+    if (_busy) return;
+    if (await _recheck() && mounted) setState(() => _busy = false);
+  }
+
   Future<void> _save() async {
     final amount = _value;
     final money = _money;
@@ -121,6 +184,11 @@ class _SettleSheetState extends State<SettleSheet> {
     }
     final l10n = context.l10n;
     final people = MoneyPeople.of(context);
+    // Both phones may "Trả hết" from the same number, or this one may hold
+    // an old one: re-read the server's sums right before writing and only
+    // settle what is still owed (Tester Med).
+    if (!await _recheck()) return;
+    if (!mounted) return;
     final ownWallet = _toOwn ? _walletId : null;
     final id = shared.service.newTxId();
     final tx = MoneyTx(
@@ -132,7 +200,6 @@ class _SettleSheetState extends State<SettleSheet> {
       splitMode: MoneySplitMode.none,
       memberUids: shared.service.memberUids,
     );
-    setState(() => _busy = true);
     try {
       await money.settle(
         id: id,
@@ -193,8 +260,11 @@ class _SettleSheetState extends State<SettleSheet> {
     final to = _partnerPays
         ? MoneyAvatar(letter: people.myName, color: people.meColor)
         : MoneyAvatar(letter: people.partnerName, color: people.partnerColor);
+    final stale = money.shared?.netSumsStale ?? true;
     final String saveLabel;
-    if (value == null) {
+    if (stale && !_busy) {
+      saveLabel = l10n.moneySettleNeedSync;
+    } else if (value == null) {
       saveLabel = l10n.moneySaveNeedAmount;
     } else if (value > owed) {
       saveLabel = l10n.moneySettleTooMuch(vnd(context, owed));
@@ -333,11 +403,31 @@ class _SettleSheetState extends State<SettleSheet> {
               color: AppColors.textSecondary,
             ),
           ),
+          if (_notice != null) ...[
+            const SizedBox(height: 12),
+            // Inline, next to the button it is about; read out when it shows.
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                _notice!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           MoneyPrimaryButton(
             label: saveLabel,
             busy: _busy,
-            onPressed: value == null || value > owed ? null : _save,
+            onPressed: stale
+                ? _resync
+                : value == null || value > owed
+                ? null
+                : _save,
           ),
           const SizedBox(height: 20),
           _WhyCard(balance: _balance),

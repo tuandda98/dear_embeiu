@@ -12729,6 +12729,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared book · {month}'**
   String moneyNotifBudgetSub(String month);
+
+  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
+  ///
+  /// In en, this message translates to:
+  /// **'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.'**
+  String get moneyLinkedPayerLocked;
+
+  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
+  ///
+  /// In en, this message translates to:
+  /// **'Get the latest number'**
+  String get moneySettleNeedSync;
+
+  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get the latest number. Try again once you\'re online.'**
+  String get moneySettleOffline;
+
+  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
+  ///
+  /// In en, this message translates to:
+  /// **'The shared book is already even. Nothing to settle.'**
+  String get moneySettleAlreadyEven;
+
+  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
+  ///
+  /// In en, this message translates to:
+  /// **'The amount just changed to {amount}. Check it, then tap again.'**
+  String moneySettleChanged(String amount);
 }
 
 class _AppLocalizationsDelegate

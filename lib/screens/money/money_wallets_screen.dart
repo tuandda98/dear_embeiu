@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../l10n/l10n.dart';
 import '../../models/money.dart';
 import '../../providers/money_provider.dart';
+import '../../services/analytics_service.dart';
+import '../../services/money_analytics.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/money_input.dart';
 import '../../utils/money_math.dart';
@@ -680,6 +682,15 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
             goalDeadline: _goal ? _deadline : null,
           ),
         );
+        // D27: type + book only, never the name or the amount.
+        if (_goal) {
+          AnalyticsService.instance.logMoneyGoalAdd(
+            widget.book,
+            hasDeadline: _deadline != null,
+          );
+        } else {
+          AnalyticsService.instance.logMoneyWalletAdd(widget.book, _type);
+        }
         if (mounted) Navigator.of(context).pop(l10n.moneyWalletCreated(name));
       } else {
         await money.updateWallet(widget.book, e.id, {
