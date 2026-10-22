@@ -6004,7 +6004,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arrivalDisclosureBody =>
-      'Dear Embeiu uses your location to let your partner know when you get Home or reach a place you saved, even when the app is closed or not in use. Addresses and coordinates stay on your phone. Your partner only sees the place name, the time and your battery level. You can turn this off anytime.';
+      'Dear Embeiu uses your location to let your partner know when you get to or leave Home or a place you saved, even when the app is closed or not in use. Addresses and coordinates stay on your phone. Your partner only sees the place name, when you arrived or left, and your battery level. You can turn this off anytime.';
 
   @override
   String arrivalPreviewLabel(String name) {

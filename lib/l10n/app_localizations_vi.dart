@@ -5754,7 +5754,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalDisclosureBody =>
-      'Dear Embeiu dùng vị trí để báo người ấy khi bạn về Nhà hoặc đến những nơi bạn đã lưu, kể cả khi app đã đóng hoặc không dùng. Địa chỉ và toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi đến, giờ và mức pin lúc đó. Bạn tắt lúc nào cũng được.';
+      'Dear Embeiu dùng vị trí để báo người ấy khi bạn đến hoặc rời Nhà và những nơi bạn đã lưu, kể cả khi app đã đóng hoặc không dùng. Địa chỉ và toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi, giờ đến, giờ rời và mức pin lúc đó. Bạn tắt lúc nào cũng được.';
 
   @override
   String arrivalPreviewLabel(String name) {

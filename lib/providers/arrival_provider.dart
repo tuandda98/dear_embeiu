@@ -55,6 +55,18 @@ class ArrivalProvider extends ChangeNotifier {
   ArrivalShare? _mine;
   ArrivalShare? _partner;
 
+  /// BUG-1: geofences and the `auto` flag only follow [autoRunning] once
+  /// both are known — my doc's first snapshot and the permission + remote
+  /// switch read by [onResume]. Before that "not running" just means "not
+  /// read yet", and acting on it stopped every region on each app launch.
+  bool _mineKnown = false;
+  bool _permsKnown = false;
+
+  /// Bumped by every [watchForCouple] / [clear]: a call that was overtaken
+  /// while Hive loaded stops there (BUG-3).
+  int _gen = 0;
+  Future<void>? _loading;
+
   bool _sending = false;
   ArrivalSendResult? _lastResult;
   String? _lastSlot;
@@ -149,12 +161,14 @@ class ArrivalProvider extends ChangeNotifier {
     if (_coupleId == coupleId && _uid == myUid && _partnerUid == partnerUid) {
       return;
     }
+    final gen = ++_gen;
     final sameUser = _uid == myUid;
     _coupleId = coupleId;
     _uid = myUid;
     _partnerUid = partnerUid;
     _cancelSubs();
     _mine = null;
+    _mineKnown = false;
     _partner = null;
     _lastResult = null;
     if (!sameUser) {
@@ -162,27 +176,37 @@ class ArrivalProvider extends ChangeNotifier {
       _sending = false;
       _places = const [ArrivalPlace.home()];
       notifyListeners();
-      final places = await _service.loadPlaces(myUid);
-      final wants = await _service.loadWantsAuto(myUid);
-      final autoPartner = await _service.loadAutoPartner(myUid);
-      if (_uid != myUid) return; // switched account while loading
-      _places = places;
-      _wantsAuto = wants;
-      _autoPartner = autoPartner;
-      _loaded = true;
+      _loading = _load(myUid);
     }
+    // Also waits for a load an overtaken call started (same user): the D10
+    // check below needs what Hive holds, not the defaults.
+    await _loading;
+    if (gen != _gen) return; // a newer call (or clear) took over
     // Review native #1 (D10): "Tự báo" was switched on for someone else —
-    // the new partner gets nothing until the user turns it on again.
-    if (_wantsAuto && partnerUid.isNotEmpty && _autoPartner != partnerUid) {
+    // the new partner gets nothing until the user turns it on again. Read
+    // the current fields, not the arguments (BUG-3).
+    final partner = _partnerUid;
+    if (_wantsAuto && partner.isNotEmpty && _autoPartner != partner) {
       if (_autoPartner == null) {
-        _autoPartner = partnerUid; // saved before partners were recorded
-        await _service.saveWantsAuto(myUid, true, partnerUid: partnerUid);
+        _autoPartner = partner; // saved before partners were recorded
+        await _service.saveWantsAuto(myUid, true, partnerUid: partner);
       } else {
         _wantsAuto = false;
         _autoPartner = null;
         await _service.saveWantsAuto(myUid, false);
       }
     }
+    if (partner.isNotEmpty) {
+      // BUG-4: a tap queued offline for the old partner may land as
+      // `share:true` for the new one. Dropping my doc (queued after it, so
+      // it wins) leaves sharing off until I turn it on again.
+      final last = await _service.loadSharePartner(myUid);
+      if (last != null && last != partner) {
+        unawaited(_service.send(() => _service.turnOff(coupleId, myUid)));
+      }
+      if (last != partner) await _service.saveSharePartner(myUid, partner);
+    }
+    if (gen != _gen) return;
     if (!visible) {
       // Waiting for a partner: nobody to tell. Nothing runs.
       await _service.saveSession(myUid, null);
@@ -195,6 +219,7 @@ class ArrivalProvider extends ChangeNotifier {
       s,
     ) {
       _mine = s;
+      _mineKnown = true;
       _clearQueuedIfAcked(s);
       notifyListeners();
       unawaited(_syncAuto());
@@ -210,9 +235,22 @@ class ArrivalProvider extends ChangeNotifier {
     await onResume();
   }
 
+  Future<void> _load(String uid) async {
+    final places = await _service.loadPlaces(uid);
+    final wants = await _service.loadWantsAuto(uid);
+    final autoPartner = await _service.loadAutoPartner(uid);
+    if (_uid != uid) return; // switched account while loading
+    _places = places;
+    _wantsAuto = wants;
+    _autoPartner = autoPartner;
+    _loaded = true;
+  }
+
   /// Drops the session and stops every geofence (nobody to send to).
   void clear({bool signedOut = false}) {
     final hadSession = _uid != null;
+    _gen++;
+    _loading = null;
     _cancelSubs();
     _uid = null;
     _coupleId = null;
@@ -222,6 +260,8 @@ class ArrivalProvider extends ChangeNotifier {
     _wantsAuto = false;
     _autoPartner = null;
     _mine = null;
+    _mineKnown = false;
+    _permsKnown = false;
     _partner = null;
     _sending = false;
     _lastResult = null;
@@ -244,6 +284,7 @@ class ArrivalProvider extends ChangeNotifier {
     final remote = await _service.readRemoteAutoEnabled();
     _hasAlways = always;
     _remoteAuto = remote;
+    _permsKnown = true;
     notifyListeners();
     await _syncAuto();
   }
@@ -443,11 +484,13 @@ class ArrivalProvider extends ChangeNotifier {
   }
 
   /// Geofences + the `auto` flag the partner's card reads follow
-  /// [autoRunning].
+  /// [autoRunning] — only once its inputs are known (BUG-1): never a stop or
+  /// an `auto:false` for "not read yet".
   Future<void> _syncAuto() async {
     final uid = _uid;
     final coupleId = _coupleId;
     if (uid == null || coupleId == null || !visible) return;
+    if (!_mineKnown || !_permsKnown) return;
     final running = autoRunning;
     if (running) {
       await _geofence.sync(placesWithLocation);
