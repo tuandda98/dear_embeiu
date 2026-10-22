@@ -30,3 +30,15 @@
 
 ## Nhật ký test
 - [<YYYY-MM-DD>] [Tester] <đã test gì / kết quả>
+
+## [2026-10-22] [Tester] Nghiệm thu code-level — PASS có điều kiện
+`feature/daily-open-2`: analyze 0 · caro 59/59 + liên quan 81/81 · functions 99/99 · rules-test (Lead) 513 pass. Không có High; chống gian lận, race start, guard rps cho app cũ, dọn khi rời couple, i18n 142 key đều đạt.
+- CARO-T1 [Low] `caro_game_screen.dart:411` — lỗi network/send/action không tự tắt khi nước đi đã vào bàn.
+- CARO-T2 [Low] `push_notification_service.dart:869` — banner trong app id ngẫu nhiên, không gộp theo ván.
+- CARO-T3 [Low] `functions/index.js:3134-3194,3281` — start→cancel lặp lại spam push/inbox/wake người ấy.
+- CARO-T4 [Low] `home_widget_status.dart:343` — xin thua/huỷ/hết hạn không đánh thức → widget còn "đến lượt mình".
+- CARO-T5 [Low] `caro_game_screen.dart:425-433` — `caro_game_ended` chỉ log ở máy đang mở màn ván → metric lệch.
+- CARO-T6 [Low, tài liệu] `overview.md:114` D18 — lệnh deploy PROD thiếu `functions:leaveCoupleCleanup,functions:deleteAccount`.
+- CARO-T7 [Low] `functions/index.js:3172-3174,3381-3388` — `lastWakeAt` ghi cả khi lời mời gửi không đánh thức.
+- CARO-T8 [nghi ngờ] ghép lại đúng couple cũ → tỉ số 0–0 nhưng lịch sử còn ván cũ.
+Cần smoke: 2 máy cùng "Ván mới" · realtime ≤2s · gộp thông báo 1/ván · widget đánh thức · presence iOS xuống nền · app 1.11.0 song song · rời couple giữa ván · a11y · mất mạng giữa nước đi.

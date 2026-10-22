@@ -30,3 +30,16 @@
 
 ## Nhật ký test
 - [<YYYY-MM-DD>] [Tester] <đã test gì / kết quả>
+
+## [2026-10-22] [Tester] Nghiệm thu mốc A code-level — FAIL (1 High) → High đã vá
+`feature/daily-open-2`: analyze 0 · 4 file test money 119 pass · functions 99 pass · rules-test (Lead) 513 pass.
+- [High ✅ vá `2b4d289`] `money_home_entry.dart:93` + `money_provider.dart:336` — Home gọi aggregate số dư ~1 vòng/giây không dừng ((2×số ví + 2) truy vấn/vòng). Lead xác nhận + sửa: `refreshDay()` chỉ dời cửa sổ khi sang ngày, resume gọi `onResume()` tính lại tổng 1 lần. Cần kiểm Firestore usage trên máy thật.
+- [Med] `settle_sheet.dart:77,119,137` — 2 máy cùng "Trả hết" / số cân bằng từ cache → 2 khoản settle, cân bằng lật dấu.
+- [Med] `add_transaction_sheet.dart:251-257,657-689` + `money_provider.dart:806-818` — người tạo đổi "Ai trả" khoản có `linkId` → trừ 2 lần (ví chung + ví riêng).
+- [Med] `money_analytics.dart` — thiếu `money_tx_edit`, `money_tx_delete{undone}`, `money_wallet_add`, `money_goal_add`; `money_report_open.view` thiếu `wallet|person`.
+- [Low] `money_budgets_screen.dart:609-614` — Bỏ ngân sách → Hoàn tác mất `alerted` → push 80/100% lặp.
+- [Low] `money_math.dart:362` + `money_screen.dart:1220` — dải "{partner} đã đổi khoản chung" hiện cả khi chính mình đổi.
+- [Low] `money_provider.dart:478-486,242-246` — nửa liên kết vẫn hiện 5 giây chờ xoá.
+- [Low] `money_flows.dart:51` — quỹ "Quy Nhơn" → "Lên lịch đi Nhơn thôi".
+- [nghi ngờ, PO quyết] parser `"1tr2500"` → 1.250.000.
+Cần smoke: aggregate chỉ chạy lúc mở/resume/0:00 · index DEV ra số · 3 loại push CF · 2 máy thanh toán/sửa/offline · người mới ghép vào bị permission-denied sổ cũ · nhắc tối 1210/1211 · app 1.11.0 nhận money_*.

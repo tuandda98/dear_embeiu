@@ -30,3 +30,17 @@
 
 ## Nhật ký test
 - [<YYYY-MM-DD>] [Tester] <đã test gì / kết quả>
+
+## [2026-10-22] [Tester] Nghiệm thu code-level — PASS có điều kiện
+`feature/daily-open-2`: analyze 0 · 4 file test weather 81 pass · functions 99 pass · rules-test (Lead) 513 pass. Không có High.
+- [Med] Spike D3 (độ chính xác báo mưa VN) chưa làm — AC §9 dòng 1.
+- [Med] Privacy policy (`phase3`) chưa nhắc thành phố/MET Norway; chưa khai Coarse Location (ASC) / Vị trí gần đúng (Play).
+- [Low] `lib/utils/weather_logic.dart:284` — số của mình cũ/hỏng làm ẩn nút nhắc ở làn người ấy dù số người ấy còn tươi.
+- [Low] `weather_provider.dart:261` — người ấy rời lúc app tắt thì thông báo 07:30 đã arm vẫn nổ về người cũ (1 lần).
+- [Low] `weather_notice_log` không xoá khi đăng xuất → tài khoản sau bị tính chung trần 3/7.
+- [Low] `weather_sheets.dart:805` — `weather_city_set` log trước khi biết ghi thành công.
+- [Low] `getCityWeather` không giới hạn theo user / App Check.
+- [Low] `weather_card.dart:215` — câu tình trạng chỉ tính lại khi build hoặc 0:00 giờ máy.
+- [Low] Copy `weatherCareUmbrellaBody` "sắp mưa" cả khi đang mưa.
+- [Low] Hive `weather_cache` nằm trong thư mục được sao lưu.
+Cần smoke: chọn giúp realtime 2 máy · 1 lượt MET/thành phố/30' trên log CF · 1160 nổ thật + chạm 3 trạng thái app · máy bay 3 mức cache · app 1.11.0 song song · rời couple xoá doc.
