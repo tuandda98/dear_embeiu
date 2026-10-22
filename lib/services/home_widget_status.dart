@@ -289,6 +289,22 @@ abstract final class HomeWidgetStatus {
       if (leftMs <= 0) return none(now);
       return {...none(now), 'statusAt': '$leftMs', 'clearIfOlder': '1'};
     }
+    // ── caro-game (đợt 2) ── A game ended by the other player (resign,
+    // cancel, end a stale game — CF wake, CARO-T4): the "đến lượt mình" line
+    // must go. Native keeps a line NEWER than the end, and `onlyIfKind`
+    // leaves any line that isn't the caro one (mood, chat…) alone.
+    if (v('type') == 'caro_ended' || v('type') == 'caro_result') {
+      final endMs =
+          int.tryParse(v('sentAt')) ??
+          sentAt?.millisecondsSinceEpoch ??
+          now.millisecondsSinceEpoch;
+      return {
+        ...none(now),
+        'statusAt': '$endMs',
+        'onlyIfNewer': '1',
+        'onlyIfKind': caroTurn,
+      };
+    }
     final sentMs = int.tryParse(v('sentAt'));
     final sent =
         (sentMs != null && sentMs > 0

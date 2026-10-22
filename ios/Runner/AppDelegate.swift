@@ -341,7 +341,13 @@ final class HomeWidgetChannel {
         // and remember the leave as `clearedAt` so a late push from before it
         // can't bring the old partner's line back.
         let clearIfOlder = status.removeValue(forKey: "clearIfOlder") == "1"
+        // caro end (CARO-T4): replace only the line of this kind.
+        let onlyIfKind = status.removeValue(forKey: "onlyIfKind")
         let stored = groupDefaults?.dictionary(forKey: statusKey) as? [String: String] ?? [:]
+        if let kind = onlyIfKind, stored["statusKind"] != kind {
+          result(nil)
+          return
+        }
         let storedAt = Int64(stored["statusAt"] ?? "") ?? 0
         let incomingAt = Int64(status["statusAt"] ?? "") ?? 0
         let clearedAt = Int64(stored["clearedAt"] ?? "") ?? 0
