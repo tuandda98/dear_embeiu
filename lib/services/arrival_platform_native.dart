@@ -218,6 +218,9 @@ class NativeArrivalGeofence implements ArrivalGeofence {
   final ArrivalPermissions permissions;
   Future<void>? _init;
 
+  /// [sync] re-created the Android regions in this process already.
+  static bool _reCreated = false;
+
   static const Duration androidDwell = Duration(minutes: 2);
 
   Future<void> _ready() => _init ??= NativeGeofenceManager.instance
@@ -267,9 +270,13 @@ class NativeArrivalGeofence implements ArrivalGeofence {
       // from Play services: Force stop, clearing Play services data or
       // turning location off drops the regions while the prefs still list
       // them. Re-adding every region with the same id replaces it (no
-      // duplicate) and, with no initial trigger, fires nothing.
-      if (Platform.isAndroid && wanted.isNotEmpty) {
+      // duplicate) and, with no initial trigger, fires nothing. Once per
+      // process (cold start): re-adding also restarts a pending 2' DWELL, so
+      // doing it on every resume lost the "đã về" of someone who opened the
+      // app right at the door (BUG-1).
+      if (Platform.isAndroid && wanted.isNotEmpty && !_reCreated) {
         await manager.reCreateAfterReboot();
+        _reCreated = true;
       }
     } catch (e) {
       // Permission lowered meanwhile, plugin error: the provider re-checks

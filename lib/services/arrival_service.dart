@@ -94,6 +94,7 @@ class ArrivalService {
       'places:$uid',
       'edge:$uid',
       'settings:$uid',
+      'sharePartner:$uid',
       if (session is Map && session['uid'] == uid) 'session',
     ]);
   }
@@ -172,6 +173,17 @@ class ArrivalService {
     final partner = raw is Map ? raw['partner'] : null;
     return partner is String && partner.isNotEmpty ? partner : null;
   }
+
+  /// The partner this phone last watched arrival for (BUG-4): a different
+  /// one on the next launch means the couple changed, so the provider drops
+  /// my doc in case a tap queued offline shared it with the new partner.
+  Future<String?> loadSharePartner(String uid) async {
+    final raw = (await _box()).get('sharePartner:$uid');
+    return raw is String && raw.isNotEmpty ? raw : null;
+  }
+
+  Future<void> saveSharePartner(String uid, String partnerUid) async =>
+      (await _box()).put('sharePartner:$uid', partnerUid);
 
   /// Who is signed in + their couple, for the geofence background callback
   /// (stage 2), which has no providers. Null coupleId = nowhere to send.

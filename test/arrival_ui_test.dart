@@ -80,6 +80,12 @@ class _Service extends FakeArrivalService {
 
   @override
   Future<void> clearSession() async {}
+
+  @override
+  Future<String?> loadSharePartner(String uid) async => null;
+
+  @override
+  Future<void> saveSharePartner(String uid, String partnerUid) async {}
 }
 
 class _Search implements PlaceSearch {

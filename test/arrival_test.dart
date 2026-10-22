@@ -68,8 +68,17 @@ class FakeGeofence implements ArrivalGeofence {
   bool always = false;
   final calls = <String>[];
 
+  /// Completes when the permission is first asked; [hold] keeps the answer
+  /// back (a slow OS read at launch, BUG-1).
+  final asked = Completer<void>();
+  Completer<void>? hold;
+
   @override
-  Future<bool> hasAlwaysPermission() async => always;
+  Future<bool> hasAlwaysPermission() async {
+    if (!asked.isCompleted) asked.complete();
+    await hold?.future;
+    return always;
+  }
 
   @override
   Future<void> sync(List<ArrivalPlace> places) async =>
@@ -476,6 +485,67 @@ void main() {
         expect(geofence.calls.last, 'stop');
       },
     );
+
+    test(
+      'opening the app while "Tự báo" runs: no stop, no auto:false (BUG-1)',
+      () async {
+        final first = make();
+        await first.watchForCouple('c', 'me', 'her');
+        await first.savePlace(ArrivalPlace.home(location: _loc()));
+        geofence.always = true;
+        await first.setWantsAuto(true);
+        first.dispose();
+        // Cold launch: the cached doc arrives before the permission read.
+        geofence = FakeGeofence()
+          ..always = true
+          ..hold = Completer<void>();
+        service.calls.clear();
+        final p = make();
+        final watching = p.watchForCouple('c', 'me', 'her');
+        await geofence.asked.future;
+        service.share('me').add(const ArrivalShare(share: true, auto: true));
+        await pumpEventQueue();
+        expect(geofence.calls, isEmpty);
+        geofence.hold!.complete();
+        await watching;
+        await pumpEventQueue();
+        expect(geofence.calls, ['sync home']);
+        expect(service.calls, isEmpty);
+        expect(p.autoRunning, isTrue);
+      },
+    );
+
+    test('two overlapping watches while Hive loads keep D10 (BUG-3)', () async {
+      final first = make();
+      await first.watchForCouple('c', 'me', 'her');
+      await first.setWantsAuto(true);
+      first.dispose();
+      final p = make();
+      final stale = p.watchForCouple('c', 'me', 'her');
+      await p.watchForCouple('c', 'me', 'him'); // partner changed meanwhile
+      await stale;
+      expect(p.wantsAuto, isFalse);
+      expect(await service.loadWantsAuto('me'), isFalse);
+    });
+
+    test('a new partner: my doc is dropped once (BUG-4)', () async {
+      final first = make();
+      await first.watchForCouple('c', 'me', 'her');
+      expect(service.calls, isEmpty); // first launch: nothing to drop
+      first.dispose();
+      final again = make();
+      await again.watchForCouple('c', 'me', 'her');
+      expect(service.calls, isEmpty); // same partner
+      again.dispose();
+      final p = make();
+      await p.watchForCouple('c', 'me', 'him');
+      await pumpEventQueue();
+      expect(service.calls, ['off']);
+      final restart = make();
+      await restart.watchForCouple('c', 'me', 'him');
+      await pumpEventQueue();
+      expect(service.calls, ['off']);
+    });
 
     test('a new partner must opt in to "Tự báo" again (D10)', () async {
       final p = make();
