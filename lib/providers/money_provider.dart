@@ -7,6 +7,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../data/money_categories.dart';
 import '../l10n/app_l10n.dart';
 import '../models/money.dart';
+import '../services/analytics_service.dart';
+import '../services/money_analytics.dart';
 import '../services/money_service.dart';
 import '../utils/money_math.dart';
 
@@ -155,9 +157,20 @@ class MoneyProvider extends ChangeNotifier {
 
   final Map<
     String,
-    ({MoneyBookKind kind, MoneyTx tx, MoneyTx? linked, Timer timer})
+    ({
+      MoneyBookKind kind,
+      MoneyTx tx,
+      MoneyTx? linked,
+      Timer timer,
+      bool byUser,
+    })
   >
   _pendingDeletes = {};
+
+  /// '{kind}/{budgetId}' → a budget removed in its undo window (Tester Low:
+  /// delete-then-recreate lost `alerted` → the 80/100 % push again).
+  final Map<String, ({MoneyBudget budget, Timer timer})> _pendingBudgetDeletes =
+      {};
 
   /// 'own/{txId}' or 'shared/{txId}' → writes the server sums may not count
   /// yet.
@@ -230,22 +243,33 @@ class MoneyProvider extends ChangeNotifier {
   /// as [MoneyLocalWrite]s for [MoneyMath.localCorrection].
   List<MoneyLocalWrite> _localWritesOf(MoneyBookKind kind) {
     final out = <MoneyLocalWrite>[];
+    final hidden = _hiddenOf(kind);
     final seen = <String>{};
     for (final e in _localWrites.entries) {
       final w = e.value;
       if (w.kind != kind) continue;
       final id = e.key.substring(kind.name.length + 1);
       seen.add(id);
-      final hidden = _pendingDeletes[id]?.kind == kind;
-      out.add((before: w.before, after: hidden ? null : w.after));
+      out.add((
+        before: w.before,
+        after: hidden.containsKey(id) ? null : w.after,
+      ));
     }
-    for (final d in _pendingDeletes.values) {
-      if (d.kind == kind && !seen.contains(d.tx.id)) {
-        out.add((before: d.tx, after: null));
-      }
+    for (final h in hidden.entries) {
+      if (!seen.contains(h.key)) out.add((before: h.value, after: null));
     }
     return out;
   }
+
+  /// Entries of [kind] in their undo window (id → the copy being deleted):
+  /// the deleted entry itself, or the other book's half deleted with it.
+  Map<String, MoneyTx> _hiddenOf(MoneyBookKind kind) => {
+    for (final d in _pendingDeletes.values)
+      if (d.kind == kind)
+        d.tx.id: d.tx
+      else if (d.linked != null)
+        d.linked!.id: d.linked!,
+  };
 
   void _dropLocalWrites(MoneyBookKind kind) =>
       _localWrites.removeWhere((_, w) => w.kind == kind);
@@ -374,7 +398,10 @@ class MoneyProvider extends ChangeNotifier {
     );
     s.subs.add(
       s.service.watchBudgets().listen((b) {
-        s.budgets = b;
+        s.budgets = [
+          for (final x in b)
+            if (!_pendingBudgetDeletes.containsKey('${s.kind.name}/${x.id}')) x,
+        ];
         notifyListeners();
       }, onError: fail),
     );
@@ -486,10 +513,11 @@ class MoneyProvider extends ChangeNotifier {
   List<MoneyTx> visibleTxs(MoneyBookKind kind) {
     final s = book(kind);
     if (s == null) return const <MoneyTx>[];
-    if (_pendingDeletes.isEmpty) return s.txs;
+    final hidden = _hiddenOf(kind);
+    if (hidden.isEmpty) return s.txs;
     return [
       for (final t in s.txs)
-        if (!_pendingDeletes.containsKey(t.id)) t,
+        if (!hidden.containsKey(t.id)) t,
     ];
   }
 
@@ -519,6 +547,18 @@ class MoneyProvider extends ChangeNotifier {
           _localWritesOf(MoneyBookKind.shared),
           (t) => MoneyMath.coupleBalance([t], uid),
         );
+  }
+
+  /// "Đánh dấu đã thanh toán" (Tester Med): re-reads the sums from the
+  /// server now and returns [coupleBalance] from them — null when the read
+  /// failed (offline), so a settle never goes out on a cached number.
+  Future<int?> refreshCoupleBalance() async {
+    final s = _shared;
+    if (s == null) return null;
+    s.sumsDebounce?.cancel();
+    await _refreshSums(s);
+    if (!identical(_shared, s) || s.netSumsStale) return null;
+    return coupleBalance();
   }
 
   /// Balances are known (server aggregate or a cached copy).
@@ -803,6 +843,15 @@ class MoneyProvider extends ChangeNotifier {
   }) async {
     final s = book(kind), uid = _uid;
     if (s == null || uid == null) throw StateError('money-no-book');
+    // A shared entry with an own-book half (D11): who paid / which wallet
+    // stay as written, else the money leaves twice (Tester Med — the sheet
+    // locks these chips; this is the backstop).
+    if (old.linkId != null &&
+        old.memberUids.isNotEmpty &&
+        (updated.payer != old.payer ||
+            updated.outWalletId != old.outWalletId)) {
+      throw StateError('money-linked-payer');
+    }
     final linked = alsoLinked ? await linkedOf(kind, old) : null;
     final otherBook = linked == null
         ? null
@@ -863,13 +912,21 @@ class MoneyProvider extends ChangeNotifier {
   /// Hides [tx] at once and deletes it after [deleteDelay] unless
   /// [undoDelete] runs first (D13: nothing reaches Firestore within the
   /// undo window). [alsoLinked] deletes the other book's half too.
-  void scheduleDelete(MoneyBookKind kind, MoneyTx tx, {MoneyTx? alsoLinked}) {
+  /// [byUser] = the user's "Xoá" (logs `money_tx_delete`), not the undo of
+  /// a save.
+  void scheduleDelete(
+    MoneyBookKind kind,
+    MoneyTx tx, {
+    MoneyTx? alsoLinked,
+    bool byUser = false,
+  }) {
     _pendingDeletes.remove(tx.id)?.timer.cancel();
     _pendingDeletes[tx.id] = (
       kind: kind,
       tx: tx,
       linked: alsoLinked,
       timer: Timer(deleteDelay, () => unawaited(_commitDelete(tx.id))),
+      byUser: byUser,
     );
     notifyListeners();
   }
@@ -879,6 +936,9 @@ class MoneyProvider extends ChangeNotifier {
     final pending = _pendingDeletes.remove(txId);
     if (pending == null) return false;
     pending.timer.cancel();
+    if (pending.byUser) {
+      AnalyticsService.instance.logMoneyTxDelete(pending.kind, undone: true);
+    }
     notifyListeners();
     return true;
   }
@@ -888,6 +948,9 @@ class MoneyProvider extends ChangeNotifier {
   Future<void> _commitDelete(String txId) async {
     final d = _pendingDeletes.remove(txId);
     if (d == null) return;
+    if (d.byUser) {
+      AnalyticsService.instance.logMoneyTxDelete(d.kind, undone: false);
+    }
     final s = book(d.kind);
     final linked = d.linked;
     final otherBook = linked == null
@@ -932,6 +995,11 @@ class MoneyProvider extends ChangeNotifier {
       if (kind != null && d.kind != kind) continue;
       d.timer.cancel();
       sent.add(_commitDelete(id));
+    }
+    for (final key in _pendingBudgetDeletes.keys.toList()) {
+      if (kind != null && !key.startsWith('${kind.name}/')) continue;
+      _pendingBudgetDeletes[key]!.timer.cancel();
+      sent.add(_commitBudgetDelete(key));
     }
     return sent;
   }
@@ -987,11 +1055,12 @@ class MoneyProvider extends ChangeNotifier {
     }
     if (s.viewMonth == month) {
       final v = s.viewTxs;
+      final hidden = _hiddenOf(kind);
       return v == null
           ? null
           : [
               for (final t in v)
-                if (!_pendingDeletes.containsKey(t.id)) t,
+                if (!hidden.containsKey(t.id)) t,
             ];
     }
     return null;
@@ -1041,8 +1110,13 @@ class MoneyProvider extends ChangeNotifier {
   }) {
     final s = book(kind), uid = _uid;
     if (s == null || uid == null) throw StateError('money-no-book');
+    // Set again inside the undo window of its "Bỏ": keep the doc, edit it.
+    final removed = _pendingBudgetDeletes.remove(
+      '${kind.name}/${MoneyBudget.idFor(categoryId)}',
+    );
+    removed?.timer.cancel();
     return s.service.setBudget(
-      id: budgetFor(kind, categoryId)?.id,
+      id: budgetFor(kind, categoryId)?.id ?? removed?.budget.id,
       categoryId: categoryId,
       amount: amount,
       uid: uid,
@@ -1053,6 +1127,48 @@ class MoneyProvider extends ChangeNotifier {
     final s = book(kind);
     if (s == null) throw StateError('money-no-book');
     return s.service.deleteBudget(id);
+  }
+
+  /// "Bỏ ngân sách": hidden at once, deleted after [deleteDelay] unless
+  /// [undoBudgetDelete] runs first — the doc (and its `alerted` marks) stays
+  /// as it was on undo, so the 80/100 % push doesn't fire twice.
+  void scheduleBudgetDelete(MoneyBookKind kind, MoneyBudget budget) {
+    final s = book(kind);
+    if (s == null) return;
+    final key = '${kind.name}/${budget.id}';
+    _pendingBudgetDeletes.remove(key)?.timer.cancel();
+    _pendingBudgetDeletes[key] = (
+      budget: budget,
+      timer: Timer(deleteDelay, () => unawaited(_commitBudgetDelete(key))),
+    );
+    s.budgets = [
+      for (final b in s.budgets)
+        if (b.id != budget.id) b,
+    ];
+    notifyListeners();
+  }
+
+  bool undoBudgetDelete(MoneyBookKind kind, String id) {
+    final pending = _pendingBudgetDeletes.remove('${kind.name}/$id');
+    if (pending == null) return false;
+    pending.timer.cancel();
+    final s = book(kind);
+    if (s != null && !s.budgets.any((b) => b.id == id)) {
+      s.budgets = [...s.budgets, pending.budget];
+    }
+    notifyListeners();
+    return true;
+  }
+
+  Future<void> _commitBudgetDelete(String key) async {
+    final d = _pendingBudgetDeletes.remove(key);
+    if (d == null) return;
+    final kind = MoneyBookKind.values.byName(key.split('/').first);
+    try {
+      if (book(kind) != null) await deleteBudget(kind, d.budget.id);
+    } catch (e) {
+      debugPrint('money: delete budget failed: $e');
+    }
   }
 
   /// Merge-write category tweaks: `customCategories` (list of
@@ -1230,6 +1346,9 @@ class MoneyProvider extends ChangeNotifier {
   void dispose() {
     if (identical(_current, this)) _current = null;
     for (final d in _pendingDeletes.values) {
+      d.timer.cancel();
+    }
+    for (final d in _pendingBudgetDeletes.values) {
       d.timer.cancel();
     }
     _own?.dispose();

@@ -7693,4 +7693,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String moneyNotifBudgetSub(String month) {
     return 'Sổ chung · $month';
   }
+
+  @override
+  String get moneyLinkedPayerLocked =>
+      'Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.';
+
+  @override
+  String get moneySettleNeedSync => 'Tải số mới nhất';
+
+  @override
+  String get moneySettleOffline =>
+      'Chưa lấy được số mới nhất. Có mạng rồi thử lại nhé.';
+
+  @override
+  String get moneySettleAlreadyEven =>
+      'Sổ chung đã cân bằng rồi, không cần thanh toán nữa.';
+
+  @override
+  String moneySettleChanged(String amount) {
+    return 'Số cần trả vừa đổi thành $amount. Xem lại rồi bấm lần nữa nhé.';
+  }
 }

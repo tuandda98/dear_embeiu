@@ -358,11 +358,13 @@ class MoneyMath {
   }
 
   /// The partner changed the shared side of a linked pair (D11): the shared
-  /// amount when it no longer matches [own], else null.
+  /// amount when it no longer matches [own], else null. My own "Chỉ sổ
+  /// chung" edit is not the partner's change (no banner).
   static int? linkedDrift(MoneyTx own, MoneyTx? shared) =>
       shared != null &&
           shared.linkId == own.linkId &&
           shared.createdBy == own.createdBy &&
+          shared.updatedBy != own.createdBy &&
           shared.amount != own.amount
       ? shared.amount
       : null;

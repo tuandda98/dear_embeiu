@@ -310,3 +310,21 @@ Quỹ: 40% + còn 3.000.000 + ~1.000.000/tháng (Oct→Jan) · đủ 100% / quá
 - [2026-10-20] [Dev] Khớp UI với bản vá review stage 1 (`16a2c3c`): cân bằng ở thẻ ba làn lấy `coupleBalance()` (null = skeleton), ba làn tính trên khoản của tháng; sổ chung chuyển ví / sửa số dư trừ ví đặt `payer: 'wallet'`; thẻ "Ghi khoản đầu tiên" theo cờ `everLogged` (`hasAnyTx` limit(1)). Test đặt `netSums` / `coupleNet` / `netSumsAt` / `windowFrom`; +2 test (người mới vs ngừng ghi lâu, chuyển ở sổ chung = ví trả). `flutter analyze` 0, `flutter test` 718 pass.
 - [2026-10-20] [Dev] Stage 3A: `MoneyBudgetsScreen` + sheet đặt/bỏ ngân sách, `MoneyReportScreen` (biểu đồ tự vẽ `CustomPaint`, tháng cũ qua `viewMonth`, xu hướng qua aggregate), `MoneySearchScreen` (không dấu, lọc, 12 tháng, capped, tô phần khớp), mở lại lối ⌕ / Báo cáo › / Ngân sách › / Đặt › / Tất cả › + menu; analytics `money_budget_set` / `money_report_open` / `money_search`; +71 key ARB. `flutter analyze` 0, `flutter test` 737 pass (19 mới). Chưa deploy, chưa chạy máy.
 - [2026-10-20] [Dev] Stage 3B (`feature/expenses-b`): màn Quỹ + sheet Góp, sheet Thanh toán + thẻ Vì sao, Ghi chi ở decision-wheel, nhắc tối 1210–1211, push/inbox `money_*` (2 chỗ dùng chung `routeMoney`), ô Sổ tiền ở Profile + Cài đặt, analytics. +65 key ARB. `flutter analyze` 0, `flutter test` 738 pass (20 mới). Chưa deploy, chưa chạy máy.
+
+## Sửa theo Tester 2026-10-22 (mốc A, nhánh `feature/expenses`)
+
+| # | Mức | Sửa thế nào | Test |
+|---|---|---|---|
+| 1 | Med | Thanh toán: sổ chung `netSumsStale` → nút thành "Tải số mới nhất" (chỉ tải, không ghi). Bấm Lưu → `MoneyProvider.refreshCoupleBalance()` đọc lại `paidSums` từ server (qua `_refreshSums`, lỗi mạng trả null). Số khác `_plan` → sheet cập nhật số + dòng "Số cần trả vừa đổi thành …", không ghi; về 0 → đóng sheet "Sổ chung đã cân bằng rồi…"; mất mạng → dòng báo, không ghi (`settle_sheet.dart` `_recheck` / `_resync`). Còn khe: 2 máy bấm cùng giây vẫn đọc được cùng một số (rules không thấy số dư) | stage3b: số đổi, về 0 / mất mạng / lật dấu, số cache |
+| 2 | Med | `_payerLocked` = mọi khoản chung có `linkId` (cả người tạo): khoá "Ai trả" + chip ví, thêm dòng "Khoản này đã trừ vào ví của mình nên không đổi người trả được…". Số tiền / cách chia / ngày / ghi chú vẫn sửa được. Chặn thêm ở `updateTx`: khoản chung có `linkId` đổi `payer` hoặc `outWalletId` → `StateError('money-linked-payer')` | ui_test: khoá khi có link, mở khi không link, `updateTx` từ chối |
+| 3 | Med | `MoneyAnalytics` thêm `money_tx_edit{book}` (sau khi lưu sửa), `money_tx_delete{book, undone}` (log 1 lần: Hoàn tác → `undone: true`, hết 5 giây → `false`; chỉ khi người dùng bấm Xoá — `scheduleDelete(byUser: true)`, hoàn tác sau Lưu không tính), `money_wallet_add{book, type}`, `money_goal_add{book, has_deadline}` (sheet tạo ví; quỹ log goal thay vì wallet; ví khởi đầu không log). `money_report_open.view` giữ `month|trend`: "theo ví" / "theo người" là thẻ trong cùng màn báo cáo, không có màn riêng | — (logEvent no-op khi test) |
+| 4 | Low | Bỏ ngân sách → `scheduleBudgetDelete` ẩn ngay, xoá sau 5 giây; Hoàn tác `undoBudgetDelete` giữ nguyên doc (cả `alerted`). Đặt lại cùng ngân sách trong 5 giây → huỷ lệnh xoá, sửa doc cũ. Đăng xuất / rời cặp → gửi lệnh xoá ngay (`_flushDeletes`) | stage3a sửa ca cũ + ui_test |
+| 5 | Low | `MoneyMath.linkedDrift` thêm `shared.updatedBy != own.createdBy`: tự mình chọn "Chỉ sổ chung" không hiện dải "{partner} đã đổi…" | money_test |
+| 6 | Low | `_hiddenOf(kind)`: khoản chờ xoá + nửa liên kết xoá cùng; `visibleTxs`, `txsForMonth` (tháng cũ), `_localWritesOf` (số dư) dùng chung → nửa ở sổ riêng biến mất ngay và ví được trả tiền lại | ui_test |
+| 7 | Low | `moneyTripName` bỏ `quy` không dấu khỏi regex ("Quy Nhơn" giữ nguyên, "Quỹ Quy Nhơn" → "Quy Nhơn") | stage3b |
+
+**ARB mới (vi + en):** `moneyLinkedPayerLocked`, `moneySettleNeedSync`, `moneySettleOffline`, `moneySettleAlreadyEven`, `moneySettleChanged`. UI UX Pro Max (ux: disabled states, error placement): dòng báo đặt ngay trên nút, `Semantics(liveRegion)`; pill khoá dùng trạng thái mờ có sẵn của `SegmentedPill`.
+
+**Không đụng** rules / index / functions ⇒ không cần deploy thêm.
+
+- [2026-10-22] [Dev] Sửa 7 mục Tester (bảng trên; bỏ parser "1tr2500" chờ PO). `flutter analyze` 0, `flutter test test/money*` 127 pass (+8), `flutter test` toàn bộ 1009 pass. Chưa deploy.

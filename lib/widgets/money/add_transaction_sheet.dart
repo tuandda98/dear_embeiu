@@ -256,6 +256,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         e.createdBy != _money.uid;
   }
 
+  /// Any shared entry with an own-book half, mine included: "Ai trả" and
+  /// the wallet stay as written, else the money leaves twice (shared
+  /// wallet + my wallet). Amount / split / date / note stay editable.
+  bool get _payerLocked {
+    final e = _editing;
+    return e != null && e.memberUids.isNotEmpty && e.linkId != null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -687,6 +695,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           }
         }
         await money.updateTx(kind, old, draft, alsoLinked: alsoLinked);
+        AnalyticsService.instance.logMoneyTxEdit(kind);
         HapticFeedback.lightImpact();
         if (!mounted) return;
         Navigator.of(context).pop(_SheetResult(l10n.moneySavedEdit));
@@ -857,7 +866,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         if (choice == 'both') alsoLinked = linked;
       }
     }
-    money.scheduleDelete(kind, e, alsoLinked: alsoLinked);
+    money.scheduleDelete(kind, e, alsoLinked: alsoLinked, byUser: true);
     if (!mounted) return;
     Navigator.of(context).pop(
       _SheetResult(
@@ -1271,6 +1280,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     bool withNone = false,
   }) {
     final l10n = context.l10n;
+    final locked = _locked || (_shared && _payerLocked);
     return MoneyChipRow(
       children: [
         for (final w in wallets)
@@ -1279,14 +1289,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             emoji: w.emoji,
             label: w.name,
             selected: w.id == selected,
-            onTap: _locked ? null : () => onPick(w.id),
+            onTap: locked ? null : () => onPick(w.id),
           ),
         if (withNone)
           MoneyChip(
             radio: true,
             label: l10n.moneyNoDeduct,
             selected: (selected ?? '').isEmpty,
-            onTap: _locked ? null : () => onPick(''),
+            onTap: locked ? null : () => onPick(''),
           ),
       ],
     );
@@ -1448,7 +1458,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           SegmentedPill<_Payer>(
             height: 44,
             onSurface: true,
-            enabled: !_locked,
+            enabled: !_payerLocked,
             values: _Payer.values,
             selected: _payer,
             labelOf: (p) => switch (p) {
@@ -1465,6 +1475,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             }),
           ),
         );
+      if (_payerLocked && !_locked) {
+        children.add(_shareLine(l10n.moneyLinkedPayerLocked));
+      }
       if (_payer == _Payer.wallet) {
         children.add(_shareLine(l10n.moneyNoOneOwes));
       } else {

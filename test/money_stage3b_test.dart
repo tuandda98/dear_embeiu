@@ -74,8 +74,24 @@ class _Money extends MoneyProvider {
   }
 
   @override
-  void scheduleDelete(MoneyBookKind kind, MoneyTx tx, {MoneyTx? alsoLinked}) =>
-      deleted.add(tx.id);
+  void scheduleDelete(
+    MoneyBookKind kind,
+    MoneyTx tx, {
+    MoneyTx? alsoLinked,
+    bool byUser = false,
+  }) => deleted.add(tx.id);
+
+  /// What the server says when the settle sheet re-checks; unset = the
+  /// number the sheet opened with. `null` inside = offline.
+  ({int? balance})? fresh;
+  int rechecks = 0;
+
+  @override
+  Future<int?> refreshCoupleBalance() async {
+    rechecks++;
+    final f = fresh;
+    return f == null ? coupleBalance() : f.balance;
+  }
 
   @override
   void refreshDay() {}
@@ -267,6 +283,10 @@ void main() {
       expect(moneyTripName('Quỹ Đà Lạt'), 'Đà Lạt');
       expect(moneyTripName('Da Lat fund'), 'Da Lat');
       expect(moneyTripName('Laptop mới'), 'Laptop mới');
+      // "Quy Nhơn" is a city, not "Quỹ Nhơn" (Tester Low).
+      expect(moneyTripName('Quy Nhơn'), 'Quy Nhơn');
+      expect(moneyTripName('Quỹ Quy Nhơn'), 'Quy Nhơn');
+      expect(moneyTripName('quỹ Quy Nhơn'), 'Quy Nhơn');
     });
 
     test('history: server rows + live window, newest first, minus undo', () {
@@ -438,6 +458,87 @@ void main() {
       await tester.pumpAndSettle();
       expect(money.added.single.tx.amount, 179500);
       expect(money.added.single.own, isNull);
+    });
+
+    testWidgets('number changed on the server: sheet updates, no write', (
+      tester,
+    ) async {
+      final money = await openSettle(tester);
+      // The partner settled 159.000 on her phone meanwhile.
+      money.fresh = (balance: 200000);
+      await tester.tap(find.text('Đánh dấu đã thanh toán'));
+      await tester.pumpAndSettle();
+      expect(money.added, isEmpty);
+      expect(
+        find.text(
+          'Số cần trả vừa đổi thành ${_v(200000)}. Xem lại rồi bấm lần nữa nhé.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Vì sao là ${_v(200000)}'), findsOneWidget);
+      // Second tap: same number on the server → written, the new amount.
+      await tester.tap(find.text('Đánh dấu đã thanh toán'));
+      await tester.pumpAndSettle();
+      expect(money.added.single.tx.amount, 200000);
+      expect(money.added.single.tx.payer, 'her');
+      expect(money.rechecks, 2);
+    });
+
+    testWidgets('the sign flipped / already even / offline: nothing written', (
+      tester,
+    ) async {
+      final money = await openSettle(tester);
+      // Both phones "Trả hết": the other one went first → even now.
+      money.fresh = (balance: 0);
+      await tester.tap(find.text('Đánh dấu đã thanh toán'));
+      await tester.pumpAndSettle();
+      expect(money.added, isEmpty);
+      expect(find.byType(SettleSheet), findsNothing);
+      expect(
+        find.text('Sổ chung đã cân bằng rồi, không cần thanh toán nữa.'),
+        findsOneWidget,
+      );
+
+      // Reopen; the server can't be reached → no write, a note.
+      await tester.pump(const Duration(seconds: 5));
+      money.fresh = null;
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      money.fresh = (balance: null);
+      await tester.tap(find.text('Đánh dấu đã thanh toán'));
+      await tester.pumpAndSettle();
+      expect(money.added, isEmpty);
+      expect(
+        find.text('Chưa lấy được số mới nhất. Có mạng rồi thử lại nhé.'),
+        findsOneWidget,
+      );
+
+      // Flipped: now I owe her → shown, not written.
+      money.fresh = (balance: -50000);
+      await tester.tap(find.text('Đánh dấu đã thanh toán'));
+      await tester.pumpAndSettle();
+      expect(money.added, isEmpty);
+      expect(find.text('Mình trả lại cho Thảo'), findsOneWidget);
+    });
+
+    testWidgets('cached sums (stale): Save only fetches, never writes', (
+      tester,
+    ) async {
+      _phone(tester);
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(coupleNet: 359000)..netSumsStale = true,
+        );
+      await tester.pumpWidget(_app(money, _Opener(SettleSheet.show)));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Đánh dấu đã thanh toán'), findsNothing);
+      await tester.tap(find.text('Tải số mới nhất'));
+      await tester.pumpAndSettle();
+      expect(money.added, isEmpty);
+      expect(money.rechecks, greaterThanOrEqualTo(1));
     });
 
     testWidgets('a typed part 100k; more than owed is refused', (tester) async {

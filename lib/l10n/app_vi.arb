@@ -8504,5 +8504,30 @@
         "type": "String"
       }
     }
+  },
+  "moneyLinkedPayerLocked": "Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.",
+  "@moneyLinkedPayerLocked": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleNeedSync": "Tải số mới nhất",
+  "@moneySettleNeedSync": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleOffline": "Chưa lấy được số mới nhất. Có mạng rồi thử lại nhé.",
+  "@moneySettleOffline": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleAlreadyEven": "Sổ chung đã cân bằng rồi, không cần thanh toán nữa.",
+  "@moneySettleAlreadyEven": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleChanged": "Số cần trả vừa đổi thành {amount}. Xem lại rồi bấm lần nữa nhé.",
+  "@moneySettleChanged": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

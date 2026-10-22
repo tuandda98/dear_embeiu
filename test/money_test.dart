@@ -789,6 +789,33 @@ void main() {
         isNull,
       );
       expect(MoneyMath.linkedDrift(own, null), isNull);
+      // My own "Chỉ sổ chung" edit is not the partner's change (Tester Low).
+      final mineEdited = MoneyTx(
+        id: 's',
+        type: e,
+        amount: 520000,
+        date: '2026-10-03',
+        payer: me,
+        splitMode: eq,
+        payerShare: 260000,
+        memberUids: members,
+        linkId: 'L2',
+        updatedBy: '',
+      );
+      expect(MoneyMath.linkedDrift(own, mineEdited), isNull);
+      final theirsEdited = MoneyTx(
+        id: 's',
+        type: e,
+        amount: 520000,
+        date: '2026-10-03',
+        payer: me,
+        splitMode: eq,
+        payerShare: 260000,
+        memberUids: members,
+        linkId: 'L2',
+        updatedBy: partner,
+      );
+      expect(MoneyMath.linkedDrift(own, theirsEdited), 520000);
     });
 
     test('a linked half is only one I wrote (review #7)', () {

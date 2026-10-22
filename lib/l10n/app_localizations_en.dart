@@ -7973,4 +7973,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String moneyNotifBudgetSub(String month) {
     return 'Shared book · $month';
   }
+
+  @override
+  String get moneyLinkedPayerLocked =>
+      'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.';
+
+  @override
+  String get moneySettleNeedSync => 'Get the latest number';
+
+  @override
+  String get moneySettleOffline =>
+      'Couldn\'t get the latest number. Try again once you\'re online.';
+
+  @override
+  String get moneySettleAlreadyEven =>
+      'The shared book is already even. Nothing to settle.';
+
+  @override
+  String moneySettleChanged(String amount) {
+    return 'The amount just changed to $amount. Check it, then tap again.';
+  }
 }

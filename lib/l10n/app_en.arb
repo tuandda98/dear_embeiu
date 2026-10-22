@@ -9669,5 +9669,30 @@
         "type": "String"
       }
     }
+  },
+  "moneyLinkedPayerLocked": "This one also came out of my wallet, so who paid can't change. To change it, delete it and log it again.",
+  "@moneyLinkedPayerLocked": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleNeedSync": "Get the latest number",
+  "@moneySettleNeedSync": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleOffline": "Couldn't get the latest number. Try again once you're online.",
+  "@moneySettleOffline": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleAlreadyEven": "The shared book is already even. Nothing to settle.",
+  "@moneySettleAlreadyEven": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneySettleChanged": "The amount just changed to {amount}. Check it, then tap again.",
+  "@moneySettleChanged": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

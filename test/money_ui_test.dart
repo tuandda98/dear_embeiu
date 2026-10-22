@@ -15,6 +15,7 @@ import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:dear_embeiu/widgets/money/add_transaction_sheet.dart';
 import 'package:dear_embeiu/widgets/money/money_home_entry.dart';
 import 'package:dear_embeiu/widgets/money/money_ui.dart';
+import 'package:dear_embeiu/widgets/segmented_pill.dart';
 
 /// Sổ tiền stage 2 (feature expenses): keypad + hints, chips, "khoản quen"
 /// in 2 taps, smart defaults, the linked-entry lock, undo delete, the Home
@@ -407,7 +408,9 @@ void main() {
         );
       await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
       expect(
-        find.text('Chỉ Thảo sửa được số tiền, vì khoản này nằm trong sổ riêng của Thảo'),
+        find.text(
+          'Chỉ Thảo sửa được số tiền, vì khoản này nằm trong sổ riêng của Thảo',
+        ),
         findsOneWidget,
       );
       expect(find.bySemanticsLabel('Xoá một ký tự'), findsNothing);
@@ -730,6 +733,134 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull);
       expect(find.text('Ăn uống'), findsOneWidget);
+    });
+  });
+
+  // ── Sửa theo Tester 2026-10-22 ──
+  group('Linked entries + undo windows (Tester 2026-10-22)', () {
+    bool pillEnabled(WidgetTester tester) => tester
+        .widget<SegmentedPill<dynamic>>(
+          find.byWidgetPredicate((w) => w is SegmentedPill),
+        )
+        .enabled;
+
+    testWidgets('my linked shared entry: "Ai trả" locked, with a line', (
+      tester,
+    ) async {
+      final tx = _sharedExp('s1', 480000, linkId: 'L1');
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
+      await tester.tap(find.textContaining('Mình trả'));
+      await tester.pumpAndSettle();
+      expect(pillEnabled(tester), isFalse);
+      expect(
+        find.text(
+          'Khoản này đã trừ vào ví của mình nên không đổi người trả được. '
+          'Muốn đổi thì xoá rồi ghi lại nhé.',
+        ),
+        findsOneWidget,
+      );
+      // Not the partner's lock: the amount stays mine to change.
+      expect(find.textContaining('Chỉ Thảo sửa được'), findsNothing);
+    });
+
+    testWidgets('a shared entry without a link: "Ai trả" stays open', (
+      tester,
+    ) async {
+      final tx = _sharedExp('s2', 480000);
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
+      await tester.tap(find.textContaining('Mình trả'));
+      await tester.pumpAndSettle();
+      expect(pillEnabled(tester), isTrue);
+    });
+
+    test('updateTx refuses a new payer / wallet on a linked entry', () async {
+      final tx = _sharedExp('s1', 480000, linkId: 'L1');
+      final p = MoneyProvider()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      addTearDown(p.dispose);
+      await expectLater(
+        p.updateTx(
+          MoneyBookKind.shared,
+          tx,
+          tx.copyWith(
+            payer: kMoneyPayerWallet,
+            outWalletId: 'joint',
+            splitMode: MoneySplitMode.none,
+            payerShare: 0,
+          ),
+        ),
+        throwsStateError,
+      );
+    });
+
+    test(
+      'deleting both halves hides the own half and gives its money back',
+      () {
+        final shared = _sharedExp('s1', 480000, linkId: 'L1');
+        final mine = MoneyTx(
+          id: 'o1',
+          type: MoneyTxType.expense,
+          amount: 480000,
+          date: _today,
+          outWalletId: 'cash',
+          categoryId: 'food_out',
+          linkId: 'L1',
+          createdBy: 'me',
+        );
+        final own = _own(txs: [mine])..netSums = const {'cash': -480000};
+        final p = MoneyProvider()
+          ..debugSetBooks(
+            uid: 'me',
+            own: own,
+            shared: _shared(txs: [shared]),
+          );
+        addTearDown(p.dispose);
+        expect(p.balances(MoneyBookKind.own)['cash'], -480000);
+        p.scheduleDelete(MoneyBookKind.shared, shared, alsoLinked: mine);
+        expect(p.visibleTxs(MoneyBookKind.shared), isEmpty);
+        expect(p.visibleTxs(MoneyBookKind.own), isEmpty);
+        expect(p.balances(MoneyBookKind.own)['cash'], 0);
+        p.undoDelete('s1');
+        expect(p.visibleTxs(MoneyBookKind.own), [mine]);
+        expect(p.balances(MoneyBookKind.own)['cash'], -480000);
+      },
+    );
+
+    test('"Bỏ ngân sách" → Hoàn tác keeps the same budget (alerted)', () {
+      const budget = MoneyBudget(
+        id: 'total',
+        categoryId: '',
+        amount: 5000000,
+        alerted: {'2026-10': 80},
+      );
+      final p = MoneyProvider()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(budgets: const [budget]),
+        );
+      addTearDown(p.dispose);
+      p.scheduleBudgetDelete(MoneyBookKind.shared, budget);
+      expect(p.budgetFor(MoneyBookKind.shared, ''), isNull);
+      expect(p.undoBudgetDelete(MoneyBookKind.shared, 'total'), isTrue);
+      expect(p.budgetFor(MoneyBookKind.shared, ''), same(budget));
+      expect(p.undoBudgetDelete(MoneyBookKind.shared, 'total'), isFalse);
     });
   });
 }
