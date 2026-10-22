@@ -5500,7 +5500,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String weatherCareUmbrellaBody(String city) {
-    return 'Looks like rain in $city. Grab an umbrella if you head out.';
+    return 'It\'s rainy in $city. Grab an umbrella if you head out.';
   }
 
   @override

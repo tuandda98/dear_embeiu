@@ -5251,7 +5251,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String weatherCareUmbrellaBody(String city) {
-    return '$city sắp mưa đó. Ra ngoài nhớ mang ô theo nha.';
+    return '$city đang có mưa đó, nhớ mang ô nha.';
   }
 
   @override

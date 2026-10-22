@@ -8782,7 +8782,7 @@ abstract class AppLocalizations {
   /// Weather here and there (feature weather)
   ///
   /// In en, this message translates to:
-  /// **'Looks like rain in {city}. Grab an umbrella if you head out.'**
+  /// **'It\'s rainy in {city}. Grab an umbrella if you head out.'**
   String weatherCareUmbrellaBody(String city);
 
   /// Weather here and there (feature weather)

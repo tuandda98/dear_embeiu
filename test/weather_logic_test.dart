@@ -493,6 +493,31 @@ void main() {
       );
     });
 
+    test('my numbers old: partner nudge stays, gap goes', () {
+      final old = WeatherPlace(
+        cityId: 'vn-ha-noi',
+        freshness: WeatherFreshness.stale,
+        condition: weatherConditionFor(hanoi, vnAt(8, 10), vn),
+      );
+      expect(old.usable, isFalse);
+      expect(
+        weatherSharedRow(
+          paired: true,
+          mine: old,
+          partner: place('vn-tp-hcm', hcm),
+        ),
+        WeatherSharedRow.cta,
+      );
+      expect(
+        weatherSharedRow(
+          paired: true,
+          mine: old,
+          partner: place('vn-da-lat', daLat),
+        ),
+        WeatherSharedRow.none,
+      );
+    });
+
     test('I have no city yet: the partner nudge still shows', () {
       final p = place('vn-tp-hcm', hcm);
       expect(weatherSharedRow(paired: true, partner: p), WeatherSharedRow.cta);
@@ -514,7 +539,7 @@ void main() {
       },
     );
 
-    test('stale numbers: no nudge, no compact row', () {
+    test('partner stale: no nudge; mine stale: nudge stays, no compact row', () {
       final p = place('vn-tp-hcm', hcm);
       final staleP = WeatherPlace(
         cityId: p.cityId,
@@ -530,9 +555,10 @@ void main() {
         freshness: WeatherFreshness.stale,
         condition: me.condition,
       );
+      // My old numbers no longer hide the partner nudge (Tester Low, 2026-10-22).
       expect(
         weatherSharedRow(paired: true, mine: staleMe, partner: p),
-        WeatherSharedRow.none,
+        WeatherSharedRow.cta,
       );
       expect(weatherCardCompact(paired: false, mine: staleMe), isFalse);
     });

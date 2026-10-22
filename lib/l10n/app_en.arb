@@ -5998,7 +5998,7 @@
   "@weatherCareUmbrellaTitle": {
     "description": "Weather here and there (feature weather)"
   },
-  "weatherCareUmbrellaBody": "Looks like rain in {city}. Grab an umbrella if you head out.",
+  "weatherCareUmbrellaBody": "It's rainy in {city}. Grab an umbrella if you head out.",
   "@weatherCareUmbrellaBody": {
     "description": "Weather here and there (feature weather)",
     "placeholders": {

@@ -4851,7 +4851,7 @@
     }
   },
   "weatherCareUmbrellaTitle": "Nhớ mang ô nhé",
-  "weatherCareUmbrellaBody": "{city} sắp mưa đó. Ra ngoài nhớ mang ô theo nha.",
+  "weatherCareUmbrellaBody": "{city} đang có mưa đó, nhớ mang ô nha.",
   "@weatherCareUmbrellaBody": {
     "description": "Weather here and there (feature weather)",
     "placeholders": {

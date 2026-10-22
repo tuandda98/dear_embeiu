@@ -281,13 +281,15 @@ WeatherSharedRow weatherSharedRow({
   if (!paired || partner == null) {
     return WeatherSharedRow.none;
   }
-  if (!partner.usable || (mine != null && !mine.usable)) {
+  if (!partner.usable) {
     return WeatherSharedRow.none;
   }
   if (partner.condition!.cta != null) {
     return WeatherSharedRow.cta;
   }
+  // The gap needs both numbers; my old numbers only hide the gap, not the nudge.
   if (mine != null &&
+      mine.usable &&
       weatherTempGap(mine.condition!.temp, partner.condition!.temp) != null) {
     return WeatherSharedRow.gap;
   }

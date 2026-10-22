@@ -172,7 +172,7 @@ void main() {
         max: 33,
       );
       expect(rain.title, 'Nhớ mang ô nhé');
-      expect(rain.body, 'TP.HCM sắp mưa đó. Ra ngoài nhớ mang ô theo nha.');
+      expect(rain.body, 'TP.HCM đang có mưa đó, nhớ mang ô nha.');
       final hot = weatherCarePrefill(
         vi,
         WeatherCta.water,

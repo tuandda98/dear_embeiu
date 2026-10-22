@@ -274,6 +274,7 @@ class WeatherProvider extends ChangeNotifier {
     _pendingForce = false;
     if (signedOut) {
       unawaited(_service.clearCache());
+      unawaited(_service.savePref(WeatherService.keyNoticeLog, null));
     }
     // Signed out / no couple / left: no notice about a partner any more.
     _noticeSignature = null;

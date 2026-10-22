@@ -38,6 +38,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   await _cancelStaleDailyQuestionNudges(message);
   await _cancelInviteFollowUpsIfPartnerJoined(message);
+  await _cancelWeatherNoticeIfPartnerLeft(message);
   await _updateWidgetStatus(message);
   await _cancelMealReminderIfDecided(message);
 }
@@ -118,6 +119,16 @@ Future<void> _cancelInviteFollowUpsIfPartnerJoined(RemoteMessage message) async 
     return;
   }
   await ReminderService.instance.cancelInviteFollowUps();
+}
+
+/// Partner left: the 07:30 weather notice (id 1160) names their city — drop it
+/// even with no UI alive. Needs a wake (iOS content-available / data message);
+/// otherwise `WeatherProvider.clear` does it on next launch.
+Future<void> _cancelWeatherNoticeIfPartnerLeft(RemoteMessage message) async {
+  if (message.data['type'] != 'partner_left') {
+    return;
+  }
+  await ReminderService.instance.cancelWeatherMorning();
 }
 
 /// Drops today's local daily-question nudges when a push reports the pair is now
@@ -847,6 +858,7 @@ class PushNotificationService {
     // (it's the listener that would otherwise re-evaluate the schedule).
     await _cancelStaleDailyQuestionNudges(message);
     await _cancelInviteFollowUpsIfPartnerJoined(message);
+    await _cancelWeatherNoticeIfPartnerLeft(message);
 
     // ── caro-game (đợt 2) ──
     // The caro game this push is about is on screen: the board already shows

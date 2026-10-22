@@ -179,6 +179,8 @@ void main() {
     expect(p.myChoice, isNull);
     expect(p.forecastFor('vn-ha-noi'), isNull);
     expect(svc.cacheCleared, isTrue);
+    expect(svc.prefs.containsKey(WeatherService.keyNoticeLog), isTrue);
+    expect(svc.prefs[WeatherService.keyNoticeLog], isNull);
   });
 
   test('only one of two cities answered → lastRefreshFailed', () async {

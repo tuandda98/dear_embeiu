@@ -788,6 +788,11 @@ class _CityPickerState extends State<CityPicker> {
     final name = widget.partnerName;
     write.then((ok) {
       if (ok) {
+        logWeatherEvent(WeatherEvents.citySet, {
+          'who': forPartner ? 'partner' : 'self',
+          'region': city.isVietnam ? 'vn' : 'intl',
+          'entry': widget.entry,
+        });
         return;
       }
       messenger
@@ -801,11 +806,6 @@ class _CityPickerState extends State<CityPicker> {
             ),
           ),
         );
-    });
-    logWeatherEvent(WeatherEvents.citySet, {
-      'who': forPartner ? 'partner' : 'self',
-      'region': city.isVietnam ? 'vn' : 'intl',
-      'entry': widget.entry,
     });
     if (widget.chain && !forPartner && w.canPickForPartner) {
       setState(() {
