@@ -339,14 +339,25 @@ void main() {
         expect(s?['statusText'], 'Thảo đã đi caro, đến lượt mình');
         expect(s?['onlyIfNewer'], '1');
       }
-      expect(
-        HomeWidgetStatus.fromPush(
-          {'type': 'caro_result', 'actorName': 'Thảo'},
+      // CARO-T4: a game the partner ended clears the line if it is older.
+      for (final type in ['caro_result', 'caro_ended']) {
+        final end = HomeWidgetStatus.fromPush(
+          {'type': type, 'gameId': 'g', 'sentAt': '1760000000000'},
           l10n: vi,
           now: now,
-        ),
-        isNull,
+        );
+        expect(end?['statusKind'], '', reason: type);
+        expect(end?['statusText'], '', reason: type);
+        expect(end?['statusAt'], '1760000000000', reason: type);
+        expect(end?['onlyIfNewer'], '1', reason: type);
+        expect(end?['todayDate'], '2026-10-20', reason: type);
+      }
+      final noTime = HomeWidgetStatus.fromPush(
+        {'type': 'caro_ended'},
+        l10n: vi,
+        now: now,
       );
+      expect(noTime?['statusAt'], '${now.millisecondsSinceEpoch}');
       expect(
         HomeWidgetStatus.fromPush(
           {'type': 'caro_turn', 'actorName': 'Thảo'},
@@ -875,6 +886,115 @@ void main() {
     expect(find.text(vi.caroSendError), findsNothing);
     await tester.pumpWidget(const SizedBox());
     caro.dispose();
+  });
+
+  testWidgets('CARO-T1 a move that landed despite the error clears the note', (
+    tester,
+  ) async {
+    final (caro, service) = await openGame(
+      tester,
+      g(lastMoveAt: DateTime.now()),
+    );
+    service.reply = const CaroActionResult(CaroActionStatus.network);
+    final rect = tester.getRect(find.byType(InteractiveViewer));
+    final target = rect.center + Offset(rect.width / CaroBoard.size * 1.6, 0);
+    await tester.tapAt(target);
+    await tester.pump();
+    await tester.tap(find.text(vi.caroPlayHere));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroOffline), findsOneWidget);
+    // The callable timed out but the server wrote the move.
+    service
+        .stream('g1')
+        .add(
+          g(
+            cells: const [112, 113],
+            turn: 'bob',
+            lastMoveBy: 'me',
+            lastMoveAt: DateTime.now(),
+          ),
+        );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroOffline), findsNothing);
+    expect(find.text(vi.caroSendError), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  testWidgets('CARO-T1 the game ending clears an action note', (tester) async {
+    final (caro, service) = await openGame(
+      tester,
+      g(lastMoveAt: DateTime.now()),
+    );
+    service.reply = const CaroActionResult(CaroActionStatus.network);
+    final rect = tester.getRect(find.byType(InteractiveViewer));
+    final target = rect.center + Offset(rect.width / CaroBoard.size * 1.6, 0);
+    await tester.tapAt(target);
+    await tester.pump();
+    await tester.tap(find.text(vi.caroPlayHere));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroOffline), findsOneWidget);
+    service.stream('g1').add(g(status: 'cancelled'));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(vi.caroOffline), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
+  test('CARO-T2 foreground banners: one id per caro game', () {
+    final a = foregroundBannerId(
+      {'type': 'caro_turn', 'gameId': 'g1'},
+      'm1',
+      1,
+    );
+    final b = foregroundBannerId(
+      {'type': 'caro_nudge', 'gameId': 'g1'},
+      'm2',
+      2,
+    );
+    final c = foregroundBannerId(
+      {'type': 'caro_turn', 'gameId': 'g2'},
+      'm1',
+      1,
+    );
+    expect(a, b);
+    expect(a, isNot(c));
+    expect(a, inInclusiveRange(0, 0x7FFFFFFF));
+    expect(
+      foregroundBannerId({'type': 'chat_message'}, 'm1', 1),
+      isNot(foregroundBannerId({'type': 'chat_message'}, 'm1', 2)),
+    );
+  });
+
+  test('CARO-T5 caro_game_ended comes from the phone that ended the game', () {
+    CaroGame ended(
+      String status, {
+      String? endedBy,
+      String? by,
+      Map<String, Object?>? result,
+    }) => CaroGame.fromFirestore('g', <String, dynamic>{
+      'type': 'caro',
+      'players': {'x': 'bob', 'o': 'me'},
+      'status': status,
+      'cells': const [1, 2],
+      'endedBy': ?endedBy,
+      'lastMoveBy': ?by,
+      'result': ?result,
+    });
+    final five = {'winnerUid': 'me', 'reason': 'five', 'line': <int>[]};
+    expect(caroEndedBy(ended('finished', by: 'me', result: five)), 'me');
+    expect(
+      caroEndedBy(ended('finished', endedBy: 'bob', by: 'me', result: five)),
+      'bob',
+    );
+    expect(caroEndedBy(ended('cancelled', endedBy: 'bob', by: 'bob')), 'bob');
+    expect(caroEndedBy(ended('expired', endedBy: 'me', by: 'bob')), 'me');
+    // Expired by the server (a partner left): nobody logs it.
+    expect(caroEndedBy(ended('expired', by: 'bob')), isNull);
   });
 
   testWidgets('#5 an invite 3 days old says its date, not "hôm qua"', (

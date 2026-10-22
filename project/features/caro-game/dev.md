@@ -2,7 +2,7 @@
 
 > Dev sở hữu. Đọc `overview.md` + `design.md` trước. Bám kiến trúc Provider + service (`../../../CLAUDE.md` mục 2).
 
-- **Trạng thái dev:** stage 2/2 xong (UI + push tap + widget + analytics + tour + vá review backend). Chờ Lead deploy DEV + Tester. Chưa deploy gì.
+- **Trạng thái dev:** stage 2/2 xong + vá CARO-T1…T7 (2026-10-22). Chờ Lead deploy DEV (`functions:caroAction` đổi thêm) + smoke. Chưa deploy gì.
 - **Người/role:** Dev
 - **Nhánh:** `feature/caro-game` (worktree `dear_embeiu-caro`)
 
@@ -130,3 +130,13 @@ Chi tiết từng op:
 - [2026-10-20] [Dev] Stage 1: backend `caroWinner` + `caroAction` + guard rps + dọn khi rời/xoá couple; rules additive; client model/service/provider + wire. Test: node 39 pass (18 caro mới), rules 413 passing (19 caro mới), Flutter 658 pass (20 caro mới), analyze 0. Chưa deploy. Commit `283bc13` (backend).
 - [2026-10-20] [Dev] Stage 2: UI caro (thẻ Home, sheet, màn ván, kết quả, lịch sử, xem lại) + push tap/inbox + widget `caro_turn` + 6 event + tour build 33 + Profile gộp; vá 7 finding review backend. Test: Flutter 683 pass (+25 ở `test/caro_ui_test.dart`), node 49 pass (+10 `caroRunOp`/`sendCaroPush`), rules 413 passing, analyze 0. Chưa deploy.
 - [2026-10-20] [Dev] Vá 14 finding review UI + 2 việc dở (hoãn tour khi đang ở màn caro, quân màu ở dòng lịch sử). Flutter 697 pass (+14), analyze 0. Không đụng CF/rules đợt này.
+- [2026-10-22] [Dev] Vá 7 finding Tester (CARO-T1…T7), bỏ qua T8:
+  - **T1** `caro_game_screen.dart` `_onProvider`: bàn có thêm quân → xoá MỌI ghi chú lỗi (cả `network`/`send` khi callable lỗi mà nước vẫn vào bàn); ván hết `playing` → cũng xoá. Test widget 2 ca.
+  - **T2** `push_notification_service.dart` `foregroundBannerId()`: banner trong app của push `caro_*` có `gameId` dùng id `('caro_'+gameId).hashCode & 0x7FFFFFFF` ⇒ 1 banner/ván, cái mới thay cái cũ. Loại khác giữ id ngẫu nhiên.
+  - **T3** CF `caroRunOp` start: `caroState/main.lastInviteAt.{uid}` (ghi mỗi lần rủ). Rủ lại < 2 phút (`CARO_INVITE_QUIET_MS`) kể từ lần rủ trước của chính người đó → vẫn tạo ván, push `inboxOnly` (không push, không wake). Cửa sổ trượt: rủ-huỷ liên tục thì chỉ lần đầu kêu. Người kia rủ không bị ảnh hưởng.
+  - **T4** CF: xin thua → `caro_result` kèm `wakeClients` khi đang là lượt người kia (chỉ lúc đó widget họ mới hiện "đến lượt mình"); huỷ / kết thúc ván treo → push im lặng mới `caro_ended` (`sendToRecipientDevices` `silent`, không banner, không inbox) cùng điều kiện; người kia đang mở màn ván thì không gửi. Mọi push caro thêm `data.sentAt`. Client `HomeWidgetStatus.fromPush`: `caro_ended`/`caro_result` → dòng trống (`none`) với `statusAt = sentAt` + `onlyIfNewer` ⇒ dòng mới hơn lúc kết thúc vẫn giữ. Giới hạn đã biết: dòng loại khác CŨ hơn lúc kết thúc (vd tâm trạng sáng nay) cũng bị xoá tới khi mở app (app dựng lại dòng). Muốn chính xác thì thêm cờ native "chỉ xoá nếu statusKind = caro_turn" (Java + Swift).
+  - **T5** `caro_game_ended` chỉ log ở máy người gây kết thúc: `caroEndedBy(game)` = `endedBy` (xin thua/huỷ/kết thúc treo) hoặc `lastMoveBy` khi `finished` bằng nước đi (5 quân/kín bàn). Mỗi ván đúng 1 sự kiện (thêm `_loggedEnds` chống lặp trong phiên). Ván server tự `expired` (người ấy rời couple, ván của cặp cũ khi `start`) không có `endedBy` ⇒ KHÔNG log. Người gây kết thúc luôn đang ở màn ván (mọi thao tác kết thúc đều nằm ở đó); ca hụt duy nhất: thoát màn trước khi snapshot về (~1 s).
+  - **T6** `overview.md` D18: lệnh deploy PROD thêm `functions:leaveCoupleCleanup,functions:deleteAccount`.
+  - **T7** CF start: chỉ ghi `lastWakeAt.{partner}` khi lời mời thật sự wake (không phải `partnerOnPrev`/rủ quá sớm). Nhánh đọc lại sau commit (`caroQuietIfSeen`, tách từ `caroAction`) hạ push xuống `inboxOnly` thì xoá luôn `lastWakeAt.{partner}` vừa ghi.
+  - **T8** (ghép lại đúng couple cũ → tỉ số 0–0 nhưng lịch sử còn ván cũ): chấp nhận, không sửa. D20 xoá `caroState` khi rời nên tỉ số về 0; lịch sử lọc theo 2 player là cặp hiện tại nên ván cũ của chính 2 người hiện lại. Hiếm, không sai dữ liệu.
+  - Test: node 103 pass (+4: T3/T7 start, T4 cancel/expire/resign, `caroQuietIfSeen`, `sendCaroPush` silent); Flutter full 1005 pass (+5 ở `caro_ui_test.dart`, sửa 1 expectation cũ `caro_result` → giờ xoá dòng); `flutter analyze` 0. Không đụng rules. CF đổi: chỉ `caroAction` (deploy DEV: `functions:caroAction`). Chưa deploy.

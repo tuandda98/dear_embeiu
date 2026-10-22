@@ -131,6 +131,15 @@ CaroScreenMode caroScreenModeFor({
   return CaroScreenMode.waiting;
 }
 
+/// Who ended [game]: `endedBy` (resign / cancel / expire), else the player of
+/// the last stone for a game finished by a move (five / full board). Null for
+/// a game expired by the server (a partner left) — nobody logs that one.
+String? caroEndedBy(CaroGame game) {
+  final by = game.endedBy;
+  if (by != null && by.isNotEmpty) return by;
+  return game.isFinished ? game.lastMoveBy : null;
+}
+
 /// `caro_game_ended.result` from my side.
 String caroEndedResult(CaroGame game, String myUid) {
   if (game.isCancelled) return 'cancel';
@@ -407,8 +416,9 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     final reduce = AppMotion.reduceMotion(context);
     if (game.cells.length > _seenCells && _seenCells >= 0) {
       _dropCell = game.cells.last;
-      // The board moved on: an old "bàn vừa đổi" / cooldown note is stale.
-      if (_problem == _Problem.stale || _problem == _Problem.cooldown) {
+      // The board moved on: every old note (bàn vừa đổi, cooldown, and a
+      // network/send error whose move landed anyway) is stale (CARO-T1).
+      if (_problem != _Problem.none) {
         setState(() => _problem = _Problem.none);
       }
       if (reduce) {
@@ -424,7 +434,13 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     _seenCells = game.cells.length;
     if (_seenPlaying && !game.isPlaying) {
       _seenPlaying = false;
-      if (_loggedEnds.add(game.id)) {
+      // The game is over: a note about a failed action no longer applies.
+      if (_problem != _Problem.none) {
+        setState(() => _problem = _Problem.none);
+      }
+      // One `caro_game_ended` per game, from the phone that ended it
+      // (CARO-T5) — the partner's open screen sees the same change.
+      if (caroEndedBy(game) == me && _loggedEnds.add(game.id)) {
         AnalyticsService.instance.logCaroGameEnded(
           result: caroEndedResult(game, me),
           moves: game.cells.length,

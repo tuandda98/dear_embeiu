@@ -297,6 +297,7 @@ function caroOps(docs) {
     CARO_NUDGE_COOLDOWN_MS: 30 * MIN,
     CARO_WAKE_EVERY_MS: 30 * MIN,
     CARO_PRESENCE_FRESH_MS: 45 * 1000,
+    CARO_INVITE_QUIET_MS: 2 * MIN,
     rpsToMillis,
     rpsPresenceMillis: (p, uid) => (p && typeof p === "object" ? rpsToMillis(p[uid]) : null),
   };
@@ -311,6 +312,7 @@ function caroOps(docs) {
     "function caroPresenceFresh",
     "function caroGamesRef",
     "function caroStateRef",
+    "function caroEndedWake",
     "async function caroRunOp",
   ], deps);
   const op = async (name, ctx) => {
@@ -476,9 +478,101 @@ test("sendCaroPush: collapseId per game, inbox for invites, inboxOnly skips the 
   await send("C", "g9", {type: "caro_turn", kind: "turn", actorUid: "alice", recipientId: "bob", moveNo: 14, wake: true});
   assert.strictEqual(inbox.length, 0);
   assert.deepStrictEqual(pushes[0].options, {collapseId: "caro_g9", wakeClients: true});
-  assert.deepStrictEqual(pushes[0].data, {type: "caro_turn", coupleId: "C", gameId: "g9", moveNo: "14", actorName: "Tuấn"});
+  const {sentAt, ...data} = pushes[0].data;
+  assert.ok(Number(sentAt) > 0);
+  assert.deepStrictEqual(data, {type: "caro_turn", coupleId: "C", gameId: "g9", moveNo: "14", actorName: "Tuấn"});
   await send("C", "g9", {type: "caro_invite", kind: "invite", actorUid: "alice", recipientId: "bob", moveNo: 1, inboxOnly: true});
   assert.strictEqual(inbox.length, 1);
   assert.strictEqual(inbox[0].payload.gameId, "g9");
   assert.strictEqual(pushes.length, 1);
+});
+
+test("CARO-T3/T7: start → cancel → start within 2' is inbox only, no wake, no lastWakeAt", async () => {
+  const t = caroOps(COUPLE);
+  const first = await t.op("start", {uid: "alice", cell: 112});
+  assert.strictEqual(first.push.wake, true);
+  assert.ok(gameDoc(t.store, first.reply.gameId).lastWakeAt.bob > 0);
+  assert.strictEqual(state(t.store).lastInviteAt.alice, t.clock.now);
+  await t.op("cancel", {uid: "alice", gameId: first.reply.gameId});
+
+  t.clock.now += MIN;
+  const again = await t.op("start", {uid: "alice", cell: 112});
+  assert.strictEqual(again.reply.ok, true);
+  assert.strictEqual(again.push.inboxOnly, true);
+  assert.strictEqual(again.push.wake, false);
+  assert.strictEqual(gameDoc(t.store, again.reply.gameId).lastWakeAt, undefined);
+  await t.op("cancel", {uid: "alice", gameId: again.reply.gameId});
+
+  // The window slides from the last invite; bob's own invite is not limited.
+  t.clock.now += 3 * MIN;
+  const later = await t.op("start", {uid: "alice", cell: 112});
+  assert.strictEqual(later.push.wake, true);
+  assert.notStrictEqual(later.push.inboxOnly, true);
+  await t.op("cancel", {uid: "alice", gameId: later.reply.gameId});
+  const fromBob = await t.op("start", {uid: "bob", cell: 112});
+  assert.strictEqual(fromBob.push.wake, true);
+});
+
+test("CARO-T4: cancel / expire / resign wake the other phone only when it was their turn", async () => {
+  const t = caroOps(COUPLE);
+  const g1 = await t.op("start", {uid: "alice", cell: 112}); // bob's turn
+  const cancel = await t.op("cancel", {uid: "alice", gameId: g1.reply.gameId});
+  assert.deepStrictEqual(cancel.push, {type: "caro_ended", actorUid: "alice", recipientId: "bob", moveNo: 1, silent: true});
+  t.clock.now += 3 * MIN;
+  const g2 = await t.op("start", {uid: "alice", cell: 112});
+  const later = await t.op("cancel", {uid: "bob", gameId: g2.reply.gameId}); // "Để sau": own turn
+  assert.strictEqual(later.push, null);
+
+  const own = caroOps(fiveSoon()); // alice's turn
+  assert.strictEqual((await own.op("resign", {uid: "alice", gameId: "g"})).push.wake, false);
+  const theirs = caroOps(fiveSoon());
+  assert.strictEqual((await theirs.op("resign", {uid: "bob", gameId: "g"})).push.wake, true);
+
+  const stale = caroOps(fiveSoon());
+  stale.clock.now += 8 * 24 * 60 * MIN;
+  assert.strictEqual((await stale.op("expire", {uid: "alice", gameId: "g"})).push, null);
+  const stale2 = caroOps(fiveSoon());
+  stale2.clock.now += 8 * 24 * 60 * MIN;
+  assert.strictEqual((await stale2.op("expire", {uid: "bob", gameId: "g"})).push.recipientId, "alice");
+
+  const watching = caroOps(fiveSoon({presence: {alice: 1_000_000_000_000 - 5000}}));
+  assert.strictEqual((await watching.op("resign", {uid: "bob", gameId: "g"})).push, null);
+});
+
+test("CARO-T7: partner opened the new game before the push → inbox only, wake undone", async () => {
+  const updates = [];
+  let presence = {bob: Date.now() - 1000};
+  const quiet = load("caroQuietIfSeen", ["function caroPresenceFresh", "async function caroQuietIfSeen"], {
+    CARO_PRESENCE_FRESH_MS: 45 * 1000,
+    rpsPresenceMillis: (p, uid) => (p ? p[uid] : null),
+    caroGamesRef: () => ({doc: () => ({
+      get: async () => ({get: () => presence}),
+      update: async (data) => updates.push(data),
+    })}),
+    admin: {firestore: {FieldValue: {delete: () => "DEL"}}},
+    logger: {warn: () => {}},
+  });
+  const push = {type: "caro_invite", wake: true};
+  assert.deepStrictEqual(await quiet("C", "g", "bob", push), {type: "caro_invite", wake: false, inboxOnly: true});
+  assert.deepStrictEqual(updates, [{"lastWakeAt.bob": "DEL"}]);
+  presence = {};
+  assert.strictEqual(await quiet("C", "g", "bob", push), push);
+  assert.strictEqual(updates.length, 1);
+});
+
+test("sendCaroPush caro_ended: silent wake, no inbox, no banner text", async () => {
+  const pushes = [];
+  const send = load("sendCaroPush", ["async function sendCaroPush"], {
+    rpsLoadDisplayName: async () => "Tuấn",
+    writeInboxNotifications: async () => assert.fail("no inbox"),
+    sendToRecipientDevices: async (ids, build, data, options) => {
+      pushes.push({ids, data, options});
+      return {failures: [], deviceCount: 1, successCount: 1};
+    },
+    buildCaroText: () => ({title: "", body: ""}),
+    logger: {warn: () => {}, info: () => {}, error: () => {}},
+  });
+  await send("C", "g9", {type: "caro_ended", actorUid: "alice", recipientId: "bob", moveNo: 1, silent: true});
+  assert.deepStrictEqual(pushes[0].options, {collapseId: "caro_g9", silent: true});
+  assert.strictEqual(pushes[0].data.type, "caro_ended");
 });

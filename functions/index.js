@@ -2865,6 +2865,9 @@ const CARO_NUDGE_COOLDOWN_MS = 30 * 60 * 1000;
 const CARO_WAKE_EVERY_MS = 30 * 60 * 1000;
 // D7: nobody moved for 7 days → either player may end the game.
 const CARO_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+// CARO-T3: a new invite < 2' after the same player's previous one (start →
+// cancel → start…) still makes the game, but only the inbox hears of it.
+const CARO_INVITE_QUIET_MS = 2 * 60 * 1000;
 
 // Copy = overview §6.3. `name` is the sender's RAW display name; empty → the
 // fallback in the RECIPIENT's language. `n` = moves on the board.
@@ -3072,7 +3075,7 @@ function caroStateRef(coupleId) {
 // One push (+ inbox for `caro_invite`) to the other player. All pushes of a
 // game share the tray slot `caro_{gameId}` (D8). Never throws.
 async function sendCaroPush(coupleId, gameId, push) {
-  const {type, kind, actorUid, recipientId, moveNo, wake, inboxOnly} = push;
+  const {type, kind, actorUid, recipientId, moveNo, wake, inboxOnly, silent} = push;
   try {
     const actorName = await rpsLoadDisplayName(actorUid);
     if (type === "caro_invite") {
@@ -3090,8 +3093,12 @@ async function sendCaroPush(coupleId, gameId, push) {
     const result = await sendToRecipientDevices(
       [recipientId],
       (languageCode) => buildCaroText(languageCode, kind, actorName, moveNo),
-      {type, coupleId, gameId, moveNo: String(moveNo), actorName},
-      {collapseId: `caro_${gameId}`, wakeClients: wake === true},
+      // `sentAt`: the widget orders a late (iOS background) wake by it.
+      {type, coupleId, gameId, moveNo: String(moveNo), actorName, sentAt: String(Date.now())},
+      // `silent` (caro_ended, CARO-T4): a wake only, no banner.
+      silent === true ?
+        {collapseId: `caro_${gameId}`, silent: true} :
+        {collapseId: `caro_${gameId}`, wakeClients: wake === true},
     );
     if (result.failures.length > 0) {
       logger.warn("Caro push had delivery failures.", {coupleId, gameId, type, failures: result.failures});
@@ -3106,6 +3113,37 @@ async function sendCaroPush(coupleId, gameId, push) {
     });
   } catch (err) {
     logger.error("Caro push failed.", {coupleId, gameId, type, message: err && err.message});
+  }
+}
+
+// CARO-T4: a game cancelled / ended as stale, no banner — but if it was the
+// other player's turn their widget says "đến lượt mình": wake it silently so
+// the line goes. Their open screen sees the change live, no wake then.
+function caroEndedWake(game, uid, other, otherWatching) {
+  if (otherWatching || game.turnUid !== other) {
+    return null;
+  }
+  const {cells} = caroGameParts(game);
+  return {type: "caro_ended", actorUid: uid, recipientId: other, moveNo: cells.length, silent: true};
+}
+
+// Partner already opened the new game (a phone following the open-game
+// pointer): they see it, so inbox only — and the wake written in the
+// transaction did not happen (CARO-T7). Returns the push to send.
+async function caroQuietIfSeen(coupleId, gameId, partnerUid, push) {
+  try {
+    const ref = caroGamesRef(coupleId).doc(gameId);
+    const fresh = await ref.get();
+    if (!caroPresenceFresh(fresh.get("presence"), partnerUid, Date.now())) {
+      return push;
+    }
+    if (push.wake === true) {
+      await ref.update({[`lastWakeAt.${partnerUid}`]: admin.firestore.FieldValue.delete()});
+    }
+    return {...push, wake: false, inboxOnly: true};
+  } catch (err) {
+    logger.warn("caroAction: could not re-read the new game.", {coupleId, message: err && err.message});
+    return push;
   }
 }
 
@@ -3154,6 +3192,10 @@ async function caroRunOp(op, ctx) {
       // screen follows the new game by itself, no push (D8).
       const partnerOnPrev = !!prevSnap && prevSnap.exists &&
         caroPresenceFresh(prevSnap.get("presence"), partnerUid, nowMs);
+      const lastInviteAt = stateSnap.exists ? stateSnap.get("lastInviteAt") : null;
+      const prevInviteMs = rpsToMillis(lastInviteAt && lastInviteAt[uid]);
+      const tooSoon = prevInviteMs !== null && nowMs - prevInviteMs < CARO_INVITE_QUIET_MS;
+      const quiet = partnerOnPrev || tooSoon;
       const newRef = caroGamesRef(coupleId).doc();
       const game = {
         type: "caro",
@@ -3169,14 +3211,19 @@ async function caroRunOp(op, ctx) {
         lastMoveBy: uid,
         updatedAt: FieldValue.serverTimestamp(),
       };
-      if (!partnerOnPrev) {
+      // Only an invite that really wakes counts as a wake (CARO-T7).
+      if (!quiet) {
         game.lastWakeAt = {[partnerUid]: FieldValue.serverTimestamp()};
       }
       if (prevRef) {
         game.rematchOf = prevRef.id;
       }
       tx.set(newRef, game);
-      const state = {openGameId: newRef.id, updatedAt: FieldValue.serverTimestamp()};
+      const state = {
+        openGameId: newRef.id,
+        lastInviteAt: {[uid]: FieldValue.serverTimestamp()},
+        updatedAt: FieldValue.serverTimestamp(),
+      };
       if (!stateSnap.exists) {
         state.wins = {};
         state.draws = 0;
@@ -3186,9 +3233,10 @@ async function caroRunOp(op, ctx) {
         reply: {ok: true, gameId: newRef.id, status: "playing", cellsLength: 1},
         // Partner on the previous result: their screen follows the new game,
         // so no push — but the inbox still records the invite (review #1).
+        // Same for an invite right after the previous one (CARO-T3).
         push: {
           type: "caro_invite", kind: "invite", actorUid: uid, recipientId: partnerUid, moveNo: 1,
-          wake: !partnerOnPrev, inboxOnly: partnerOnPrev,
+          wake: !quiet, inboxOnly: quiet,
         },
       };
     }
@@ -3273,7 +3321,9 @@ async function caroRunOp(op, ctx) {
       return {
         reply: done("finished", cells.length),
         push: otherWatching ? null : {
-          type: "caro_result", kind: "resigned", actorUid: uid, recipientId: other, moveNo: cells.length, wake: false,
+          // Their widget says "đến lượt mình" only on their turn (CARO-T4).
+          type: "caro_result", kind: "resigned", actorUid: uid, recipientId: other, moveNo: cells.length,
+          wake: game.turnUid === other,
         },
       };
     }
@@ -3286,7 +3336,7 @@ async function caroRunOp(op, ctx) {
       }
       tx.update(gameRef, {status: "cancelled", endedBy: uid, updatedAt: FieldValue.serverTimestamp()});
       tx.set(stateRef, clearOpen, {merge: true});
-      return {reply: done("cancelled", cells.length)};
+      return {reply: done("cancelled", cells.length), push: caroEndedWake(game, uid, other, otherWatching)};
     }
 
     if (op === "expire") {
@@ -3298,7 +3348,7 @@ async function caroRunOp(op, ctx) {
       }
       tx.update(gameRef, {status: "expired", endedBy: uid, updatedAt: FieldValue.serverTimestamp()});
       tx.set(stateRef, clearOpen, {merge: true});
-      return {reply: done("expired", cells.length)};
+      return {reply: done("expired", cells.length), push: caroEndedWake(game, uid, other, otherWatching)};
     }
 
     // nudge — only the player who is waiting (it is the other one's turn).
@@ -3378,17 +3428,8 @@ exports.caroAction = onCall(
     });
 
     let push = outcome.push;
-    if (push && op === "start") {
-      // The partner may already have opened the new game (a phone following
-      // the open-game pointer): they see it, no push + inbox.
-      try {
-        const fresh = await caroGamesRef(coupleId).doc(reply.gameId).get();
-        if (caroPresenceFresh(fresh.get("presence"), partnerUid, Date.now())) {
-          push = {...push, wake: false, inboxOnly: true};
-        }
-      } catch (err) {
-        logger.warn("caroAction: could not re-read the new game.", {coupleId, message: err && err.message});
-      }
+    if (push && op === "start" && push.inboxOnly !== true) {
+      push = await caroQuietIfSeen(coupleId, reply.gameId, partnerUid, push);
     }
     if (push) {
       // Awaited: gen2 CPU is throttled once the response is sent.

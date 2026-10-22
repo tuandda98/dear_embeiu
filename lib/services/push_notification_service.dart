@@ -96,6 +96,23 @@ bool isCaroPushForVisibleGame(Map<String, dynamic> data) {
       gameId == NotificationTapRouter.caroGameOnScreen;
 }
 
+/// Id of the in-app banner for a foreground push. Caro pushes of one game
+/// share an id, so a new one replaces the last instead of stacking (CARO-T2,
+/// same idea as the tray's `collapseId`). Others get a fresh 31-bit id.
+@visibleForTesting
+int foregroundBannerId(
+  Map<String, dynamic> data,
+  String? messageId,
+  int nowMs,
+) {
+  final type = '${data['type'] ?? ''}';
+  final gameId = '${data['gameId'] ?? ''}'.trim();
+  if (type.startsWith('caro_') && gameId.isNotEmpty) {
+    return 'caro_$gameId'.hashCode & 0x7FFFFFFF;
+  }
+  return (messageId.hashCode ^ nowMs) & 0x7FFFFFFF;
+}
+
 /// Whether a push says the partner just joined (`type == 'partner_joined'`,
 /// from the `notifyPartnerJoined` CF). Both the alert push and its Android
 /// data-only wake companion carry it.
@@ -113,7 +130,9 @@ bool isPartnerJoinedPush(Map<String, dynamic> data) =>
 ///
 /// ⚠️ An iOS app the user force-quit gets no wake; the band is then cleared on
 /// the next launch, when Home sees the couple active.
-Future<void> _cancelInviteFollowUpsIfPartnerJoined(RemoteMessage message) async {
+Future<void> _cancelInviteFollowUpsIfPartnerJoined(
+  RemoteMessage message,
+) async {
   if (!isPartnerJoinedPush(message.data)) {
     return;
   }
@@ -178,8 +197,9 @@ class NotificationTapRouter {
   /// fullscreen (deep-link to the exact item, not just the tab). null = none.
   /// [GalleryScreen] consumes it when it builds and the photo is loaded; if the
   /// photo is gone (deleted) it's simply cleared and the user lands on the grid.
-  static final ValueNotifier<String?> pendingPhotoId =
-      ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> pendingPhotoId = ValueNotifier<String?>(
+    null,
+  );
 
   /// Marks the current request as handled so it won't be reapplied later.
   static void consumeHomeTabRequest() {
@@ -199,8 +219,9 @@ class NotificationTapRouter {
   /// view (deep-link within Home). Carries the notification `type` string
   /// (e.g. 'daily_question'); [HomeScreen] scrolls that card into view. null =
   /// no focus request (just land on the tab).
-  static final ValueNotifier<String?> pendingHomeFocus =
-      ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> pendingHomeFocus = ValueNotifier<String?>(
+    null,
+  );
 
   /// Marks the pending Home-focus request as handled.
   static void consumeHomeFocusRequest() {
@@ -231,8 +252,9 @@ class NotificationTapRouter {
   /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
   /// focus value (cold-start: both are set in `initialize()` before HomeScreen
   /// mounts, so its initState can read them together). null = none.
-  static final ValueNotifier<String?> pendingRpsGameId =
-      ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> pendingRpsGameId = ValueNotifier<String?>(
+    null,
+  );
 
   /// Marks the pending game deep-link as handled.
   static void consumeRpsGameRequest() {
@@ -374,7 +396,9 @@ class PushNotificationService {
       // user's real choices (not defaults) from the first sync (D-notif-4).
       await NotificationSettingsService.instance.ensureLoaded();
 
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -391,9 +415,10 @@ class PushNotificationService {
         onDidReceiveNotificationResponse: handleLocalNotificationTap,
       );
 
-      final androidPlugin =
-          _localNotifications.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidPlugin?.createNotificationChannel(_photoChannel);
 
       // We render the foreground banner OURSELVES via a local notification (see
@@ -403,11 +428,12 @@ class PushNotificationService {
       // here made iOS show NOTHING while the app was open. Turn alert/sound off
       // to defer entirely to our manual show (keeps a single banner on every
       // platform, no duplicates); badge stays on for the app-icon count.
-      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-        alert: false,
-        badge: true,
-        sound: false,
-      );
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: false,
+            badge: true,
+            sound: false,
+          );
 
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
@@ -417,22 +443,21 @@ class PushNotificationService {
 
       // Cold path: app was terminated and launched by tapping a push. Runs
       // before runApp, so the pending tab is set before HomeScreen mounts.
-      final initialMessage =
-          await FirebaseMessaging.instance.getInitialMessage();
+      final initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage();
       if (initialMessage != null) {
         _handleNotificationTap(initialMessage);
       }
 
-      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen(
-        (token) async {
-          final userId = _activeUserId;
-          if (userId == null || token.trim().isEmpty) {
-            return;
-          }
+      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh
+          .listen((token) async {
+            final userId = _activeUserId;
+            if (userId == null || token.trim().isEmpty) {
+              return;
+            }
 
-          await _saveDeviceToken(userId: userId, token: token.trim());
-        },
-      );
+            await _saveDeviceToken(userId: userId, token: token.trim());
+          });
     } catch (e) {
       _isInitialized = false;
       debugPrint('Push notification bootstrap failed: $e');
@@ -558,7 +583,10 @@ class PushNotificationService {
         pushTypePrefs: NotificationSettingsService.instance.currentOrDefault(),
       );
       // Keep this user's device list from accumulating stale registrations.
-      await _userService.pruneStaleDevices(userId: userId, keepDeviceId: deviceId);
+      await _userService.pruneStaleDevices(
+        userId: userId,
+        keepDeviceId: deviceId,
+      );
     } catch (e) {
       debugPrint('Push token sync failed: $e');
     }
@@ -866,9 +894,11 @@ class PushNotificationService {
     // (validateId). millisecondsSinceEpoch (~1.7e12) overflows that, so mask the
     // combined value down to a non-negative 31-bit int (0..2^31-1). Stays well
     // clear of the reminder id ranges (1001–1099 / 2000–2999).
-    final notificationId =
-        (message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch) &
-            0x7FFFFFFF;
+    final notificationId = foregroundBannerId(
+      message.data,
+      message.messageId,
+      DateTime.now().millisecondsSinceEpoch,
+    );
 
     // Carry the full FCM data map so a tap on this foreground banner deep-links
     // exactly like a background push tap (routed in _handleLocalNotificationResponse).
@@ -902,4 +932,3 @@ class PushNotificationService {
     );
   }
 }
-
