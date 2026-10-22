@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_l10n.dart';
 import '../../l10n/l10n.dart';
 import '../../models/money.dart';
 import '../../providers/money_provider.dart';
@@ -90,7 +92,7 @@ class _SettleSheetState extends State<SettleSheet> {
       me: money.uid ?? '',
       partner: money.partnerUid,
     )!;
-    _amount.text = '${_plan.amount}';
+    _amount.text = _grouped(_plan.amount);
     // The wallet I usually pay shared things with, else the default one.
     final wallets = _ownWallets(money);
     final usual = (money.own?.txs ?? const <MoneyTx>[])
@@ -116,6 +118,12 @@ class _SettleSheetState extends State<SettleSheet> {
     super.dispose();
   }
 
+  /// `170.000` / `170,000` in the field, like every other amount on screen
+  /// (parseVndInput reads both back). AppL10n, not context: also runs in
+  /// initState, where Localizations can't be looked up yet.
+  String _grouped(int v) =>
+      NumberFormat.decimalPattern(AppL10n.strings.localeName).format(v);
+
   int? get _value {
     final r = parseVndInput(_amount.text, max: kMoneyTxMax);
     return r.ok ? r.value : null;
@@ -123,7 +131,7 @@ class _SettleSheetState extends State<SettleSheet> {
 
   void _set(int v) {
     HapticFeedback.selectionClick();
-    setState(() => _amount.text = '$v');
+    setState(() => _amount.text = _grouped(v));
   }
 
   /// Re-reads the balance from the server. true = still [_plan]; otherwise
@@ -163,7 +171,7 @@ class _SettleSheetState extends State<SettleSheet> {
       _busy = false;
       _balance = fresh;
       _plan = plan;
-      _amount.text = '${plan.amount}';
+      _amount.text = _grouped(plan.amount);
       _notice = l10n.moneySettleChanged(vnd(context, plan.amount));
     });
     return false;

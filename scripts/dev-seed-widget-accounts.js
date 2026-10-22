@@ -66,7 +66,7 @@ const UNSPLASH = [
   ['1501901609772-df0848060b33', 'Cõng em đi khắp thế gian', 0, 60],
   ['1513279922550-250c2129b13a', 'Tối nến nhìn xuống thành phố', 1, 30],
   ['1531747056595-07f6cbbe10ad', 'Nhảy giữa rừng cây', 0, 12],
-  ['1511405889574-b01de1da5441', 'Hoàng hôn hai đứa mình', 1, 3],
+  ['1511405889574-b01de1da5441', 'Hoàng hôn của chúng mình', 1, 3],
 ];
 const QUESTIONS = [
   ['Khoảnh khắc nào khiến bạn nhận ra mình thích người ấy?', 'What moment made you realize you liked your partner?'],

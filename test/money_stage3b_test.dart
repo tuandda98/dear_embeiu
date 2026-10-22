@@ -430,9 +430,12 @@ void main() {
     testWidgets('Trả hết: Thảo pays 359.000 back into my wallet', (
       tester,
     ) async {
+      AppL10n.setLocale(const Locale('vi'));
       final money = await openSettle(tester);
       expect(find.text('Thảo trả lại cho mình'), findsOneWidget);
       expect(find.text('Vì sao là ${_v(359000)}'), findsOneWidget);
+      // The field groups thousands like the rest of the screen (smoke).
+      expect(find.widgetWithText(TextField, '359.000'), findsOneWidget);
       await tester.tap(find.text('Đánh dấu đã thanh toán'));
       await tester.pumpAndSettle();
       final r = money.added.single;
