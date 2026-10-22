@@ -349,6 +349,7 @@ void main() {
         expect(end?['statusKind'], '', reason: type);
         expect(end?['statusText'], '', reason: type);
         expect(end?['statusAt'], '1760000000000', reason: type);
+        expect(end?['onlyIfKind'], HomeWidgetStatus.caroTurn, reason: type);
         expect(end?['onlyIfNewer'], '1', reason: type);
         expect(end?['todayDate'], '2026-10-20', reason: type);
       }
