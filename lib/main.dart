@@ -292,6 +292,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // therefore the partner's notifications) silently unregistered.
     if (state == AppLifecycleState.resumed) {
       _authProvider.refreshPushRegistration();
+      _authProvider.touchLastSeen();
       HomeWidgetBridge.consumeLaunch();
     }
   }

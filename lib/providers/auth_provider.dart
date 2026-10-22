@@ -8,6 +8,7 @@ import '../models/auth_status.dart';
 import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_service.dart';
+import '../services/user_service.dart';
 import 'money_provider.dart';
 
 /// Social sign-in providers (pairing-funnel PF1 Apple, PF14 Google). `name` is
@@ -15,9 +16,12 @@ import 'money_provider.dart';
 enum SocialSignIn { apple, google }
 
 class AuthProvider extends ChangeNotifier {
-  AuthProvider({required AuthService authService}) : _authService = authService;
+  AuthProvider({required AuthService authService, UserService? userService})
+      : _authService = authService,
+        _userService = userService ?? UserService();
 
   final AuthService _authService;
+  final UserService _userService;
 
   AuthStatus _status = AuthStatus.unknown;
   AppUser? _currentUser;
@@ -196,6 +200,13 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
     await PushNotificationService.instance.syncForUser(_currentUser);
+  }
+
+  /// App back in the foreground → refresh users/{uid}.lastSeenAt (feature
+  /// last-seen). Fire-and-forget; UserService throttles to 1 write/hour.
+  void touchLastSeen() {
+    if (!isAuthenticated) return;
+    unawaited(_userService.touchLastSeen(_currentUser!.id));
   }
 
   Future<void> initialize() async {
