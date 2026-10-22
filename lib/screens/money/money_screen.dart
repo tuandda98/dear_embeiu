@@ -146,7 +146,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
       if (e.isPermissionDenied) {
         showMoneySnack(
           context,
-          message: l10n.moneyConflictTitle(MoneyPeople.of(context).partnerName),
+          message: l10n.moneyConflictTitle(MoneyPeople.of(context, listen: false).partnerName),
           detail: l10n.moneyConflictBody,
         );
       } else {

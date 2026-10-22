@@ -143,9 +143,12 @@ class MoneyPeople {
   final bool waiting;
   final String inviteCode;
 
-  static MoneyPeople of(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<MoneyPeopleScope>();
+  /// [listen] false from callbacks (tap handlers, post-frame): subscribing
+  /// outside build trips provider's assertion and the action never runs.
+  static MoneyPeople of(BuildContext context, {bool listen = true}) {
+    final scope = listen
+        ? context.dependOnInheritedWidgetOfExactType<MoneyPeopleScope>()
+        : context.getInheritedWidgetOfExactType<MoneyPeopleScope>();
     if (scope != null) return scope.people;
     final l10n = context.l10n;
     var myName = l10n.moneyMe, partnerName = l10n.reactionPartnerFallback;
@@ -153,7 +156,10 @@ class MoneyPeople {
     var code = '';
     Color me = const Color(0xFF1C7ED6), partner = const Color(0xFF0E9384);
     try {
-      final couple = Provider.of<CoupleProvider>(context).couple;
+      final couple = Provider.of<CoupleProvider>(
+        context,
+        listen: listen,
+      ).couple;
       final uid = Provider.of<AuthProvider>(
         context,
         listen: false,

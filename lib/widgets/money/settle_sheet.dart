@@ -183,7 +183,7 @@ class _SettleSheetState extends State<SettleSheet> {
       return;
     }
     final l10n = context.l10n;
-    final people = MoneyPeople.of(context);
+    final people = MoneyPeople.of(context, listen: false);
     // Both phones may "Trả hết" from the same number, or this one may hold
     // an old one: re-read the server's sums right before writing and only
     // settle what is still owed (Tester Med).

@@ -744,7 +744,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     } on FirebaseException catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      final people = MoneyPeople.of(context);
+      final people = MoneyPeople.of(context, listen: false);
       if (e.code == 'permission-denied') {
         Navigator.of(context).pop(
           _SheetResult(

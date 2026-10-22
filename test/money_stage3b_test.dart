@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:dear_embeiu/providers/couple_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -554,6 +555,42 @@ void main() {
       final r = money.added.single;
       expect(r.tx.amount, 100000);
       expect(r.tx.payer, 'me');
+    });
+    testWidgets('names from CoupleProvider (no scope): saving still writes', (
+      tester,
+    ) async {
+      // Real app path: MoneyPeople.of reads CoupleProvider. Called from the
+      // save tap it must not subscribe (provider asserts outside build and the
+      // settle was silently never written — smoke 2026-10-22).
+      _phone(tester);
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(coupleNet: 359000),
+        );
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<MoneyProvider>.value(value: money),
+            ChangeNotifierProvider<CoupleProvider>(
+              create: (_) => CoupleProvider(),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('vi'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: _Opener(SettleSheet.show)),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Đánh dấu đã thanh toán'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(money.added.single.tx.amount, 359000);
     });
   });
 
