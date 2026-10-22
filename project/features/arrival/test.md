@@ -41,3 +41,4 @@
 - BUG-5 [Low, đã chấp nhận] `home_widget_status.dart:297-301` — so ngày theo giờ VN.
 - Ghi chú: `dev.md` mục Edge case ghi máy tắt `pushArrival` không bị đánh thức — code vẫn silent wake (`functions/index.js:3516`), doc cũ.
 Cần smoke: Android mở app trong 2' DWELL · resume trong vùng · iOS nền/vuốt tắt · Geocoder 20 địa chỉ · "Cho phép mọi lúc" Android 11–14 · hạ quyền · `aapt2 dump permissions` · app 1.11.0 nhận push arrival.
+- [2026-10-22] [Lead] Smoke 2 máy (Android emulator Pixel_10 = test3 Tuấn · iOS sim iPhone 17 Pro = test4 Thảo, DEV, nhánh `feature/daily-open-2`): bấm tay "I'm home" trên Android → iOS thấy "Tuấn đã về đến nhà · 12:33 · 100% · bấm tay" + nút Hỏi thăm. PASS. **Chưa thử được tự báo (geofence):** GPS emulator kẹt ở vị trí mặc định (`adb emu geo fix` trả OK nhưng `dumpsys location` không đổi) nên "Dùng vị trí hiện tại" báo không lấy được vị trí → BUG-1 phải kiểm trên máy thật.

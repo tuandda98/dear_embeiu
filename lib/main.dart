@@ -20,6 +20,7 @@ import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
+import 'widgets/feature_tour_sheet.dart';
 import 'services/ai_question_source.dart';
 import 'services/revisit_question_source.dart';
 import 'providers/decision_provider.dart';
@@ -128,7 +129,10 @@ void main() async {
   // resolves a route, so it stays on the pre-runApp path.
   InstallStateService.isFreshInstallLaunch =
       await InstallStateService().handleFreshInstall(
-        onFreshInstall: () => authService.purgePersistedSession(),
+        onFreshInstall: () async {
+          await authService.purgePersistedSession();
+          await FeatureTour.rememberFreshInstall();
+        },
       );
 
   runApp(MyApp(
