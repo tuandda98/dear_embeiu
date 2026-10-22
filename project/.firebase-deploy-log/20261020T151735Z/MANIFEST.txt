@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && FNS=$(cat /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/48c59786-87af-410f-b957-e315990c7838/scratchpad/dev-fns.txt) && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only "firestore:rules,firestore:indexes,$FNS" --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error|⚠|Deploy complete" | tail -40
+time_utc: 20261020T151735Z
+git_head: f45f423 (feature/launch-film)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f45f423)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f45f423 -- functions` rồi redeploy

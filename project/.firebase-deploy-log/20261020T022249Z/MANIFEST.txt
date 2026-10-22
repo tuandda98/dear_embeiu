@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily; TS=$(date -u +%Y%m%dT%H%M%SZ); echo $TS > /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/48c59786-87af-410f-b957-e315990c7838/scratchpad/prod_ts; NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project prod --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft --force 2>&1 | grep -vE "punycode|DeprecationWarning|trace-deprecation" | tail -25; echo "EXIT=${pipestatus[1]}"
+time_utc: 20261020T022249Z
+git_head: f45f423 (feature/launch-film)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f45f423)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f45f423 -- functions` rồi redeploy

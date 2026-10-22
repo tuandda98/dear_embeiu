@@ -127,3 +127,64 @@ for i,b in enumerate(blocks): print(i, len(b.strip()), 'chars')
 EOF
 export NODE_OPTIONS=--dns-result-order=ipv4first
 npx firebase-tools deploy --project prod --only firestore:rules,functions:deleteAccount,functions:leaveCoupleCleanup,functions:migrateLoveNotesToChat,functions:nudgeRpsPlayer,functions:generateDailyQuestion,functions:notifyPartnerMood,functions:sendCustomVerificationEmail,functions:sendCustomPasswordResetEmail --force 2>&1 | grep -E "✔|✓|Error|error|Deploy complete|functions\[|rules" | tail -25` · snapshot `20261012T175725Z/`
+- [20261019T162238Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-decision-wheel && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:deleteAccount,functions:leaveCoupleCleanup 2>&1 | tail -25` · snapshot `20261019T162238Z/`
+- [20261019T162347Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-widget-today && git rev-parse HEAD && date -u +%Y-%m-%dT%H:%M:%SZ && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage 2>&1 | tail -15` · snapshot `20261019T162347Z/`
+- [20261019T163605Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && git commit -q -m "merge: widget-today + decision-wheel vào feature/daily-open; nối kết quả quay lên widget
+
+- home_screen: lắng nghe DecisionProvider cho dòng trạng thái widget, chọn quyết định mới nhất hôm nay (ăn/đi/tự nhập), tên hiển thị như thẻ.
+- Khoá focus widget 'meal' -> 'decision' khớp NotificationTapRouter.focusDecision.
+- Kết quả hoạt động tiếng Anh lưu thường ('play pool') được viết hoa chữ đầu trên widget.
+- Handler nền: cập nhật widget + huỷ nhắc 1200 chạy cả hai.
+analyze 0 · flutter test 627 pass · rules 390 passing.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_012X1VMGRJpoHqhF9Ad89y6g" && git push -q origin feature/daily-open && git log --oneline -1 && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only functions:notifyDecision 2>&1 | tail -3` · snapshot `20261019T163605Z/`
+- [20261019T165728Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && date -u +%Y-%m-%dT%H:%M:%SZ && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft --non-interactive 2>&1 | tail -25; date -u +%Y-%m-%dT%H:%M:%SZ` · snapshot `20261019T165728Z/`
+- [20261019T165745Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && cat project/.firebase-deploy-log/20261019T162238Z-decision-wheel/MANIFEST.txt; D=project/.firebase-deploy-log/20261019T165553Z-daily-open; mkdir -p $D && git show f0096a3:firestore.rules > $D/firestore.rules && git show f0096a3:storage.rules > $D/storage.rules && cat > $D/MANIFEST.txt <<'EOF'
+time_utc=2026-10-19T16:55:53Z (xong 16:57:28Z)
+project=tonyembeiu-dev
+head=f0096a3 branch=feature/daily-open dirty=0 (code; chỉ docs PO đang sửa)
+cmd=NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft --non-interactive
+exit=0 (rules released, 6/6 functions "Successful update operation")
+restore: git checkout 0b92594 -- firestore.rules functions && redeploy cùng danh sách
+EOF
+echo '- [20261019T165553Z] head=f0096a3 branch=feature/daily-open dirty=0 exit=0 · DEV `deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft` · vá Tester vòng 1 widget-today + decision-wheel (code gộp): rules decisions (lastPushBy CF-only, mỗi lựa chọn 1..40, custom không chiếm id {date}_eat|_go) + 6 CF (cooldown theo người quay, data.resultId/sentAt, partner_left wakeClients) · (manual trace từ worktree; dòng hook 20261019T165728Z ở checkout chính chụp nhầm HEAD) · snapshot `20261019T165553Z-daily-open/` · **PROD chưa deploy**' >> project/.firebase-deploy-log/HISTORY.md; ls $D` · snapshot `20261019T165745Z/`
+- [20261019T172048Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && date -u +%Y-%m-%dT%H:%M:%SZ && git rev-parse --short HEAD && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft 2>&1 | grep -E "Successful|Error|error|Deploy complete|✔" | tail -12; date -u +%Y-%m-%dT%H:%M:%SZ` · snapshot `20261019T172048Z/`
+- [20261019T172101Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && D=project/.firebase-deploy-log/20261019T171904Z-daily-open && mkdir -p $D && cp firestore.rules storage.rules $D/ && cat > $D/MANIFEST.txt <<'EOF'
+time_utc=2026-10-19T17:19:04Z (xong 17:20:48Z)
+project=tonyembeiu-dev
+head=1895098 branch=feature/daily-open dirty=0
+cmd=NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft
+exit=0 (6/6 functions "Successful update operation"; rules không đổi, không deploy)
+restore: git checkout ddf55c7 -- functions && redeploy cùng danh sách
+EOF
+cat >> project/.firebase-deploy-log/HISTORY.md <<'EOF'
+- [20261019T171904Z] head=1895098 branch=feature/daily-open dirty=0 exit=0 · DEV `deploy --project tonyembeiu-dev --only functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft` · vá Tester vòng 2: `sendToRecipientDevices` thêm option `silent` (wake data-only), notifyDecision gửi silent khi cooldown chặn banner (DW-R2-2), notifyPartnerLeft gửi `data.sentAt` (WT-R2-1) · (manual trace từ worktree; dòng hook `20261019T172048Z` ở checkout chính chụp nhầm HEAD) · snapshot `20261019T171904Z-daily-open/` · **PROD chưa deploy**
+EOF
+tail -2 project/.firebase-deploy-log/HISTORY.md | cut -c1-80` · snapshot `20261019T172101Z/`
+- [20261020T022249Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily; TS=$(date -u +%Y%m%dT%H%M%SZ); echo $TS > /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/48c59786-87af-410f-b957-e315990c7838/scratchpad/prod_ts; NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project prod --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft --force 2>&1 | grep -vE "punycode|DeprecationWarning|trace-deprecation" | tail -25; echo "EXIT=${pipestatus[1]}"` · snapshot `20261020T022249Z/`
+- [20261020T142152Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && FNS=$(cat /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/48c59786-87af-410f-b957-e315990c7838/scratchpad/dev-fns.txt) && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only "firestore:rules,$FNS" --project tonyembeiu-dev --non-interactive 2>&1 | tail -40` · snapshot `20261020T142152Z/`
+- [20261020T144849Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && git add -A && git commit -q -m "fix(weather): hai máy cùng hỏi một thành phố lần đầu thì máy sau chờ, không báo lỗi
+
+Smoke 2026-10-20: chọn thành phố xong, máy người ấy (đang mở app) gọi
+getCityWeather cùng lúc; khoá mềm làm lời gọi sau trả rỗng khi thành phố chưa
+có cache ⇒ thẻ \"Chưa tải được thời tiết\". Giờ lời gọi sau đọc bản mới nhất
+trong transaction, chưa có thì chờ lời gọi đầu (≤10 × 800 ms), dừng sớm nếu
+lời gọi đầu thất bại. +2 test.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_012X1VMGRJpoHqhF9Ad89y6g" && git push -q && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:getCityWeather --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error" | tail -4` · snapshot `20261020T144849Z/`
+- [20261020T151735Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && FNS=$(cat /private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/48c59786-87af-410f-b957-e315990c7838/scratchpad/dev-fns.txt) && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only "firestore:rules,firestore:indexes,$FNS" --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error|⚠|Deploy complete" | tail -40` · snapshot `20261020T151735Z/`
+- [20261020T152940Z] head=f45f423 dirty=12 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && python3 - <<'EOF'
+import json
+p='firestore.indexes.json'
+d=json.load(open(p))
+new=[["memberUids","payer","type","amount","payerShare"],["inWalletId","memberUids","amount"],["memberUids","outWalletId","amount"],["memberUids","type","date","amount"],["inWalletId","amount"],["outWalletId","amount"],["type","date","amount"]]
+have={tuple(f['fieldPath'] for f in i['fields']) for i in d['indexes'] if i['collectionGroup']=='moneyTx'}
+for fields in new:
+    if tuple(fields) in have: continue
+    d['indexes'].append({"collectionGroup":"moneyTx","queryScope":"COLLECTION","fields":[{"fieldPath":x,"order":"ASCENDING"} for x in fields]})
+open(p,'w').write(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+print(len(d['indexes']),'indexes')
+EOF
+git diff --stat firestore.indexes.json | tail -1; NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only firestore:indexes --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error" | tail -3` · snapshot `20261020T152940Z/`
