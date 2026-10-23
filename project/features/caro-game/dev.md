@@ -141,3 +141,5 @@ Chi tiết từng op:
   - **T8** (ghép lại đúng couple cũ → tỉ số 0–0 nhưng lịch sử còn ván cũ): chấp nhận, không sửa. D20 xoá `caroState` khi rời nên tỉ số về 0; lịch sử lọc theo 2 player là cặp hiện tại nên ván cũ của chính 2 người hiện lại. Hiếm, không sai dữ liệu.
   - Test: node 103 pass (+4: T3/T7 start, T4 cancel/expire/resign, `caroQuietIfSeen`, `sendCaroPush` silent); Flutter full 1005 pass (+5 ở `caro_ui_test.dart`, sửa 1 expectation cũ `caro_result` → giờ xoá dòng); `flutter analyze` 0. Không đụng rules. CF đổi: chỉ `caroAction` (deploy DEV: `functions:caroAction`). Chưa deploy.
 - [2026-10-22] [Lead] CARO-T4 bổ sung: push `caro_ended`/`caro_result` gửi kèm `onlyIfKind=caro_turn`; native (Java plugin + Swift AppDelegate) bỏ qua nếu dòng đang hiện không phải loại đó ⇒ kết thúc ván không còn xoá dòng tâm trạng/chat của người ấy. analyze 0, `caro_ui_test` 43 pass, Java compile + `swiftc -parse` OK.
+
+- [2026-10-23] [dev] User chốt bỏ bước xác nhận: trong ván chạm ô trống là gửi nước luôn (bỏ chạm lần 2 + nút "Đi nước này"); nước đầu của lời mời vẫn chọn ô rồi bấm Mời. Ô ~22pt < 44pt nên dễ chạm nhầm — chấp nhận, nút phóng to giữ nguyên. Commit b7e0e88.

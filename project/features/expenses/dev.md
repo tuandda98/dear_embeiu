@@ -328,3 +328,5 @@ Quỹ: 40% + còn 3.000.000 + ~1.000.000/tháng (Oct→Jan) · đủ 100% / quá
 **Không đụng** rules / index / functions ⇒ không cần deploy thêm.
 
 - [2026-10-22] [Dev] Sửa 7 mục Tester (bảng trên; bỏ parser "1tr2500" chờ PO). `flutter analyze` 0, `flutter test test/money*` 127 pass (+8), `flutter test` toàn bộ 1009 pass. Chưa deploy.
+
+- [2026-10-23] [dev] Sửa chữ tiếng Anh khi app đặt tiếng Việt: cache danh mục chỉ khoá theo meta nên dựng lúc AppL10n còn EN (hoặc trước khi đổi ngôn ngữ) là kẹt "Coffee & bubble tea" → khoá thêm theo AppL10n.strings. Ví mặc định chưa đổi tên (Cash/Ví chung/Ngân hàng/Thẻ tín dụng) lưu tên theo ngôn ngữ lúc tạo → getter `MoneyBookState.wallets` hiện theo ngôn ngữ hiện tại. Commit b7e0e88.
