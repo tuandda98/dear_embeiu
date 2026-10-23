@@ -43,3 +43,5 @@
 - CARO-T8 [nghi ngờ] ghép lại đúng couple cũ → tỉ số 0–0 nhưng lịch sử còn ván cũ.
 Cần smoke: 2 máy cùng "Ván mới" · realtime ≤2s · gộp thông báo 1/ván · widget đánh thức · presence iOS xuống nền · app 1.11.0 song song · rời couple giữa ván · a11y · mất mạng giữa nước đi.
 - [2026-10-22] [Lead] Smoke 2 máy (Android emulator Pixel_10 = test3 Tuấn · iOS sim iPhone 17 Pro = test4 Thảo, DEV, nhánh `feature/daily-open-2`): mời → iOS thấy "Tuấn rủ bạn một ván và đã đi nước đầu" realtime; presence "đang xem" 2 chiều; nước 2 đồng bộ ≤2s; xin thua → cả 2 máy hiện kết quả, tỉ số 0–1, thẻ Home "Ván mới"/"Rematch"; inbox `caro_invite` ghi + tự đánh dấu đã đọc khi vào ván. PASS. Chưa thử push (DEV thiếu APNs, emulator không FCM) + widget.
+
+- [2026-10-24] [tester] Smoke 2 máy ảo bằng Maestro (`maestro/caro-game/`): 18/18 flow PASS (ván đầy đủ, mất mạng, thắng, lịch sử, phục thù, huỷ, xin thua). Flow 02 bỏ vì nút Home "Chơi" giờ gửi lời mời luôn (29f73da); 03/14 viết lại theo luồng mới. Unit bù 50/52 case (`test/caro_gap_test.dart`, `functions/test/caro_gap.test.js`). Bảng case: `test-cases.md`.

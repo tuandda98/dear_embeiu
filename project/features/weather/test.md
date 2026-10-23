@@ -45,3 +45,5 @@
 - [Low] Hive `weather_cache` nằm trong thư mục được sao lưu.
 Cần smoke: chọn giúp realtime 2 máy · 1 lượt MET/thành phố/30' trên log CF · 1160 nổ thật + chạm 3 trạng thái app · máy bay 3 mức cache · app 1.11.0 song song · rời couple xoá doc.
 - [2026-10-22] [Lead] Smoke 2 máy (Android emulator Pixel_10 = test3 Tuấn · iOS sim iPhone 17 Pro = test4 Thảo, DEV, nhánh `feature/daily-open-2`): chọn Hà Nội cho mình + TP.HCM cho người ấy trên Android → iOS thấy ngay đúng 2 làn (31° Hà Nội đang mưa / 32° TP.HCM chiều nay mưa), nút "Nhắc … mang ô" hiện đúng ở cả 2 máy. PASS. Chưa thử thông báo 07:30 (cần chờ giờ thật).
+
+- [2026-10-24] [tester] Smoke 2 máy ảo bằng Maestro (`maestro/weather/`, Android test3 + iOS test4, DEV): 10/10 flow PASS sau khi chỉnh selector. Unit bù 35/36 case (`test/weather_gap_*`); 2 test skip giữ nợ: CF-22 (getCityWeather chưa giới hạn theo user / App Check), SEC-03 (Hive `weather_cache` không ở thư mục nobackup). Bảng case: `test-cases.md`.

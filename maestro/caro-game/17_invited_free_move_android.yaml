@@ -1,0 +1,25 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn nhận ván luật Tự do: câu mô tả đúng luật; đi 1 nước (O hàng 8, cột 9). Để nguyên màn ván cho flow 19.
+# CARO-RULE: phụ đề lời mời nói "Luật tự do"; sau khi đi, nút Nhắc khoá.
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. .* rủ bạn.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\. .* rủ bạn.*'
+- waitForAnimationToEnd
+- assertVisible: '.*Luật tự do.*'
+- runFlow: _lib_zoom_out.yaml
+- tapOn: '(?s)Hàng 8, cột 9, trống.*'
+- waitForAnimationToEnd
+- assertVisible: 'Đang chờ .*\. .*'
+- assertVisible:
+    text: '(?s)Nhắc được sau .* phút.*'
+    enabled: false

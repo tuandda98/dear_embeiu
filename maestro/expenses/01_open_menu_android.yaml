@@ -1,0 +1,27 @@
+# SỔ TIỀN: mở từ Home, 2 tab, đổi tháng, menu "Ví, danh mục, ngân sách" có đủ 5 mục.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _month.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- assertVisible: '(?s).*Của mình.*'
+- assertVisible: '(?s).*Chung.*'
+- tapOn: 'Của mình'
+- assertVisible: '(?s).*Đã chi.*'
+- assertVisible: '(?s).*${output.thisMonth}.*'
+- tapOn: 'Tháng trước'
+- assertVisible: '(?s).*${output.prevMonth}.*'
+- tapOn: 'Tháng sau'
+- assertVisible: '(?s).*${output.thisMonth}.*'
+- tapOn: 'Ví, danh mục, ngân sách'
+- assertVisible: '(?s).*Ví.*'
+- assertVisible: '(?s).*Danh mục.*'
+- assertVisible: '(?s).*Ngân sách.*'
+- assertVisible: '(?s).*Báo cáo.*'
+- assertVisible: '(?s).*Nhắc tối.*'
+- back
+- tapOn: 'Chung'
+- assertVisible: '(?s).*Chúng mình đã chi.*'

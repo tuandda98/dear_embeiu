@@ -1,0 +1,26 @@
+# Case FE-10 (khởi động offline, dùng bản lưu máy), FE-11. Android = test3. Chạy sau 07.
+# Tiền điều kiện: các flow trước đã tải số liệu (cache Hive < 6 giờ).
+# Máy bay bật rồi tự tắt khi flow xong (kể cả lỗi).
+appId: com.tony.dearembeiu.dev
+onFlowComplete:
+  - setAirplaneMode: disabled
+---
+- stopApp
+- setAirplaneMode: enabled
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+# Số liệu từ cache vẫn hiện, không rơi vào trạng thái lỗi
+- assertVisible: '.*Hà Nội.*'
+- assertVisible: '.*Đà Nẵng.*'
+- assertNotVisible: 'Chưa tải được thời tiết'

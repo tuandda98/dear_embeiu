@@ -1,0 +1,14 @@
+# Đứng ở màn Quản lý "Về đến nhà": nếu mình đang chia sẻ thì tắt (hộp "Tắt báo về nhà?" → Tắt).
+# Công tắc đang BẬT có phụ đề "Tắt là xoá tin gần nhất…"; đang TẮT thì phụ đề "Bật lại để báo…" nên không chạm nhầm.
+appId: com.tony.dearembeiu.dev
+---
+- runFlow:
+    when:
+      visible: '(?s).*Tắt là xoá tin gần nhất.*'
+    commands:
+      - tapOn: '(?s).*Tắt là xoá tin gần nhất.*'
+      - extendedWaitUntil:
+          visible: '(?s).*Tắt báo về nhà\?.*'
+          timeout: 8000
+      - tapOn: 'Tắt'
+      - waitForAnimationToEnd

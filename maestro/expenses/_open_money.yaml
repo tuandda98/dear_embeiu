@@ -1,0 +1,12 @@
+# Từ Home mở màn Sổ tiền (thẻ Sổ tiền ở Home: "<tiêu đề>, <dòng phụ>").
+# Cặp đã ghép -> mở vào sổ Chung; muốn sổ riêng thì chạm tab "Của mình" sau đó.
+appId: com.tony.dearembeiu.dev
+---
+- runFlow:
+    file: ../_common/scroll_to.yaml
+    env:
+      TITLE: '(Sổ tiền|Sổ tiền của mình|Sổ chung tháng .*), .*'
+- tapOn: '(Sổ tiền|Sổ tiền của mình|Sổ chung tháng .*), .*'
+- extendedWaitUntil:
+    visible: '(?s).*SỔ TIỀN.*'
+    timeout: 10000

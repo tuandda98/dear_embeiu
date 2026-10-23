@@ -1,0 +1,24 @@
+# "Ghi lại khoản quen": sau khi có khoản, mở form thấy chip, chạm chip rồi Lưu là xong.
+# Lưu ý: chip chỉ hiện cho 3 danh mục chi dùng nhiều nhất; khoản mới nằm ở danh mục mặc định (dùng nhiều nhất) nên thường có mặt.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- runFlow:
+    file: _add_expense_own.yaml
+    env:
+      NOTE: MTQ${output.run}
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Ghi lại khoản quen.*'
+    timeout: 8000
+- tapOn: '(?s)MTQ${output.run} · 50k.*'
+- tapOn: 'Lưu 50\.000.*'
+- extendedWaitUntil:
+    visible: 'Đã ghi 50\.000.*'
+    timeout: 8000

@@ -1,0 +1,23 @@
+# 09 (iOS, Thảo) — sau khi bị hạ quyền xuống "Khi dùng ứng dụng": thẻ báo thiếu "Luôn luôn", Quản lý hiện đúng dòng quyền.
+# TRƯỚC KHI CHẠY: xcrun simctl privacy $IOS revoke location-always com.tony.dearembeiu.dev  (rồi grant location).
+# Chạy sau 08. Kiểm: QV-04, QV-07.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- extendedWaitUntil:
+    visible: '(?s).*Chưa tự báo được.*'
+    timeout: 20000
+- tapOn: '(?s).*Mở cài đặt Về đến nhà.*'
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Vị trí: Khi dùng ứng dụng.*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: '(?s).*Luôn luôn.*'
+- takeScreenshot: 09_perm_downgrade
+- tapOn: 'Quay lại'

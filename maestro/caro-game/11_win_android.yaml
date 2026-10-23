@@ -1,0 +1,27 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn, nước 9: X hàng 12, cột 8 => năm quân dọc cột 8 (hàng 8-12), thắng.
+# CARO-WIN: màn kết quả bên người thắng, đường thắng gắn nhãn, nút "Ván mới".
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. Đến lượt bạn.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\. Đến lượt bạn.*'
+- waitForAnimationToEnd
+- runFlow: _lib_zoom_out.yaml
+- tapOn: '(?s)Hàng 12, cột 8, trống.*'
+- extendedWaitUntil:
+    visible: 'Bạn thắng ván này\. .*'
+    timeout: 15000
+- assertVisible: '(?s)Ván mới.*'
+- assertVisible: '(?s)Xem lịch sử ván.*'
+- assertVisible: '(?s)Hàng 8, cột 8, quân X của .*, trong đường thắng.*'
+- assertVisible: '(?s)Hàng 12, cột 8, quân X của .*, nước vừa đi, trong đường thắng.*'
+- assertVisible: '(?s)\+1 ván này.*'

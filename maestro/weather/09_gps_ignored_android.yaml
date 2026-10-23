@@ -1,0 +1,22 @@
+# Case LOC-02. Android = test3. Tiền xử lý (người chạy làm trước):
+#   adb -s emulator-5554 emu geo fix 126.98 37.57     # Seoul
+# Thẻ vẫn theo thành phố đã chọn, app không hỏi quyền vị trí.
+appId: com.tony.dearembeiu.dev
+---
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- assertVisible: '.*Hà Nội.*'
+- assertNotVisible: '.*Seoul.*'
+- assertNotVisible: '.*(Cho phép|Allow).*(vị trí|location).*'

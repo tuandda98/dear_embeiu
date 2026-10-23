@@ -1,0 +1,28 @@
+# 01 (Android, Tuấn) — bấm "Bật báo về nhà" rồi "Để sau": không bật gì, thẻ vẫn là lời mời.
+# Kiểm: BT-07, BT-09, câu giải thích D12. Chạy sau 00_reset_android.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- tapOn: 'Bật báo về nhà'
+- waitForAnimationToEnd
+# Nhà chưa có vị trí → màn "Trước hết, nhà bạn ở đâu?"; đã có → màn giải thích quyền.
+- runFlow:
+    when:
+      visible: '(?s).*Trước hết, nhà bạn ở đâu\?.*'
+    commands:
+      - assertVisible: '(?s).*Đặt địa chỉ Nhà.*'
+      - tapOn: 'Để sau'
+- runFlow:
+    when:
+      visible: '(?s).*Về đến nơi, Thảo biết ngay.*'
+    commands:
+      - assertVisible: '(?s).*kể cả khi app đã đóng hoặc không dùng.*'
+      - tapOn: 'Để sau'
+- waitForAnimationToEnd
+- runFlow: _sub/scroll_to_card.yaml
+- assertVisible: '(?s).*Bật báo về nhà.*'
+- takeScreenshot: 01_decline_android

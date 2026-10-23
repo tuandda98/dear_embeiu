@@ -1,0 +1,18 @@
+appId: com.tony.dearembeiu.dev
+---
+# Thảo vẫn ở màn ván (flow 14) => thấy ván bị huỷ ngay, rủ ván mới luật Tự do.
+# CARO-CANCEL/RULE: "Ván này đã huỷ"; nút "Rủ … ván mới"; chọn Tự do; quân giữa bàn.
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: 'Ván này đã huỷ\. .*'
+    timeout: 15000
+- tapOn: '(?s)Rủ .* ván mới.*'
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: 'Rủ .* chơi caro'
+    timeout: 15000
+- tapOn: '(?s)Tự do.*'
+- tapOn: 'Rủ [^ ]+ chơi'
+- waitForAnimationToEnd
+- assertVisible: 'Đang chờ .*\. .*'

@@ -1,0 +1,28 @@
+# Case CT-01..CT-03 (CÓ ĐIỀU KIỆN: chỉ chạy nhánh nhắc khi thời tiết thật ở chỗ người ấy
+# đang mưa / nắng gắt / lạnh; ngày đẹp trời flow chỉ kiểm không có nút). Android = test3.
+# Không bấm Gửi (tránh ghi care message thật).
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: 'Nhắc .* (mang ô|uống nước|mặc ấm)'
+    commands:
+      - tapOn: 'Nhắc .* (mang ô|uống nước|mặc ấm)'
+      - waitForAnimationToEnd
+      # màn Quan tâm điền sẵn lời (một trong 3 tiêu đề)
+      - assertVisible: '(Nhớ mang ô nhé|Uống nước nhiều nha|Mặc ấm vào nhé)'
+      - assertVisible: 'Gửi cho người ấy.*'
+      - back

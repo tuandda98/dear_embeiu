@@ -1,0 +1,16 @@
+# CẶP 2 MÁY, bước 7: Thảo (iOS) thấy khoản Tuấn ghi lúc mất mạng sau khi Tuấn có mạng lại.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- scrollUntilVisible:
+    element:
+      text: 'MTP${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTP${output.run}, .*âm 20\.000 đồng.*'

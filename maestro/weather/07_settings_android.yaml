@@ -1,0 +1,44 @@
+# Case ST-01..ST-05. Android = test3. Chạy sau 06.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- tapOn: 'Hồ sơ'
+- tapOn: 'Cài đặt'
+- scrollUntilVisible:
+    element:
+      text: 'Thời tiết hai nơi'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- assertVisible: '.*Chỗ của bạn.*Hà Nội.*'
+- assertVisible: 'Chỗ Thảo'
+- assertVisible: 'Đà Nẵng · Thảo tự chọn'
+- assertVisible: '.*Thời tiết chỗ người ấy.*'
+- assertVisible: '.*Báo lúc .* khi chỗ .* mưa, nắng gắt hoặc lạnh.*'
+- assertVisible: '.*Hôm nào chỗ .* có mưa.*'
+# Người ấy đã tự chọn: hàng "Chỗ …" không còn chọn giúp được => không mở bảng chọn
+- tapOn: 'Chỗ Thảo'
+- assertNotVisible: 'Tìm thành phố.*'
+# Công tắc: tắt rồi bật; hộp quyền thông báo (nếu có) bấm optional
+- tapOn: '.*Thời tiết chỗ người ấy.*'
+- tapOn:
+    text: 'Cho phép|Allow'
+    optional: true
+- tapOn: '.*Thời tiết chỗ người ấy.*'
+- tapOn:
+    text: 'Cho phép|Allow'
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: 'Dữ liệu thời tiết.*'
+    direction: DOWN
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- assertVisible: 'Dữ liệu thời tiết.*MET Norway.*'

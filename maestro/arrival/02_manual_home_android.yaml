@@ -1,0 +1,18 @@
+# 02 (Android, Tuấn) — bấm tay "Về nhà rồi": không cần quyền, gửi sự kiện Home.
+# Kiểm: BT-02, NN-01, AY-01. Sau flow này chạy 03_view_home_ios.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- tapOn: 'Về nhà rồi'
+- extendedWaitUntil:
+    visible: '(?s).*Đã báo Thảo.*'
+    timeout: 20000
+- assertVisible: '(?s).*Đã về đến nhà.*'
+- assertVisible: '(?s).*bấm tay.*'
+# Chia sẻ đã bật nên header thành nút mở Quản lý (nhãn a11y).
+- assertVisible: '(?s).*Mở cài đặt Về đến nhà.*'
+- takeScreenshot: 02_manual_home_android

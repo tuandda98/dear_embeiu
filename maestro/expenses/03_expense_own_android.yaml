@@ -1,0 +1,21 @@
+# Chi 50k vào sổ Của mình: ghi, thấy dòng mới, thấy snackbar.
+# Chạy trong cặp 2 máy thì truyền cùng RUN: maestro --device emulator-5554 test -e RUN=123456 ...
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- runFlow:
+    file: _add_expense_own.yaml
+    env:
+      NOTE: MTO${output.run}
+- scrollUntilVisible:
+    element:
+      text: 'MTO${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTO${output.run}, .*âm 50\.000 đồng.*'

@@ -1,0 +1,47 @@
+# Case CH-09, CH-10, CH-18 (chọn từ Cài đặt làm thẻ hiện lại), ST-02.
+# Chạy sau 01 (thẻ đang ẩn, chưa ai chọn). Android = test3.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- tapOn: 'Hồ sơ'
+- tapOn: 'Cài đặt'
+- scrollUntilVisible:
+    element:
+      text: 'Thời tiết hai nơi'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- assertVisible: '.*Chỗ của bạn.*'
+- tapOn: '.*Chỗ của bạn.*'
+- tapOn: 'Tìm thành phố.*'
+# không dấu, không khoảng trắng đều ra Hà Nội
+- inputText: 'hanoi'
+- assertVisible: 'Hà Nội.*'
+- tapOn: 'Hà Nội.*'
+- waitForAnimationToEnd
+# Về Home: thẻ hiện lại (cờ ẩn đã xoá) và hỏi người ấy đang ở đâu
+- back
+- tapOn: 'Trang chủ'
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- assertVisible: '.*Hà Nội.*'
+- scrollUntilVisible:
+    element:
+      text: '.* đang ở đâu\?'
+    direction: UP
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- assertVisible: 'Chọn giúp'

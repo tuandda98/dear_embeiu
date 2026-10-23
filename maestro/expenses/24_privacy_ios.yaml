@@ -1,0 +1,28 @@
+# CẶP 2 MÁY, bước 5: sổ riêng của Tuấn (khoản MTO<mã> ghi bằng 03_expense_own_android với CÙNG mã RUN)
+# không hiện ở bất kỳ tab nào của Thảo và tìm không ra.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- runFlow:
+    when:
+      visible: '(?s).*Tiền của mình đang nằm ở đâu\?.*'
+    commands:
+      - tapOn: 'Bỏ qua'
+- tapOn: 'Của mình'
+- waitForAnimationToEnd
+- assertNotVisible: 'MTO${output.run}, .*'
+- tapOn: 'Chung'
+- waitForAnimationToEnd
+- assertNotVisible: 'MTO${output.run}, .*'
+- tapOn: 'Của mình'
+- tapOn: 'Tìm khoản'
+- tapOn: 'Tìm trong ghi chú và danh mục'
+- inputText: MTO${output.run}
+- extendedWaitUntil:
+    visible: 'Không có khoản nào khớp.*'
+    timeout: 10000

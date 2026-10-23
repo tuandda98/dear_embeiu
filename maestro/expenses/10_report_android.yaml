@@ -1,0 +1,28 @@
+# Báo cáo sổ Của mình: Thu | Chi | Còn lại, cơ cấu theo danh mục, xu hướng 6/12 tháng.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ví, danh mục, ngân sách'
+- tapOn: 'Báo cáo'
+- extendedWaitUntil:
+    visible: '(?s).*BÁO CÁO.*'
+    timeout: 8000
+- assertVisible: '(?s).*Còn lại.*'
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Chi theo danh mục.*'
+    centerElement: true
+    timeout: 40000
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Chi mỗi tháng.*'
+    centerElement: true
+    timeout: 40000
+- tapOn: '12 tháng'
+- tapOn: '6 tháng'
+- assertVisible: '(?s).*Chi mỗi tháng.*'

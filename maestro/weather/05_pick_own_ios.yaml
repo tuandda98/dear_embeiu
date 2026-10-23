@@ -1,0 +1,25 @@
+# Case CH-07 (tự chọn đè lên bản được chọn giúp), SH-04. iOS = test4. Chạy sau 04.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: '.*Thời tiết hai nơi.*'
+- waitForAnimationToEnd
+- tapOn: 'Đổi thành phố'
+- tapOn: 'Tìm thành phố.*'
+- inputText: 'da nang'
+- assertVisible: 'Đà Nẵng.*'
+- tapOn: 'Đà Nẵng.*'
+- waitForAnimationToEnd
+- assertVisible: '.*Đà Nẵng.*'

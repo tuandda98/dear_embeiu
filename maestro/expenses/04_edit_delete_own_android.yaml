@@ -1,0 +1,58 @@
+# Sửa số tiền 50k -> 70k, xoá + Hoàn tác (dòng quay lại), xoá thật (hết sau 5 giây).
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- runFlow:
+    file: _add_expense_own.yaml
+    env:
+      NOTE: MTE${output.run}
+- scrollUntilVisible:
+    element:
+      text: 'MTE${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- tapOn: 'MTE${output.run}, .*'
+- extendedWaitUntil:
+    visible: '(?s).*Sửa khoản.*'
+    timeout: 8000
+- repeat:
+    times: 8
+    commands:
+      - tapOn: 'Xoá một ký tự'
+- tapOn: '7'
+- tapOn: '0'
+- tapOn: 'nghìn'
+- tapOn: 'Lưu 70\.000.*'
+- extendedWaitUntil:
+    visible: '(?s).*Đã lưu thay đổi.*'
+    timeout: 8000
+- scrollUntilVisible:
+    element:
+      text: 'MTE${output.run}, .*âm 70\.000 đồng.*'
+    centerElement: true
+    timeout: 40000
+# xoá rồi hoàn tác
+- tapOn: 'MTE${output.run}, .*'
+- tapOn: 'Xoá khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Hoàn tác.*'
+    timeout: 5000
+- tapOn: 'Hoàn tác'
+- scrollUntilVisible:
+    element:
+      text: 'MTE${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+# xoá thật
+- tapOn: 'MTE${output.run}, .*'
+- tapOn: 'Xoá khoản'
+- assertVisible: 'Đã xoá .*'
+- extendedWaitUntil:
+    notVisible: 'MTE${output.run}, .*'
+    timeout: 15000

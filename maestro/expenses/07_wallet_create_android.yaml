@@ -1,0 +1,26 @@
+# Ví: tạo "MTW" (chỉ khi chưa có), mở chi tiết, sửa số dư cho khớp.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- runFlow: _ensure_wallet_mtw.yaml
+- assertVisible: 'Tổng tiền đang có.*'
+- tapOn: 'MTW.*'
+- extendedWaitUntil:
+    visible: '(?s).*Số dư hiện tại.*'
+    timeout: 8000
+- tapOn: 'Sửa số dư'
+- extendedWaitUntil:
+    visible: '(?s).*Sửa số dư cho khớp.*'
+    timeout: 8000
+- tapOn: 'Số tiền thật đang có.*'
+- eraseText: 20
+- inputText: '120000'
+- tapOn: 'Cập nhật số dư'
+- extendedWaitUntil:
+    visible: '(?s).*Đã sửa số dư MTW.*'
+    timeout: 8000

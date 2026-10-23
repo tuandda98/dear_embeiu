@@ -1,0 +1,36 @@
+# CẶP 2 MÁY, bước 1: Tuấn (Android) trả 1 củ, chia đôi -> Thảo đang nợ 500k.
+# Chạy: maestro --device emulator-5554 test -e RUN=<mã> maestro/expenses/20_shared_add_android.yaml
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- tapOn: '1'
+- tapOn: 'củ'
+# Ai trả = Mình thì form hiện hàng "Trừ vào ví của mình": chọn "Không trừ" để khỏi sinh khoản liên kết.
+- runFlow:
+    file: _shared_detail_save.yaml
+    env:
+      NOTE: MTS${output.run}
+      PAYER: 'Mình'
+      SPLIT: 'Chia đôi'
+      AMOUNT_TEXT: '1\.000\.000'
+- scrollUntilVisible:
+    element:
+      text: 'MTS${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTS${output.run}, .*chia đôi.*âm 1\.000\.000 đồng.*'
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Thanh toán.*'
+    centerElement: true
+    timeout: 40000

@@ -1,0 +1,38 @@
+# Case CH-06 (phía người ấy), CARD-04, SH-01, SH-05. iOS = test4 (Thảo). Chạy sau 03.
+# Hộp thông báo hệ thống (nếu có) bấm optional.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- tapOn:
+    text: 'Cho phép|Allow'
+    optional: true
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+# Người ấy chọn giúp: Thảo thấy cả hai thành phố ngay (realtime)
+- assertVisible: '.*Hà Nội.*'
+- assertVisible: '.*TP.HCM.*'
+# Mở chi tiết
+- tapOn: '.*Thời tiết hai nơi.*'
+- waitForAnimationToEnd
+- assertVisible: 'Đổi thành phố'
+- scrollUntilVisible:
+    element:
+      text: 'Dữ liệu thời tiết.*'
+    direction: DOWN
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- assertVisible: 'Dữ liệu thời tiết.*MET Norway.*'
+# đóng sheet: chạm vùng mờ phía trên
+- tapOn:
+    point: 50%,4%

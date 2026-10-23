@@ -1,0 +1,22 @@
+# 07 (Android, Tuấn) — mất mạng: "Về nhà rồi" → "Sẽ báo khi có mạng"; có mạng lại thì dải biến mất.
+# Kiểm: OF-01, OF-02. Cần Tuấn đang chia sẻ (sau 02). Nếu emulator vẫn có mạng sau khi bật chế độ máy bay,
+# dùng README (adb shell svc wifi/data disable) rồi bỏ 2 dòng toggleAirplaneMode.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- toggleAirplaneMode
+- waitForAnimationToEnd
+- tapOn: 'Về nhà rồi'
+- extendedWaitUntil:
+    visible: '(?s).*Sẽ báo khi có mạng.*'
+    timeout: 20000
+- takeScreenshot: 07_offline_queued
+- toggleAirplaneMode
+- extendedWaitUntil:
+    notVisible: '(?s).*Sẽ báo khi có mạng.*'
+    timeout: 90000
+- assertVisible: '(?s).*Đã về đến nhà.*'

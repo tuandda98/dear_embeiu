@@ -1,0 +1,22 @@
+appId: com.tony.dearembeiu.dev
+---
+# Thảo (người thua) bấm Phục thù từ thẻ Home: gửi lời mời luôn (2026-10-24, không sheet). Để nguyên màn ván cho flow 15/16.
+# CARO-REMATCH: ván mới = X của Thảo ở hàng 8, cột 8.
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. .* thắng ván vừa rồi.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\. .* thắng ván vừa rồi.*'
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: 'Đang chờ .*\. .*'
+    timeout: 20000
+- runFlow: _lib_zoom_out.yaml
+- assertVisible: 'Hàng 8, cột 8, quân X của .*'

@@ -1,0 +1,29 @@
+# Thu 2tr vào sổ Của mình: dòng có dấu +, chọn danh mục Lương.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ghi khoản'
+- tapOn: 'Thu'
+- tapOn: '2'
+- tapOn: 'triệu'
+- tapOn: 'Lương'
+- assertVisible: 'Lưu 2\.000\.000.*'
+- tapOn: 'Hôm nay · Thêm ghi chú'
+- tapOn: 'Ghi chú.*'
+- inputText: MTI${output.run}
+- tapOn: 'Lưu 2\.000\.000.*'
+- extendedWaitUntil:
+    visible: 'Đã ghi 2\.000\.000.*'
+    timeout: 8000
+- scrollUntilVisible:
+    element:
+      text: 'MTI${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTI${output.run}, .*\+2\.000\.000 đồng.*'

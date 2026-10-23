@@ -1,0 +1,18 @@
+# Đứng ở màn "… ở đâu?" (ô tìm địa chỉ): dùng vị trí hiện tại của máy ảo rồi Lưu.
+# Phải đặt vị trí máy ảo TRƯỚC (xem README). Hộp quyền hệ thống bấm optional.
+appId: com.tony.dearembeiu.dev
+---
+- tapOn: '(?s).*Dùng vị trí hiện tại.*'
+- waitForAnimationToEnd
+- tapOn: 'Đọc vị trí'
+- tapOn:
+    text: '(?s)Allow While Using App|Cho phép khi dùng ứng dụng|Khi dùng ứng dụng|While using the app|Chỉ khi dùng ứng dụng.*'
+    optional: true
+- tapOn:
+    text: '(?s)Allow|Cho phép.*'
+    optional: true
+- extendedWaitUntil:
+    visible: '(?s).*Đúng chỗ này chưa\?.*'
+    timeout: 40000
+- tapOn: 'Lưu'
+- waitForAnimationToEnd

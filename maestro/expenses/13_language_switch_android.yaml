@@ -1,0 +1,72 @@
+# Đổi ngôn ngữ vi -> en -> vi: tên danh mục và ví mặc định (Tiền mặt/Cash...) dịch lại theo ngôn ngữ đang chọn
+# (commit b7e0e88). Xong luôn trả về Tiếng Việt; chạy dở thì onFlowComplete trả lại.
+appId: com.tony.dearembeiu.dev
+onFlowComplete:
+  - runFlow: _restore_vi.yaml
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+# 1) đang tiếng Việt: ví mặc định hiện "Tiền mặt", không còn "Cash"
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- assertVisible: '(?s).*Tiền mặt.*'
+- assertNotVisible: '(?s).*Cash.*'
+- tapOn: 'Đóng'
+- back
+# 2) sang English
+- tapOn: 'Hồ sơ'
+- tapOn: 'Cài đặt'
+- scrollUntilVisible:
+    element:
+      text: 'Ngôn ngữ.*'
+    timeout: 40000
+- tapOn: 'Ngôn ngữ.*'
+- tapOn: 'English'
+- back
+- tapOn: 'Home'
+- scrollUntilVisible:
+    element:
+      text: '(Money book|My money book|Shared book · .*), .*'
+    centerElement: true
+    timeout: 40000
+- tapOn: '(Money book|My money book|Shared book · .*), .*'
+- extendedWaitUntil:
+    visible: '(?s).*MONEY BOOK.*'
+    timeout: 10000
+- tapOn: 'Mine'
+- tapOn: 'Add entry'
+- extendedWaitUntil:
+    visible: '(?s).*Enter an amount to save.*'
+    timeout: 8000
+- assertVisible: '(?s).*Cash.*'
+- assertNotVisible: '(?s).*Tiền mặt.*'
+- assertNotVisible: '(?s).*Ăn ngoài.*'
+- assertNotVisible: '(?s).*Cà phê, trà sữa.*'
+- assertNotVisible: '(?s).*Đi chợ, siêu thị.*'
+- tapOn: 'Close'
+# 3) về lại Tiếng Việt
+- back
+- tapOn: 'Profile'
+- tapOn: 'Settings'
+- scrollUntilVisible:
+    element:
+      text: 'Language.*'
+    timeout: 40000
+- tapOn: 'Language.*'
+- tapOn: 'Tiếng Việt'
+- back
+- tapOn: 'Trang chủ'
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- assertVisible: '(?s).*Tiền mặt.*'
+- assertNotVisible: '(?s).*Cash.*'

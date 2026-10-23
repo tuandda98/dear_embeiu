@@ -1,0 +1,32 @@
+# CẶP 2 MÁY, bước 3: Thảo bấm Thanh toán -> Đánh dấu đã thanh toán -> hai bên ngang nhau.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Thanh toán.*'
+    direction: UP
+    centerElement: true
+    timeout: 40000
+- tapOn: 'Thanh toán'
+- runFlow:
+    when:
+      visible: '(?s).*Tải số mới nhất.*'
+    commands:
+      - tapOn: 'Tải số mới nhất'
+- extendedWaitUntil:
+    visible: '(?s).*Đánh dấu đã thanh toán.*'
+    timeout: 10000
+- tapOn: 'Đánh dấu đã thanh toán'
+- extendedWaitUntil:
+    visible: '(?s).*Đã ghi .*trả lại.*'
+    timeout: 10000
+- extendedWaitUntil:
+    visible: '(?s).*Hai bên đang ngang nhau.*'
+    timeout: 15000
+- assertNotVisible: '(?s).*Thanh toán.*'

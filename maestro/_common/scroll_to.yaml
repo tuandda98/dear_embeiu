@@ -1,0 +1,36 @@
+# Cuộn Home tới một thẻ, để thẻ nằm gọn giữa header ghim và thanh nav nổi.
+# Dùng:
+#   - runFlow:
+#       file: ../_common/scroll_to.yaml
+#       env: { TITLE: '(?s).*Về đến nhà chưa\?' }
+# Vì sao không dùng scrollUntilVisible (đo 2026-10-24):
+# - Nó vuốt kiểu fling, Flutter trôi theo quán tính nên thẻ dừng chỗ bất kỳ.
+# - Maestro coi phần tử nằm DƯỚI nav nổi / header ghim là "visible", và
+#   centerElement không canh giữa được list Flutter ⇒ dừng khi tiêu đề vừa ló
+#   mép dưới (bị nav che) hoặc trôi lên dưới header; phần còn lại của thẻ ra
+#   ngoài màn và Flutter bỏ semantics ngoài màn ⇒ assert trượt.
+# - Vuốt chậm 1,5 s thì nội dung trôi đúng bằng quãng vuốt (20% màn ≈ 20%).
+# Cách làm: từ đỉnh trang vuốt từng bước 20% tới khi tiêu đề ló (lúc đó nó ở dải
+# mép dưới), rồi đẩy thêm 45% ⇒ tiêu đề nằm khoảng 35–55% chiều cao màn.
+# Tiêu đề đã thấy ngay từ đầu thì không vuốt.
+appId: com.tony.dearembeiu.dev
+---
+- runFlow:
+    when:
+      notVisible: ${TITLE}
+    commands:
+      - repeat:
+          times: 30
+          while:
+            notVisible: ${TITLE}
+          commands:
+            - swipe:
+                start: 50%, 70%
+                end: 50%, 50%
+                duration: 1500
+      - swipe:
+          start: 50%, 75%
+          end: 50%, 30%
+          duration: 1500
+      - waitForAnimationToEnd
+- assertVisible: ${TITLE}

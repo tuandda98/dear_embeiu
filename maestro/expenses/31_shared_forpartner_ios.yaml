@@ -1,0 +1,29 @@
+# CẶP 2 MÁY, bước 8: Thảo (iOS) trả 70k "Trả hộ" -> Tuấn nợ trọn 70k.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- tapOn: '7'
+- tapOn: '0'
+- tapOn: 'nghìn'
+- runFlow:
+    file: _shared_detail_save.yaml
+    env:
+      NOTE: MTH${output.run}
+      PAYER: 'Mình'
+      SPLIT: 'Trả hộ'
+      AMOUNT_TEXT: '70\.000'
+- scrollUntilVisible:
+    element:
+      text: 'MTH${output.run}, .*trả hộ.*'
+    centerElement: true
+    timeout: 40000

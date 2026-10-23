@@ -1,0 +1,10 @@
+# Subflow: ván đang chơi mở ra ở mức phóng 1,6x quanh nước cuối; thu về toàn bàn
+# để mọi ô đều nằm trong khung trước khi chạm theo nhãn.
+appId: com.tony.dearembeiu.dev
+---
+- runFlow:
+    when:
+      visible: '(?s)Xem toàn bàn.*'
+    commands:
+      - tapOn: '(?s)Xem toàn bàn.*'
+      - waitForAnimationToEnd
