@@ -21,11 +21,15 @@ class ContentCard extends StatelessWidget {
     super.key,
     this.padding = const EdgeInsets.all(20),
     this.radius = 24,
+    this.color = AppColors.cardSurface,
     required this.child,
   });
 
   final EdgeInsetsGeometry padding;
   final double radius;
+
+  /// Fill. Only state tints may override white (e.g. an unread notification).
+  final Color color;
   final Widget child;
 
   @override
@@ -34,7 +38,7 @@ class ContentCard extends StatelessWidget {
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.cardSurface,
+        color: color,
         borderRadius: BorderRadius.circular(radius),
         boxShadow: [
           BoxShadow(

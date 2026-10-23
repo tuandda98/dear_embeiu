@@ -247,9 +247,11 @@ class _NotificationTile extends StatelessWidget {
         moneyInboxText(n, context.l10n)?.subtitle;
     final unread = !n.read;
 
-    // Solid white reading surface (B4, r22 tile variant) — glass is banned in
-    // long scrolling lists (B11). Unread keeps its "NEW" language as a rose
-    // outline + dot (same as the love-note card).
+    // Solid reading surface (B4, r22 tile variant) — glass is banned in long
+    // scrolling lists (B11). Opening the center doesn't mark anything read
+    // (only tapping a tile does), so unread must stand out at a glance (user
+    // 2026-10-24): rose-tinted fill + rose outline + dot + bolder title; read
+    // tiles stay plain white.
     return Container(
       foregroundDecoration: unread
           ? BoxDecoration(
@@ -263,6 +265,7 @@ class _NotificationTile extends StatelessWidget {
       child: ContentCard(
         radius: 22,
         padding: EdgeInsets.zero,
+        color: unread ? _unreadFill : AppColors.cardSurface,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -435,6 +438,12 @@ class _NotificationTile extends StatelessWidget {
       ),
     );
   }
+
+  /// accentLove .10 over white (#FFEDF0): the unread tile fill.
+  static final Color _unreadFill = Color.alphaBlend(
+    AppColors.accentLove.withValues(alpha: 0.10),
+    AppColors.cardSurface,
+  );
 
   /// Daily-question deep-link: the journal only contains days BOTH partners
   /// answered, so a tap opens the journal at that day ONLY when today's
