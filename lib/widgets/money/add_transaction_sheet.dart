@@ -672,6 +672,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 context,
                 money,
                 MoneyBookKind.own,
+                listen: false,
               ).walletName(linked.outWalletId);
               final both = await showMoneyConfirm(
                 context,
@@ -814,8 +815,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final linked = await money.linkedOf(kind, e);
       if (!mounted) return;
       if (linked != null) {
-        final wallet = MoneyRowContext.of(context, money, MoneyBookKind.own)
-            .walletName(
+        final wallet =
+            MoneyRowContext.of(
+              context,
+              money,
+              MoneyBookKind.own,
+              listen: false,
+            ).walletName(
               linked.outWalletId.isNotEmpty
                   ? linked.outWalletId
                   : linked.inWalletId,

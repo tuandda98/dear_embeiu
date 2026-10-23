@@ -226,6 +226,7 @@ class _SettleSheetState extends State<SettleSheet> {
               context,
               money,
               MoneyBookKind.own,
+              listen: false,
             ).walletName(ownWallet);
       final detail = [
         if (walletName != null)

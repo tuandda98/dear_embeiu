@@ -594,6 +594,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(money.added.single.tx.amount, 359000);
+      // ...and the sheet closes with its toast. The wallet name for the toast
+      // used to subscribe too → caught as "write failed" under the sheet, the
+      // sheet stayed open on the old number (+ a ghost "Các khoản trước"
+      // line) — iOS smoke 2026-10-24.
+      expect(find.byType(SettleSheet), findsNothing);
+      expect(find.textContaining('trả lại'), findsWidgets);
     });
   });
 

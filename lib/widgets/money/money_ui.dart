@@ -643,6 +643,8 @@ class MoneyRowContext {
     MoneyProvider money,
     MoneyBookKind kind, {
     String? hideWalletId,
+    // false from tap handlers / after an await (see [MoneyPeople.of]).
+    bool listen = true,
   }) {
     final book = money.book(kind);
     final other = money.book(
@@ -651,7 +653,7 @@ class MoneyRowContext {
     return MoneyRowContext(
       kind: kind,
       uid: money.uid ?? '',
-      people: MoneyPeople.of(context),
+      people: MoneyPeople.of(context, listen: listen),
       categories:
           book?.categories ??
           MoneyCategoryIndex(
@@ -1723,4 +1725,3 @@ Widget moneyBlock(Widget child, {double top = 16}) => SliverPadding(
   padding: EdgeInsets.fromLTRB(16, top, 16, 0),
   sliver: SliverToBoxAdapter(child: child),
 );
-
