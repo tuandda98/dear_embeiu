@@ -449,7 +449,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     if (_payer == _Payer.wallet) return 0;
     if (_split == MoneySplitMode.custom) {
       final r = parseVndInput(_custom.text, max: amount);
-      final custom = r.ok ? r.value! : (amount + 1) ~/ 2;
+      // 0 is valid: the payer bears none of it.
+      final custom = r.ok
+          ? r.value!
+          : (r.error == VndParseError.zero ? 0 : (amount + 1) ~/ 2);
       return MoneyMath.payerShareFor(_split, amount, custom: custom);
     }
     return MoneyMath.payerShareFor(_split, amount);
@@ -1628,7 +1631,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final a = amount ?? 0;
       if (a <= 0) return;
       final r = parseVndInput(_custom.text, max: a);
-      final cur = r.ok ? r.value! : (a + 1) ~/ 2;
+      final cur = r.ok
+          ? r.value!
+          : (r.error == VndParseError.zero ? 0 : (a + 1) ~/ 2);
       final next = (cur + dir * (a / 10).round()).clamp(0, a);
       setState(() => _custom.text = '$next');
     }

@@ -656,7 +656,10 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
     final money = context.read<MoneyProvider>();
     final raw = _amount.text.trim();
     final parsed = parseVndInput(raw, max: kMoneyWalletMax);
-    final value = raw.isEmpty ? 0 : (parsed.ok ? parsed.value! : null);
+    // A 0 opening balance is valid (the box is pre-filled "0" when editing).
+    final value = raw.isEmpty || parsed.error == VndParseError.zero
+        ? 0
+        : (parsed.ok ? parsed.value! : null);
     if (value == null) return;
     final name = _name.text.trim();
     final opening = _goal
@@ -742,7 +745,8 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
     final name = _name.text.trim();
     final raw = _amount.text.trim();
     final parsed = parseVndInput(raw, max: kMoneyWalletMax);
-    final amountOk = raw.isEmpty || parsed.ok;
+    final amountOk =
+        raw.isEmpty || parsed.ok || parsed.error == VndParseError.zero;
     final hints = {
       MoneyWalletType.cash: l10n.moneyHintCash,
       MoneyWalletType.bank: l10n.moneyHintBank,
