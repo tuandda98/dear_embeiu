@@ -4484,7 +4484,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caroCtaNewGame => 'Ván mới';
 
   @override
-  String get caroCtaInvite => 'Rủ chơi';
+  String get caroCtaInvite => 'Chơi';
 
   @override
   String get caroCtaRetry => 'Thử lại';

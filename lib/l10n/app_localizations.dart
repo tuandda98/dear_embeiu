@@ -7594,7 +7594,7 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'Start'**
+  /// **'Play'**
   String get caroCtaInvite;
 
   /// caro-game (đợt 2)

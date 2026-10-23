@@ -37,6 +37,44 @@ Future<void> showCaroNewGameSheet(
   );
 }
 
+/// Home "Chơi" (user 2026-10-23, like Oẳn tù tì): one tap sends the invite —
+/// rule used last time on this phone (first game: "Chặn hai đầu"), first
+/// stone in the centre — then opens the game. The rule sheet stays for
+/// "Ván mới" / "Phục thù" inside the game and history screens.
+Future<void> quickStartCaroGame(
+  BuildContext context, {
+  String? rematchOf,
+}) async {
+  final caro = context.read<CaroGameProvider>();
+  if (caro.isBusy) return;
+  final l10n = context.l10n;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final rule = await CaroPrefs.lastRule() ?? CaroRule.vn;
+  final result = await caro.start(rule: rule, rematchOf: rematchOf);
+  final gameId = result.gameId;
+  if ((result.isOk || result.status == CaroActionStatus.alreadyOpen) &&
+      gameId != null) {
+    if (result.isOk) {
+      await CaroPrefs.setLastRule(rule);
+      AnalyticsService.instance.logCaroGameStarted(
+        rematch: rematchOf != null,
+        rule: rule.key,
+      );
+    }
+    if (context.mounted) openCaroGame(context, gameId: gameId, source: null);
+    return;
+  }
+  messenger?.showSnackBar(
+    SnackBar(
+      content: Text(
+        result.status == CaroActionStatus.network
+            ? l10n.caroOffline
+            : l10n.caroSendError,
+      ),
+    ),
+  );
+}
+
 class CaroNewGameSheet extends StatefulWidget {
   const CaroNewGameSheet({
     super.key,

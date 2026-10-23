@@ -161,7 +161,7 @@ class _CaroLine extends StatelessWidget {
             kind == CaroEntryKind.justLost ||
             kind == CaroEntryKind.justWon ||
             kind == CaroEntryKind.justDraw;
-        showCaroNewGameSheet(context, rematchOf: rematch ? last?.id : null);
+        quickStartCaroGame(context, rematchOf: rematch ? last?.id : null);
       }
     }
 

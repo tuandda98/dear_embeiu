@@ -4706,7 +4706,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caroCtaNewGame => 'New game';
 
   @override
-  String get caroCtaInvite => 'Start';
+  String get caroCtaInvite => 'Play';
 
   @override
   String get caroCtaRetry => 'Try again';

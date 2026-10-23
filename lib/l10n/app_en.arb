@@ -4684,7 +4684,7 @@
   "@caroCtaNewGame": {
     "description": "caro-game (đợt 2)"
   },
-  "caroCtaInvite": "Start",
+  "caroCtaInvite": "Play",
   "@caroCtaInvite": {
     "description": "caro-game (đợt 2)"
   },

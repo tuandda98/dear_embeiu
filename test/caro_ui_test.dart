@@ -612,6 +612,40 @@ void main() {
     ),
   );
 
+  testWidgets('Home "Chơi": one tap sends the invite, no rule sheet', (
+    tester,
+  ) async {
+    final service = _FakeService();
+    final caro = CaroGameProvider(service: service)
+      ..watchForCouple('c', 'me', 'bob');
+    await tester.pumpWidget(
+      app(
+        caro,
+        Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => quickStartCaroGame(context),
+              child: const Text('go'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+    await tester.pump();
+    // No saved rule here → "Chặn hai đầu", first stone in the centre.
+    expect(service.calls.single, {'op': 'start', 'rule': 'vn', 'cell': 112});
+    expect(find.byType(CaroNewGameSheet), findsNothing);
+    // The fake refuses → a snackbar says why.
+    expect(find.text(vi.caroSendError), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    caro.dispose();
+  });
+
   testWidgets('360×640, text ×1.3: waiting screen lays out without overflow', (
     tester,
   ) async {
