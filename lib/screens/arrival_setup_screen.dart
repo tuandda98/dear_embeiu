@@ -43,7 +43,8 @@ Future<void> openArrivalSetup(
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
       settings: const RouteSettings(name: 'ArrivalSetup'),
-      builder: (_) => const ArrivalSetupScreen(),
+      // Opened from Cài đặt → Về đến nhà, closing lands back there, not Home.
+      builder: (_) => ArrivalSetupScreen(backToHome: from != 'settings'),
     ),
   );
 }
@@ -51,7 +52,11 @@ Future<void> openArrivalSetup(
 enum _Step { needPlace, disclosure, always, done, partial }
 
 class ArrivalSetupScreen extends StatefulWidget {
-  const ArrivalSetupScreen({super.key});
+  const ArrivalSetupScreen({super.key, this.backToHome = true});
+
+  /// Last button reads "Về trang chủ" (opened from Home) or "Xong" (opened
+  /// from the manage screen, where closing returns).
+  final bool backToHome;
 
   /// Android's own words for "Cho phép mọi lúc" (D12), null elsewhere / on
   /// error → l10n fallback. Swappable in tests.
@@ -356,7 +361,12 @@ class _ArrivalSetupScreenState extends State<ArrivalSetupScreen>
         return ArrivalScaffold(
           title: l10n.arrivalDoneTitle,
           bottom: [
-            ArrivalPrimaryButton(label: l10n.arrivalBackHome, onPressed: close),
+            ArrivalPrimaryButton(
+              label: widget.backToHome
+                  ? l10n.arrivalBackHome
+                  : l10n.arrivalSetupDone,
+              onPressed: close,
+            ),
           ],
           children: [
             ArrivalBody(l10n.arrivalDoneBody(partner)),
@@ -398,7 +408,12 @@ class _ArrivalSetupScreenState extends State<ArrivalSetupScreen>
         return ArrivalScaffold(
           title: l10n.arrivalPartialTitle,
           bottom: [
-            ArrivalPrimaryButton(label: l10n.arrivalBackHome, onPressed: close),
+            ArrivalPrimaryButton(
+              label: widget.backToHome
+                  ? l10n.arrivalBackHome
+                  : l10n.arrivalSetupDone,
+              onPressed: close,
+            ),
           ],
           children: [ArrivalBody(l10n.arrivalPartialBody(partner))],
         );

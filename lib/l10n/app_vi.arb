@@ -5672,6 +5672,7 @@
   "@arrivalLaterManual": {
     "description": "Feature arrival (đợt 2)"
   },
+  "arrivalSetupDone": "Xong",
   "arrivalDoneTitle": "Đã bật báo về nhà",
   "@arrivalDoneTitle": {
     "description": "Feature arrival (đợt 2)"

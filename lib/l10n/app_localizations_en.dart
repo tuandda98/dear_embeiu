@@ -6072,6 +6072,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arrivalLaterManual => 'Later, I\'ll tap manually';
 
   @override
+  String get arrivalSetupDone => 'Done';
+
+  @override
   String get arrivalDoneTitle => 'Arrivals are on';
 
   @override

@@ -97,8 +97,13 @@ class MoneyService {
 
   /// Wallets + whether this list came from the server (an empty list from
   /// the cache does not mean "first run").
+  // includeMetadataChanges: an empty book first emits "empty, from cache";
+  // the server's "still empty" changes no data, so without metadata events
+  // it never arrives → fromServer stays false → no first-run screen, no
+  // starter wallet, and the add sheet can't save ("Chọn ví để lưu" with no
+  // wallet to pick). Seen on a fresh login, 2026-10-24.
   Stream<({List<MoneyWallet> wallets, bool fromServer})> watchWallets() =>
-      _pair(_wallets).snapshots().map(
+      _pair(_wallets).snapshots(includeMetadataChanges: true).map(
         (s) => (
           wallets: [
             for (final d in s.docs) ?MoneyWallet.fromDoc(d.id, d.data()),

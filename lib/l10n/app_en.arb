@@ -6837,6 +6837,7 @@
   "@arrivalLaterManual": {
     "description": "Feature arrival (đợt 2)"
   },
+  "arrivalSetupDone": "Done",
   "arrivalDoneTitle": "Arrivals are on",
   "@arrivalDoneTitle": {
     "description": "Feature arrival (đợt 2)"

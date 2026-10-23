@@ -5823,6 +5823,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get arrivalLaterManual => 'Để sau, mình bấm tay';
 
   @override
+  String get arrivalSetupDone => 'Xong';
+
+  @override
   String get arrivalDoneTitle => 'Đã bật báo về nhà';
 
   @override

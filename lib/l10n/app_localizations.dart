@@ -9715,6 +9715,12 @@ abstract class AppLocalizations {
   /// **'Later, I\'ll tap manually'**
   String get arrivalLaterManual;
 
+  /// No description provided for @arrivalSetupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get arrivalSetupDone;
+
   /// Feature arrival (đợt 2)
   ///
   /// In en, this message translates to:
