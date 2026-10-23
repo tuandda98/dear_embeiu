@@ -7774,7 +7774,7 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'Tap a square'**
+  /// **'Tap a square to play'**
   String get caroPickCell;
 
   /// caro-game (đợt 2)

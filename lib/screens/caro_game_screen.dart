@@ -518,6 +518,15 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     if (!_canPlace(game)) return;
     final board = game?.board ?? CaroBoard(const <int>[]);
     if (!board.isEmpty(cell)) return;
+    // In a game one tap plays (user 2026-10-23: no confirm step). Only the
+    // first move of a new invite keeps tap-to-select + the invite button.
+    if (_draftRule == null) {
+      _selector
+        ..clear()
+        ..tap(cell, DateTime.now());
+      _play(game);
+      return;
+    }
     final r = _selector.tap(cell, DateTime.now());
     if (r == CaroTapResult.selected) {
       HapticFeedback.selectionClick();
@@ -1186,7 +1195,6 @@ class _CaroGameScreenState extends State<CaroGameScreen>
             _problem == _Problem.send ? l10n.caroCtaRetry : l10n.caroPlayHere,
             onTap: () => _play(game),
           );
-          showHint = _hintMoves < CaroPrefs.hintMoves;
         }
         textAction = _textActionFor(l10n, people, game!, mode);
       case CaroScreenMode.stale:
@@ -1229,10 +1237,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     );
     // The hint's line is held while it can appear in this game, so the
     // board doesn't shrink between the two taps.
-    final placeTurn =
-        mode == CaroScreenMode.draft ||
-        mode == CaroScreenMode.myTurn ||
-        mode == CaroScreenMode.invited;
+    final placeTurn = mode == CaroScreenMode.draft;
     if (placeTurn && _hintMoves < CaroPrefs.hintMoves) {
       children.add(
         Visibility(

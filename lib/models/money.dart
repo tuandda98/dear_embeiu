@@ -117,6 +117,25 @@ class MoneyWallet {
 
   bool get isGoal => type == MoneyWalletType.goal;
 
+  MoneyWallet withName(String name) => MoneyWallet(
+    id: id,
+    name: name,
+    type: type,
+    emoji: emoji,
+    color: color,
+    openingBalance: openingBalance,
+    includeInTotal: includeInTotal,
+    archived: archived,
+    order: order,
+    goalTarget: goalTarget,
+    goalDeadline: goalDeadline,
+    goalReachedAt: goalReachedAt,
+    memberUids: memberUids,
+    createdBy: createdBy,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
+
   /// Counts in "Tổng tiền đang có": in use, not a goal, not switched off (D7).
   bool get countsInTotal => includeInTotal && !isGoal && !archived;
 

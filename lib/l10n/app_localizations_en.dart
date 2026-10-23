@@ -4827,7 +4827,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caroLanePlusOne => '+1 this game';
 
   @override
-  String get caroPickCell => 'Tap a square';
+  String get caroPickCell => 'Tap a square to play';
 
   @override
   String get caroPlayHere => 'Play here';

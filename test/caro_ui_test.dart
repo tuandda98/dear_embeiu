@@ -542,7 +542,7 @@ void main() {
     });
   });
 
-  testWidgets('game screen: tap a square twice (≥400 ms) sends the move', (
+  testWidgets('game screen: one tap on a square sends the move', (
     tester,
   ) async {
     tester.binding.defaultBinaryMessenger.setMockStreamHandler(
@@ -585,16 +585,6 @@ void main() {
     final rect = tester.getRect(find.byType(InteractiveViewer));
     final cell = rect.width / CaroBoard.size;
     final target = rect.center + Offset(cell * 1.6, 0);
-    await tester.tapAt(target);
-    await tester.pump();
-    expect(find.text(vi.caroPlayHere), findsOneWidget);
-    expect(service.calls, isEmpty);
-    await tester.tapAt(target); // too fast: ignored
-    await tester.pump();
-    expect(service.calls, isEmpty);
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 450)),
-    );
     await tester.tapAt(target);
     await tester.pump();
     await tester.pump();

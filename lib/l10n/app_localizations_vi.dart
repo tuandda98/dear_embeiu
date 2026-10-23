@@ -4598,7 +4598,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caroLanePlusOne => '+1 ván này';
 
   @override
-  String get caroPickCell => 'Chạm một ô để chọn';
+  String get caroPickCell => 'Chạm một ô để đánh';
 
   @override
   String get caroPlayHere => 'Đi nước này';

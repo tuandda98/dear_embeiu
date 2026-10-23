@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../data/money_categories.dart';
 import '../l10n/app_l10n.dart';
+import '../l10n/app_localizations.dart';
 import '../models/money.dart';
 import '../services/analytics_service.dart';
 import '../services/money_analytics.dart';
@@ -23,7 +25,46 @@ class MoneyBookState {
   final MoneyService service;
   MoneyBookKind get kind => service.kind;
 
-  List<MoneyWallet> wallets = const <MoneyWallet>[];
+  List<MoneyWallet> _wallets = const <MoneyWallet>[];
+  List<MoneyWallet>? _shownWallets;
+  AppLocalizations? _shownStrings;
+
+  /// Starter wallets keep the name they got in the language of the day they
+  /// were made ("Cash" when the phone was in English). Shown in the current
+  /// language while still unrenamed.
+  List<MoneyWallet> get wallets {
+    final l = AppL10n.strings;
+    if (_shownWallets == null || !identical(_shownStrings, l)) {
+      final en = lookupAppLocalizations(const Locale('en'));
+      final vi = lookupAppLocalizations(const Locale('vi'));
+      String? current(String name) {
+        for (final (a, b, now) in [
+          (en.moneyWalletCash, vi.moneyWalletCash, l.moneyWalletCash),
+          (en.moneyJointWallet, vi.moneyJointWallet, l.moneyJointWallet),
+          (en.moneyWalletBank, vi.moneyWalletBank, l.moneyWalletBank),
+          (en.moneyWalletCredit, vi.moneyWalletCredit, l.moneyWalletCredit),
+        ]) {
+          if (name == a || name == b) return now;
+        }
+        return null;
+      }
+
+      _shownWallets = [
+        for (final w in _wallets)
+          switch (current(w.name)) {
+            final n? when n != w.name => w.withName(n),
+            _ => w,
+          },
+      ];
+      _shownStrings = l;
+    }
+    return _shownWallets!;
+  }
+
+  set wallets(List<MoneyWallet> v) {
+    _wallets = v;
+    _shownWallets = null;
+  }
 
   /// A server snapshot of the wallets arrived (an empty cached list must not
   /// open the first-run screen).
@@ -71,16 +112,22 @@ class MoneyBookState {
   Timer? sumsDebounce;
   MoneyCategoryIndex? _index;
   MoneyMeta? _indexMeta;
+  AppLocalizations? _indexStrings;
 
   bool get isShared => kind == MoneyBookKind.shared;
 
   /// Categories with this book's tweaks, names in the current app language.
   MoneyCategoryIndex get categories {
-    if (_index == null || !identical(_indexMeta, meta)) {
-      _index = MoneyCategoryIndex(
-        resolveMoneyCategories(meta, AppL10n.strings),
-      );
+    // Keyed on the language too: the index is often first built before
+    // MaterialApp resolves the locale (AppL10n is English until then), and
+    // the user can switch language later — both left names in English.
+    final strings = AppL10n.strings;
+    if (_index == null ||
+        !identical(_indexMeta, meta) ||
+        !identical(_indexStrings, strings)) {
+      _index = MoneyCategoryIndex(resolveMoneyCategories(meta, strings));
       _indexMeta = meta;
+      _indexStrings = strings;
     }
     return _index!;
   }
