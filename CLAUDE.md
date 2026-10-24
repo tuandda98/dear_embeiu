@@ -312,7 +312,7 @@ SEMVER: PATCH=bug · MINOR=feature · MAJOR=breaking. **Build number (`+N`) đ�
 
 🔔 **RULE AUTO-SUGGEST RELEASE (user 2026-06-20): mỗi khi user yêu cầu "release / phát hành bản này / bản mới", Claude TỰ ĐỘNG xuất checklist song hành 2 nền tảng** (không chờ user hỏi từng bước), đánh dấu rõ ✅ đã xong / ❌ còn thiếu cho TỪNG store. **HIỂU NGẦM (bất biến): "release bản X" = LUÔN cả Apple + Google Play, TUYỆT ĐỐI KHÔNG hỏi lại "nền tảng nào".** Claude TỰ làm phần code (bump `pubspec` 1 version → analyze/rules-test → build CẢ `appbundle` + `ipa` → verify ký → cập nhật release log + USER_HISTORY), rồi GIAO lại cho user phần ngoài tầm (upload AAB lên Play + IPA lên App Store — binary vượt cap 10MB của Chrome bridge nên Claude không upload được). Checklist:
 > **⏳ HÀNG CHỜ MERGE VÀO RELEASE KẾ TIẾP (kiểm mục này TRƯỚC khi bump version):**
-> - (trống — `feature/daily-open` đã cắt vào 1.11.0+32 ngày 2026-10-20; lịch sử ở `project/release-log.md`)
+> - `feature/analytics-coverage` (2026-10-25, ĐÃ gộp vào `feature/daily-open-2`): screen_view mọi route + sheet có tên, ~30 event hành động mới — contract ở `project/features/analytics/overview.md`. Sau khi phát hành: tạo custom dimension GA4 cho `field`, `action`, `cleared`, `count`, `notify_partner`.
 >
 > 1. **Version** — bump `pubspec.yaml` → `X.Y.Z+N` (N = build TOÀN CỤC +1; 1 số dùng chung CẢ 2 store; build mới phải > build đang live ở mỗi store).
 > 2. **Pre-flight** — `flutter analyze` sạch (toolchain đúng máy) + `scripts/test-firebase-rules.sh` nếu đụng backend.
