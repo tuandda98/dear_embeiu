@@ -34,9 +34,9 @@ void main() {
 
     test('other codes keep their copy', () {
       String message(String code) => CoupleService.joinFirebaseError(
-            firestore(code),
-            coupleRead: false,
-          ).message;
+        firestore(code),
+        coupleRead: false,
+      ).message;
       expect(message('unauthenticated'), l10n.coupleSessionExpiredJoin);
       expect(message('unavailable'), l10n.coupleFirebaseUnavailable);
       expect(message('aborted'), l10n.coupleJoinGeneric);

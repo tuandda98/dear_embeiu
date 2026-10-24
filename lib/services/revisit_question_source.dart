@@ -26,7 +26,8 @@ import 'question_source.dart';
 /// Fail-soft by contract: every error, timeout (5s) or missing precondition
 /// returns null so the engine falls through to the next source.
 class RevisitQuestionSource implements QuestionSource {
-  RevisitQuestionSource({FirebaseFirestore? firestore}) : _firestore = firestore;
+  RevisitQuestionSource({FirebaseFirestore? firestore})
+    : _firestore = firestore;
 
   /// Injectable for tests; falls back to the default app instance.
   final FirebaseFirestore? _firestore;
@@ -55,8 +56,9 @@ class RevisitQuestionSource implements QuestionSource {
     }
 
     try {
-      return await Future<QuestionCandidate?>(() => _propose(ctx))
-          .timeout(_budget);
+      return await Future<QuestionCandidate?>(
+        () => _propose(ctx),
+      ).timeout(_budget);
     } catch (_) {
       // Never throw: the engine must be able to fall through to another source.
       return null;
@@ -319,7 +321,8 @@ RevisitPick? pickRevisitDate({
     // the 30 ±2 window too. Same DATE either way, so keep the priority order
     // from the spec but label an exact month anniversary with the 'month'
     // bucket — its copy ("ngày này tháng trước") reads truer than "30 ngày".
-    final bucket = target.bucket == revisitBucketThirty &&
+    final bucket =
+        target.bucket == revisitBucketThirty &&
             chosen == _dateKeyOf(monthsAgo(base, 1))
         ? revisitBucketMonth
         : target.bucket;
@@ -345,7 +348,8 @@ RevisitQuestionText renderRevisitQuestion({
   required String seedKey,
   bool exact = true,
 }) {
-  final variants = (exact ? null : revisitTemplatesApprox[bucket]) ??
+  final variants =
+      (exact ? null : revisitTemplatesApprox[bucket]) ??
       revisitTemplates[bucket] ??
       revisitTemplates[revisitBucketThirty]!;
   final template = variants[fnv1a32('$seedKey#$bucket') % variants.length];

@@ -16,6 +16,7 @@ import '../../theme/app_motion.dart';
 import '../../utils/money_math.dart';
 import '../../widgets/header_icon_button.dart';
 import '../../widgets/money/add_transaction_sheet.dart';
+import '../../widgets/money/money_challenges.dart';
 import '../../widgets/money/money_currency_sheet.dart';
 import '../../widgets/money/money_ui.dart';
 import '../../widgets/segmented_pill.dart';
@@ -31,7 +32,6 @@ import 'money_wallets_screen.dart';
 // ── expenses (đợt 2) ── stage 3B
 import '../../services/money_analytics.dart';
 import '../../widgets/money/money_reminder_tile.dart';
-import '../../widgets/money/settle_sheet.dart';
 import 'money_goal_screen.dart';
 
 // ── expenses (đợt 2) · stage 3A: budgets / report / search entry points ──
@@ -505,13 +505,18 @@ class _MoneyScreenState extends State<MoneyScreen> {
       ];
     }
     return [
+      if (MoneyRecapCard.shouldShow(_book, DateTime.now()))
+        MoneyRecapCard(key: ValueKey('recap-${_book.name}'), book: _book),
       _MonthCard(
         book: _book,
         month: _month,
         txs: txs,
         onShift: (d) => _shiftMonth(d, money),
       ),
-      if (shared && txs != null) ...[gap, _LanesCard(txs: txs, month: _month)],
+      gap,
+      _GoalsCard(book: _book, onOpen: _push),
+      gap,
+      MoneyChallengesCard(book: _book),
       gap,
       _RecentCard(
         book: _book,
@@ -520,9 +525,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
         ctx: rowCtx,
         onTapTx: _editTx,
       ),
-      if (!shared &&
-          txs != null &&
-          txs.any((t) => t.type == MoneyTxType.expense)) ...[
+      if (txs != null && txs.any((t) => t.type == MoneyTxType.expense)) ...[
         gap,
         _WhereCard(book: _book, month: _month, txs: txs),
       ],
@@ -862,14 +865,6 @@ class _MonthCard extends StatelessWidget {
               ),
             ),
           ],
-          if (!shared && !fresh) ...[
-            const SizedBox(height: 12),
-            _SplitStrip(
-              loading: loading,
-              income: totals.income,
-              left: totals.left,
-            ),
-          ],
         ],
       ),
     );
@@ -909,276 +904,6 @@ class _MonthCard extends StatelessWidget {
       '${bestStatus.percent}',
       vnd(context, bestStatus.left < 0 ? 0 : bestStatus.left),
       '$daysLeft',
-    );
-  }
-}
-
-class _SplitStrip extends StatelessWidget {
-  const _SplitStrip({
-    required this.loading,
-    required this.income,
-    required this.left,
-  });
-
-  final bool loading;
-  final int income;
-  final int left;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    Widget cell(String label, Widget value) => Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 2),
-            loading ? const ShimmerSkeleton(width: 100, height: 16) : value,
-          ],
-        ),
-      ),
-    );
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            cell(
-              l10n.moneyIncome,
-              MoneyAmountText(
-                income,
-                size: 16,
-                prefix: income > 0 ? '+' : '',
-                color: income > 0
-                    ? AppColors.moneyPositive
-                    : AppColors.textPrimary,
-              ),
-            ),
-            const VerticalDivider(
-              width: 1,
-              thickness: 1,
-              color: AppColors.white,
-            ),
-            cell(l10n.moneyIncomeMinusSpent, MoneyAmountText(left, size: 16)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// "Ai trả tháng này" (design §1 signature): Thảo · Ví chung · Mình, one
-/// 3-part bar, and who has covered more since the first shared entry.
-class _LanesCard extends StatelessWidget {
-  const _LanesCard({required this.txs, required this.month});
-
-  final List<MoneyTx> txs;
-  final String month;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final money = context.watch<MoneyProvider>();
-    final people = MoneyPeople.of(context);
-    final uid = money.uid ?? '';
-    final partner = money.partnerUid;
-    final paid = MoneyMath.paidBy(txs, month);
-    final a = paid[partner] ?? 0, b = paid[kMoneyPayerWallet] ?? 0;
-    final c = paid[uid] ?? 0;
-    final total = a + b + c;
-    // All-time, from the server aggregate + this phone's writes (null =
-    // not known yet → skeleton), never re-added from the 45-day window.
-    final balance = money.coupleBalance();
-
-    Widget lane(
-      Widget avatar,
-      String name,
-      int amount,
-      CrossAxisAlignment al,
-    ) => Expanded(
-      child: Column(
-        crossAxisAlignment: al,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              avatar,
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: MoneyAmountText(amount, size: 16),
-          ),
-        ],
-      ),
-    );
-
-    final String balanceLabel;
-    final String? balanceSub;
-    if (balance == null) {
-      balanceLabel = '';
-      balanceSub = null;
-    } else if (balance > 0) {
-      balanceLabel = l10n.moneyBalanceMeAhead;
-      balanceSub = l10n.moneyBalanceMeAheadSub(people.partnerName);
-    } else if (balance < 0) {
-      balanceLabel = l10n.moneyBalancePartnerAhead(people.partnerName);
-      balanceSub = l10n.moneyBalancePartnerAheadSub(people.partnerName);
-    } else {
-      balanceLabel = l10n.moneyBalanceEven;
-      balanceSub = null;
-    }
-
-    return MoneyCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MoneyCardHeader(
-            title: l10n.moneyWhoPaid,
-            trailing: Text(
-              l10n.moneyLaneTotal(vnd(context, total)),
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              lane(
-                MoneyAvatar(
-                  letter: people.partnerName,
-                  color: people.partnerColor,
-                ),
-                people.partnerName,
-                a,
-                CrossAxisAlignment.start,
-              ),
-              lane(
-                const MoneyAvatar(letter: 'C'),
-                l10n.moneyJointWallet,
-                b,
-                CrossAxisAlignment.center,
-              ),
-              lane(
-                MoneyAvatar(letter: people.myName, color: people.meColor),
-                l10n.moneyMe,
-                c,
-                CrossAxisAlignment.end,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Semantics(
-            label: l10n.moneyLanesSemantics(
-              people.partnerName,
-              vndSpoken(context, a),
-              vndSpoken(context, b),
-              vndSpoken(context, c),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: SizedBox(
-                height: 8,
-                child: total == 0
-                    ? const ColoredBox(color: AppColors.surfaceLight)
-                    : Row(
-                        children: [
-                          for (final (v, color) in [
-                            (a, people.partnerColor),
-                            (b, AppColors.textPrimary.withValues(alpha: 0.35)),
-                            (c, people.meColor),
-                          ])
-                            if (v > 0)
-                              Expanded(
-                                flex: v,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 1,
-                                  ),
-                                  child: ColoredBox(color: color),
-                                ),
-                              ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (balance == null) ...[
-            const ShimmerSkeleton(width: 150, height: 13),
-            const SizedBox(height: 6),
-            const ShimmerSkeleton(width: 120, height: 20),
-          ] else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        balanceLabel,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      MoneyAmountText(balance.abs(), size: 20),
-                    ],
-                  ),
-                ),
-                // ── expenses (đợt 2) ── stage 3B: hidden once even (§4).
-                if (balance != 0) ...[
-                  const SizedBox(width: 12),
-                  MoneyOutlineButton(
-                    label: l10n.moneySettle,
-                    onPressed: () => SettleSheet.show(context),
-                  ),
-                ],
-              ],
-            ),
-          if (balanceSub != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              balanceSub,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }
@@ -1450,7 +1175,6 @@ class _WalletsCard extends StatelessWidget {
     final balances = money.balances(book);
     final ready = money.balancesReady(book);
     final shared = book == MoneyBookKind.shared;
-    final month = MoneyMath.monthKey(DateTime.now());
     final active = [
       for (final w in state.wallets)
         if (!w.archived) w,
@@ -1459,27 +1183,8 @@ class _WalletsCard extends StatelessWidget {
       for (final w in active)
         if (!w.isGoal) w,
     ];
-    final goals = [
-      for (final w in active)
-        if (w.isGoal) w,
-    ];
-    void open(MoneyWallet w) => w.isGoal
-        // ── expenses (đợt 2) ── stage 3B
-        ? onOpen(MoneyGoalScreen(book: book, walletId: w.id))
-        : onOpen(MoneyWalletScreen(book: book, walletId: w.id));
-
-    String? sharedSub(MoneyWallet w) {
-      final each = MoneyMath.contributionsBy(
-        money.visibleTxs(book),
-        walletId: w.id,
-        month: month,
-      );
-      final mine = each[money.uid] ?? 0, theirs = each[money.partnerUid] ?? 0;
-      if (mine > 0 && mine == theirs) {
-        return l10n.moneyJointContribEach(vnd(context, mine));
-      }
-      return null;
-    }
+    void open(MoneyWallet w) =>
+        onOpen(MoneyWalletScreen(book: book, walletId: w.id));
 
     return MoneyCard(
       child: Column(
@@ -1509,32 +1214,15 @@ class _WalletsCard extends StatelessWidget {
                 ? MoneyWalletRow(
                     wallet: w,
                     balance: balances[w.id] ?? w.openingBalance,
-                    sub: shared ? sharedSub(w) : null,
                     onTap: () => open(w),
-                  )
-                : _skeletonRow(w),
-          for (final w in goals)
-            ready
-                ? moneyGoalRow(
-                    context,
-                    money,
-                    w,
-                    balances[w.id] ?? 0,
-                    () => open(w),
                   )
                 : _skeletonRow(w),
           Align(
             alignment: Alignment.centerLeft,
-            child: shared
-                // ── expenses (đợt 2) ── stage 3B (design: shared card link).
-                ? MoneyLink(
-                    label: l10n.moneyContribute,
-                    onTap: () => pickFundToContribute(context),
-                  )
-                : MoneyLink(
-                    label: l10n.moneyManageWallets,
-                    onTap: () => onOpen(MoneyWalletsScreen(book: book)),
-                  ),
+            child: MoneyLink(
+              label: l10n.moneyManageWallets,
+              onTap: () => onOpen(MoneyWalletsScreen(book: book)),
+            ),
           ),
         ],
       ),
@@ -1564,6 +1252,75 @@ class _WalletsCard extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// "Mục tiêu tiết kiệm" (D34): every goal of the book with its progress;
+/// "Góp quỹ" opens the add sheet on its save tab.
+class _GoalsCard extends StatelessWidget {
+  const _GoalsCard({required this.book, required this.onOpen});
+
+  final MoneyBookKind book;
+  final ValueChanged<Widget> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final money = context.watch<MoneyProvider>();
+    final state = money.book(book);
+    if (state == null) return const SizedBox.shrink();
+    final goals = [
+      for (final w in state.wallets)
+        if (!w.archived && w.isGoal) w,
+    ];
+    final balances = money.balances(book);
+    final ready = money.balancesReady(book);
+    return MoneyCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          MoneyCardHeader(title: l10n.moneyGoalsTitle),
+          for (final w in goals)
+            ready
+                ? moneyGoalRow(
+                    context,
+                    money,
+                    w,
+                    balances[w.id] ?? 0,
+                    () => onOpen(MoneyGoalScreen(book: book, walletId: w.id)),
+                  )
+                : const Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: ShimmerSkeleton(height: 44),
+                  ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 16,
+            children: [
+              if (goals.isNotEmpty)
+                MoneyLink(
+                  label: l10n.moneyTypeSave,
+                  onTap: () => AddTransactionSheet.show(
+                    context,
+                    book: book,
+                    type: book == MoneyBookKind.shared
+                        ? MoneyTxType.contribution
+                        : MoneyTxType.transfer,
+                  ),
+                ),
+              MoneyLink(
+                label: l10n.moneyNewGoal,
+                onTap: () => showMoneySheet<String>(
+                  context,
+                  name: 'MoneyAddGoalSheet',
+                  builder: (_) => MoneyWalletSheet(book: book, goalOnly: true),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// D5: a couple still waiting sees what the shared book will add.

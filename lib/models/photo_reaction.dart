@@ -33,11 +33,11 @@ class PhotoReaction {
   bool get isValid => kReactionEmojis.contains(emoji);
 
   Map<String, dynamic> toMap() => {
-        'authorUserId': authorUserId,
-        'emoji': emoji,
-        'coupleId': coupleId,
-        'reactedAt': reactedAt?.toIso8601String(),
-      };
+    'authorUserId': authorUserId,
+    'emoji': emoji,
+    'coupleId': coupleId,
+    'reactedAt': reactedAt?.toIso8601String(),
+  };
 
   /// Builds a reaction from a Firestore document. [id] is the document id, which
   /// by convention equals the author's uid; it is used as a fallback when the
@@ -46,8 +46,8 @@ class PhotoReaction {
       PhotoReaction(
         authorUserId:
             (data['authorUserId'] as String?)?.trim().isNotEmpty == true
-                ? data['authorUserId'] as String
-                : id,
+            ? data['authorUserId'] as String
+            : id,
         emoji: data['emoji'] as String? ?? '',
         coupleId: data['coupleId'] as String? ?? '',
         reactedAt: _parseDateTime(data['reactedAt']),
@@ -58,13 +58,12 @@ class PhotoReaction {
     String? emoji,
     String? coupleId,
     DateTime? reactedAt,
-  }) =>
-      PhotoReaction(
-        authorUserId: authorUserId ?? this.authorUserId,
-        emoji: emoji ?? this.emoji,
-        coupleId: coupleId ?? this.coupleId,
-        reactedAt: reactedAt ?? this.reactedAt,
-      );
+  }) => PhotoReaction(
+    authorUserId: authorUserId ?? this.authorUserId,
+    emoji: emoji ?? this.emoji,
+    coupleId: coupleId ?? this.coupleId,
+    reactedAt: reactedAt ?? this.reactedAt,
+  );
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) {

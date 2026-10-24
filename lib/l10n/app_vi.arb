@@ -5995,12 +5995,6 @@
   "moneyCatTravelStay": "Chỗ ở",
   "moneyCatTravelFun": "Ăn chơi",
   "moneyCatOther": "Khác",
-  "moneyCatSalary": "Lương",
-  "moneyCatBonus": "Thưởng",
-  "moneyCatSide": "Làm thêm",
-  "moneyCatGifted": "Được cho, tặng",
-  "moneyCatInterest": "Lãi, đầu tư",
-  "moneyCatIncomeOther": "Thu khác",
   "moneyWalletCash": "Tiền mặt",
   "moneyJointWallet": "Ví chung",
   "moneyTitle": "Sổ tiền",
@@ -6228,83 +6222,9 @@
       }
     }
   },
-  "moneyIncome": "Thu",
-  "@moneyIncome": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyIncomeMinusSpent": "Thu trừ chi",
-  "@moneyIncomeMinusSpent": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyWhoPaid": "Ai trả tháng này",
-  "@moneyWhoPaid": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyLaneTotal": "Tổng {amount}",
-  "@moneyLaneTotal": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
   "moneyMe": "Mình",
   "@moneyMe": {
     "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyLanesSemantics": "{partner} trả {a}, Ví chung {b}, mình trả {c}",
-  "@moneyLanesSemantics": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "partner": {
-        "type": "String"
-      },
-      "a": {
-        "type": "String"
-      },
-      "b": {
-        "type": "String"
-      },
-      "c": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyBalanceMeAhead": "Mình đang ứng nhiều hơn",
-  "@moneyBalanceMeAhead": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyBalancePartnerAhead": "{name} đang ứng nhiều hơn",
-  "@moneyBalancePartnerAhead": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyBalanceEven": "Hai bên đang ngang nhau",
-  "@moneyBalanceEven": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyBalanceMeAheadSub": "{name} trả lại mình chừng này là hai bên ngang nhau",
-  "@moneyBalanceMeAheadSub": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyBalancePartnerAheadSub": "Mình trả lại {name} chừng này là hai bên ngang nhau",
-  "@moneyBalancePartnerAheadSub": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
   },
   "moneyRecent": "Gần đây",
   "@moneyRecent": {
@@ -6405,15 +6325,6 @@
   "@moneyManageWallets": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyJointContribEach": "Mỗi người góp {amount} tháng này",
-  "@moneyJointContribEach": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
   "moneyGoalProgress": "{percent}% của {target}",
   "@moneyGoalProgress": {
     "description": "Sổ tiền (feature expenses)",
@@ -6422,18 +6333,6 @@
         "type": "String"
       },
       "target": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyPaidBy": "{name} trả · {split}",
-  "@moneyPaidBy": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "split": {
         "type": "String"
       }
     }
@@ -6449,22 +6348,6 @@
   },
   "moneyPaidFromJoint": "Trả từ Ví chung",
   "@moneyPaidFromJoint": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneySplitEqual": "chia đôi",
-  "@moneySplitEqual": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneySplitTreat": "mời",
-  "@moneySplitTreat": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneySplitForPartner": "trả hộ",
-  "@moneySplitForPartner": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneySplitCustom": "tuỳ",
-  "@moneySplitCustom": {
     "description": "Sổ tiền (feature expenses)"
   },
   "moneyEditedBy": "{name} sửa {time}",
@@ -6568,15 +6451,6 @@
       }
     }
   },
-  "moneySettleSub": "{name} thanh toán · không tính vào chi",
-  "@moneySettleSub": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "moneyLinkedBadge": "Có ở sổ chung",
   "@moneyLinkedBadge": {
     "description": "Sổ tiền (feature expenses)"
@@ -6624,10 +6498,6 @@
   },
   "moneyTypeExpense": "Chi",
   "@moneyTypeExpense": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyTypeIncome": "Thu",
-  "@moneyTypeIncome": {
     "description": "Sổ tiền (feature expenses)"
   },
   "moneyTypeTransfer": "Chuyển",
@@ -6679,104 +6549,16 @@
   "@moneyWallet": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyIntoWallet": "Vào ví",
-  "@moneyIntoWallet": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyDeductMine": "Trừ vào ví của mình",
   "@moneyDeductMine": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyNoDeduct": "Không trừ",
-  "@moneyNoDeduct": {
     "description": "Sổ tiền (feature expenses)"
   },
   "moneyFromWallet": "Từ ví",
   "@moneyFromWallet": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyToWallet": "Sang ví",
-  "@moneyToWallet": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyAddNote": "Thêm ghi chú",
   "@moneyAddNote": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyWhoPays": "Ai trả",
-  "@moneyWhoPays": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyHowSplit": "Chia thế nào",
-  "@moneyHowSplit": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneySplitEqualCap": "Chia đôi",
-  "@moneySplitEqualCap": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyTreatMe": "Mình mời",
-  "@moneyTreatMe": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyTreatPartner": "{name} mời",
-  "@moneyTreatPartner": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyForPartnerCap": "Trả hộ",
-  "@moneyForPartnerCap": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyCustomCap": "Tuỳ",
-  "@moneyCustomCap": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyBears": "{name} chịu",
-  "@moneyBears": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyShares": "{a} chịu {x} · {b} chịu {y}",
-  "@moneyShares": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "a": {
-        "type": "String"
-      },
-      "x": {
-        "type": "String"
-      },
-      "b": {
-        "type": "String"
-      },
-      "y": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySharesNeedAmount": "Nhập số tiền để xem mỗi người chịu bao nhiêu",
-  "@moneySharesNeedAmount": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyNoOneOwes": "Trả từ Ví chung nên không ai phải trả lại ai.",
-  "@moneyNoOneOwes": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyStepDown": "Bớt 10%",
-  "@moneyStepDown": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyStepUp": "Thêm 10%",
-  "@moneyStepUp": {
     "description": "Sổ tiền (feature expenses)"
   },
   "moneyDate": "Ngày",
@@ -6820,15 +6602,6 @@
         "type": "String"
       },
       "category": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySavedTransfer": "Đã ghi {amount} · chuyển ví",
-  "@moneySavedTransfer": {
-    "description": "Sổ tiền (feature expenses)",
-    "placeholders": {
-      "amount": {
         "type": "String"
       }
     }
@@ -7089,6 +6862,90 @@
   },
   "moneyAddSource": "Thêm nguồn",
   "moneyCurrencyTitle": "Tiền tệ",
+  "moneyTypeSave": "Góp quỹ",
+  "moneySavedContribution": "Đã góp {amount} vào {fund}",
+  "@moneySavedContribution": {
+    "placeholders": {"amount": {"type": "String"}, "fund": {"type": "String"}}
+  },
+  "moneySaveInto": "Góp vào",
+  "moneyPaidFrom": "Tiền từ đâu",
+  "moneyMyMoney": "Tiền riêng",
+  "moneyGoalsTitle": "Mục tiêu tiết kiệm",
+  "moneyChTplNoCoffee7": "7 ngày không trà sữa, cà phê",
+  "moneyChTplNoSnack7": "7 ngày không ăn vặt",
+  "moneyChTplNoGrab7": "7 ngày không gọi xe",
+  "moneyChTplNoShop7": "7 ngày không mua sắm",
+  "moneyChTplNoClothes14": "14 ngày không mua quần áo",
+  "moneyChTplCookHome14": "14 ngày nấu ăn ở nhà",
+  "moneyChTplNoTech30": "30 ngày không mua đồ công nghệ",
+  "moneyChTplEatOutCap7": "Tuần này ăn ngoài dưới {amount}",
+  "@moneyChTplEatOutCap7": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "moneyChTplDateCap7": "Tuần này hẹn hò dưới {amount}",
+  "@moneyChTplDateCap7": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "moneyChTplAllCap7": "Tuần này chi dưới {amount}",
+  "@moneyChTplAllCap7": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "moneyChallengesTitle": "Thử thách tiết kiệm",
+  "moneyChallengeNew": "Thử thách mới",
+  "moneyChallengeCustom": "Tự tạo",
+  "moneyChallengeDaysLeft": "Còn {n} ngày",
+  "@moneyChallengeDaysLeft": {
+    "placeholders": {"n": {"type": "String"}}
+  },
+  "moneyChallengeCleanDays": "{done}/{total} ngày",
+  "@moneyChallengeCleanDays": {
+    "placeholders": {"done": {"type": "String"}, "total": {"type": "String"}}
+  },
+  "moneyChallengeSpentOf": "{spent} / {limit}",
+  "@moneyChallengeSpentOf": {
+    "placeholders": {"spent": {"type": "String"}, "limit": {"type": "String"}}
+  },
+  "moneyChallengeWon": "Hoàn thành",
+  "moneyChallengeLost": "Thử lại lần sau",
+  "moneyChallengeStop": "Dừng thử thách",
+  "moneyChallengeStart": "Bắt đầu",
+  "moneyChallengeKindNoSpend": "Không chi",
+  "moneyChallengeKindCap": "Chi dưới mức",
+  "moneyChallengeLimit": "Mức tối đa",
+  "moneyChallengeAll": "Mọi khoản chi",
+  "moneyChallengeDays": "{n} ngày",
+  "@moneyChallengeDays": {
+    "placeholders": {"n": {"type": "String"}}
+  },
+  "moneyChallengeMax": "Đang chạy đủ 3 thử thách",
+  "moneyChallengeLastDayTitle": "Hôm nay là ngày cuối thử thách",
+  "moneyChallengeStarted": "Bắt đầu: {title}",
+  "@moneyChallengeStarted": {
+    "placeholders": {"title": {"type": "String"}}
+  },
+  "moneyRecapTitle": "Nhìn lại {month}",
+  "@moneyRecapTitle": {
+    "placeholders": {"month": {"type": "String"}}
+  },
+  "moneyRecapKeptBudget": "Giữ được hạn mức tháng",
+  "moneyRecapSpentLess": "Chi ít hơn {month} {amount}",
+  "@moneyRecapSpentLess": {
+    "placeholders": {"amount": {"type": "String"}, "month": {"type": "String"}}
+  },
+  "moneyRecapSaved": "Góp quỹ thêm {amount}",
+  "@moneyRecapSaved": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "moneyRecapChallenges": "Xong {n} thử thách",
+  "@moneyRecapChallenges": {
+    "placeholders": {"n": {"type": "String"}}
+  },
+  "moneyRecapLogged": "Ghi chi tiêu {n}/{total} ngày",
+  "@moneyRecapLogged": {
+    "placeholders": {"n": {"type": "String"}, "total": {"type": "String"}}
+  },
+  "moneyRecapEmpty": "Tháng mới bắt đầu. Đặt hạn mức cho tháng này?",
+  "moneyChallengeLength": "Thời gian",
   "moneyKeyThousand": "nghìn",
   "@moneyKeyThousand": {
     "description": "Sổ tiền (feature expenses)"
@@ -7266,10 +7123,6 @@
       }
     }
   },
-  "moneyTransferBtn": "Chuyển tiền",
-  "@moneyTransferBtn": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyFixBalance": "Sửa số dư",
   "@moneyFixBalance": {
     "description": "Sổ tiền (feature expenses)"
@@ -7299,26 +7152,6 @@
   "@moneyNewGoal": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyHintCash": "Tiền trong túi",
-  "@moneyHintCash": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyHintBank": "Techcombank, VCB…",
-  "@moneyHintBank": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyHintEwallet": "MoMo, ZaloPay…",
-  "@moneyHintEwallet": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyHintCredit": "Đang nợ thẻ thì số dư âm, vậy là đúng",
-  "@moneyHintCredit": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyHintGoal": "Để dành cho một việc, có hạn",
-  "@moneyHintGoal": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyName": "Tên",
   "@moneyName": {
     "description": "Sổ tiền (feature expenses)"
@@ -7333,10 +7166,6 @@
   },
   "moneyIncludeInTotal": "Tính vào tổng tiền đang có",
   "@moneyIncludeInTotal": {
-    "description": "Sổ tiền (feature expenses)"
-  },
-  "moneyIncludeInTotalSub": "Tắt cho ví giữ hộ người khác",
-  "@moneyIncludeInTotalSub": {
     "description": "Sổ tiền (feature expenses)"
   },
   "moneyCreateWallet": "Tạo ví",
@@ -7571,10 +7400,6 @@
   "@moneyCategoryLimit": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneySettle": "Thanh toán",
-  "@moneySettle": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyNotSpending": "không tính là chi",
   "@moneyNotSpending": {
     "description": "Sổ tiền (feature expenses)"
@@ -7761,10 +7586,6 @@
       }
     }
   },
-  "moneyReportLeft": "Còn lại",
-  "@moneyReportLeft": {
-    "description": "Sổ tiền (feature expenses) · stage 3A"
-  },
   "moneyReportTopCategory": "Chi nhiều nhất là {category}, chiếm {percent}% cả tháng.",
   "@moneyReportTopCategory": {
     "description": "Sổ tiền (feature expenses) · stage 3A",
@@ -7797,25 +7618,6 @@
         "type": "String"
       },
       "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneyReportByPerson": "Theo người",
-  "@moneyReportByPerson": {
-    "description": "Sổ tiền (feature expenses) · stage 3A"
-  },
-  "moneyReportContrib": "Góp vào ví chung và quỹ tháng này: {partner} {a}, mình {b}.",
-  "@moneyReportContrib": {
-    "description": "Sổ tiền (feature expenses) · stage 3A",
-    "placeholders": {
-      "partner": {
-        "type": "String"
-      },
-      "a": {
-        "type": "String"
-      },
-      "b": {
         "type": "String"
       }
     }
@@ -8123,28 +7925,6 @@
       }
     }
   },
-  "moneyGoalEach": "Mỗi người góp",
-  "@moneyGoalEach": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneyGoalEachSemantics": "{name} góp {a}, mình góp {b}, còn thiếu {left}",
-  "@moneyGoalEachSemantics": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "a": {
-        "type": "String"
-      },
-      "b": {
-        "type": "String"
-      },
-      "left": {
-        "type": "String"
-      }
-    }
-  },
   "moneyGoalHistory": "Lịch sử góp",
   "@moneyGoalHistory": {
     "description": "Sổ tiền (feature expenses), stage 3B"
@@ -8183,10 +7963,6 @@
       }
     }
   },
-  "moneyContributeWho": "Ai góp",
-  "@moneyContributeWho": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
   "moneyContributeFrom": "Lấy từ ví",
   "@moneyContributeFrom": {
     "description": "Sổ tiền (feature expenses), stage 3B"
@@ -8224,223 +8000,6 @@
   "moneyContributeHint": "Số tiền góp",
   "@moneyContributeHint": {
     "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneyPickFund": "Góp vào quỹ nào?",
-  "@moneyPickFund": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneyNoFundYet": "Chưa có quỹ chung nào. Tạo một quỹ, vd “Quỹ Đà Lạt”, rồi cùng góp.",
-  "@moneyNoFundYet": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettlePaysMe": "{name} trả lại cho mình",
-  "@moneySettlePaysMe": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettlePaysPartner": "Mình trả lại cho {name}",
-  "@moneySettlePaysPartner": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettlePartial": "Trả một phần thì sửa lại số này",
-  "@moneySettlePartial": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleAll": "Trả hết",
-  "@moneySettleAll": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleHalf": "Một nửa · {amount}",
-  "@moneySettleHalf": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleToOwn": "Ghi tiền về ví của mình",
-  "@moneySettleToOwn": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleToOwnSub": "Thêm 1 dòng ở sổ của mình, không tính là thu nhập",
-  "@moneySettleToOwnSub": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleFromOwnSub": "Thêm 1 dòng ở sổ của mình, không tính là chi tiêu",
-  "@moneySettleFromOwnSub": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleNoteThem": "App không chuyển tiền hộ. {name} chuyển khoản hoặc đưa tiền mặt xong thì bấm nút bên dưới. Khoản này chỉ để cân lại sổ chung, không tính vào chi tiêu.",
-  "@moneySettleNoteThem": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleNoteMe": "App không chuyển tiền hộ. Mình chuyển khoản hoặc đưa tiền mặt cho {name} xong thì bấm nút bên dưới. Khoản này chỉ để cân lại sổ chung, không tính vào chi tiêu.",
-  "@moneySettleNoteMe": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleDo": "Đánh dấu đã thanh toán",
-  "@moneySettleDo": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleTooMuch": "Tối đa {amount}",
-  "@moneySettleTooMuch": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleWhy": "Vì sao là {amount}",
-  "@moneySettleWhy": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleLegend": "Dấu cộng: mình ứng cho {name}. Dấu trừ: {name} ứng cho mình. {n} khoản “mời” và các khoản trả từ Ví chung không tính.",
-  "@moneySettleLegend": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "moneySettleLegendNoTreat": "Dấu cộng: mình ứng cho {name}. Dấu trừ: {name} ứng cho mình. Các khoản trả từ Ví chung không tính.",
-  "@moneySettleLegendNoTreat": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleSum": "Cộng lại",
-  "@moneySettleSum": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettleEarlier": "Các khoản trước {date}",
-  "@moneySettleEarlier": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleRowSub": "{date} · {name} trả · {split}",
-  "@moneySettleRowSub": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "name": {
-        "type": "String"
-      },
-      "split": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettleRowBack": "{date} · {name} đã trả lại",
-  "@moneySettleRowBack": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      },
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettledThem": "Đã ghi {name} trả lại {amount}",
-  "@moneySettledThem": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettledMe": "Đã ghi mình trả lại {name} {amount}",
-  "@moneySettledMe": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettledEven": "hai bên đang ngang nhau",
-  "@moneySettledEven": {
-    "description": "Sổ tiền (feature expenses), stage 3B"
-  },
-  "moneySettledLeft": "còn {amount} chưa trả",
-  "@moneySettledLeft": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettledIn": "{wallet} cộng {amount}",
-  "@moneySettledIn": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "wallet": {
-        "type": "String"
-      },
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
-  "moneySettledOut": "{wallet} trừ {amount}",
-  "@moneySettledOut": {
-    "description": "Sổ tiền (feature expenses), stage 3B",
-    "placeholders": {
-      "wallet": {
-        "type": "String"
-      },
-      "amount": {
-        "type": "String"
-      }
-    }
   },
   "moneyLogFromDecision": "Ghi chi",
   "@moneyLogFromDecision": {
@@ -8519,26 +8078,5 @@
   "moneyLinkedPayerLocked": "Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.",
   "@moneyLinkedPayerLocked": {
     "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
-  },
-  "moneySettleNeedSync": "Tải số mới nhất",
-  "@moneySettleNeedSync": {
-    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
-  },
-  "moneySettleOffline": "Chưa lấy được số mới nhất. Có mạng rồi thử lại nhé.",
-  "@moneySettleOffline": {
-    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
-  },
-  "moneySettleAlreadyEven": "Sổ chung đã cân bằng rồi, không cần thanh toán nữa.",
-  "@moneySettleAlreadyEven": {
-    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
-  },
-  "moneySettleChanged": "Số cần trả vừa đổi thành {amount}. Xem lại rồi bấm lần nữa nhé.",
-  "@moneySettleChanged": {
-    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22",
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
   }
 }

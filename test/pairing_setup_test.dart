@@ -24,32 +24,32 @@ class _Auth extends AuthProvider {
 
   @override
   AppUser? get currentUser => AppUser(
-        id: 'me',
-        email: 'x1y2@privaterelay.appleid.com',
-        displayName: name,
-        inviteCode: 'ABC234',
-        status: 'single',
-        createdAt: DateTime(2026),
-        updatedAt: DateTime(2026),
-      );
+    id: 'me',
+    email: 'x1y2@privaterelay.appleid.com',
+    displayName: name,
+    inviteCode: 'ABC234',
+    status: 'single',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
 }
 
 Widget _app(String name, GlobalKey<NavigatorState> navigator) => MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthProvider>(create: (_) => _Auth(name)),
-        ChangeNotifierProvider(create: (_) => CoupleProvider()),
-        ChangeNotifierProvider(create: (_) => PhotoProvider()),
-      ],
-      child: MaterialApp(
-        navigatorKey: navigator,
-        theme: AppTheme.lightTheme,
-        locale: const Locale('vi'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        navigatorObservers: [appPageRouteObserver],
-        home: const SetupScreen(),
-      ),
-    );
+  providers: [
+    ChangeNotifierProvider<AuthProvider>(create: (_) => _Auth(name)),
+    ChangeNotifierProvider(create: (_) => CoupleProvider()),
+    ChangeNotifierProvider(create: (_) => PhotoProvider()),
+  ],
+  child: MaterialApp(
+    navigatorKey: navigator,
+    theme: AppTheme.lightTheme,
+    locale: const Locale('vi'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    navigatorObservers: [appPageRouteObserver],
+    home: const SetupScreen(),
+  ),
+);
 
 // Feature pairing-funnel, audit 2026-10-12: PA4 (what the code field shows
 // after Join), PA5 (clipboard check when Setup is uncovered) and PA8 (no "New
@@ -103,8 +103,9 @@ void main() {
     variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );
 
-  testWidgets('PA4: the field shows the cleaned code only when it is a code',
-      (tester) async {
+  testWidgets('PA4: the field shows the cleaned code only when it is a code', (
+    tester,
+  ) async {
     final l10n = lookupAppLocalizations(const Locale('vi'));
     for (final (typed, shown) in [
       (' abc 234 ', 'ABC234'),
@@ -130,8 +131,9 @@ void main() {
     }
   });
 
-  testWidgets('PA8: the "New user" placeholder is not prefilled',
-      (tester) async {
+  testWidgets('PA8: the "New user" placeholder is not prefilled', (
+    tester,
+  ) async {
     for (final (name, shown) in [
       ('Người dùng mới', false),
       ('New user', false),
@@ -139,8 +141,11 @@ void main() {
     ]) {
       await tester.pumpWidget(_app(name, GlobalKey<NavigatorState>()));
       await tester.pump();
-      expect(find.text(name), shown ? findsOneWidget : findsNothing,
-          reason: name);
+      expect(
+        find.text(name),
+        shown ? findsOneWidget : findsNothing,
+        reason: name,
+      );
       // Let the delayed clipboard check run out, then a fresh tree for the
       // next name (prefill runs once per State).
       await tester.pump(const Duration(milliseconds: 600));

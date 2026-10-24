@@ -11,7 +11,10 @@ void main() {
   final fallback = AppL10n.strings.defaultDisplayName;
 
   test('the name Firebase has wins', () {
-    expect(name(firebaseName: '  Thảo Hà ', email: 'thao@gmail.com'), 'Thảo Hà');
+    expect(
+      name(firebaseName: '  Thảo Hà ', email: 'thao@gmail.com'),
+      'Thảo Hà',
+    );
   });
 
   test('no name → the part of a normal email before @', () {

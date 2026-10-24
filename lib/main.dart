@@ -71,13 +71,15 @@ void main() async {
   // leaving a black bar there. System bars are made transparent with dark
   // icons to suit the light pink backgrounds.
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-    systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
 
   await Hive.initFlutter();
 
@@ -111,7 +113,8 @@ void main() async {
     };
   }
 
-  final bool isMobile = !kIsWeb &&
+  final bool isMobile =
+      !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
   if (isMobile) {
@@ -127,27 +130,31 @@ void main() async {
 
   // Correctness-critical: the reinstall purge must complete before the splash
   // resolves a route, so it stays on the pre-runApp path.
-  InstallStateService.isFreshInstallLaunch =
-      await InstallStateService().handleFreshInstall(
+  InstallStateService.isFreshInstallLaunch = await InstallStateService()
+      .handleFreshInstall(
         onFreshInstall: () async {
           await authService.purgePersistedSession();
           await FeatureTour.rememberFreshInstall();
         },
       );
 
-  runApp(MyApp(
-    authService: authService,
-    initialLocale: initialLocale,
-    customRemindersProvider: customRemindersProvider,
-  ));
+  runApp(
+    MyApp(
+      authService: authService,
+      initialLocale: initialLocale,
+      customRemindersProvider: customRemindersProvider,
+    ),
+  );
 
   // Deferred, non-route-critical bootstrap — runs after the first frame so the
   // splash is already on screen. Each step is best-effort and self-contained.
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    unawaited(_initDeferredServices(
-      customRemindersProvider: customRemindersProvider,
-      isMobile: isMobile,
-    ));
+    unawaited(
+      _initDeferredServices(
+        customRemindersProvider: customRemindersProvider,
+        isMobile: isMobile,
+      ),
+    );
   });
 }
 
@@ -164,19 +171,25 @@ Future<void> _initDeferredServices({
   // no-op when Firebase isn't ready or the user opted out.
   try {
     await AnalyticsService.instance.init();
-  } catch (_) {/* analytics is best-effort */}
+  } catch (_) {
+    /* analytics is best-effort */
+  }
 
   if (isMobile) {
     try {
       await PushNotificationService.instance.initialize();
-    } catch (_) {/* push stays disabled; re-tried on resume */}
+    } catch (_) {
+      /* push stays disabled; re-tried on resume */
+    }
   }
 
   // Prepare local scheduled-notification infrastructure (timezone + channel)
   // for the retention "love reminders" feature.
   try {
     await ReminderService.instance.initialize();
-  } catch (_) {/* reminders engine unavailable this session */}
+  } catch (_) {
+    /* reminders engine unavailable this session */
+  }
 
   // Restore user-created custom reminders and re-arm their OS schedule.
   // D7 — only (re)arm while the master "love reminders" toggle is on (which is
@@ -189,7 +202,9 @@ Future<void> _initDeferredServices({
     } else {
       await customRemindersProvider.cancelAllSchedules();
     }
-  } catch (_) {/* custom reminders left as-is */}
+  } catch (_) {
+    /* custom reminders left as-is */
+  }
 }
 
 /// Reads the persisted locale from the `app_settings` Hive box (key `locale`)
@@ -239,14 +254,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  late final AuthProvider _authProvider =
-      AuthProvider(authService: widget.authService);
+  late final AuthProvider _authProvider = AuthProvider(
+    authService: widget.authService,
+  );
 
   // Home-screen widget (feature home-widget): the bridge listens to these two,
   // so they are owned here instead of being created inside MultiProvider.
   final CoupleProvider _coupleProvider = CoupleProvider();
-  late final LocaleProvider _localeProvider =
-      LocaleProvider(initialLocale: widget.initialLocale);
+  late final LocaleProvider _localeProvider = LocaleProvider(
+    initialLocale: widget.initialLocale,
+  );
 
   // App-level navigator key (#3): lets the session-revocation listener route
   // from outside the widget tree without threading a context around.
@@ -374,10 +391,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('vi'),
-            ],
+            supportedLocales: const [Locale('en'), Locale('vi')],
             // Keep the non-widget localization layer (services, providers,
             // models, background isolates) in sync with the locale MaterialApp
             // actually resolves — including when following the system locale.

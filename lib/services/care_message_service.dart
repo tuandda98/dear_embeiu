@@ -22,9 +22,9 @@ class CareMessagePage {
   });
 
   const CareMessagePage.empty()
-      : items = const <CareMessage>[],
-        lastDoc = null,
-        hasMore = false;
+    : items = const <CareMessage>[],
+      lastDoc = null,
+      hasMore = false;
 
   final List<CareMessage> items;
   final DocumentSnapshot<Map<String, dynamic>>? lastDoc;

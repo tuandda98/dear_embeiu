@@ -5,11 +5,7 @@ class CounterData {
   final int months;
   final int years;
 
-  CounterData({
-    required this.days,
-    required this.months,
-    required this.years,
-  });
+  CounterData({required this.days, required this.months, required this.years});
 
   // Calculate from anniversary date
   static CounterData calculateFromAnniversary(DateTime anniversaryDate) {
@@ -29,11 +25,7 @@ class CounterData {
     months = totalDays ~/ 30;
     days = totalDays % 30;
 
-    return CounterData(
-      days: days,
-      months: months,
-      years: years,
-    );
+    return CounterData(days: days, months: months, years: years);
   }
 
   // Get formatted string
@@ -41,4 +33,3 @@ class CounterData {
     return AppL10n.strings.counterDuration(years, months, days);
   }
 }
-

@@ -51,7 +51,8 @@ CaroGame g({
   'status': status,
   'cells': cells,
   'turnUid': turn,
-  'lastMoveAt': lastMoveAt ?? DateTime.now().subtract(const Duration(minutes: 5)),
+  'lastMoveAt':
+      lastMoveAt ?? DateTime.now().subtract(const Duration(minutes: 5)),
   'createdAt': createdAt ?? DateTime.now().subtract(const Duration(hours: 1)),
   'finishedAt': ?finishedAt,
   'result': ?result,
@@ -128,22 +129,25 @@ class _Svc extends CaroGameService {
   }
 }
 
-Widget app(CaroGameProvider caro, Widget home, {Locale locale = const Locale('vi')}) =>
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<CaroGameProvider>.value(value: caro),
-        ChangeNotifierProvider(create: (_) => CoupleProvider()),
-        ChangeNotifierProvider(
-          create: (_) => SleepProvider(service: FakeSleepService()),
-        ),
-      ],
-      child: MaterialApp(
-        locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: home,
-      ),
-    );
+Widget app(
+  CaroGameProvider caro,
+  Widget home, {
+  Locale locale = const Locale('vi'),
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider<CaroGameProvider>.value(value: caro),
+    ChangeNotifierProvider(create: (_) => CoupleProvider()),
+    ChangeNotifierProvider(
+      create: (_) => SleepProvider(service: FakeSleepService()),
+    ),
+  ],
+  child: MaterialApp(
+    locale: locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: home,
+  ),
+);
 
 void mockNet(WidgetTester tester) =>
     tester.binding.defaultBinaryMessenger.setMockStreamHandler(
@@ -243,26 +247,30 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  test('HOME-18 partner joins mid-session: same stream, partner arrives', () async {
-    final service = _Svc();
-    final p = CaroGameProvider(service: service)..watchForCouple('c', 'me', '');
-    expect(p.hasPartner, false);
-    expect(
-      (await p.start()).status,
-      CaroActionStatus.noPartner,
-      reason: 'no partner yet → no CF call',
-    );
-    expect(service.calls, isEmpty);
-    var notified = 0;
-    p.addListener(() => notified++);
-    p.watchForCouple('c', 'me', 'bob'); // Home's re-arm after the join
-    expect(p.hasPartner, true);
-    expect(p.partnerUid, 'bob');
-    expect(notified, 1);
-    p.watchForCouple('c', 'me', 'bob'); // unchanged → no-op
-    expect(notified, 1);
-    p.dispose();
-  });
+  test(
+    'HOME-18 partner joins mid-session: same stream, partner arrives',
+    () async {
+      final service = _Svc();
+      final p = CaroGameProvider(service: service)
+        ..watchForCouple('c', 'me', '');
+      expect(p.hasPartner, false);
+      expect(
+        (await p.start()).status,
+        CaroActionStatus.noPartner,
+        reason: 'no partner yet → no CF call',
+      );
+      expect(service.calls, isEmpty);
+      var notified = 0;
+      p.addListener(() => notified++);
+      p.watchForCouple('c', 'me', 'bob'); // Home's re-arm after the join
+      expect(p.hasPartner, true);
+      expect(p.partnerUid, 'bob');
+      expect(notified, 1);
+      p.watchForCouple('c', 'me', 'bob'); // unchanged → no-op
+      expect(notified, 1);
+      p.dispose();
+    },
+  );
 
   testWidgets('HOME-21 360×640, text ×1.3: the longest lines do not overflow', (
     tester,
@@ -274,7 +282,12 @@ void main() {
         kind,
         partnerName: 'Nguyễn Thị Thảo Nguyên',
         score: vi.caroScoreDraws(
-          vi.caroScore('Đỗ Đào Anh Tuấn', '128', '97', 'Nguyễn Thị Thảo Nguyên'),
+          vi.caroScore(
+            'Đỗ Đào Anh Tuấn',
+            '128',
+            '97',
+            'Nguyễn Thị Thảo Nguyên',
+          ),
           '14',
         ),
         moves: '224',
@@ -412,22 +425,23 @@ void main() {
 
   // ---- SCR ----------------------------------------------------------------
 
-  testWidgets('SCR-02 no snapshot yet: "Đang tải ván", skeleton, no cell labels', (
-    tester,
-  ) async {
-    mockNet(tester);
-    final handle = tester.ensureSemantics();
-    final service = _Svc();
-    final caro = CaroGameProvider(service: service)
-      ..watchForCouple('c', 'me', 'bob');
-    await tester.pumpWidget(app(caro, const CaroGameScreen(gameId: 'g1')));
-    await tester.pump();
-    expect(find.text(vi.caroLoading), findsOneWidget);
-    expect(find.byType(ShimmerSkeleton), findsWidgets);
-    expect(find.bySemanticsLabel(RegExp('^Hàng ')), findsNothing);
-    handle.dispose();
-    await dispose(tester, caro);
-  });
+  testWidgets(
+    'SCR-02 no snapshot yet: "Đang tải ván", skeleton, no cell labels',
+    (tester) async {
+      mockNet(tester);
+      final handle = tester.ensureSemantics();
+      final service = _Svc();
+      final caro = CaroGameProvider(service: service)
+        ..watchForCouple('c', 'me', 'bob');
+      await tester.pumpWidget(app(caro, const CaroGameScreen(gameId: 'g1')));
+      await tester.pump();
+      expect(find.text(vi.caroLoading), findsOneWidget);
+      expect(find.byType(ShimmerSkeleton), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('^Hàng ')), findsNothing);
+      handle.dispose();
+      await dispose(tester, caro);
+    },
+  );
 
   testWidgets('SCR-07 waiting, partner watching: "… đang xem ván."', (
     tester,
@@ -450,63 +464,67 @@ void main() {
     await dispose(tester, caro);
   });
 
-  testWidgets('SCR-08 waiting long: "Đã nhắc … lúc" after a nudge, else "Đã M phút"', (
+  testWidgets(
+    'SCR-08 waiting long: "Đã nhắc … lúc" after a nudge, else "Đã M phút"',
+    (tester) async {
+      final moved = DateTime.now().subtract(const Duration(hours: 3));
+      final nudged = DateTime.now().subtract(const Duration(minutes: 20));
+      var (caro, _) = await openGame(
+        tester,
+        g(
+          cells: [112, 113],
+          turn: 'bob',
+          lastMoveAt: moved,
+          extra: {'lastNudgeAt': nudged},
+        ),
+      );
+      expect(find.text(vi.caroNudged('Người ấy', hm(nudged))), findsOneWidget);
+      await dispose(tester, caro);
+
+      final moved2 = DateTime.now().subtract(const Duration(minutes: 45));
+      (caro, _) = await openGame(
+        tester,
+        g(id: 'g2', cells: [112, 113], turn: 'bob', lastMoveAt: moved2),
+      );
+      expect(find.textContaining('phút rồi'), findsOneWidget);
+      expect(find.textContaining('Đã nhắc'), findsNothing);
+      await dispose(tester, caro);
+    },
+  );
+
+  testWidgets(
+    'SCR-12 + END-14 stale ≥ 7 days: Nhắc + Kết thúc ván → expire → "để lâu"',
+    (tester) async {
+      final (caro, service) = await openGame(
+        tester,
+        g(
+          cells: [112, 113, 114],
+          turn: 'bob',
+          lastMoveAt: DateTime.now().subtract(const Duration(days: 8)),
+        ),
+      );
+      expect(find.text(vi.caroNudge('Người ấy')), findsOneWidget);
+      expect(find.text(vi.caroEndGame), findsOneWidget);
+      service.reply = const CaroActionResult(CaroActionStatus.ok);
+      await tester.tap(find.text(vi.caroEndGame));
+      await tester.pumpAndSettle();
+      expect(find.text(vi.caroEndTitle), findsOneWidget);
+      expect(service.calls, isEmpty, reason: 'nothing before the confirmation');
+      await tester.tap(find.widgetWithText(FilledButton, vi.caroEndConfirm));
+      await tester.pumpAndSettle();
+      expect(service.calls.single['op'], 'expire');
+      // The server flips the game; the screen follows.
+      service.stream('g1').add(g(status: 'expired'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(vi.caroExpiredTitle), findsOneWidget);
+      await dispose(tester, caro);
+    },
+  );
+
+  testWidgets('SCR-15 full board: "Ván này hoà" + "Kín cả 225 ô…"', (
     tester,
   ) async {
-    final moved = DateTime.now().subtract(const Duration(hours: 3));
-    final nudged = DateTime.now().subtract(const Duration(minutes: 20));
-    var (caro, _) = await openGame(
-      tester,
-      g(
-        cells: [112, 113],
-        turn: 'bob',
-        lastMoveAt: moved,
-        extra: {'lastNudgeAt': nudged},
-      ),
-    );
-    expect(find.text(vi.caroNudged('Người ấy', hm(nudged))), findsOneWidget);
-    await dispose(tester, caro);
-
-    final moved2 = DateTime.now().subtract(const Duration(minutes: 45));
-    (caro, _) = await openGame(
-      tester,
-      g(id: 'g2', cells: [112, 113], turn: 'bob', lastMoveAt: moved2),
-    );
-    expect(find.textContaining('phút rồi'), findsOneWidget);
-    expect(find.textContaining('Đã nhắc'), findsNothing);
-    await dispose(tester, caro);
-  });
-
-  testWidgets('SCR-12 + END-14 stale ≥ 7 days: Nhắc + Kết thúc ván → expire → "để lâu"', (
-    tester,
-  ) async {
-    final (caro, service) = await openGame(
-      tester,
-      g(
-        cells: [112, 113, 114],
-        turn: 'bob',
-        lastMoveAt: DateTime.now().subtract(const Duration(days: 8)),
-      ),
-    );
-    expect(find.text(vi.caroNudge('Người ấy')), findsOneWidget);
-    expect(find.text(vi.caroEndGame), findsOneWidget);
-    service.reply = const CaroActionResult(CaroActionStatus.ok);
-    await tester.tap(find.text(vi.caroEndGame));
-    await tester.pumpAndSettle();
-    expect(find.text(vi.caroEndTitle), findsOneWidget);
-    expect(service.calls, isEmpty, reason: 'nothing before the confirmation');
-    await tester.tap(find.widgetWithText(FilledButton, vi.caroEndConfirm));
-    await tester.pumpAndSettle();
-    expect(service.calls.single['op'], 'expire');
-    // The server flips the game; the screen follows.
-    service.stream('g1').add(g(status: 'expired'));
-    await tester.pump();
-    await tester.pump();
-    expect(find.text(vi.caroExpiredTitle), findsOneWidget);
-    await dispose(tester, caro);
-  });
-
-  testWidgets('SCR-15 full board: "Ván này hoà" + "Kín cả 225 ô…"', (tester) async {
     final (caro, _) = await openGame(tester, done(null, reason: 'full'));
     expect(find.text(vi.caroDraw), findsOneWidget);
     expect(find.text(vi.caroDrawSub), findsOneWidget);
@@ -514,7 +532,9 @@ void main() {
     await dispose(tester, caro);
   });
 
-  testWidgets('SCR-21 expired game: title + "7 ngày không ai đi…"', (tester) async {
+  testWidgets('SCR-21 expired game: title + "7 ngày không ai đi…"', (
+    tester,
+  ) async {
     final (caro, _) = await openGame(tester, g(status: 'expired'));
     expect(find.text('Ván này đã kết thúc vì để lâu'), findsOneWidget);
     expect(find.textContaining('7 ngày không ai đi'), findsOneWidget);
@@ -522,75 +542,88 @@ void main() {
     await dispose(tester, caro);
   });
 
-  testWidgets('SCR-25 held "Có gì mới"/catch-up key off CaroGameScreen.isOpen', (
-    tester,
-  ) async {
-    // Home's own check (_rpsGameActive) is private to HomeScreen; what it
-    // reads is this notifier, so the seam is covered here.
-    expect(CaroGameScreen.isOpen, false);
-    final (caro, _) = await openGame(tester, g());
-    expect(CaroGameScreen.isOpen, true);
-    await dispose(tester, caro);
-    expect(CaroGameScreen.isOpen, false);
-  });
+  testWidgets(
+    'SCR-25 held "Có gì mới"/catch-up key off CaroGameScreen.isOpen',
+    (tester) async {
+      // Home's own check (_rpsGameActive) is private to HomeScreen; what it
+      // reads is this notifier, so the seam is covered here.
+      expect(CaroGameScreen.isOpen, false);
+      final (caro, _) = await openGame(tester, g());
+      expect(CaroGameScreen.isOpen, true);
+      await dispose(tester, caro);
+      expect(CaroGameScreen.isOpen, false);
+    },
+  );
 
   // ---- MOVE ---------------------------------------------------------------
 
-  testWidgets('MOVE-15 + RACE-06 a move on a changed board: "Bàn vừa đổi", pick dropped', (
-    tester,
-  ) async {
-    final (caro, service) = await openGame(tester, g(lastMoveAt: DateTime.now()));
-    service.reply = const CaroActionResult(CaroActionStatus.stale);
-    await tester.tapAt(cellRight(tester));
-    await tester.pump();
-    await tester.pump();
-    expect(service.calls.single['op'], 'move');
-    expect(find.text(vi.caroStaleBoard), findsOneWidget);
-    expect(find.text(vi.caroSendError), findsNothing);
-    expect(find.text(vi.caroCtaRetry), findsNothing); // selection cleared
-    // notYourTurn / occupied read the same way.
-    service.reply = const CaroActionResult(CaroActionStatus.notYourTurn);
-    await tester.tapAt(cellRight(tester));
-    await tester.pump();
-    await tester.pump();
-    expect(find.text(vi.caroStaleBoard), findsOneWidget);
-    await dispose(tester, caro);
-  });
+  testWidgets(
+    'MOVE-15 + RACE-06 a move on a changed board: "Bàn vừa đổi", pick dropped',
+    (tester) async {
+      final (caro, service) = await openGame(
+        tester,
+        g(lastMoveAt: DateTime.now()),
+      );
+      service.reply = const CaroActionResult(CaroActionStatus.stale);
+      await tester.tapAt(cellRight(tester));
+      await tester.pump();
+      await tester.pump();
+      expect(service.calls.single['op'], 'move');
+      expect(find.text(vi.caroStaleBoard), findsOneWidget);
+      expect(find.text(vi.caroSendError), findsNothing);
+      expect(find.text(vi.caroCtaRetry), findsNothing); // selection cleared
+      // notYourTurn / occupied read the same way.
+      service.reply = const CaroActionResult(CaroActionStatus.notYourTurn);
+      await tester.tapAt(cellRight(tester));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(vi.caroStaleBoard), findsOneWidget);
+      await dispose(tester, caro);
+    },
+  );
 
-  testWidgets('MOVE-16 a second tap while the move is in flight sends nothing', (
-    tester,
-  ) async {
-    final (caro, service) = await openGame(tester, g(lastMoveAt: DateTime.now()));
-    service.hold = Completer<CaroActionResult>();
-    await tester.tapAt(cellRight(tester));
-    await tester.pump();
-    expect(caro.isBusy, true);
-    expect(find.text(vi.caroSending), findsOneWidget);
-    await tester.tapAt(cellRight(tester) + const Offset(30, 30));
-    await tester.pump();
-    expect(service.calls.length, 1);
-    service.hold!.complete(const CaroActionResult(CaroActionStatus.ok));
-    await tester.pump();
-    await tester.pump();
-    expect(caro.isBusy, false);
-    await dispose(tester, caro);
-  });
+  testWidgets(
+    'MOVE-16 a second tap while the move is in flight sends nothing',
+    (tester) async {
+      final (caro, service) = await openGame(
+        tester,
+        g(lastMoveAt: DateTime.now()),
+      );
+      service.hold = Completer<CaroActionResult>();
+      await tester.tapAt(cellRight(tester));
+      await tester.pump();
+      expect(caro.isBusy, true);
+      expect(find.text(vi.caroSending), findsOneWidget);
+      await tester.tapAt(cellRight(tester) + const Offset(30, 30));
+      await tester.pump();
+      expect(service.calls.length, 1);
+      service.hold!.complete(const CaroActionResult(CaroActionStatus.ok));
+      await tester.pump();
+      await tester.pump();
+      expect(caro.isBusy, false);
+      await dispose(tester, caro);
+    },
+  );
 
-  test('MOVE-16 provider: move() while busy is refused without a call', () async {
-    final service = _Svc();
-    final p = CaroGameProvider(service: service)..watchForCouple('c', 'me', 'bob');
-    p.enter('g1');
-    service.stream('g1').add(g());
-    await Future<void>.delayed(Duration.zero);
-    service.hold = Completer<CaroActionResult>();
-    final first = p.move(113);
-    final second = await p.move(114);
-    expect(second.status, CaroActionStatus.notYourTurn);
-    expect(service.calls.length, 1);
-    service.hold!.complete(const CaroActionResult(CaroActionStatus.ok));
-    await first;
-    p.dispose();
-  });
+  test(
+    'MOVE-16 provider: move() while busy is refused without a call',
+    () async {
+      final service = _Svc();
+      final p = CaroGameProvider(service: service)
+        ..watchForCouple('c', 'me', 'bob');
+      p.enter('g1');
+      service.stream('g1').add(g());
+      await Future<void>.delayed(Duration.zero);
+      service.hold = Completer<CaroActionResult>();
+      final first = p.move(113);
+      final second = await p.move(114);
+      expect(second.status, CaroActionStatus.notYourTurn);
+      expect(service.calls.length, 1);
+      service.hold!.complete(const CaroActionResult(CaroActionStatus.ok));
+      await first;
+      p.dispose();
+    },
+  );
 
   test('MOVE-21 + SEC-36 caro analytics carry only counts / enums / bools', () {
     final src = File('lib/services/analytics_service.dart').readAsStringSync();
@@ -598,10 +631,9 @@ void main() {
     final to = src.indexOf('void logCaroHistoryOpen');
     expect(from, greaterThan(0));
     final block = src.substring(from, to);
-    final keys = RegExp(r'AnalyticsEvents\.(p\w+)')
-        .allMatches(block)
-        .map((m) => m.group(1))
-        .toSet();
+    final keys = RegExp(
+      r'AnalyticsEvents\.(p\w+)',
+    ).allMatches(block).map((m) => m.group(1)).toSet();
     expect(keys, {
       'pSource',
       'pRematch',
@@ -613,21 +645,25 @@ void main() {
       'pSpanHours',
     });
     // Parameters of the log methods: no uid / name / cell / game id.
-    final params = RegExp(r'void logCaro\w+\(([^)]*)\)')
-        .allMatches(block)
-        .map((m) => m.group(1)!)
-        .join(',')
-        .toLowerCase();
+    final params = RegExp(
+      r'void logCaro\w+\(([^)]*)\)',
+    ).allMatches(block).map((m) => m.group(1)!).join(',').toLowerCase();
     for (final banned in ['uid', 'name', 'cell', 'gameid', 'email']) {
       expect(params, isNot(contains(banned)), reason: banned);
     }
     // The move event is fed by the count and the presence flag only.
     final screen = File('lib/screens/caro_game_screen.dart').readAsStringSync();
-    final move = RegExp(r'logCaroMove\(([^)]*)\)').firstMatch(screen)!.group(1)!;
+    final move = RegExp(
+      r'logCaroMove\(([^)]*)\)',
+    ).firstMatch(screen)!.group(1)!;
     expect(move, contains('moveNo:'));
     expect(move, contains('partnerWatching:'));
     expect(
-      move.split(',').map((a) => a.trim()).where((a) => a.isNotEmpty).map((a) => a.split(':').first),
+      move
+          .split(',')
+          .map((a) => a.trim())
+          .where((a) => a.isNotEmpty)
+          .map((a) => a.split(':').first),
       ['moveNo', 'partnerWatching'],
     );
   });
@@ -645,13 +681,14 @@ void main() {
     tester.view.physicalSize = const Size(800, 4000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final service = _Svc()..pages.add(CaroHistoryPage(items: items, hasMore: hasMore));
+    final service = _Svc()
+      ..pages.add(CaroHistoryPage(items: items, hasMore: hasMore));
     final caro = CaroGameProvider(service: service)
       ..watchForCouple('c', 'me', 'bob');
-    service.state.add(
-      state ?? CaroState(wins: {'me': items.length}, draws: 0),
+    service.state.add(state ?? CaroState(wins: {'me': items.length}, draws: 0));
+    await tester.pumpWidget(
+      app(caro, const CaroHistoryScreen(), locale: locale),
     );
-    await tester.pumpWidget(app(caro, const CaroHistoryScreen(), locale: locale));
     await tester.pump();
     await tester.pump();
     await tester.pump();
@@ -671,37 +708,41 @@ void main() {
     expect(find.text(vi.caroRowDraw), findsOneWidget);
     expect(find.text('Kín bàn, 225 nước'), findsOneWidget);
     expect(find.text('Năm quân liền, 9 nước. Tự do'), findsOneWidget);
-    expect(find.text(vi.caroRowFive('9')), findsNothing); // the free row has the suffix
+    expect(
+      find.text(vi.caroRowFive('9')),
+      findsNothing,
+    ); // the free row has the suffix
     await dispose(tester, caro);
   });
 
-  testWidgets('HIST-12 month headers: header semantics, year only when not this year', (
-    tester,
-  ) async {
-    final handle = tester.ensureSemantics();
-    final now = DateTime.now();
-    final thisMonth = DateTime(now.year, now.month, 1, 0, 1);
-    final lastYear = DateTime(now.year - 1, 5, 10, 9);
-    final (caro, _) = await history(tester, [
-      done('me', at: thisMonth, id: 'a'),
-      done('bob', at: lastYear, id: 'b'),
-    ]);
-    String sentence(String s) => toBeginningOfSentenceCase(s)!;
-    final cur = sentence(DateFormat.MMMM('vi').format(thisMonth));
-    final old = sentence(DateFormat.yMMMM('vi').format(lastYear));
-    expect(cur, isNot(contains('${now.year}')));
-    expect(old, contains('${now.year - 1}'));
-    for (final title in [cur, old]) {
-      expect(find.text(title), findsOneWidget);
-      expect(
-        tester.getSemantics(find.text(title)),
-        isSemantics(isHeader: true),
-        reason: title,
-      );
-    }
-    handle.dispose();
-    await dispose(tester, caro);
-  });
+  testWidgets(
+    'HIST-12 month headers: header semantics, year only when not this year',
+    (tester) async {
+      final handle = tester.ensureSemantics();
+      final now = DateTime.now();
+      final thisMonth = DateTime(now.year, now.month, 1, 0, 1);
+      final lastYear = DateTime(now.year - 1, 5, 10, 9);
+      final (caro, _) = await history(tester, [
+        done('me', at: thisMonth, id: 'a'),
+        done('bob', at: lastYear, id: 'b'),
+      ]);
+      String sentence(String s) => toBeginningOfSentenceCase(s)!;
+      final cur = sentence(DateFormat.MMMM('vi').format(thisMonth));
+      final old = sentence(DateFormat.yMMMM('vi').format(lastYear));
+      expect(cur, isNot(contains('${now.year}')));
+      expect(old, contains('${now.year - 1}'));
+      for (final title in [cur, old]) {
+        expect(find.text(title), findsOneWidget);
+        expect(
+          tester.getSemantics(find.text(title)),
+          isSemantics(isHeader: true),
+          reason: title,
+        );
+      }
+      handle.dispose();
+      await dispose(tester, caro);
+    },
+  );
 
   testWidgets('HIST-13 "từ {ngày}" only once every page is in', (tester) async {
     final first = DateTime.now().subtract(const Duration(days: 5));
@@ -727,7 +768,9 @@ void main() {
     await dispose(tester, caro);
   });
 
-  testWidgets('HIST-14 score line: who leads, or "Đang hoà a – a"', (tester) async {
+  testWidgets('HIST-14 score line: who leads, or "Đang hoà a – a"', (
+    tester,
+  ) async {
     var (caro, _) = await history(
       tester,
       const [],
@@ -749,11 +792,10 @@ void main() {
   testWidgets('HIST-11 a failing next page keeps the rows and offers a retry', (
     tester,
   ) async {
-    final (caro, service) = await history(
-      tester,
-      [done('me', id: 'a'), done('bob', id: 'b')],
-      hasMore: true,
-    );
+    final (caro, service) = await history(tester, [
+      done('me', id: 'a'),
+      done('bob', id: 'b'),
+    ], hasMore: true);
     service.pages.add(const CaroHistoryPage.empty(failed: true));
     caro.loadMoreHistory();
     await tester.pump();
@@ -766,48 +808,61 @@ void main() {
     await dispose(tester, caro);
   });
 
-  test('HIST-09 history pages are 30 long and stop when there are no more', () async {
-    final service = _Svc();
-    final p = CaroGameProvider(service: service)..watchForCouple('c', 'me', 'bob');
-    service.pages
-      ..add(CaroHistoryPage(items: [for (var i = 0; i < 30; i++) done('me', id: 'a$i')], hasMore: true))
-      ..add(CaroHistoryPage(items: [done('bob', id: 'z')]));
-    await p.loadHistory();
-    expect(service.pageCalls, [30]);
-    expect(p.history.length, 30);
-    expect(p.hasMoreHistory, true);
-    await p.loadMoreHistory();
-    expect(service.pageCalls, [30, 30]);
-    expect(p.history.length, 31);
-    expect(p.hasMoreHistory, false);
-    await p.loadMoreHistory(); // nothing left → no third read
-    expect(service.pageCalls.length, 2);
-    p.dispose();
-  });
+  test(
+    'HIST-09 history pages are 30 long and stop when there are no more',
+    () async {
+      final service = _Svc();
+      final p = CaroGameProvider(service: service)
+        ..watchForCouple('c', 'me', 'bob');
+      service.pages
+        ..add(
+          CaroHistoryPage(
+            items: [for (var i = 0; i < 30; i++) done('me', id: 'a$i')],
+            hasMore: true,
+          ),
+        )
+        ..add(CaroHistoryPage(items: [done('bob', id: 'z')]));
+      await p.loadHistory();
+      expect(service.pageCalls, [30]);
+      expect(p.history.length, 30);
+      expect(p.hasMoreHistory, true);
+      await p.loadMoreHistory();
+      expect(service.pageCalls, [30, 30]);
+      expect(p.history.length, 31);
+      expect(p.hasMoreHistory, false);
+      await p.loadMoreHistory(); // nothing left → no third read
+      expect(service.pageCalls.length, 2);
+      p.dispose();
+    },
+  );
 
   test('HIST-17 profile value "a – b" and the spoken form names both', () {
     expect(vi.caroScorePair('12', '9'), '12 – 9');
     expect(vi.caroScore('Mình', '12', '9', 'Người ấy'), 'Mình 12 – 9 Người ấy');
   });
 
-  testWidgets('RS-05 rule chip: vi/en name and "chạm để xem giải thích" label', (
-    tester,
-  ) async {
-    final handle = tester.ensureSemantics();
-    expect(caroRuleName(vi, CaroRule.vn), 'Chặn hai đầu');
-    expect(caroRuleName(vi, CaroRule.free), 'Tự do');
-    expect(caroRuleName(en, CaroRule.vn), isNot(caroRuleName(vi, CaroRule.vn)));
-    final (caro, _) = await openGame(tester, g(rule: 'free'));
-    expect(
-      find.bySemanticsLabel(RegExp('Luật Tự do, chạm để xem giải thích')),
-      findsWidgets,
-    );
-    await tester.tap(find.text('Tự do').first);
-    await tester.pumpAndSettle();
-    expect(find.text(vi.caroRuleExampleWin), findsOneWidget);
-    handle.dispose();
-    await dispose(tester, caro);
-  });
+  testWidgets(
+    'RS-05 rule chip: vi/en name and "chạm để xem giải thích" label',
+    (tester) async {
+      final handle = tester.ensureSemantics();
+      expect(caroRuleName(vi, CaroRule.vn), 'Chặn hai đầu');
+      expect(caroRuleName(vi, CaroRule.free), 'Tự do');
+      expect(
+        caroRuleName(en, CaroRule.vn),
+        isNot(caroRuleName(vi, CaroRule.vn)),
+      );
+      final (caro, _) = await openGame(tester, g(rule: 'free'));
+      expect(
+        find.bySemanticsLabel(RegExp('Luật Tự do, chạm để xem giải thích')),
+        findsWidgets,
+      );
+      await tester.tap(find.text('Tự do').first);
+      await tester.pumpAndSettle();
+      expect(find.text(vi.caroRuleExampleWin), findsOneWidget);
+      handle.dispose();
+      await dispose(tester, caro);
+    },
+  );
 
   // ---- RACE / I18N --------------------------------------------------------
 
@@ -830,26 +885,33 @@ void main() {
     await dispose(tester, caro);
   });
 
-  test('I18N-03 ARB parity: every caro* key in vi and en, same placeholders', () {
-    Map<String, String> caroKeys(String path) {
-      final out = <String, String>{};
-      final re = RegExp(r'^  "(caro\w*)": "((?:[^"\\]|\\.)*)"', multiLine: true);
-      for (final m in re.allMatches(File(path).readAsStringSync())) {
-        out[m.group(1)!] = m.group(2)!;
+  test(
+    'I18N-03 ARB parity: every caro* key in vi and en, same placeholders',
+    () {
+      Map<String, String> caroKeys(String path) {
+        final out = <String, String>{};
+        final re = RegExp(
+          r'^  "(caro\w*)": "((?:[^"\\]|\\.)*)"',
+          multiLine: true,
+        );
+        for (final m in re.allMatches(File(path).readAsStringSync())) {
+          out[m.group(1)!] = m.group(2)!;
+        }
+        return out;
       }
-      return out;
-    }
 
-    final viKeys = caroKeys('lib/l10n/app_vi.arb');
-    final enKeys = caroKeys('lib/l10n/app_en.arb');
-    expect(viKeys.length, greaterThanOrEqualTo(138));
-    expect(enKeys.keys.toSet(), viKeys.keys.toSet());
-    final ph = RegExp(r'\{(\w+)\}');
-    for (final k in viKeys.keys) {
-      Set<String> holes(String s) => ph.allMatches(s).map((m) => m.group(1)!).toSet();
-      expect(holes(enKeys[k]!), holes(viKeys[k]!), reason: k);
-    }
-  });
+      final viKeys = caroKeys('lib/l10n/app_vi.arb');
+      final enKeys = caroKeys('lib/l10n/app_en.arb');
+      expect(viKeys.length, greaterThanOrEqualTo(138));
+      expect(enKeys.keys.toSet(), viKeys.keys.toSet());
+      final ph = RegExp(r'\{(\w+)\}');
+      for (final k in viKeys.keys) {
+        Set<String> holes(String s) =>
+            ph.allMatches(s).map((m) => m.group(1)!).toSet();
+        expect(holes(enKeys[k]!), holes(viKeys[k]!), reason: k);
+      }
+    },
+  );
 
   testWidgets('I18N-05 dates read dd/MM in both locales; times are 24-hour', (
     tester,
@@ -857,11 +919,9 @@ void main() {
     final old = DateTime.now().subtract(const Duration(days: 9));
     final label = DateFormat('dd/MM').format(old);
     for (final locale in [const Locale('vi'), const Locale('en')]) {
-      final (caro, _) = await history(
-        tester,
-        [done('me', at: old, id: 'a')],
-        locale: locale,
-      );
+      final (caro, _) = await history(tester, [
+        done('me', at: old, id: 'a'),
+      ], locale: locale);
       expect(find.text(label), findsOneWidget, reason: '$locale');
       await dispose(tester, caro);
     }
@@ -870,25 +930,31 @@ void main() {
     expect(DateFormat.Hm('en').format(DateTime(2026, 10, 20, 15, 5)), '15:05');
   });
 
-  testWidgets('I18N-08 a board square tapped through semantics plays like a finger', (
-    tester,
-  ) async {
-    final handle = tester.ensureSemantics();
-    final (caro, service) = await openGame(tester, g(lastMoveAt: DateTime.now()));
-    service.reply = const CaroActionResult(CaroActionStatus.ok);
-    final empty = find.semantics.byLabel(vi.caroCellEmpty('8', '9'));
-    expect(empty, findsOneWidget);
-    expect(
-      empty.evaluate().single.getSemanticsData().hasAction(SemanticsAction.tap),
-      true,
-    );
-    tester.semantics.tap(empty);
-    await tester.pump();
-    await tester.pump();
-    expect(service.calls.single, {'op': 'move', 'cell': 113, 'moveNo': 1});
-    handle.dispose();
-    await dispose(tester, caro);
-  });
+  testWidgets(
+    'I18N-08 a board square tapped through semantics plays like a finger',
+    (tester) async {
+      final handle = tester.ensureSemantics();
+      final (caro, service) = await openGame(
+        tester,
+        g(lastMoveAt: DateTime.now()),
+      );
+      service.reply = const CaroActionResult(CaroActionStatus.ok);
+      final empty = find.semantics.byLabel(vi.caroCellEmpty('8', '9'));
+      expect(empty, findsOneWidget);
+      expect(
+        empty.evaluate().single.getSemanticsData().hasAction(
+          SemanticsAction.tap,
+        ),
+        true,
+      );
+      tester.semantics.tap(empty);
+      await tester.pump();
+      await tester.pump();
+      expect(service.calls.single, {'op': 'move', 'cell': 113, 'moveNo': 1});
+      handle.dispose();
+      await dispose(tester, caro);
+    },
+  );
 
   testWidgets('I18N-13 touch targets: side pill 52, zoom 52, Home line ≥ 68', (
     tester,

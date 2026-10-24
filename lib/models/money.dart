@@ -17,9 +17,11 @@ const String kMoneyWallets = 'moneyWallets';
 const String kMoneyTx = 'moneyTx';
 const String kMoneyBudgets = 'moneyBudgets';
 const String kMoneyMeta = 'moneyMeta';
+const String kMoneyChallenges = 'moneyChallenges';
 const String kMoneyMetaDoc = 'main';
 
-/// `payer` of a shared entry paid from a shared wallet (nobody owes anyone).
+/// `payer` of a shared entry paid from a shared wallet (vs a member's own
+/// money).
 const String kMoneyPayerWallet = 'wallet';
 
 const int kMoneyNameMax = 30;
@@ -35,27 +37,9 @@ final RegExp kMoneyDatePattern = RegExp(r'^\d{4}-\d{2}-\d{2}$');
 
 enum MoneyWalletType { cash, bank, ewallet, credit, goal }
 
-enum MoneyTxType { expense, income, transfer, adjust, contribution, settle }
-
-/// How a shared expense is split (D12). [none]: not an expense the two
-/// share (contribution, transfer, paid from the shared wallet…).
-enum MoneySplitMode {
-  equal('equal'),
-  treat('treat'),
-  forPartner('for_partner'),
-  custom('custom'),
-  none('none');
-
-  const MoneySplitMode(this.wire);
-  final String wire;
-
-  static MoneySplitMode? fromWire(String? raw) {
-    for (final m in values) {
-      if (m.wire == raw) return m;
-    }
-    return null;
-  }
-}
+/// D34: no income, no settle — spending, contributions to a fund, and the
+/// moves between wallets those need (own-book goal contribution = transfer).
+enum MoneyTxType { expense, transfer, adjust, contribution }
 
 T? _enumByName<T extends Enum>(List<T> values, Object? raw) {
   for (final v in values) {
@@ -211,8 +195,6 @@ class MoneyTx {
     this.recurringId,
     this.source,
     this.payer,
-    this.splitMode,
-    this.payerShare = 0,
     this.memberUids = const <String>[],
     this.createdBy = '',
     this.createdAt,
@@ -240,12 +222,9 @@ class MoneyTx {
   /// 'manual' | 'decision' | 'recurring'.
   final String? source;
 
-  /// Shared book only: a member uid or [kMoneyPayerWallet].
+  /// Shared book only: a member uid (their own money) or
+  /// [kMoneyPayerWallet] (a shared wallet).
   final String? payer;
-  final MoneySplitMode? splitMode;
-
-  /// Shared book only: the part the payer bears themselves.
-  final int payerShare;
   final List<String> memberUids;
   final String createdBy;
   final DateTime? createdAt;
@@ -291,8 +270,6 @@ class MoneyTx {
       recurringId: recurringId is String ? recurringId : null,
       source: source is String ? source : null,
       payer: payer is String ? payer : null,
-      splitMode: MoneySplitMode.fromWire(d['splitMode'] as String?),
-      payerShare: _int(d['payerShare']),
       memberUids: _strings(d['memberUids']),
       createdBy: _str(d['createdBy']),
       createdAt: _time(d['createdAt']),
@@ -316,8 +293,6 @@ class MoneyTx {
     String? categoryId,
     String? note,
     String? payer,
-    MoneySplitMode? splitMode,
-    int? payerShare,
   }) => MoneyTx(
     id: id ?? this.id,
     type: type ?? this.type,
@@ -331,8 +306,6 @@ class MoneyTx {
     recurringId: recurringId,
     source: source ?? this.source,
     payer: payer ?? this.payer,
-    splitMode: splitMode ?? this.splitMode,
-    payerShare: payerShare ?? this.payerShare,
     memberUids: memberUids ?? this.memberUids,
     createdBy: createdBy,
     createdAt: createdAt,
@@ -353,8 +326,6 @@ class MoneyTx {
     'categoryId': categoryId,
     'note': note.trim(),
     if (_isShared) 'payer': payer,
-    if (_isShared) 'splitMode': (splitMode ?? MoneySplitMode.none).wire,
-    if (_isShared) 'payerShare': payerShare,
   };
 
   Map<String, dynamic> toCreateMap({required String uid}) => <String, dynamic>{
@@ -385,19 +356,15 @@ class MoneyTx {
       if (memberUids.length != 2) return false;
       if (!payerIsPerson && payer != kMoneyPayerWallet) return false;
       if (payer == kMoneyPayerWallet && outWalletId.isEmpty) return false;
-      // A person paid → out of their pocket, never a shared wallet as well
-      // (the wallet would drop AND the couple balance count it).
+      // A person paid → out of their pocket, never a shared wallet as well.
       if (payerIsPerson && outWalletId.isNotEmpty) return false;
-      if (payerShare < 0 || payerShare > amount) return false;
-    } else if (payer != null || splitMode != null || payerShare != 0) {
+    } else if (payer != null) {
       return false;
     }
     final hasOut = outWalletId.isNotEmpty, hasIn = inWalletId.isNotEmpty;
     switch (type) {
       case MoneyTxType.expense:
         return !hasIn && (hasOut || payerIsPerson);
-      case MoneyTxType.income:
-        return hasIn && !hasOut;
       case MoneyTxType.transfer:
         return hasIn && hasOut && inWalletId != outWalletId;
       case MoneyTxType.adjust:
@@ -406,8 +373,6 @@ class MoneyTx {
         return shared
             ? (hasIn && !hasOut && payerIsPerson)
             : (hasOut && !hasIn);
-      case MoneyTxType.settle:
-        return shared && payerIsPerson && !hasIn && !hasOut && payerShare == 0;
     }
   }
 }
@@ -454,6 +419,81 @@ class MoneyBudget {
   }
 }
 
+/// A saving challenge (D34 §4): no spending on some categories, or spend
+/// at most [limit], for [days] days from [startDate]. Graded on the phone
+/// from the book's entries; never deleted, only [cancelled].
+class MoneyChallenge {
+  const MoneyChallenge({
+    required this.id,
+    required this.title,
+    required this.kind,
+    required this.startDate,
+    required this.days,
+    this.categoryIds = const <String>[],
+    this.limit = 0,
+    this.templateId = '',
+    this.createdBy = '',
+    this.cancelled = false,
+  });
+
+  static const List<int> lengths = [7, 14, 30];
+  static const int titleMax = 40;
+  static const int categoriesMax = 12;
+
+  /// At most this many running at once per book.
+  static const int runningMax = 3;
+
+  final String id;
+  final String title;
+  final MoneyChallengeKind kind;
+
+  /// Empty = every expense.
+  final List<String> categoryIds;
+
+  /// [MoneyChallengeKind.cap]: the most the window may spend; 0 otherwise.
+  final int limit;
+  final String startDate;
+  final int days;
+  final String templateId;
+  final String createdBy;
+  final bool cancelled;
+
+  static MoneyChallenge? fromDoc(String id, Map<String, dynamic>? d) {
+    if (d == null) return null;
+    final kind = _enumByName(MoneyChallengeKind.values, d['kind']);
+    final start = d['startDate'];
+    final days = d['days'];
+    if (kind == null || start is! String || days is! num) return null;
+    return MoneyChallenge(
+      id: id,
+      title: _str(d['title']),
+      kind: kind,
+      categoryIds: _strings(d['categoryIds']),
+      limit: _int(d['limit']),
+      startDate: start,
+      days: days.toInt(),
+      templateId: _str(d['templateId']),
+      createdBy: _str(d['createdBy']),
+      cancelled: d['cancelled'] == true,
+    );
+  }
+
+  Map<String, dynamic> toCreateMap({required String uid}) => <String, dynamic>{
+    'title': title.trim(),
+    'kind': kind.name,
+    'categoryIds': categoryIds,
+    'limit': limit,
+    'startDate': startDate,
+    'days': days,
+    'templateId': templateId,
+    'cancelled': false,
+    'createdBy': uid,
+    'createdAt': FieldValue.serverTimestamp(),
+  };
+}
+
+enum MoneyChallengeKind { noSpend, cap }
+
 /// A category the user added to one book.
 class MoneyCustomCategory {
   const MoneyCustomCategory({
@@ -475,11 +515,8 @@ class MoneyCustomCategory {
   static MoneyCustomCategory? fromMap(Object? raw) {
     if (raw is! Map) return null;
     final id = raw['id'], name = raw['name'];
-    final kind = raw['kind'] == 'income'
-        ? MoneyTxType.income
-        : raw['kind'] == 'expense'
-        ? MoneyTxType.expense
-        : null;
+    // D34: income categories are gone; an old one is skipped.
+    final kind = raw['kind'] == 'expense' ? MoneyTxType.expense : null;
     if (id is! String || name is! String || kind == null) return null;
     return MoneyCustomCategory(
       id: id,

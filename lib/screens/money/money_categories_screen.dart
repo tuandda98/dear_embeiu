@@ -17,14 +17,9 @@ import '../../widgets/sub_screen_header.dart';
 /// subcategories (`customCategories`), delete an added one (old entries fall
 /// back to "Khác"). Every change is one merge-write of `moneyMeta/main`.
 class MoneyCategoriesScreen extends StatefulWidget {
-  const MoneyCategoriesScreen({
-    super.key,
-    required this.book,
-    this.kind = MoneyTxType.expense,
-  });
+  const MoneyCategoriesScreen({super.key, required this.book});
 
   final MoneyBookKind book;
-  final MoneyTxType kind;
 
   @override
   State<MoneyCategoriesScreen> createState() => _MoneyCategoriesScreenState();
@@ -32,9 +27,8 @@ class MoneyCategoriesScreen extends StatefulWidget {
 
 class _MoneyCategoriesScreenState extends State<MoneyCategoriesScreen> {
   late MoneyBookKind _book = widget.book;
-  late MoneyTxType _kind = widget.kind == MoneyTxType.income
-      ? MoneyTxType.income
-      : MoneyTxType.expense;
+  // D34: spending categories only.
+  static const MoneyTxType _kind = MoneyTxType.expense;
   final Set<String> _open = <String>{};
 
   @override
@@ -100,15 +94,6 @@ class _MoneyCategoriesScreenState extends State<MoneyCategoriesScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                    SegmentedPill<MoneyTxType>(
-                      values: const [MoneyTxType.expense, MoneyTxType.income],
-                      selected: _kind,
-                      labelOf: (k) => k == MoneyTxType.income
-                          ? l10n.moneyTypeIncome
-                          : l10n.moneyTypeExpense,
-                      onChanged: (k) => setState(() => _kind = k),
-                    ),
-                    const SizedBox(height: 12),
                     Text(
                       _book == MoneyBookKind.own
                           ? l10n.moneyCategoryScope

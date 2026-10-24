@@ -35,14 +35,11 @@ class _EntranceRevealState extends State<EntranceReveal> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(
-      AppMotion.entrance + AppMotion.stagger * widget.order,
-      () {
-        if (mounted) {
-          setState(() => _played = true);
-        }
-      },
-    );
+    _timer = Timer(AppMotion.entrance + AppMotion.stagger * widget.order, () {
+      if (mounted) {
+        setState(() => _played = true);
+      }
+    });
   }
 
   @override

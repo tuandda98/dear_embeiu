@@ -33,8 +33,14 @@ void main() {
       );
 
       final e = await errorOf(service.signInWithGoogle);
-      expect(e, isA<AuthException>()
-          .having((e) => e.message, 'message', 'social-canceled'));
+      expect(
+        e,
+        isA<AuthException>().having(
+          (e) => e.message,
+          'message',
+          'social-canceled',
+        ),
+      );
       expect(service.auth.credential, isNull, reason: 'Firebase never called');
     });
 
@@ -44,8 +50,14 @@ void main() {
       );
 
       final e = await errorOf(service.signInWithApple);
-      expect(e, isA<AuthException>()
-          .having((e) => e.message, 'message', 'social-canceled'));
+      expect(
+        e,
+        isA<AuthException>().having(
+          (e) => e.message,
+          'message',
+          'social-canceled',
+        ),
+      );
     });
 
     test('provider stays silent on either cancel', () async {
@@ -72,9 +84,17 @@ void main() {
         ),
         PlatformException(code: 'google_sign_in'),
       ]) {
-        final e = await errorOf(_GoogleService(pickError: error).signInWithGoogle);
-        expect(e, isA<AuthException>()
-            .having((e) => e.message, 'message', l10n.googleSignInFailed));
+        final e = await errorOf(
+          _GoogleService(pickError: error).signInWithGoogle,
+        );
+        expect(
+          e,
+          isA<AuthException>().having(
+            (e) => e.message,
+            'message',
+            l10n.googleSignInFailed,
+          ),
+        );
       }
     });
 
@@ -82,8 +102,14 @@ void main() {
       final service = _GoogleService(idToken: null);
 
       final e = await errorOf(service.signInWithGoogle);
-      expect(e, isA<AuthException>()
-          .having((e) => e.message, 'message', l10n.googleSignInFailed));
+      expect(
+        e,
+        isA<AuthException>().having(
+          (e) => e.message,
+          'message',
+          l10n.googleSignInFailed,
+        ),
+      );
       expect(service.auth.credential, isNull);
     });
 
@@ -96,30 +122,42 @@ void main() {
       );
 
       final e = await errorOf(service.signInWithGoogle);
-      expect(e, isA<EmailHasPasswordAccountException>()
-          .having((e) => e.email, 'email', 'a@b.com')
-          .having((e) => e.message, 'message', l10n.appleEmailHasPasswordAccount));
+      expect(
+        e,
+        isA<EmailHasPasswordAccountException>()
+            .having((e) => e.email, 'email', 'a@b.com')
+            .having(
+              (e) => e.message,
+              'message',
+              l10n.appleEmailHasPasswordAccount,
+            ),
+      );
       final credential = service.auth.credential as OAuthCredential;
       expect(credential.providerId, 'google.com');
       expect(credential.idToken, 'google-id-token');
     });
 
-    test('Firebase errors: network → authNetworkError, else googleSignInFailed',
-        () async {
-      Future<String> messageFor(String code) async {
-        final service = _GoogleService(
-          firebaseError: FirebaseAuthException(code: code),
-        );
-        final e = await errorOf(service.signInWithGoogle);
-        return (e as AuthException).message;
-      }
+    test(
+      'Firebase errors: network → authNetworkError, else googleSignInFailed',
+      () async {
+        Future<String> messageFor(String code) async {
+          final service = _GoogleService(
+            firebaseError: FirebaseAuthException(code: code),
+          );
+          final e = await errorOf(service.signInWithGoogle);
+          return (e as AuthException).message;
+        }
 
-      expect(await messageFor('network-request-failed'), l10n.authNetworkError);
-      expect(await messageFor('invalid-credential'), l10n.googleSignInFailed);
-      // AU7: the email flow's copy, not a generic failure.
-      expect(await messageFor('user-disabled'), l10n.authUserDisabled);
-      expect(await messageFor('too-many-requests'), l10n.authTooManyRequests);
-    });
+        expect(
+          await messageFor('network-request-failed'),
+          l10n.authNetworkError,
+        );
+        expect(await messageFor('invalid-credential'), l10n.googleSignInFailed);
+        // AU7: the email flow's copy, not a generic failure.
+        expect(await messageFor('user-disabled'), l10n.authUserDisabled);
+        expect(await messageFor('too-many-requests'), l10n.authTooManyRequests);
+      },
+    );
   });
 
   test('AU5: a second provider tapped in the same frame never runs', () async {
@@ -160,22 +198,26 @@ void main() {
     expect(auth.socialSignIn, isNull);
   });
 
-  test('provider: PF6 keeps the conflict email, other errors show copy',
-      () async {
-    final conflict = app.AuthProvider(
-      authService: _ProviderFake(
-        const EmailHasPasswordAccountException('pf6', email: 'a@b.com'),
-      ),
-    );
-    expect(await conflict.signInWithSocial(app.SocialSignIn.google), isFalse);
-    expect(conflict.emailConflict?.email, 'a@b.com');
-    expect(conflict.errorMessage, 'pf6');
+  test(
+    'provider: PF6 keeps the conflict email, other errors show copy',
+    () async {
+      final conflict = app.AuthProvider(
+        authService: _ProviderFake(
+          const EmailHasPasswordAccountException('pf6', email: 'a@b.com'),
+        ),
+      );
+      expect(await conflict.signInWithSocial(app.SocialSignIn.google), isFalse);
+      expect(conflict.emailConflict?.email, 'a@b.com');
+      expect(conflict.errorMessage, 'pf6');
 
-    final crash = app.AuthProvider(authService: _ProviderFake(StateError('x')));
-    expect(await crash.signInWithSocial(app.SocialSignIn.google), isFalse);
-    expect(crash.errorMessage, l10n.googleSignInFailed);
-    expect(crash.emailConflict, isNull);
-  });
+      final crash = app.AuthProvider(
+        authService: _ProviderFake(StateError('x')),
+      );
+      expect(await crash.signInWithSocial(app.SocialSignIn.google), isFalse);
+      expect(crash.errorMessage, l10n.googleSignInFailed);
+      expect(crash.emailConflict, isNull);
+    },
+  );
 }
 
 /// Real [AuthService] in Firebase mode: the Google picker returns [idToken] or

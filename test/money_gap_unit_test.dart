@@ -145,34 +145,30 @@ void main() {
       expect(b.originalName, isNull);
     });
 
-    test(
-      'CAT-13 / CAT-06: an unknown or deleted id shows "Khác" / "Thu khác"',
-      () {
-        final idx = MoneyCategoryIndex(
-          resolveMoneyCategories(MoneyMeta.empty, _l('vi')),
-        );
-        expect(idx.of('nope').name, 'Khác');
-        expect(idx.of('nope', kind: MoneyTxType.income).name, 'Thu khác');
-        expect(idx.groupOf('nope'), kMoneyCategoryOther);
-        // A custom category that was deleted: same fallback.
-        final withC = MoneyCategoryIndex(
-          resolveMoneyCategories(
-            const MoneyMeta(
-              customCategories: [
-                MoneyCustomCategory(
-                  id: 'c9',
-                  kind: MoneyTxType.expense,
-                  name: 'Tạm',
-                ),
-              ],
-            ),
-            _l('vi'),
+    test('CAT-13 / CAT-06: an unknown or deleted id shows "Khác"', () {
+      final idx = MoneyCategoryIndex(
+        resolveMoneyCategories(MoneyMeta.empty, _l('vi')),
+      );
+      expect(idx.of('nope').name, 'Khác');
+      expect(idx.groupOf('nope'), kMoneyCategoryOther);
+      // A custom category that was deleted: same fallback.
+      final withC = MoneyCategoryIndex(
+        resolveMoneyCategories(
+          const MoneyMeta(
+            customCategories: [
+              MoneyCustomCategory(
+                id: 'c9',
+                kind: MoneyTxType.expense,
+                name: 'Tạm',
+              ),
+            ],
           ),
-        );
-        expect(withC.of('c9').name, 'Tạm');
-        expect(idx.of('c9').name, 'Khác');
-      },
-    );
+          _l('vi'),
+        ),
+      );
+      expect(withC.of('c9').name, 'Tạm');
+      expect(idx.of('c9').name, 'Khác');
+    });
 
     test('BUD-18: a budget follows the category id, not its name', () {
       const budget = MoneyBudget(
@@ -456,8 +452,7 @@ void main() {
         'fetchWalletTx(',
         'findByLinkId(',
         'walletNetSums(',
-        'paidSums(',
-        'monthSums(',
+        'monthSpent(',
       ]) {
         final at = src.indexOf(read);
         expect(at, isNonNegative, reason: read);
@@ -502,7 +497,11 @@ void main() {
           Set<String> p(Map<String, dynamic> m) => {
             for (final x in ph.allMatches(m[k] as String)) x.group(1)!,
           };
-          if (p(vi).toString() != p(en).toString()) bad.add(k);
+          final a = p(vi), b = p(en);
+          // Word order differs between the languages — compare as sets.
+          if (a.difference(b).isNotEmpty || b.difference(a).isNotEmpty) {
+            bad.add(k);
+          }
         }
         expect(bad, isEmpty, reason: 'placeholders differ');
       },
@@ -519,8 +518,6 @@ void main() {
       categoryId: 'food_out',
       note: 'Bún chả Hàng Quạt',
       payer: 'me',
-      splitMode: MoneySplitMode.equal,
-      payerShare: 25000,
       memberUids: ['me', 'her'],
     );
     final idx = MoneyCategoryIndex(
@@ -558,7 +555,6 @@ void main() {
         'category': 'food',
         'wallet_type': 'bank',
         'payer': 'me',
-        'split': MoneySplitMode.equal.wire,
         'via': 'chip',
         'has_note': true,
         'linked': true,
@@ -566,7 +562,6 @@ void main() {
       final dump = e.params.values.join('|');
       expect(dump, isNot(contains('Bún')));
       expect(dump, isNot(contains('50000')));
-      expect(dump, isNot(contains('25000')));
       expect(dump, isNot(contains('w1')));
     });
 
@@ -591,16 +586,16 @@ void main() {
       expect(of(tx.copyWith(payer: kMoneyPayerWallet))['payer'], 'wallet');
       const solo = MoneyTx(
         id: 's',
-        type: MoneyTxType.income,
+        type: MoneyTxType.expense,
         amount: 1,
         date: '2026-10-23',
-        inWalletId: 'w1',
-        categoryId: 'salary',
+        outWalletId: 'w1',
+        categoryId: 'food_coffee',
       );
       expect(of(solo)['payer'], 'na');
       expect(of(solo)['wallet_type'], 'none');
       expect(of(solo)['has_note'], false);
-      expect(of(solo)['category'], 'salary');
+      expect(of(solo)['category'], 'food');
     });
 
     test('AN-02: edit and delete events', () {
@@ -629,22 +624,19 @@ void main() {
       expect(p, contains('logMoneyTxDelete(d.kind, undone: false)'));
     });
 
-    test('AN-03: wallet / goal / settle / goal reached', () {
+    test('AN-03: wallet / goal / goal reached', () {
       final a = _Capture()
         ..logMoneyWalletAdd(MoneyBookKind.own, MoneyWalletType.ewallet)
         ..logMoneyGoalAdd(MoneyBookKind.shared, hasDeadline: false)
-        ..logMoneySettle()
         ..logMoneyGoalReached(MoneyBookKind.shared);
       expect(a.events.map((e) => e.name), [
         'money_wallet_add',
         'money_goal_add',
-        'money_settle',
         'money_goal_reached',
       ]);
       expect(a.events[0].params, {'book': 'own', 'type': 'ewallet'});
       expect(a.events[1].params, {'book': 'shared', 'has_deadline': false});
-      expect(a.events[2].params, isEmpty);
-      expect(a.events[3].params, {'book': 'shared'});
+      expect(a.events[2].params, {'book': 'shared'});
       // The call sites.
       expect(
         _read('screens/money/money_wallets_screen.dart'),
@@ -652,10 +644,6 @@ void main() {
           contains('logMoneyGoalAdd('),
           contains('logMoneyWalletAdd(widget.book, _type)'),
         ),
-      );
-      expect(
-        _read('widgets/money/settle_sheet.dart'),
-        contains('logMoneySettle()'),
       );
       expect(
         _read('screens/money/money_goal_screen.dart'),
@@ -751,7 +739,6 @@ void main() {
           MoneyAnalyticsEvents.txDelete,
           MoneyAnalyticsEvents.walletAdd,
           MoneyAnalyticsEvents.goalAdd,
-          MoneyAnalyticsEvents.settle,
           MoneyAnalyticsEvents.goalReached,
           MoneyAnalyticsEvents.screenOpen,
           MoneyAnalyticsEvents.reminderToggle,
@@ -770,7 +757,6 @@ void main() {
           MoneyAnalyticsEvents.pCategory,
           MoneyAnalyticsEvents.pWalletType,
           MoneyAnalyticsEvents.pPayer,
-          MoneyAnalyticsEvents.pSplit,
           MoneyAnalyticsEvents.pVia,
           MoneyAnalyticsEvents.pFrom,
         ], isNot(contains(bad)));
@@ -786,7 +772,7 @@ void main() {
         Hive.box<String>('app_settings').get('analytics_enabled'),
         'false',
       );
-      a.logMoneySettle(); // must not throw
+      a.logMoneyGoalReached(MoneyBookKind.own); // must not throw
       a.logMoneyTxEdit(MoneyBookKind.own);
       final src = _read('services/analytics_service.dart');
       final at = src.indexOf('void logEvent(String name');

@@ -82,6 +82,8 @@ class MoneyService {
       book.collection(kMoneyTx);
   CollectionReference<Map<String, dynamic>> get _budgets =>
       book.collection(kMoneyBudgets);
+  CollectionReference<Map<String, dynamic>> get _challenges =>
+      book.collection(kMoneyChallenges);
   DocumentReference<Map<String, dynamic>> get _meta =>
       book.collection(kMoneyMeta).doc(kMoneyMetaDoc);
 
@@ -103,14 +105,16 @@ class MoneyService {
   // starter wallet, and the add sheet can't save ("Chọn ví để lưu" with no
   // wallet to pick). Seen on a fresh login, 2026-10-24.
   Stream<({List<MoneyWallet> wallets, bool fromServer})> watchWallets() =>
-      _pair(_wallets).snapshots(includeMetadataChanges: true).map(
-        (s) => (
-          wallets: [
-            for (final d in s.docs) ?MoneyWallet.fromDoc(d.id, d.data()),
-          ]..sort((a, b) => a.order.compareTo(b.order)),
-          fromServer: !s.metadata.isFromCache,
-        ),
-      );
+      _pair(_wallets)
+          .snapshots(includeMetadataChanges: true)
+          .map(
+            (s) => (
+              wallets: [
+                for (final d in s.docs) ?MoneyWallet.fromDoc(d.id, d.data()),
+              ]..sort((a, b) => a.order.compareTo(b.order)),
+              fromServer: !s.metadata.isFromCache,
+            ),
+          );
 
   /// Entries dated from [from] (inclusive, 'YYYY-MM-DD'; null = all), newest
   /// first, live, each flagged `pending` while it waits for the network.
@@ -184,6 +188,12 @@ class MoneyService {
     return s.docs.isEmpty ? null : _parseTx(s).firstOrNull;
   }
 
+  Stream<List<MoneyChallenge>> watchChallenges() => _challenges.snapshots().map(
+    (s) =>
+        [for (final d in s.docs) ?MoneyChallenge.fromDoc(d.id, d.data())]
+          ..sort((a, b) => b.startDate.compareTo(a.startDate)),
+  );
+
   Stream<List<MoneyBudget>> watchBudgets() => _budgets.snapshots().map(
     (s) => [for (final d in s.docs) ?MoneyBudget.fromDoc(d.id, d.data())],
   );
@@ -212,33 +222,13 @@ class MoneyService {
     };
   }
 
-  /// Shared book: Σ amount and Σ payerShare of the expenses + settlements
-  /// [payer] covered, all time — the couple balance without reading the
-  /// history (review #4). Server-only (throws offline).
-  Future<({int amount, int share})> paidSums(String payer) async {
-    final s = await _pair(_txs)
-        .where('type', whereIn: const ['expense', 'settle'])
-        .where('payer', isEqualTo: payer)
-        .aggregate(sum('amount'), sum('payerShare'))
-        .get();
-    return (
-      amount: (s.getSum('amount') ?? 0).round(),
-      share: (s.getSum('payerShare') ?? 0).round(),
-    );
-  }
-
-  /// Spent / earned in one month (trend chart), server-only.
-  Future<(int expense, int income)> monthSums(String from, String to) async {
-    Query<Map<String, dynamic>> range(String type) => _pair(_txs)
-        .where('type', isEqualTo: type)
+  /// Spent in one month (trend chart), server-only.
+  Future<int> monthSpent(String from, String to) => _sum(
+    _pair(_txs)
+        .where('type', isEqualTo: 'expense')
         .where('date', isGreaterThanOrEqualTo: from)
-        .where('date', isLessThanOrEqualTo: to);
-    final r = await Future.wait([
-      _sum(range('expense')),
-      _sum(range('income')),
-    ]);
-    return (r[0], r[1]);
-  }
+        .where('date', isLessThanOrEqualTo: to),
+  );
 
   // ---- writes --------------------------------------------------------------
 
@@ -351,6 +341,21 @@ class MoneyService {
             }),
     ], docId: ref.id);
   }
+
+  Future<MoneyWriteOutcome> createChallenge(
+    MoneyChallenge c, {
+    required String uid,
+  }) {
+    final ref = _challenges.doc();
+    return commit([(b) => b.set(ref, c.toCreateMap(uid: uid))], docId: ref.id);
+  }
+
+  Future<MoneyWriteOutcome> cancelChallenge(String id) => commit([
+    (b) => b.update(_challenges.doc(id), <String, dynamic>{
+      'cancelled': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }),
+  ], docId: id);
 
   Future<MoneyWriteOutcome> deleteBudget(String id) =>
       commit([(b) => b.delete(_budgets.doc(id))], docId: id);

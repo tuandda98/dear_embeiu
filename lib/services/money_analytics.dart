@@ -13,7 +13,6 @@ class MoneyAnalyticsEvents {
   static const String txDelete = 'money_tx_delete';
   static const String walletAdd = 'money_wallet_add';
   static const String goalAdd = 'money_goal_add';
-  static const String settle = 'money_settle';
   static const String goalReached = 'money_goal_reached';
   static const String screenOpen = 'money_screen_open';
   static const String reminderToggle = 'money_reminder_toggle';
@@ -24,7 +23,6 @@ class MoneyAnalyticsEvents {
   static const String pCategory = 'category';
   static const String pWalletType = 'wallet_type';
   static const String pPayer = 'payer'; // me / partner / wallet / na
-  static const String pSplit = 'split';
   static const String pVia = 'via'; // manual / chip / decision / recurring
   static const String pHasNote = 'has_note';
   static const String pLinked = 'linked';
@@ -50,7 +48,7 @@ extension MoneyAnalytics on AnalyticsService {
     final String category;
     if (tx.categoryId.isEmpty) {
       category = 'none';
-    } else if (categories.of(tx.categoryId, kind: tx.type).isCustom) {
+    } else if (categories.of(tx.categoryId).isCustom) {
       category = 'custom';
     } else {
       category = categories.groupOf(tx.categoryId);
@@ -70,7 +68,6 @@ extension MoneyAnalytics on AnalyticsService {
             : payer == uid
             ? 'me'
             : 'partner',
-        MoneyAnalyticsEvents.pSplit: (tx.splitMode ?? MoneySplitMode.none).wire,
         MoneyAnalyticsEvents.pVia: via,
         MoneyAnalyticsEvents.pHasNote: tx.note.trim().isNotEmpty,
         MoneyAnalyticsEvents.pLinked: linked,
@@ -110,8 +107,6 @@ extension MoneyAnalytics on AnalyticsService {
           MoneyAnalyticsEvents.pHasDeadline: hasDeadline,
         },
       );
-
-  void logMoneySettle() => logEvent(MoneyAnalyticsEvents.settle);
 
   void logMoneyGoalReached(MoneyBookKind book) => logEvent(
     MoneyAnalyticsEvents.goalReached,

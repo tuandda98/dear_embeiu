@@ -965,6 +965,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       l10n: context.l10n,
     );
+    // D34 §4: remind on the last day of each running challenge.
+    context.read<ReminderProvider>().refreshMoneyChallenges(
+      slots: [
+        for (final kind in MoneyBookKind.values)
+          for (final c in money.runningChallenges(kind))
+            (lastDay: money.challengeStatus(kind, c).lastDay, title: c.title),
+      ],
+      l10n: context.l10n,
+    );
   }
 
   void _refreshDqSafetyNet() {

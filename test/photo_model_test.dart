@@ -47,4 +47,3 @@ void main() {
     expect(photo.caption, 'Ảnh sync');
   });
 }
-

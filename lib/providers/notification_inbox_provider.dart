@@ -12,7 +12,7 @@ import '../services/analytics_service.dart';
 /// AppBar bell badge), and handles mark-read / dismiss with optimistic updates.
 class NotificationInboxProvider extends ChangeNotifier {
   NotificationInboxProvider({NotificationInboxService? service})
-      : _service = service ?? NotificationInboxService();
+    : _service = service ?? NotificationInboxService();
 
   final NotificationInboxService _service;
 
@@ -59,29 +59,29 @@ class NotificationInboxProvider extends ChangeNotifier {
     notifyListeners();
 
     _subscription?.cancel();
-    _subscription = _service.watch(myUid, coupleId).listen(
-      (items) {
-        _items = items;
-        _isLoading = false;
-        notifyListeners();
-        // Keep the iOS app-icon badge in sync with the real unread count. The
-        // stream re-emits after every mark-read/delete (Firestore round-trip),
-        // so syncing here covers optimistic mutations too (D-notif-2).
-        AppBadge.set(unreadCount);
-      },
-      onError: (_) {
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+    _subscription = _service
+        .watch(myUid, coupleId)
+        .listen(
+          (items) {
+            _items = items;
+            _isLoading = false;
+            notifyListeners();
+            // Keep the iOS app-icon badge in sync with the real unread count. The
+            // stream re-emits after every mark-read/delete (Firestore round-trip),
+            // so syncing here covers optimistic mutations too (D-notif-2).
+            AppBadge.set(unreadCount);
+          },
+          onError: (_) {
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   Future<void> markRead(String id) async {
     final uid = _uid;
     if (uid == null) return;
-    _items = [
-      for (final n in _items) n.id == id ? n.copyWith(read: true) : n,
-    ];
+    _items = [for (final n in _items) n.id == id ? n.copyWith(read: true) : n];
     notifyListeners();
     await _service.markRead(uid, id);
   }
@@ -101,8 +101,7 @@ class NotificationInboxProvider extends ChangeNotifier {
     ];
     if (ids.isEmpty) return;
     _items = [
-      for (final n in _items)
-        _autoReadsOn(n, tab) ? n.copyWith(read: true) : n,
+      for (final n in _items) _autoReadsOn(n, tab) ? n.copyWith(read: true) : n,
     ];
     notifyListeners();
     await _service.markAllRead(uid, ids);
@@ -111,7 +110,10 @@ class NotificationInboxProvider extends ChangeNotifier {
   Future<void> markAllRead() async {
     final uid = _uid;
     if (uid == null) return;
-    final unreadIds = [for (final n in _items) if (!n.read) n.id];
+    final unreadIds = [
+      for (final n in _items)
+        if (!n.read) n.id,
+    ];
     if (unreadIds.isEmpty) return;
     _items = [for (final n in _items) n.read ? n : n.copyWith(read: true)];
     notifyListeners();
@@ -122,7 +124,10 @@ class NotificationInboxProvider extends ChangeNotifier {
   Future<void> remove(String id) async {
     final uid = _uid;
     if (uid == null) return;
-    _items = [for (final n in _items) if (n.id != id) n];
+    _items = [
+      for (final n in _items)
+        if (n.id != id) n,
+    ];
     notifyListeners();
     await _service.delete(uid, id);
     AnalyticsService.instance.logNotificationRemoved();

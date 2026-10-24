@@ -3,30 +3,36 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dear_embeiu/models/couple.dart';
 
 void main() {
-  test('Couple serializes remote hero photo metadata without leaking local path to Firestore', () {
-    final now = DateTime(2026, 4, 10, 12, 0);
+  test(
+    'Couple serializes remote hero photo metadata without leaking local path to Firestore',
+    () {
+      final now = DateTime(2026, 4, 10, 12, 0);
 
-    final couple = Couple(
-      id: 'couple-1',
-      person1Name: 'Tony',
-      person2Name: 'Em',
-      anniversaryDate: DateTime(2025, 4, 10),
-      couplePhotoPath: '/local/couple.jpg',
-      couplePhotoUrl: 'https://example.com/couple.jpg',
-      couplePhotoStoragePath: 'couple_photos/couple-1/cover_couple-1.jpg',
-      inviteCode: 'ABC123',
-      memberIds: const ['user-1', 'user-2'],
-      memberCount: 2,
-      createdByUserId: 'user-1',
-      status: 'active',
-      createdAt: now,
-      updatedAt: now,
-    );
+      final couple = Couple(
+        id: 'couple-1',
+        person1Name: 'Tony',
+        person2Name: 'Em',
+        anniversaryDate: DateTime(2025, 4, 10),
+        couplePhotoPath: '/local/couple.jpg',
+        couplePhotoUrl: 'https://example.com/couple.jpg',
+        couplePhotoStoragePath: 'couple_photos/couple-1/cover_couple-1.jpg',
+        inviteCode: 'ABC123',
+        memberIds: const ['user-1', 'user-2'],
+        memberCount: 2,
+        createdByUserId: 'user-1',
+        status: 'active',
+        createdAt: now,
+        updatedAt: now,
+      );
 
-    expect(couple.toJson()['couplePhotoPath'], '/local/couple.jpg');
-    expect(couple.toFirestore()['couplePhotoPath'], '');
-    expect(couple.toFirestore()['couplePhotoUrl'], 'https://example.com/couple.jpg');
-  });
+      expect(couple.toJson()['couplePhotoPath'], '/local/couple.jpg');
+      expect(couple.toFirestore()['couplePhotoPath'], '');
+      expect(
+        couple.toFirestore()['couplePhotoUrl'],
+        'https://example.com/couple.jpg',
+      );
+    },
+  );
 
   test('Couple.fromJson restores remote hero photo metadata', () {
     final couple = Couple.fromJson({
@@ -51,4 +57,3 @@ void main() {
     expect(couple.couplePhotoStoragePath, contains('couple-2'));
   });
 }
-

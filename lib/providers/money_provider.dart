@@ -14,6 +14,7 @@ import '../services/money_analytics.dart';
 import '../services/money_service.dart';
 import '../utils/money_currency.dart';
 import '../utils/money_math.dart';
+import '../utils/money_recap.dart';
 
 /// Live state of one book, the same for both: entries of the last ~45 days
 /// (always the whole current month) + wallet balances (and, shared book,
@@ -81,13 +82,12 @@ class MoneyBookState {
   /// First date of the live window.
   String? windowFrom;
   List<MoneyBudget> budgets = const <MoneyBudget>[];
+  List<MoneyChallenge> challenges = const <MoneyChallenge>[];
   MoneyMeta meta = MoneyMeta.empty;
 
   /// Σ in − Σ out per wallet (server aggregate, or the Hive copy).
   Map<String, int> netSums = const <String, int>{};
 
-  /// Shared book: [MoneyMath.coupleBalance] of the server's history.
-  int coupleNet = 0;
   DateTime? netSumsAt;
 
   /// The last aggregate failed (offline): balances are cache + pending.
@@ -454,6 +454,12 @@ class MoneyProvider extends ChangeNotifier {
       }, onError: fail),
     );
     s.subs.add(
+      s.service.watchChallenges().listen((c) {
+        s.challenges = c;
+        notifyListeners();
+      }, onError: fail),
+    );
+    s.subs.add(
       s.service.watchMeta().listen((m) {
         s.meta = m;
         notifyListeners();
@@ -518,12 +524,9 @@ class MoneyProvider extends ChangeNotifier {
           (e.key, e.value, e.value.seq),
     ];
     try {
-      final sumsF = s.service.walletNetSums(s.wallets.map((w) => w.id));
-      final coupleF = s.isShared ? _coupleNet(s, uid) : Future.value(0);
-      final (sums, couple) = await (sumsF, coupleF).wait;
+      final sums = await s.service.walletNetSums(s.wallets.map((w) => w.id));
       if (!identical(book(s.kind), s)) return;
       s.netSums = sums;
-      s.coupleNet = couple;
       s.netSumsAt = _clock();
       s.netSumsStale = false;
       for (final (key, w, seq) in settled) {
@@ -537,23 +540,6 @@ class MoneyProvider extends ChangeNotifier {
       s.netSumsStale = true; // offline: keep the cached sums
     }
     notifyListeners();
-  }
-
-  Future<int> _coupleNet(MoneyBookState s, String uid) async {
-    final partner = s.service.memberUids.firstWhere(
-      (id) => id != uid,
-      orElse: () => '',
-    );
-    final (mine, theirs) = await (
-      s.service.paidSums(uid),
-      s.service.paidSums(partner),
-    ).wait;
-    return MoneyMath.coupleBalanceFromSums(
-      mineAmount: mine.amount,
-      mineShare: mine.share,
-      partnerAmount: theirs.amount,
-      partnerShare: theirs.share,
-    );
   }
 
   /// Entries of [kind] minus the ones in their undo window: a deleted entry
@@ -583,30 +569,6 @@ class MoneyProvider extends ChangeNotifier {
             (s.netSums[w.id] ?? 0) +
             MoneyMath.localCorrection(local, (t) => t.deltaFor(w.id)),
     };
-  }
-
-  /// Shared book, all time: positive = I covered more ([MoneyMath.
-  /// coupleBalance]). null until the sums (or their cached copy) are known.
-  int? coupleBalance() {
-    final s = _shared, uid = _uid;
-    if (s == null || uid == null || s.netSumsAt == null) return null;
-    return s.coupleNet +
-        MoneyMath.localCorrection(
-          _localWritesOf(MoneyBookKind.shared),
-          (t) => MoneyMath.coupleBalance([t], uid),
-        );
-  }
-
-  /// "Đánh dấu đã thanh toán" (Tester Med): re-reads the sums from the
-  /// server now and returns [coupleBalance] from them — null when the read
-  /// failed (offline), so a settle never goes out on a cached number.
-  Future<int?> refreshCoupleBalance() async {
-    final s = _shared;
-    if (s == null) return null;
-    s.sumsDebounce?.cancel();
-    await _refreshSums(s);
-    if (!identical(_shared, s) || s.netSumsStale) return null;
-    return coupleBalance();
   }
 
   /// Balances are known (server aggregate or a cached copy).
@@ -725,9 +687,7 @@ class MoneyProvider extends ChangeNotifier {
   /// Shared book + [ownWalletId] → the same money is also recorded in MY
   /// book, both docs sharing a `linkId`, in one batch (D11):
   /// - expense I paid → own expense from that wallet;
-  /// - contribution I made → own contribution out of that wallet;
-  /// - settle → own `adjust` into the wallet (the partner paid me back) or
-  ///   out of it (I paid back) — not income, not spending (design §15.11).
+  /// - contribution I made → own contribution out of that wallet.
   Future<MoneyWriteOutcome> addTx(
     MoneyBookKind kind,
     MoneyTx draft, {
@@ -792,11 +752,6 @@ class MoneyProvider extends ChangeNotifier {
           type: MoneyTxType.contribution,
           outWalletId: walletId,
         );
-      case MoneyTxType.settle:
-        return sharedTx.payer == me
-            ? base.copyWith(outWalletId: walletId)
-            : base.copyWith(inWalletId: walletId);
-      case MoneyTxType.income:
       case MoneyTxType.transfer:
       case MoneyTxType.adjust:
         return null;
@@ -823,32 +778,8 @@ class MoneyProvider extends ChangeNotifier {
       inWalletId: sharedWalletId,
       note: note,
       payer: payer ?? _uid,
-      splitMode: MoneySplitMode.none,
     ),
     ownWalletId: (payer ?? _uid) == _uid ? ownWalletId : null,
-  );
-
-  /// "Đánh dấu đã thanh toán": [payer] (who covered less) pays back
-  /// [amount]; never spending. [ownWalletId] = "Ghi tiền về ví của mình".
-  Future<MoneyWriteOutcome> settle({
-    String id = '',
-    required String payer,
-    required int amount,
-    required String date,
-    String? ownWalletId,
-    String note = '',
-  }) => addTx(
-    MoneyBookKind.shared,
-    MoneyTx(
-      id: id,
-      type: MoneyTxType.settle,
-      amount: amount,
-      date: date,
-      note: note,
-      payer: payer,
-      splitMode: MoneySplitMode.none,
-    ),
-    ownWalletId: ownWalletId,
   );
 
   /// The other half of a linked entry (from memory, else one query).
@@ -918,9 +849,6 @@ class MoneyProvider extends ChangeNotifier {
             categoryId: linked.type == MoneyTxType.expense
                 ? updated.categoryId
                 : linked.categoryId,
-            payerShare: linked.memberUids.isEmpty
-                ? null
-                : _rescaledShare(linked, updated.amount),
           );
     final ops = [
       s.service.updateTxOp(old, updated, uid: uid),
@@ -937,20 +865,6 @@ class MoneyProvider extends ChangeNotifier {
       docId: old.id,
       onLateError: _lateErrorFor(s),
       onDone: _ackFor(marks),
-    );
-  }
-
-  /// Keeps the split of a shared entry when its amount changes from the own
-  /// side (equal stays half, treat stays all, custom keeps its ratio).
-  int _rescaledShare(MoneyTx shared, int amount) {
-    final mode = shared.splitMode ?? MoneySplitMode.none;
-    if (mode != MoneySplitMode.custom) {
-      return MoneyMath.payerShareFor(mode, amount);
-    }
-    if (shared.amount <= 0) return 0;
-    return (shared.payerShare * amount / shared.amount).round().clamp(
-      0,
-      amount,
     );
   }
 
@@ -1057,7 +971,7 @@ class MoneyProvider extends ChangeNotifier {
 
   String defaultCategory(MoneyBookKind kind, MoneyTxType type) {
     final s = book(kind);
-    final fallback = type == MoneyTxType.income ? 'salary' : 'food_out';
+    const fallback = 'food_out';
     if (s == null) return fallback;
     return MoneyMath.defaultCategory(
       visibleTxs(kind),
@@ -1232,6 +1146,83 @@ class MoneyProvider extends ChangeNotifier {
     return s.service.setMeta(fields);
   }
 
+  // ── thử thách (D34 §4) ──
+  /// [c] graded on the book's entries as of today.
+  MoneyChallengeStatus challengeStatus(MoneyBookKind kind, MoneyChallenge c) =>
+      MoneyMath.challengeStatus(
+        c,
+        visibleTxs(kind),
+        today,
+        groupOf: book(kind)?.categories.groupOf,
+      );
+
+  /// Not cancelled and not over: what the overview shows as running.
+  List<MoneyChallenge> runningChallenges(MoneyBookKind kind) => [
+    for (final c in book(kind)?.challenges ?? const <MoneyChallenge>[])
+      if (!c.cancelled && !challengeStatus(kind, c).ended) c,
+  ];
+
+  bool canStartChallenge(MoneyBookKind kind) =>
+      book(kind) != null &&
+      runningChallenges(kind).length < MoneyChallenge.runningMax;
+
+  Future<MoneyWriteOutcome> startChallenge(
+    MoneyBookKind kind,
+    MoneyChallenge c,
+  ) {
+    final s = book(kind), uid = _uid;
+    if (s == null || uid == null) throw StateError('money-no-book');
+    if (!canStartChallenge(kind)) throw StateError('money-challenge-max');
+    return s.service.createChallenge(c, uid: uid);
+  }
+
+  Future<MoneyWriteOutcome> cancelChallenge(MoneyBookKind kind, String id) {
+    final s = book(kind);
+    if (s == null) throw StateError('money-no-book');
+    return s.service.cancelChallenge(id);
+  }
+
+  // ── nhìn lại tháng (D34 §5) ──
+  /// Last month's good news for [kind] (empty = nothing true to say).
+  /// Shown only in the first days of a month, so last month is still in
+  /// the live window; the month before comes from the trend sums.
+  Future<List<MoneyRecapLine>> recap(MoneyBookKind kind) async {
+    final s = book(kind);
+    final month = MoneyMath.addMonths(_thisMonth, -1);
+    final txs = txsForMonth(kind, month);
+    if (s == null || txs == null) return const [];
+    final goals = {
+      for (final w in s.wallets)
+        if (w.isGoal) w.id,
+    };
+    var saved = 0;
+    final logged = <String>{};
+    for (final t in txs) {
+      if (t.type == MoneyTxType.expense) logged.add(t.date);
+      final isSave = s.isShared
+          ? t.type == MoneyTxType.contribution
+          : t.type == MoneyTxType.transfer && goals.contains(t.inWalletId);
+      if (isSave) saved += t.amount;
+    }
+    var won = 0;
+    for (final c in s.challenges) {
+      if (c.cancelled) continue;
+      final st = challengeStatus(kind, c);
+      if (st.won && st.lastDay.startsWith(month)) won++;
+    }
+    final trendSums = await trend(kind, 3);
+    final before = trendSums[MoneyMath.addMonths(month, -1)];
+    return moneyRecapLines(
+      spent: MoneyMath.monthTotals(txs, month).expense,
+      budget: budgetFor(kind, '')?.amount,
+      prevSpent: before?.expense,
+      saved: saved,
+      challengesWon: won,
+      loggedDays: logged.length,
+      daysInMonth: MoneyMath.daysInMonth(month),
+    );
+  }
+
   // ── currency (D31) ──
   /// The book whose screens are on top (MoneyScreen's tab, a wallet / goal /
   /// budget screen): amounts printed without an explicit book use its
@@ -1289,9 +1280,9 @@ class MoneyProvider extends ChangeNotifier {
       }
       try {
         final (from, to) = MoneyMath.monthRange(m);
-        final (expense, income) = await s.service.monthSums(from, to);
+        final expense = await s.service.monthSpent(from, to);
         // Past months don't change often: keep them for the session.
-        final totals = MoneyMonthTotals(expense, income);
+        final totals = MoneyMonthTotals(expense);
         if (m != _thisMonth) s.trendCache[m] = totals;
         out[m] = totals;
       } catch (_) {
@@ -1355,7 +1346,7 @@ class MoneyProvider extends ChangeNotifier {
   }
 
   /// Tests: put prepared books in place (no Firestore listeners). Balances
-  /// come from `netSums` / `coupleNet` / `netSumsAt` of the states.
+  /// come from `netSums` / `netSumsAt` of the states.
   @visibleForTesting
   void debugSetBooks({
     required String uid,
@@ -1397,7 +1388,6 @@ class MoneyProvider extends ChangeNotifier {
         for (final e in (json['sums'] as Map<String, dynamic>).entries)
           e.key: (e.value as num).toInt(),
       };
-      s.coupleNet = (json['couple'] as num?)?.toInt() ?? 0;
       s.netSumsAt = DateTime.fromMillisecondsSinceEpoch(json['at'] as int);
       s.netSumsStale = true;
       notifyListeners();
@@ -1411,11 +1401,7 @@ class MoneyProvider extends ChangeNotifier {
     if (at == null) return;
     await (await _box())?.put(
       _cacheKey(s),
-      jsonEncode({
-        'at': at.millisecondsSinceEpoch,
-        'sums': s.netSums,
-        if (s.isShared) 'couple': s.coupleNet,
-      }),
+      jsonEncode({'at': at.millisecondsSinceEpoch, 'sums': s.netSums}),
     );
   }
 

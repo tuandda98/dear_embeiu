@@ -79,7 +79,7 @@ class MilestoneNextFire {
 class ReminderProvider extends ChangeNotifier {
   /// [service] is for tests; the app uses [ReminderService.instance].
   ReminderProvider({ReminderService? service})
-      : _service = service ?? ReminderService.instance;
+    : _service = service ?? ReminderService.instance;
 
   static const String _boxName = 'reminder_settings';
   static const String _enabledKey = 'enabled';
@@ -245,8 +245,7 @@ class ReminderProvider extends ChangeNotifier {
   /// daily-question reminders (they are suppressed there to avoid doubling up).
   /// Settings hides the tile in that case rather than showing a switch that reads
   /// ON while nothing is ever scheduled (2026-08-09).
-  bool get sharedDailyQuestionRemindersSuppressed =>
-      _suppressSharedDqReminders;
+  bool get sharedDailyQuestionRemindersSuppressed => _suppressSharedDqReminders;
 
   /// On/off state per milestone. Initialised to the Dv4 defaults and overridden
   /// by persisted values in [load].
@@ -766,8 +765,7 @@ class ReminderProvider extends ChangeNotifier {
   /// normally, only 21h once I've answered (see [_scheduleEndOfDay]). Used both
   /// there and by [_scheduleDailyQuestion], which drops any user-set time landing
   /// on one of these hours so the two bands can't fire twice in the same minute.
-  List<int> get _activeEodHours =>
-      _eodIAnswered ? const <int>[21] : _eodHours;
+  List<int> get _activeEodHours => _eodIAnswered ? const <int>[21] : _eodHours;
 
   /// (Re)schedule the user-set daily-question nudge(s) with the localized copy,
   /// **answer-aware** (2026-06-20). Two bands, both driven by the habit state
@@ -852,8 +850,9 @@ class ReminderProvider extends ChangeNotifier {
     // Drop times that an end-of-day slot already owns (no double notification in
     // the same minute).
     final eodMinutes = _activeEodHours.map((h) => h * 60).toSet();
-    final times =
-        _dqTimes.where((minute) => !eodMinutes.contains(minute)).toList();
+    final times = _dqTimes
+        .where((minute) => !eodMinutes.contains(minute))
+        .toList();
 
     await _service.scheduleDailyQuestionTimes(
       minutesOfDay: times,
@@ -991,8 +990,8 @@ class ReminderProvider extends ChangeNotifier {
   // Nội dung XOAY theo ngày bằng bước nguyên tố cùng nhau với độ dài pool (xem
   // [_rotatingIndex]) ⇒ trông ngẫu nhiên nhưng duyệt hết pool rồi mới lặp lại,
   // KHÔNG có chuyện hai ngày liền nhau trùng câu.
-  static const List<({String title, String body})> _personalCareMorning =
-      <({String title, String body})>[
+  static const List<({String title, String body})>
+  _personalCareMorning = <({String title, String body})>[
     (
       title: 'Anh By nhắc embe ăn sáng nè 🥐',
       body: 'Dậy chưa embe, ăn sáng đàng hoàng rồi hẵng làm gì thì làm nha',
@@ -1015,7 +1014,8 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh yêu gửi embe 💌',
-      body: 'Chúc embe buổi sáng vui vẻ, ăn sáng cho no rồi cả ngày sẽ dễ thương hơn nhiều',
+      body:
+          'Chúc embe buổi sáng vui vẻ, ăn sáng cho no rồi cả ngày sẽ dễ thương hơn nhiều',
     ),
     (
       title: 'Anh By ở đây nè 🤍',
@@ -1027,7 +1027,8 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By chúc embe ngày mới 🌞',
-      body: 'Mong hôm nay embe làm gì cũng suôn sẻ, mà nhớ ăn sáng trước đã nha',
+      body:
+          'Mong hôm nay embe làm gì cũng suôn sẻ, mà nhớ ăn sáng trước đã nha',
     ),
     (
       title: 'Anh yêu nè 💞',
@@ -1043,7 +1044,8 @@ class ReminderProvider extends ChangeNotifier {
     ),
     (
       title: 'Anh By gửi embe 🍀',
-      body: 'Sáng nay cứ thong thả thôi nha embe, ăn sáng ngon rồi việc gì cũng xuôi',
+      body:
+          'Sáng nay cứ thong thả thôi nha embe, ăn sáng ngon rồi việc gì cũng xuôi',
     ),
     (
       title: 'Anh yêu nhắc nè embe ơi 🥰',
@@ -1055,8 +1057,8 @@ class ReminderProvider extends ChangeNotifier {
     ),
   ];
 
-  static const List<({String title, String body})> _personalCareMidday =
-      <({String title, String body})>[
+  static const List<({String title, String body})>
+  _personalCareMidday = <({String title, String body})>[
     (
       title: 'Anh By hỏi thăm nè 💗',
       body: 'Hôm nay embe sao rồi? Có gì vui kể anh By nghe với',
@@ -1077,17 +1079,15 @@ class ReminderProvider extends ChangeNotifier {
       title: 'Anh By nè 💞',
       body: 'Hôm nay có chuyện gì làm embe mệt không? Nói anh By nghe nha',
     ),
-    (
-      title: 'Anh yêu hỏi nhẹ 🌷',
-      body: 'Embe đang làm gì mà im re vậy đó?',
-    ),
+    (title: 'Anh yêu hỏi nhẹ 🌷', body: 'Embe đang làm gì mà im re vậy đó?'),
     (
       title: 'Anh By thương embe 💕',
       body: 'Nửa ngày trôi qua rồi, embe vẫn ổn chứ?',
     ),
     (
       title: 'Anh yêu nè 🍀',
-      body: 'Hôm nay gặp chuyện gì khó thì hít thở sâu một cái nha, có anh By đây rồi',
+      body:
+          'Hôm nay gặp chuyện gì khó thì hít thở sâu một cái nha, có anh By đây rồi',
     ),
     (
       title: 'Anh By hỏi xíu 😌',
@@ -1121,83 +1121,78 @@ class ReminderProvider extends ChangeNotifier {
 
   static const List<({String title, String body})> _personalCareEvening =
       <({String title, String body})>[
-    (
-      title: 'Anh By nhớ embe 💗',
-      body: 'Embe có nhớ anh By không đó? Anh thì nhớ cả ngày rồi',
-    ),
-    (
-      title: 'Anh yêu nè 🌙',
-      body: 'Tối rồi, hôm nay mọi chuyện ổn hết không embe?',
-    ),
-    (
-      title: 'Anh By đây nè 🫶',
-      body: 'Embe đang làm gì đó? Nhắn cho anh By một câu đi nào',
-    ),
-    (
-      title: 'Anh yêu thương embe 💞',
-      body: 'Cả ngày vất vả rồi, nghỉ ngơi sớm nha em',
-    ),
-    (
-      title: 'Anh By nè embe ơi ✨',
-      body: 'Kể anh By nghe hôm nay embe vui nhất chuyện gì đi',
-    ),
-    (
-      title: 'Anh yêu hỏi nhỏ 👀',
-      body: 'Nói thật đi, hôm nay embe nhớ anh By mấy lần rồi?',
-    ),
-    (
-      title: 'Anh By thương lắm 💖',
-      body: 'Hôm nay embe cũng cố gắng nhiều rồi, giỏi lắm nha',
-    ),
-    (
-      title: 'Anh yêu nè 🌷',
-      body: 'Tắm rửa xong chưa em? Nghỉ sớm cho khoẻ nha',
-    ),
-    (
-      title: 'Anh By ở đây 🤍',
-      body: 'Có chuyện gì trong ngày chưa kể thì kể anh By nghe nè',
-    ),
-    (
-      title: 'Anh yêu nhắn embe 💌',
-      body: 'Chúc embe buổi tối bình yên, mai lại là một ngày mới',
-    ),
-    (
-      title: 'Anh By nhớ nè 💕',
-      body: 'Ước gì giờ này có embe ở đây thiệt đó',
-    ),
-    (
-      title: 'Anh yêu nè embe ơi 🌜',
-      body: 'Hôm nay mệt lắm phải không? Ôm embe một cái nè',
-    ),
-    (
-      title: 'Anh By hỏi chút 😚',
-      body: 'Embe ngủ chưa? Chưa thì nhớ anh By một xíu rồi hẵng ngủ nha',
-    ),
-    (
-      title: 'Anh yêu chúc embe 🌟',
-      body: 'Ngủ ngon, mơ đẹp nha embe',
-    ),
-    (
-      title: 'Anh By thương embe 💗',
-      body: 'Ngày nào có embe cũng là ngày dễ thương hết á',
-    ),
-  ];
+        (
+          title: 'Anh By nhớ embe 💗',
+          body: 'Embe có nhớ anh By không đó? Anh thì nhớ cả ngày rồi',
+        ),
+        (
+          title: 'Anh yêu nè 🌙',
+          body: 'Tối rồi, hôm nay mọi chuyện ổn hết không embe?',
+        ),
+        (
+          title: 'Anh By đây nè 🫶',
+          body: 'Embe đang làm gì đó? Nhắn cho anh By một câu đi nào',
+        ),
+        (
+          title: 'Anh yêu thương embe 💞',
+          body: 'Cả ngày vất vả rồi, nghỉ ngơi sớm nha em',
+        ),
+        (
+          title: 'Anh By nè embe ơi ✨',
+          body: 'Kể anh By nghe hôm nay embe vui nhất chuyện gì đi',
+        ),
+        (
+          title: 'Anh yêu hỏi nhỏ 👀',
+          body: 'Nói thật đi, hôm nay embe nhớ anh By mấy lần rồi?',
+        ),
+        (
+          title: 'Anh By thương lắm 💖',
+          body: 'Hôm nay embe cũng cố gắng nhiều rồi, giỏi lắm nha',
+        ),
+        (
+          title: 'Anh yêu nè 🌷',
+          body: 'Tắm rửa xong chưa em? Nghỉ sớm cho khoẻ nha',
+        ),
+        (
+          title: 'Anh By ở đây 🤍',
+          body: 'Có chuyện gì trong ngày chưa kể thì kể anh By nghe nè',
+        ),
+        (
+          title: 'Anh yêu nhắn embe 💌',
+          body: 'Chúc embe buổi tối bình yên, mai lại là một ngày mới',
+        ),
+        (
+          title: 'Anh By nhớ nè 💕',
+          body: 'Ước gì giờ này có embe ở đây thiệt đó',
+        ),
+        (
+          title: 'Anh yêu nè embe ơi 🌜',
+          body: 'Hôm nay mệt lắm phải không? Ôm embe một cái nè',
+        ),
+        (
+          title: 'Anh By hỏi chút 😚',
+          body: 'Embe ngủ chưa? Chưa thì nhớ anh By một xíu rồi hẵng ngủ nha',
+        ),
+        (title: 'Anh yêu chúc embe 🌟', body: 'Ngủ ngon, mơ đẹp nha embe'),
+        (
+          title: 'Anh By thương embe 💗',
+          body: 'Ngày nào có embe cũng là ngày dễ thương hết á',
+        ),
+      ];
 
   /// Mốc đếm ngày để xoay vòng nội dung lời nhắc (chỉ dùng làm gốc số học).
   static final DateTime _epoch = DateTime(2020, 1, 1);
 
   /// Ba khung giờ hỏi thăm + pool tương ứng.
   static final List<
-      ({int hour, int minute, List<({String title, String body})> pool})>
-      _personalCareSlots = <({
-    int hour,
-    int minute,
-    List<({String title, String body})> pool
-  })>[
-    (hour: 7, minute: 45, pool: _personalCareMorning),
-    (hour: 13, minute: 30, pool: _personalCareMidday),
-    (hour: 20, minute: 30, pool: _personalCareEvening),
-  ];
+    ({int hour, int minute, List<({String title, String body})> pool})
+  >
+  _personalCareSlots =
+      <({int hour, int minute, List<({String title, String body})> pool})>[
+        (hour: 7, minute: 45, pool: _personalCareMorning),
+        (hour: 13, minute: 30, pool: _personalCareMidday),
+        (hour: 20, minute: 30, pool: _personalCareEvening),
+      ];
 
   /// Chỉ số xoay vòng "trông ngẫu nhiên mà không lặp": nhảy [_rotationStep] bước
   /// mỗi ngày. Bước 7 nguyên tố cùng 15 (độ dài mỗi pool) nên phải đi hết pool
@@ -1246,8 +1241,7 @@ class ReminderProvider extends ChangeNotifier {
     if (!isTarget) {
       // Debounce the cleared state so a non-gated account doesn't re-cancel on
       // every provider notification.
-      if (_personalCareDayKey == null &&
-          _personalQuestionSignature == null) {
+      if (_personalCareDayKey == null && _personalQuestionSignature == null) {
         return;
       }
       _personalCareDayKey = null;
@@ -1267,10 +1261,12 @@ class ReminderProvider extends ChangeNotifier {
     // account này vừa thành account gated). Chạy cả khi câu hỏi còn loading.
     if (_personalCareDayKey != dayKey) {
       _personalCareDayKey = dayKey;
-      final dayIndex =
-          DateTime(now.year, now.month, now.day).difference(_epoch).inDays;
-      final careSlots =
-          <({int hour, int minute, String title, String body})>[];
+      final dayIndex = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).difference(_epoch).inDays;
+      final careSlots = <({int hour, int minute, String title, String body})>[];
       for (var i = 0; i < _personalCareSlots.length; i++) {
         final slot = _personalCareSlots[i];
         final message =
@@ -1445,10 +1441,9 @@ class ReminderProvider extends ChangeNotifier {
     final key = _inviteSharedKey(code);
     try {
       if (key != null && Hive.isBoxOpen(_appSettingsBox)) {
-        await Hive.box<String>(_appSettingsBox).put(
-          key,
-          '${DateTime.now().millisecondsSinceEpoch}',
-        );
+        await Hive.box<String>(
+          _appSettingsBox,
+        ).put(key, '${DateTime.now().millisecondsSinceEpoch}');
       }
     } catch (_) {
       // Best effort — the next refresh simply keeps the +2h slot.
@@ -1471,8 +1466,9 @@ class ReminderProvider extends ChangeNotifier {
         return false;
       }
       final box = Hive.box<String>(_appSettingsBox);
-      final since =
-          anchor.subtract(const Duration(hours: 1)).millisecondsSinceEpoch;
+      final since = anchor
+          .subtract(const Duration(hours: 1))
+          .millisecondsSinceEpoch;
       bool sentSince(String? key) {
         final at = key == null ? null : int.tryParse(box.get(key) ?? '');
         return at != null && at >= since;
@@ -1771,6 +1767,31 @@ class ReminderProvider extends ChangeNotifier {
           when: slot.when,
           title: l10n.moneyTitle,
           body: bodies[slot.variant],
+        ),
+    ]);
+  }
+
+  String? _challengeSignature;
+
+  /// D34 §4: 09:00 on the last day of every running challenge. [slots] =
+  /// (last day, title) of each; HomeScreen passes them whenever the books
+  /// change. Debounced on the inputs.
+  Future<void> refreshMoneyChallenges({
+    required List<({String lastDay, String title})> slots,
+    required AppLocalizations l10n,
+  }) async {
+    final signature = [
+      l10n.localeName,
+      for (final s in slots) '${s.lastDay}/${s.title}',
+    ].join('|');
+    if (signature == _challengeSignature) return;
+    _challengeSignature = signature;
+    await _service.scheduleMoneyChallenges([
+      for (final s in slots)
+        (
+          when: DateTime.parse('${s.lastDay} 09:00:00'),
+          title: l10n.moneyChallengeLastDayTitle,
+          body: s.title,
         ),
     ]);
   }

@@ -27,7 +27,9 @@ class Photo {
 
   bool get hasLocalPath => path.trim().isNotEmpty;
   bool get hasRemoteUrl => remoteUrl?.trim().isNotEmpty == true;
-  String get posterName => authorName?.trim().isNotEmpty == true ? authorName!.trim() : AppL10n.strings.posterNameFallback;
+  String get posterName => authorName?.trim().isNotEmpty == true
+      ? authorName!.trim()
+      : AppL10n.strings.posterNameFallback;
 
   // Convert to JSON for storage
   Map<String, dynamic> toJson() => {
@@ -97,19 +99,18 @@ class Photo {
     DateTime? uploadDate,
     String? caption,
     DateTime? updatedAt,
-  }) =>
-      Photo(
-        id: id ?? this.id,
-        path: path ?? this.path,
-        remoteUrl: remoteUrl ?? this.remoteUrl,
-        storagePath: storagePath ?? this.storagePath,
-        coupleId: coupleId ?? this.coupleId,
-        authorUserId: authorUserId ?? this.authorUserId,
-        authorName: authorName ?? this.authorName,
-        uploadDate: uploadDate ?? this.uploadDate,
-        caption: caption ?? this.caption,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  }) => Photo(
+    id: id ?? this.id,
+    path: path ?? this.path,
+    remoteUrl: remoteUrl ?? this.remoteUrl,
+    storagePath: storagePath ?? this.storagePath,
+    coupleId: coupleId ?? this.coupleId,
+    authorUserId: authorUserId ?? this.authorUserId,
+    authorName: authorName ?? this.authorName,
+    uploadDate: uploadDate ?? this.uploadDate,
+    caption: caption ?? this.caption,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) {
@@ -127,12 +128,14 @@ class Photo {
     // Firestore Timestamp: read with microsecond precision so a read→write
     // round-trip is lossless. Truncating to milliseconds would change the
     // value and trip the immutable-`uploadDate` checks in firestore.rules.
-    final dynamic microsecondsSinceEpoch = (value as dynamic).microsecondsSinceEpoch;
+    final dynamic microsecondsSinceEpoch =
+        (value as dynamic).microsecondsSinceEpoch;
     if (microsecondsSinceEpoch is int) {
       return DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
     }
 
-    final dynamic millisecondsSinceEpoch = (value as dynamic).millisecondsSinceEpoch;
+    final dynamic millisecondsSinceEpoch =
+        (value as dynamic).millisecondsSinceEpoch;
     if (millisecondsSinceEpoch is int) {
       return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
     }
@@ -140,4 +143,3 @@ class Photo {
     return null;
   }
 }
-

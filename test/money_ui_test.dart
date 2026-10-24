@@ -15,7 +15,6 @@ import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:dear_embeiu/widgets/money/add_transaction_sheet.dart';
 import 'package:dear_embeiu/widgets/money/money_home_entry.dart';
 import 'package:dear_embeiu/widgets/money/money_ui.dart';
-import 'package:dear_embeiu/widgets/segmented_pill.dart';
 
 /// Sổ tiền stage 2 (feature expenses): keypad + hints, chips, "khoản quen"
 /// in 2 taps, smart defaults, the linked-entry lock, undo delete, the Home
@@ -124,7 +123,6 @@ MoneyBookState _shared({
   List<MoneyTx> txs = const [],
   List<MoneyBudget> budgets = const [],
   bool loaded = true,
-  int coupleNet = 0,
 }) {
   final s = MoneyBookState(
     MoneyService.shared('c1', const ['her', 'me'], firestore: _db),
@@ -146,7 +144,6 @@ MoneyBookState _shared({
   // Balances come from the server aggregates now (review #4), not from txs.
   s.windowFrom = _daysAgo(60);
   s.netSums = const {'joint': 0};
-  s.coupleNet = coupleNet;
   s.netSumsAt = loaded ? DateTime.now() : null;
   return s;
 }
@@ -182,8 +179,6 @@ MoneyTx _sharedExp(
   categoryId: 'food_out',
   note: 'Lẩu Thái',
   payer: payer,
-  splitMode: MoneySplitMode.equal,
-  payerShare: (amount + 1) ~/ 2,
   memberUids: const ['her', 'me'],
   linkId: linkId,
   createdBy: createdBy,
@@ -374,9 +369,7 @@ void main() {
       expect(tx.outWalletId, 'cash');
     });
 
-    testWidgets('shared, I paid: deducts my own wallet, split in half', (
-      tester,
-    ) async {
+    testWidgets('shared, I paid: deducts my own wallet', (tester) async {
       final money = _Money()
         ..debugSetBooks(uid: 'me', own: _own(), shared: _shared());
       await _open(tester, money, book: MoneyBookKind.shared);
@@ -386,7 +379,6 @@ void main() {
       final r = money.added.single;
       expect(r.kind, MoneyBookKind.shared);
       expect(r.tx.payer, 'me');
-      expect(r.tx.payerShare, 37501);
       expect(r.own, isNotNull);
     });
 
@@ -477,8 +469,6 @@ void main() {
         date: '${MoneyMath.addMonths(_month, -1)}-15',
         categoryId: 'food_out',
         payer: 'me',
-        splitMode: MoneySplitMode.equal,
-        payerShare: 50000,
         memberUids: const ['her', 'me'],
       );
       expect(
@@ -603,11 +593,10 @@ void main() {
           ),
           MoneyTx(
             id: 'i',
-            type: MoneyTxType.income,
+            type: MoneyTxType.adjust,
             amount: 20500000,
             date: _today,
             inWalletId: 'cash',
-            categoryId: 'salary',
           ),
         ],
       );
@@ -622,12 +611,12 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Còn trong ngân sách'), findsOneWidget);
       expect(find.text('Cơm trưa với team'), findsOneWidget);
-      expect(find.text('Thu trừ chi'), findsOneWidget);
+      expect(find.text('Thu trừ chi'), findsNothing);
       await tester.scrollUntilVisible(find.text('Tiêu vào đâu'), 200);
       expect(find.text('Tiêu vào đâu'), findsOneWidget);
     });
 
-    testWidgets('shared overview: three lanes + who covered more', (
+    testWidgets('shared overview builds: no lanes, no balance strip', (
       tester,
     ) async {
       big(tester);
@@ -640,7 +629,6 @@ void main() {
               _sharedExp('s1', 480000),
               _sharedExp('s2', 70000, payer: 'her'),
             ],
-            coupleNet: 205000,
           ),
         );
       await tester.pumpWidget(
@@ -648,9 +636,8 @@ void main() {
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
-      expect(find.text('Ai trả tháng này'), findsOneWidget);
-      // 480k split → she owes 240k; 70k she paid → I owe 35k.
-      expect(find.text('Mình đang ứng nhiều hơn'), findsOneWidget);
+      expect(find.text('Ai trả tháng này'), findsNothing);
+      expect(find.text('Mình đang ứng nhiều hơn'), findsNothing);
     });
 
     testWidgets('newcomer card only when the own book never had an entry', (
@@ -675,7 +662,9 @@ void main() {
       expect(find.text('Gần đây'), findsOneWidget);
     });
 
-    testWidgets('shared transfer is paid by the wallet', (tester) async {
+    testWidgets('shared "Góp quỹ" goes from my pocket into the fund', (
+      tester,
+    ) async {
       final shared = _shared();
       shared.wallets = [
         ...shared.wallets,
@@ -701,7 +690,7 @@ void main() {
               onPressed: () => AddTransactionSheet.show(
                 context,
                 book: MoneyBookKind.shared,
-                type: MoneyTxType.transfer,
+                type: MoneyTxType.contribution,
               ),
               child: const Text('open'),
             ),
@@ -711,13 +700,17 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
       await _keys(tester, ['5', '0', '0', 'k']);
+      await tester.tap(find.text('Quỹ Đà Lạt'));
+      await tester.pump();
       await tester.tap(find.text('Lưu 500.000 ₫'));
       await tester.pumpAndSettle();
-      final tx = money.added.single.tx;
-      expect(tx.payer, kMoneyPayerWallet);
-      expect(tx.outWalletId, 'joint');
-      expect(tx.inWalletId, 'fund');
-      expect(tx.isWellFormed, isTrue);
+      final r = money.added.single;
+      expect(r.tx.type, MoneyTxType.contribution);
+      expect(r.tx.payer, 'me');
+      expect(r.tx.outWalletId, isEmpty);
+      expect(r.tx.inWalletId, 'fund');
+      expect(r.own, isNotNull); // the money leaves my own wallet
+      expect(r.tx.isWellFormed, isTrue);
     });
 
     testWidgets('wallets + categories screens build', (tester) async {
@@ -738,13 +731,11 @@ void main() {
 
   // ── Sửa theo Tester 2026-10-22 ──
   group('Linked entries + undo windows (Tester 2026-10-22)', () {
-    bool pillEnabled(WidgetTester tester) => tester
-        .widget<SegmentedPill<dynamic>>(
-          find.byWidgetPredicate((w) => w is SegmentedPill),
-        )
-        .enabled;
+    // The "Tiền từ đâu" chips: shared wallets and "Tiền riêng" (D34).
+    VoidCallback? chipTap(WidgetTester tester, String label) =>
+        tester.widget<MoneyChip>(find.widgetWithText(MoneyChip, label)).onTap;
 
-    testWidgets('my linked shared entry: "Ai trả" locked, with a line', (
+    testWidgets('my linked shared entry: source chips locked, with a line', (
       tester,
     ) async {
       final tx = _sharedExp('s1', 480000, linkId: 'L1');
@@ -755,9 +746,11 @@ void main() {
           shared: _shared(txs: [tx]),
         );
       await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
-      await tester.tap(find.textContaining('Mình trả'));
+      expect(chipTap(tester, 'Tiền riêng'), isNull);
+      expect(chipTap(tester, 'Ví chung'), isNull);
+      // The explanation sits in the detail panel, under the summary row.
+      await tester.tap(find.textContaining('Lẩu Thái'));
       await tester.pumpAndSettle();
-      expect(pillEnabled(tester), isFalse);
       expect(
         find.text(
           'Khoản này đã trừ vào ví của mình nên không đổi người trả được. '
@@ -769,7 +762,7 @@ void main() {
       expect(find.textContaining('Chỉ Thảo sửa được'), findsNothing);
     });
 
-    testWidgets('a shared entry without a link: "Ai trả" stays open', (
+    testWidgets('a shared entry without a link: source chips stay open', (
       tester,
     ) async {
       final tx = _sharedExp('s2', 480000);
@@ -780,9 +773,8 @@ void main() {
           shared: _shared(txs: [tx]),
         );
       await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
-      await tester.tap(find.textContaining('Mình trả'));
-      await tester.pumpAndSettle();
-      expect(pillEnabled(tester), isTrue);
+      expect(chipTap(tester, 'Tiền riêng'), isNotNull);
+      expect(chipTap(tester, 'Ví chung'), isNotNull);
     });
 
     test('updateTx refuses a new payer / wallet on a linked entry', () async {
@@ -798,12 +790,7 @@ void main() {
         p.updateTx(
           MoneyBookKind.shared,
           tx,
-          tx.copyWith(
-            payer: kMoneyPayerWallet,
-            outWalletId: 'joint',
-            splitMode: MoneySplitMode.none,
-            payerShare: 0,
-          ),
+          tx.copyWith(payer: kMoneyPayerWallet, outWalletId: 'joint'),
         ),
         throwsStateError,
       );

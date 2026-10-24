@@ -244,7 +244,6 @@ enum _Payer { me, partner, wallet }
 class _AddTransactionSheetState extends State<AddTransactionSheet> {
   static const String _prefsBox = 'app_settings';
   static const String _payerKey = 'money_last_payer';
-  static const String _splitKey = 'money_last_split';
   static const List<String> _expenseFill = <String>[
     'food_out',
     'food_coffee',
@@ -252,27 +251,19 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     'move_fuel',
     'move_grab',
   ];
-  static const List<String> _incomeFill = <String>[
-    'salary',
-    'side',
-    'bonus',
-    'gifted',
-  ];
 
   late MoneyBookKind _book = widget.book;
   late MoneyTxType _type = widget.type;
   final MoneyAmountInput _input = MoneyAmountInput();
   String _categoryId = '';
-  String? _walletId; // own book: out (expense) / in (income)
-  String? _fromId; // transfer
-  String? _toId;
+  String? _walletId; // own book: the wallet the money leaves
+  String? _fromId; // own book "Góp quỹ": from this wallet …
+  String? _toId; // … into this goal
   _Payer _payer = _Payer.me;
-  MoneySplitMode _split = MoneySplitMode.equal;
-  String? _deductId; // shared, I paid: own wallet ('' = none yet)
+  String? _deductId; // shared, my money: own wallet ('' = none yet)
   String? _sharedWalletId; // shared: paid from / into a shared wallet
   late String _date;
   final TextEditingController _note = TextEditingController();
-  final TextEditingController _custom = TextEditingController();
   bool _detail = false;
   bool _saving = false;
   // ── expenses (đợt 2) ── stage 3B: filled from "Ghi lại khoản quen".
@@ -283,13 +274,20 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   bool get _shared => _book == MoneyBookKind.shared;
   bool get _sharedExpense => _shared && _type == MoneyTxType.expense;
 
-  /// Editing an adjust / contribution / settle line: amount, date and note
-  /// only (no category, wallets or split to pick).
-  bool get _simpleEdit =>
-      _isEdit &&
-      _type != MoneyTxType.expense &&
-      _type != MoneyTxType.income &&
-      _type != MoneyTxType.transfer;
+  /// "Góp quỹ" (D34): a contribution in the shared book, a transfer into a
+  /// goal in the own book.
+  MoneyTxType get _saveType =>
+      _shared ? MoneyTxType.contribution : MoneyTxType.transfer;
+
+  /// Money that leaves one of MY wallets alongside the shared entry:
+  /// shared spending with my own money, or my contribution to a fund.
+  bool get _fromMyMoney =>
+      _shared &&
+      ((_type == MoneyTxType.expense && _payer == _Payer.me) ||
+          _type == MoneyTxType.contribution);
+
+  /// Editing anything but spending: amount, date and note only.
+  bool get _simpleEdit => _isEdit && _type != MoneyTxType.expense;
 
   MoneyProvider get _money => context.read<MoneyProvider>();
 
@@ -356,16 +354,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           : e.payer == money.uid
           ? _Payer.me
           : _Payer.partner;
-      _split = (e.splitMode == null || e.splitMode == MoneySplitMode.none)
-          ? MoneySplitMode.equal
-          : e.splitMode!;
       _sharedWalletId = e.outWalletId.isNotEmpty ? e.outWalletId : e.inWalletId;
-      if (_split == MoneySplitMode.custom) {
-        _custom.text = moneyInputText(e.payerShare, _input.currency);
-      }
       _deductId = '';
     } else {
-      _walletId = e.type == MoneyTxType.income ? e.inWalletId : e.outWalletId;
+      _walletId = e.outWalletId;
     }
   }
 
@@ -373,14 +365,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     if (!Hive.isBoxOpen(_prefsBox)) return;
     try {
       final box = Hive.box<String>(_prefsBox);
-      _payer = _Payer.values.firstWhere(
-        (p) => p.name == box.get(_payerKey),
-        orElse: () => _Payer.me,
-      );
-      final split = MoneySplitMode.fromWire(box.get(_splitKey));
-      if (split != null && split != MoneySplitMode.none) _split = split;
-      // "Mình mời" / tuỳ are one-offs: never the next default.
-      if (_split == MoneySplitMode.custom) _split = MoneySplitMode.equal;
+      // Only "Quỹ chung" / "Tiền riêng" are offered (D34).
+      _payer = box.get(_payerKey) == _Payer.wallet.name
+          ? _Payer.wallet
+          : _Payer.me;
     } catch (_) {}
   }
 
@@ -389,7 +377,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     try {
       final box = Hive.box<String>(_prefsBox);
       box.put(_payerKey, _payer.name);
-      box.put(_splitKey, _split.wire);
     } catch (_) {}
   }
 
@@ -401,40 +388,47 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   /// Fills what is still empty from the smart defaults (§15 #2): category =
   /// most used over 14 days, wallet = last used with that category.
   void _fillDefaults(MoneyProvider money) {
-    if (_type != MoneyTxType.transfer && _categoryId.isEmpty) {
+    if (_type == MoneyTxType.expense && _categoryId.isEmpty) {
       _categoryId = money.defaultCategory(_book, _type);
     }
     switch (_type) {
       case MoneyTxType.transfer:
-        final list = _wallets(_book, goals: true);
-        _fromId ??= list.isEmpty ? null : list.first.id;
-        _toId ??= list.where((w) => w.id != _fromId).firstOrNull?.id;
+        // Own "Góp quỹ": from my usual wallet into my first goal.
+        _fromId ??= money.defaultWallet(_book, '');
+        _toId ??= _goals(_book).firstOrNull?.id;
+      case MoneyTxType.contribution:
+        _sharedWalletId ??= _wallets(_book, goals: true).firstOrNull?.id;
+        _deductId ??= _ownDeductFor('');
       default:
         if (_shared) {
           _sharedWalletId ??=
-              money.defaultWallet(_book, _categoryId, type: _type) ??
-              _wallets(_book, goals: true).firstOrNull?.id ??
+              money.defaultWallet(_book, _categoryId) ??
+              _wallets(_book).firstOrNull?.id ??
               money.defaultWalletId(MoneyBookKind.shared);
-          if (_sharedExpense) {
-            _deductId ??= _ownDeductFor(_categoryId);
-          }
+          _deductId ??= _ownDeductFor(_categoryId);
         } else {
-          _walletId ??= money.defaultWallet(_book, _categoryId, type: _type);
+          _walletId ??= money.defaultWallet(_book, _categoryId);
         }
     }
   }
+
+  List<MoneyWallet> _goals(MoneyBookKind kind) => [
+    for (final w in _money.book(kind)?.wallets ?? const <MoneyWallet>[])
+      if (!w.archived && w.isGoal) w,
+  ];
 
   void _resetFor({MoneyTxType? type, MoneyBookKind? book}) {
     setState(() {
       if (type != null) _type = type;
       if (book != null && book != _book) {
         _book = book;
+        // "Góp quỹ" is a contribution in one book, a transfer in the other.
+        if (_type != MoneyTxType.expense) _type = _saveType;
         // "50k" typed for one book means nothing in another currency.
         final c = _money.currencyOf(book);
         if (c != _input.currency) {
           _input.currency = c;
           _input.raw = '';
-          _custom.text = '';
         }
       }
       _categoryId = '';
@@ -452,11 +446,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       _categoryId = id;
       // The wallet follows the category ("cà phê → Tiền mặt").
       if (_shared) {
-        if (_sharedExpense) {
-          _deductId = _ownDeductFor(id);
-        }
+        if (_sharedExpense) _deductId = _ownDeductFor(id);
       } else {
-        _walletId = _money.defaultWallet(_book, id, type: _type);
+        _walletId = _money.defaultWallet(_book, id);
       }
     });
   }
@@ -468,17 +460,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       _categoryId = t.categoryId;
       _note.text = t.note;
       if (_shared) {
-        _payer = t.payer == kMoneyPayerWallet
-            ? _Payer.wallet
-            : t.payer == _money.uid
-            ? _Payer.me
-            : _Payer.partner;
-        if (t.splitMode != null && t.splitMode != MoneySplitMode.none) {
-          _split = t.splitMode!;
-          if (_split == MoneySplitMode.custom) {
-            _custom.text = moneyInputText(t.payerShare, _input.currency);
-          }
-        }
+        _payer = t.payer == kMoneyPayerWallet ? _Payer.wallet : _Payer.me;
         if (t.outWalletId.isNotEmpty) _sharedWalletId = t.outWalletId;
         final mine = t.linkId == null
             ? null
@@ -500,23 +482,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     _Payer.wallet => kMoneyPayerWallet,
   };
 
-  int _payerShare(int amount) {
-    if (_payer == _Payer.wallet) return 0;
-    if (_split == MoneySplitMode.custom) {
-      final r = parseMoneyInput(
-        _custom.text,
-        currency: _input.currency,
-        max: amount,
-      );
-      // 0 is valid: the payer bears none of it.
-      final custom = r.ok
-          ? r.value!
-          : (r.error == VndParseError.zero ? 0 : (amount + 1) ~/ 2);
-      return MoneyMath.payerShareFor(_split, amount, custom: custom);
-    }
-    return MoneyMath.payerShareFor(_split, amount);
-  }
-
   /// The entry as it would be written (null = not valid yet).
   MoneyTx? _draft() {
     final amount = _amount;
@@ -528,31 +493,21 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       amount: amount,
       date: _date,
       note: _note.text.trim(),
-      categoryId: _type == MoneyTxType.transfer ? '' : _categoryId,
+      categoryId: _type == MoneyTxType.expense ? _categoryId : '',
       memberUids: _shared
           ? (_money.book(_book)?.service.memberUids ?? const <String>[])
           : const <String>[],
     );
     MoneyTx tx;
     switch (_type) {
-      case MoneyTxType.transfer:
+      case MoneyTxType.transfer when !_isEdit:
+        // Own "Góp quỹ": a normal wallet → a goal.
         if (_fromId == null || _toId == null || _fromId == _toId) return null;
         tx = base.copyWith(outWalletId: _fromId, inWalletId: _toId);
-        // Money leaves a shared wallet ⇒ the wallet paid, not a person
-        // (rules: a person payer never has an outWalletId).
-        if (_shared) {
-          tx = tx.copyWith(
-            payer: kMoneyPayerWallet,
-            splitMode: MoneySplitMode.none,
-          );
-        }
-      case MoneyTxType.income:
-        final into = _shared ? _sharedWalletId : _walletId;
+      case MoneyTxType.contribution when !_isEdit:
+        final into = _sharedWalletId;
         if (into == null || into.isEmpty) return null;
-        tx = base.copyWith(inWalletId: into);
-        if (_shared) {
-          tx = tx.copyWith(payer: uid, splitMode: MoneySplitMode.none);
-        }
+        tx = base.copyWith(inWalletId: into, payer: uid);
       case MoneyTxType.expense:
         if (_shared) {
           final fromJoint = _payer == _Payer.wallet;
@@ -563,21 +518,19 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           tx = base.copyWith(
             outWalletId: fromJoint ? _sharedWalletId : '',
             payer: _payerUid(),
-            splitMode: fromJoint ? MoneySplitMode.none : _split,
-            payerShare: _payerShare(amount),
           );
         } else {
           if (_walletId == null || _walletId!.isEmpty) return null;
           tx = base.copyWith(outWalletId: _walletId);
         }
       default:
-        // Editing an entry type the sheet doesn't create (adjust, …): keep
-        // its wallets, change amount / date / note only.
+        // Editing anything but spending: keep its wallets, change amount /
+        // date / note only.
         final e = _editing;
         if (e == null) return null;
         tx = e.copyWith(amount: amount, date: _date, note: _note.text.trim());
     }
-    if (_editing != null && _type != MoneyTxType.transfer) {
+    if (_editing != null && _type == MoneyTxType.expense) {
       tx = _editing!.copyWith(
         amount: tx.amount,
         date: tx.date,
@@ -586,16 +539,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         outWalletId: tx.outWalletId,
         inWalletId: tx.inWalletId,
         payer: tx.payer,
-        splitMode: tx.splitMode,
-        payerShare: tx.payerShare,
-      );
-    } else if (_editing != null) {
-      tx = _editing!.copyWith(
-        amount: tx.amount,
-        date: tx.date,
-        note: tx.note,
-        outWalletId: tx.outWalletId,
-        inWalletId: tx.inWalletId,
       );
     }
     return tx.isWellFormed ? tx : null;
@@ -609,10 +552,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       '';
 
   String? get _ownDeduct =>
-      _sharedExpense &&
-          _payer == _Payer.me &&
-          (_deductId ?? '').isNotEmpty &&
-          _money.booksLinkable
+      _fromMyMoney && (_deductId ?? '').isNotEmpty && _money.booksLinkable
       ? _deductId
       : null;
 
@@ -662,15 +602,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   Future<bool> _confirmDiscard() async {
     final l10n = context.l10n;
     final amount = _amount;
-    final cat = _money.book(_book)?.categories.of(_categoryId, kind: _type);
+    final cat = _money.book(_book)?.categories.of(_categoryId);
     final ok = await showMoneyConfirm(
       context,
       title: l10n.moneyDiscardTitle,
       body: l10n.moneyDiscardBody(
         vnd(context, amount ?? 0, book: _book),
-        _type == MoneyTxType.transfer
-            ? l10n.moneyTypeTransfer
-            : (cat?.name ?? ''),
+        _type == MoneyTxType.expense ? (cat?.name ?? '') : l10n.moneyTypeSave,
       ),
       confirm: l10n.moneyDiscard,
       cancel: l10n.moneyKeepEditing,
@@ -785,8 +723,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         categoryId: draft.categoryId,
         note: draft.note,
         payer: draft.payer,
-        splitMode: draft.splitMode,
-        payerShare: draft.payerShare,
         memberUids: draft.memberUids,
         source: widget.source,
       );
@@ -797,10 +733,19 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       _rememberLast();
       HapticFeedback.lightImpact();
       if (!mounted) return;
-      final cat = money.book(kind)!.categories.of(tx.categoryId, kind: tx.type);
-      final message = tx.type == MoneyTxType.transfer
-          ? l10n.moneySavedTransfer(vnd(context, tx.amount, book: _book))
-          : l10n.moneySaved(vnd(context, tx.amount, book: _book), cat.name);
+      final cat = money.book(kind)!.categories.of(tx.categoryId);
+      final message = tx.type == MoneyTxType.expense
+          ? l10n.moneySaved(vnd(context, tx.amount, book: _book), cat.name)
+          : l10n.moneySavedContribution(
+              vnd(context, tx.amount, book: _book),
+              money
+                      .book(kind)!
+                      .wallets
+                      .where((w) => w.id == tx.inWalletId)
+                      .firstOrNull
+                      ?.name ??
+                  '',
+            );
       final offline = outcome == MoneyWriteOutcome.queued
           ? (kind == MoneyBookKind.shared
                 ? l10n.moneySavedOffline
@@ -958,8 +903,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   String _titleOf(MoneyTx t) {
     if (t.note.trim().isNotEmpty) return t.note.trim();
     if (t.type == MoneyTxType.transfer) return context.l10n.moneyTypeTransfer;
-    return _money.book(_book)?.categories.of(t.categoryId, kind: t.type).name ??
-        '';
+    return _money.book(_book)?.categories.of(t.categoryId).name ?? '';
   }
 
   // ── build ────────────────────────────────────────────────────────────
@@ -967,7 +911,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   @override
   void dispose() {
     _note.dispose();
-    _custom.dispose();
     super.dispose();
   }
 
@@ -1106,17 +1049,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 : SegmentedPill<MoneyTxType>(
                     height: 44,
                     onSurface: true,
-                    values: const [
-                      MoneyTxType.expense,
-                      MoneyTxType.income,
-                      MoneyTxType.transfer,
-                    ],
+                    values: [MoneyTxType.expense, _saveType],
                     selected: _type,
-                    labelOf: (t) => switch (t) {
-                      MoneyTxType.income => l10n.moneyTypeIncome,
-                      MoneyTxType.transfer => l10n.moneyTypeTransfer,
-                      _ => l10n.moneyTypeExpense,
-                    },
+                    labelOf: (t) => t == MoneyTxType.expense
+                        ? l10n.moneyTypeExpense
+                        : l10n.moneyTypeSave,
                     onChanged: (t) => _resetFor(type: t),
                   ),
           ),
@@ -1323,7 +1260,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       if (out.length >= 5) break;
       add(t.categoryId);
     }
-    for (final id in _type == MoneyTxType.income ? _incomeFill : _expenseFill) {
+    for (final id in _expenseFill) {
       if (out.length >= 5) break;
       add(id);
     }
@@ -1339,8 +1276,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           for (final id in _recentCategories(money))
             MoneyChip(
               radio: true,
-              emoji: idx.of(id, kind: _type).emoji,
-              label: idx.of(id, kind: _type).name,
+              emoji: idx.of(id).emoji,
+              label: idx.of(id).name,
               selected: id == _categoryId,
               onTap: () => _pickCategory(id),
             ),
@@ -1359,6 +1296,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     String? selected,
     ValueChanged<String> onPick, {
     MoneyBookKind? addTo,
+    bool addGoal = false,
   }) {
     final l10n = context.l10n;
     final locked = _locked || (_shared && _payerLocked);
@@ -1378,6 +1316,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             label: l10n.moneyAddSource,
             onTap: () => _addSource(addTo, onPick),
           ),
+        if (addGoal && !locked)
+          MoneyChip(
+            icon: IconsaxPlusLinear.add,
+            label: l10n.moneyNewGoal,
+            onTap: () => _addSource(_book, onPick, goal: true),
+          ),
       ],
     );
   }
@@ -1386,15 +1330,17 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   /// goal type) and it is picked right away.
   Future<void> _addSource(
     MoneyBookKind kind,
-    ValueChanged<String> onPick,
-  ) async {
+    ValueChanged<String> onPick, {
+    bool goal = false,
+  }) async {
     String? created;
     await showMoneySheet<String>(
       context,
-      name: 'MoneyAddSourceSheet',
+      name: goal ? 'MoneyAddGoalSheet' : 'MoneyAddSourceSheet',
       builder: (_) => MoneyWalletSheet(
         book: kind,
-        allowGoal: false,
+        allowGoal: goal,
+        goalOnly: goal,
         onCreated: (id) => created = id,
       ),
     );
@@ -1403,71 +1349,95 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   }
 
   List<Widget> _walletRows(AppLocalizations l10n, MoneyProvider money) {
-    if (_type == MoneyTxType.transfer) {
-      final list = _wallets(_book, goals: true);
-      return [
-        _label(l10n.moneyFromWallet),
+    final people = MoneyPeople.of(context);
+    // "Tiền riêng": which of MY wallets the money leaves.
+    List<Widget> mine(String label) => [
+      if (money.own != null && !_isEdit && money.booksLinkable) ...[
+        _label(label),
         _walletChips(
-          list,
-          _fromId,
-          (id) => setState(() => _fromId = id),
-          addTo: _book,
+          _wallets(MoneyBookKind.own),
+          _deductId,
+          (id) => setState(() => _deductId = id),
+          addTo: MoneyBookKind.own,
         ),
-        _label(l10n.moneyToWallet),
-        _walletChips(
-          [
-            for (final w in list)
-              if (w.id != _fromId) w,
-          ],
-          _toId,
-          (id) => setState(() => _toId = id),
-          addTo: _book,
-        ),
-      ];
-    }
-    if (_sharedExpense) {
-      if (_payer == _Payer.me &&
-          money.own != null &&
-          !_isEdit &&
-          money.booksLinkable) {
+      ],
+    ];
+    switch (_type) {
+      case MoneyTxType.transfer:
         return [
-          _label(l10n.moneyDeductMine),
+          _label(l10n.moneySaveInto),
           _walletChips(
-            _wallets(MoneyBookKind.own),
-            _deductId,
-            (id) => setState(() => _deductId = id),
-            addTo: MoneyBookKind.own,
+            _goals(_book),
+            _toId,
+            (id) => setState(() => _toId = id),
+            addGoal: true,
+          ),
+          _label(l10n.moneyFromWallet),
+          _walletChips(
+            _wallets(_book),
+            _fromId,
+            (id) => setState(() => _fromId = id),
+            addTo: _book,
           ),
         ];
-      }
-      if (_payer == _Payer.wallet) {
+      case MoneyTxType.contribution:
         return [
-          _label(l10n.moneyWallet),
+          _label(l10n.moneySaveInto),
           _walletChips(
             _wallets(_book, goals: true),
             _sharedWalletId,
             (id) => setState(() => _sharedWalletId = id),
-            addTo: _book,
+            addGoal: true,
           ),
+          ...mine(l10n.moneyFromWallet),
         ];
-      }
-      return const [];
+      default:
+        break;
     }
     if (_shared) {
+      final locked = _locked || _payerLocked;
       return [
-        _label(l10n.moneyIntoWallet),
-        _walletChips(
-          _wallets(_book, goals: true),
-          _sharedWalletId,
-          (id) => setState(() => _sharedWalletId = id),
-          addTo: _book,
+        _label(l10n.moneyPaidFrom),
+        MoneyChipRow(
+          children: [
+            for (final w in _wallets(_book))
+              MoneyChip(
+                radio: true,
+                emoji: w.emoji,
+                label: w.name,
+                selected: _payer == _Payer.wallet && w.id == _sharedWalletId,
+                onTap: locked
+                    ? null
+                    : () => setState(() {
+                        _payer = _Payer.wallet;
+                        _sharedWalletId = w.id;
+                      }),
+              ),
+            if (_payer == _Payer.partner)
+              MoneyChip(
+                radio: true,
+                label: l10n.moneyPaidByNoSplit(people.partnerName),
+                selected: true,
+              )
+            else
+              MoneyChip(
+                radio: true,
+                label: l10n.moneyMyMoney,
+                selected: _payer == _Payer.me,
+                onTap: locked
+                    ? null
+                    : () => setState(() {
+                        _payer = _Payer.me;
+                        _deductId ??= _ownDeductFor(_categoryId);
+                      }),
+              ),
+          ],
         ),
+        if (_payer == _Payer.me) ...mine(l10n.moneyDeductMine),
       ];
     }
     return [
-      _label(
-        _type == MoneyTxType.income ? l10n.moneyIntoWallet : l10n.moneyWallet,
-      ),
+      _label(l10n.moneyWallet),
       _walletChips(
         // ── expenses (đợt 2) ── stage 3B: "Chi từ quỹ" keeps the fund chip.
         _wallets(
@@ -1491,28 +1461,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       : moneyShortDate(context, _date);
 
   Widget _summary(AppLocalizations l10n) {
-    final people = MoneyPeople.of(context);
-    String text;
-    Widget? avatar;
-    if (_sharedExpense) {
-      final who = switch (_payer) {
-        _Payer.me => l10n.moneyPaidByNoSplit(l10n.moneyMe),
-        _Payer.partner => l10n.moneyPaidByNoSplit(people.partnerName),
-        _Payer.wallet => l10n.moneyPaidByNoSplit(l10n.moneyJointWallet),
-      };
-      final split = _payer == _Payer.wallet
-          ? ''
-          : ' · ${moneySplitLabel(l10n, _split)}';
-      text = '$who$split · ${_dateShort()}';
-      avatar = MoneyRowContext.of(
-        context,
-        _money,
-        _book,
-      ).avatarFor(_payerUid());
-    } else {
-      final note = _note.text.trim();
-      text = '${_dateShort()} · ${note.isEmpty ? l10n.moneyAddNote : note}';
-    }
+    final note = _note.text.trim();
+    final text = '${_dateShort()} · ${note.isEmpty ? l10n.moneyAddNote : note}';
     return Semantics(
       button: true,
       expanded: _detail,
@@ -1531,7 +1481,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           ),
           child: Row(
             children: [
-              if (avatar != null) ...[avatar, const SizedBox(width: 8)],
               Expanded(
                 child: Text(
                   text,
@@ -1560,98 +1509,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   }
 
   Widget _detailPanel(AppLocalizations l10n) {
-    final people = MoneyPeople.of(context);
-    final amount = _amount;
     final children = <Widget>[];
-    if (_sharedExpense) {
-      children
-        ..add(_label(l10n.moneyWhoPays))
-        ..add(
-          SegmentedPill<_Payer>(
-            height: 44,
-            onSurface: true,
-            enabled: !_payerLocked,
-            values: _Payer.values,
-            selected: _payer,
-            labelOf: (p) => switch (p) {
-              _Payer.me => l10n.moneyMe,
-              _Payer.partner => people.partnerName,
-              _Payer.wallet => l10n.moneyJointWallet,
-            },
-            onChanged: (p) => setState(() {
-              _payer = p;
-              if (p == _Payer.me) {
-                _deductId ??= _ownDeductFor(_categoryId);
-              }
-            }),
-          ),
-        );
-      if (_payerLocked && !_locked) {
-        children.add(_shareLine(l10n.moneyLinkedPayerLocked));
-      }
-      if (_payer == _Payer.wallet) {
-        children.add(_shareLine(l10n.moneyNoOneOwes));
-      } else {
-        final payerName = _payer == _Payer.me
-            ? l10n.moneyMe
-            : people.partnerName;
-        final otherName = _payer == _Payer.me
-            ? people.partnerName
-            : l10n.moneyMe;
-        children
-          ..add(_label(l10n.moneyHowSplit))
-          ..add(
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final (m, label) in [
-                  (MoneySplitMode.equal, l10n.moneySplitEqualCap),
-                  (
-                    MoneySplitMode.treat,
-                    _payer == _Payer.me
-                        ? l10n.moneyTreatMe
-                        : l10n.moneyTreatPartner(people.partnerName),
-                  ),
-                  (MoneySplitMode.forPartner, l10n.moneyForPartnerCap),
-                  (MoneySplitMode.custom, l10n.moneyCustomCap),
-                ])
-                  MoneyChip(
-                    radio: true,
-                    label: label,
-                    selected: _split == m,
-                    onTap: _locked
-                        ? null
-                        : () => setState(() {
-                            _split = m;
-                            if (m == MoneySplitMode.custom &&
-                                _custom.text.isEmpty &&
-                                amount != null) {
-                              _custom.text = moneyInputText(
-                                (amount + 1) ~/ 2,
-                                _input.currency,
-                              );
-                            }
-                          }),
-                  ),
-              ],
-            ),
-          );
-        if (_split == MoneySplitMode.custom && !_locked) {
-          children.add(_customRow(l10n, payerName, amount));
-        }
-        children.add(
-          _shareLine(
-            amount == null
-                ? l10n.moneySharesNeedAmount
-                : l10n.moneyShares(
-                    payerName,
-                    vnd(context, _payerShare(amount), book: _book),
-                    otherName,
-                    vnd(context, amount - _payerShare(amount), book: _book),
-                  ),
-          ),
-        );
-      }
+    if (_payerLocked && !_locked) {
+      children.add(_shareLine(l10n.moneyLinkedPayerLocked));
     }
     children
       ..add(const SizedBox(height: 8))
@@ -1730,75 +1590,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       ),
     ),
   );
-
-  Widget _customRow(AppLocalizations l10n, String payerName, int? amount) {
-    void step(int dir) {
-      final a = amount ?? 0;
-      if (a <= 0) return;
-      final r = parseMoneyInput(
-        _custom.text,
-        currency: _input.currency,
-        max: a,
-      );
-      final cur = r.ok
-          ? r.value!
-          : (r.error == VndParseError.zero ? 0 : (a + 1) ~/ 2);
-      final next = (cur + dir * (a / 10).round()).clamp(0, a);
-      setState(() => _custom.text = moneyInputText(next, _input.currency));
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        children: [
-          Text(
-            l10n.moneyBears(payerName),
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _custom,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              textAlign: TextAlign.right,
-              onChanged: (_) => setState(() {}),
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                filled: true,
-                fillColor: AppColors.surfaceLight,
-                suffixText: _input.currency.symbol,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: l10n.moneyStepDown,
-            onPressed: () => step(-1),
-            icon: const Icon(IconsaxPlusLinear.minus, size: 18),
-          ),
-          IconButton(
-            tooltip: l10n.moneyStepUp,
-            onPressed: () => step(1),
-            icon: const Icon(IconsaxPlusLinear.add, size: 18),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _keypad(AppLocalizations l10n) {
     // Vietnamese + đồng: k · tr · củ. Anything else: K · M · B.
@@ -1977,10 +1768,8 @@ class _MoneyCategoryPickerState extends State<MoneyCategoryPicker> {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         settings: const RouteSettings(name: 'MoneyCategories'),
-                        builder: (_) => MoneyCategoriesScreen(
-                          book: widget.book,
-                          kind: widget.kind,
-                        ),
+                        builder: (_) =>
+                            MoneyCategoriesScreen(book: widget.book),
                       ),
                     );
                   },

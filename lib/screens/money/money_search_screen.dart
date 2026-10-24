@@ -144,9 +144,8 @@ class _MoneySearchScreenState extends State<MoneySearchScreen> {
   Future<void> _pickCats(MoneyBookState state) async {
     final idx = state.categories;
     final groups = [
-      for (final kind in const [MoneyTxType.expense, MoneyTxType.income])
-        for (final c in idx.pickable(kind))
-          if (c.isGroup) c,
+      for (final c in idx.pickable(MoneyTxType.expense))
+        if (c.isGroup) c,
     ];
     final picked = await _chipSheet<String>(
       title: context.l10n.moneyCategory,

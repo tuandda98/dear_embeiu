@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class InstallStateService {
-  InstallStateService({
-    Future<Directory> Function()? markerDirectoryProvider,
-  }) : _markerDirectoryProvider =
-           markerDirectoryProvider ?? getApplicationSupportDirectory;
+  InstallStateService({Future<Directory> Function()? markerDirectoryProvider})
+    : _markerDirectoryProvider =
+          markerDirectoryProvider ?? getApplicationSupportDirectory;
 
   static const String _markerFileName = '.app_install_marker';
 
@@ -37,4 +36,3 @@ class InstallStateService {
     return File('${directory.path}/$_markerFileName');
   }
 }
-

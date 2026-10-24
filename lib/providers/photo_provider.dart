@@ -27,7 +27,7 @@ import '../services/storage_service.dart';
 ///   Home memory-cinema works even when the matching photo is ancient.
 class PhotoProvider extends ChangeNotifier {
   PhotoProvider({PhotoService? photoService})
-      : _photoService = photoService ?? PhotoService();
+    : _photoService = photoService ?? PhotoService();
 
   /// Realtime window size AND "load more" page size (pagination D1).
   static const int _pageSize = 30;
@@ -66,8 +66,9 @@ class PhotoProvider extends ChangeNotifier {
   String? _onThisDayFetchKey;
 
   List<Photo> get photos => sortedPhotos;
-  List<Photo> get sortedPhotos => _photosById.values.toList()
-    ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
+  List<Photo> get sortedPhotos =>
+      _photosById.values.toList()
+        ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
 
   /// Photos for the gallery FEED: only the CONTIGUOUS newest→cursor prefix.
   /// On-this-day extras (D3) are merged into [sortedPhotos] for the Home
@@ -82,6 +83,7 @@ class PhotoProvider extends ChangeNotifier {
     }
     return all.where((p) => !p.uploadDate.isBefore(cursor)).toList();
   }
+
   bool get isLoading => _isLoading;
   String? get loadingMessage => _loadingMessage;
   String? get errorMessage => _errorMessage;
@@ -174,31 +176,31 @@ class PhotoProvider extends ChangeNotifier {
     _photoSubscription = _photoService
         .watchCouplePhotos(currentUser.coupleId!, limit: _pageSize)
         .listen(
-      (windowPhotos) async {
-        final membershipChanged = _applyWindowEmission(windowPhotos);
+          (windowPhotos) async {
+            final membershipChanged = _applyWindowEmission(windowPhotos);
 
-        if (_countRefreshPending) {
-          _countRefreshPending = false;
-          unawaited(_refreshTotalCount());
-        } else if (membershipChanged) {
-          // A partner add/delete reached us through the window: refresh the
-          // aggregate so Profile's total tracks realtime changes. Skipped
-          // whenever the emission didn't change the id set (caption edits,
-          // path-only merges, …) — cheap debounce against per-emission reads.
-          unawaited(_refreshTotalCount());
-        }
+            if (_countRefreshPending) {
+              _countRefreshPending = false;
+              unawaited(_refreshTotalCount());
+            } else if (membershipChanged) {
+              // A partner add/delete reached us through the window: refresh the
+              // aggregate so Profile's total tracks realtime changes. Skipped
+              // whenever the emission didn't change the id set (caption edits,
+              // path-only merges, …) — cheap debounce against per-emission reads.
+              unawaited(_refreshTotalCount());
+            }
 
-        await StorageService.savePhotos(sortedPhotos);
-        _setLoading(false, notify: false);
-        notifyListeners();
-      },
-      onError: (error) {
-        debugPrint('PhotoProvider photo stream error: $error');
-        _errorMessage = AppL10n.strings.photoSyncGeneric;
-        _setLoading(false, notify: false);
-        notifyListeners();
-      },
-    );
+            await StorageService.savePhotos(sortedPhotos);
+            _setLoading(false, notify: false);
+            notifyListeners();
+          },
+          onError: (error) {
+            debugPrint('PhotoProvider photo stream error: $error');
+            _errorMessage = AppL10n.strings.photoSyncGeneric;
+            _setLoading(false, notify: false);
+            notifyListeners();
+          },
+        );
   }
 
   /// Merges one realtime window emission into the accumulated map and updates
@@ -210,8 +212,9 @@ class PhotoProvider extends ChangeNotifier {
   /// tracks partner adds/deletes in realtime.
   bool _applyWindowEmission(List<Photo> windowPhotos) {
     final newIds = windowPhotos.map((p) => p.id).toSet();
-    final windowOldest =
-        windowPhotos.isEmpty ? null : windowPhotos.last.uploadDate;
+    final windowOldest = windowPhotos.isEmpty
+        ? null
+        : windowPhotos.last.uploadDate;
     final windowFull = windowPhotos.length >= _pageSize;
 
     // Discontinuous re-sync detection. INVARIANT: [feedPhotos] must always be
@@ -354,7 +357,8 @@ class PhotoProvider extends ChangeNotifier {
     // Home re-calls this from a post-frame callback on EVERY build, so each
     // (couple, day) must resolve to at most one recompute; an unconditional
     // notify here would schedule another build → another call → rebuild loop.
-    final key = '$coupleId|${now.year}-${now.month}-${now.day}'
+    final key =
+        '$coupleId|${now.year}-${now.month}-${now.day}'
         '|${anniversary.year}';
     if (_onThisDayFetchKey == key) {
       return;
@@ -366,10 +370,12 @@ class PhotoProvider extends ChangeNotifier {
       // idempotent (no notify → no extra build).
       _onThisDayFetchKey = key;
       final matches = sortedPhotos
-          .where((p) =>
-              p.uploadDate.month == now.month &&
-              p.uploadDate.day == now.day &&
-              p.uploadDate.year < now.year)
+          .where(
+            (p) =>
+                p.uploadDate.month == now.month &&
+                p.uploadDate.day == now.day &&
+                p.uploadDate.year < now.year,
+          )
           .toList();
       if (!_samePhotoIds(matches, _onThisDayPhotos)) {
         _onThisDayPhotos = matches;
@@ -544,8 +550,9 @@ class PhotoProvider extends ChangeNotifier {
       // an emission would leave older deleted photos behind).
       _photosById.remove(photoId);
       _lastWindowIds.remove(photoId);
-      _onThisDayPhotos =
-          _onThisDayPhotos.where((p) => p.id != photoId).toList();
+      _onThisDayPhotos = _onThisDayPhotos
+          .where((p) => p.id != photoId)
+          .toList();
       await StorageService.savePhotos(sortedPhotos);
       if (_photoService.isUsingFirebase && currentUser.hasCouple) {
         unawaited(_refreshTotalCount());

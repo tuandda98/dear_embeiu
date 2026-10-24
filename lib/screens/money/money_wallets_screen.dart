@@ -298,8 +298,8 @@ Widget moneyGoalRow(
   );
 }
 
-/// One wallet (design §3.5): balance, this month in / out, Chuyển tiền ·
-/// Sửa số dư, and the month's entries.
+/// One wallet (design §3.5): balance, this month in / out, Sửa số dư, and
+/// the month's entries.
 class MoneyWalletScreen extends StatelessWidget {
   const MoneyWalletScreen({
     super.key,
@@ -411,19 +411,6 @@ class MoneyWalletScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: MoneyOutlineButton(
-                      label: l10n.moneyTransferBtn,
-                      icon: IconsaxPlusLinear.arrow_swap_horizontal,
-                      onPressed: () => AddTransactionSheet.show(
-                        context,
-                        book: book,
-                        type: MoneyTxType.transfer,
-                        walletId: w.id,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
                   Expanded(
                     child: MoneyOutlineButton(
                       label: l10n.moneyFixBalance,
@@ -585,6 +572,7 @@ class MoneyWalletSheet extends StatefulWidget {
     this.editing,
     this.onCreated,
     this.allowGoal = true,
+    this.goalOnly = false,
   });
 
   final MoneyBookKind book;
@@ -593,6 +581,9 @@ class MoneyWalletSheet extends StatefulWidget {
   /// Gets the new wallet's id (the add sheet's "+ Thêm nguồn" selects it).
   final ValueChanged<String>? onCreated;
   final bool allowGoal;
+
+  /// "+ Mục tiêu mới" from the add sheet: a goal, no type to pick.
+  final bool goalOnly;
 
   static Future<void> show(
     BuildContext context, {
@@ -613,7 +604,9 @@ class MoneyWalletSheet extends StatefulWidget {
 }
 
 class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
-  late MoneyWalletType _type = widget.editing?.type ?? MoneyWalletType.ewallet;
+  late MoneyWalletType _type =
+      widget.editing?.type ??
+      (widget.goalOnly ? MoneyWalletType.goal : MoneyWalletType.ewallet);
   late final TextEditingController _name = TextEditingController(
     text: widget.editing?.name ?? '',
   );
@@ -769,13 +762,6 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
     final parsed = moneyParse(context, raw, max: kMoneyWalletMax);
     final amountOk =
         raw.isEmpty || parsed.ok || parsed.error == VndParseError.zero;
-    final hints = {
-      MoneyWalletType.cash: l10n.moneyHintCash,
-      MoneyWalletType.bank: l10n.moneyHintBank,
-      MoneyWalletType.ewallet: l10n.moneyHintEwallet,
-      MoneyWalletType.credit: l10n.moneyHintCredit,
-      MoneyWalletType.goal: l10n.moneyHintGoal,
-    };
     final target = _goal && parsed.ok ? parsed.value! : 0;
     final perMonth = _goal && _deadline != null && target > 0
         ? MoneyMath.perMonthNeeded(
@@ -796,7 +782,7 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
                 ? l10n.moneyEditWallet
                 : (_goal ? l10n.moneyNewGoal : l10n.moneyNewWallet),
           ),
-          if (!_isEdit) ...[
+          if (!_isEdit && !widget.goalOnly) ...[
             const SizedBox(height: 4),
             for (final t in MoneyWalletType.values)
               if (widget.allowGoal || t != MoneyWalletType.goal)
@@ -823,25 +809,13 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  moneyWalletTypeLabel(l10n, t),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                Text(
-                                  hints[t]!,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              moneyWalletTypeLabel(l10n, t),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                           ),
                         ],
@@ -979,13 +953,6 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              subtitle: Text(
-                l10n.moneyIncludeInTotalSub,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
-              ),
             ),
           ],
           const SizedBox(height: 12),
@@ -1095,9 +1062,6 @@ class _MoneyFixBalanceSheetState extends State<MoneyFixBalanceSheet> {
           // Shared: out of a wallet ⇒ the wallet pays; into it ⇒ me.
           payer: widget.book == MoneyBookKind.shared
               ? (diff < 0 ? kMoneyPayerWallet : money.uid)
-              : null,
-          splitMode: widget.book == MoneyBookKind.shared
-              ? MoneySplitMode.none
               : null,
         ),
       );

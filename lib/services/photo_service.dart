@@ -22,11 +22,9 @@ class PhotoSyncException implements Exception {
 }
 
 class PhotoService {
-  PhotoService({
-    FirebaseFirestore? firestore,
-    FirebaseStorage? storage,
-  })  : _firestore = firestore,
-        _storage = storage;
+  PhotoService({FirebaseFirestore? firestore, FirebaseStorage? storage})
+    : _firestore = firestore,
+      _storage = storage;
 
   final FirebaseFirestore? _firestore;
   final FirebaseStorage? _storage;
@@ -38,14 +36,12 @@ class PhotoService {
   FirebaseFirestore get _db => _firestore ?? FirebaseFirestore.instance;
   FirebaseStorage get _bucket => _storage ?? FirebaseStorage.instance;
 
-  CollectionReference<Map<String, dynamic>> _photosCollection(String coupleId) =>
-      _db.collection('couples').doc(coupleId).collection('photos');
+  CollectionReference<Map<String, dynamic>> _photosCollection(
+    String coupleId,
+  ) => _db.collection('couples').doc(coupleId).collection('photos');
 
   Photo _photoFromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-      Photo.fromJson({
-        'id': doc.id,
-        ...doc.data(),
-      });
+      Photo.fromJson({'id': doc.id, ...doc.data()});
 
   /// Streams the [limit] newest photos for the couple (the realtime "window",
   /// feature pagination D1). Older photos are fetched on demand via
@@ -187,7 +183,9 @@ class PhotoService {
       // putFile's auto-detection can yield `application/octet-stream` for a
       // file with an unusual/missing extension (some HEIC / cache-dir temp
       // paths) → the upload is rejected and the user "can't post a photo".
-      final uploadTask = await _bucket.ref(remoteStoragePath).putFile(
+      final uploadTask = await _bucket
+          .ref(remoteStoragePath)
+          .putFile(
             file,
             SettableMetadata(contentType: _contentTypeForExtension(extension)),
           );
@@ -223,15 +221,16 @@ class PhotoService {
       updatedAt: DateTime.now(),
     );
 
-    if (!isUsingFirebase || !currentUser.hasCouple || updatedPhoto.coupleId == null) {
+    if (!isUsingFirebase ||
+        !currentUser.hasCouple ||
+        updatedPhoto.coupleId == null) {
       return;
     }
 
     try {
-      await _photosCollection(updatedPhoto.coupleId!).doc(updatedPhoto.id).set(
-            updatedPhoto.toFirestoreUpdate(),
-            SetOptions(merge: true),
-          );
+      await _photosCollection(updatedPhoto.coupleId!)
+          .doc(updatedPhoto.id)
+          .set(updatedPhoto.toFirestoreUpdate(), SetOptions(merge: true));
     } on FirebaseException catch (e) {
       throw PhotoSyncException(_mapFirebaseError(e));
     }
@@ -274,7 +273,9 @@ class PhotoService {
         'couple_photos/$coupleId/${photo.id}_${now.millisecondsSinceEpoch}$extension';
 
     try {
-      final uploadTask = await _bucket.ref(newStoragePath).putFile(
+      final uploadTask = await _bucket
+          .ref(newStoragePath)
+          .putFile(
             file,
             SettableMetadata(contentType: _contentTypeForExtension(extension)),
           );
@@ -288,10 +289,9 @@ class PhotoService {
         updatedAt: now,
       );
 
-      await _photosCollection(coupleId).doc(photo.id).set(
-            updatedPhoto.toFirestoreUpdate(),
-            SetOptions(merge: true),
-          );
+      await _photosCollection(coupleId)
+          .doc(photo.id)
+          .set(updatedPhoto.toFirestoreUpdate(), SetOptions(merge: true));
 
       // Best-effort cleanup of the previous objects — never fail the replace if
       // the old file is already gone / can't be removed.
@@ -418,9 +418,10 @@ class PhotoService {
         return l10n.photoFirebaseUnavailable;
       default:
         // Firebase's own message is English and technical — log it, never show it.
-        debugPrint('PhotoService error ${exception.code}: ${exception.message}');
+        debugPrint(
+          'PhotoService error ${exception.code}: ${exception.message}',
+        );
         return l10n.photoSyncGeneric;
     }
   }
 }
-

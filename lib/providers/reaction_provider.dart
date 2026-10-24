@@ -15,7 +15,7 @@ import '../services/reaction_service.dart';
 /// a couple is active, and `clear` is called on sign-out / no-couple.
 class ReactionProvider extends ChangeNotifier {
   ReactionProvider({ReactionService? service})
-      : _service = service ?? ReactionService();
+    : _service = service ?? ReactionService();
 
   final ReactionService _service;
 
@@ -49,16 +49,19 @@ class ReactionProvider extends ChangeNotifier {
 
     // Apply the optimistic override for my own reaction on top of server data.
     final pendingEmoji = _pendingMine[photoId];
-    final others =
-        base.where((r) => r.authorUserId != uid).toList(growable: true);
+    final others = base
+        .where((r) => r.authorUserId != uid)
+        .toList(growable: true);
     if (pendingEmoji == null) {
       return others; // removed mine
     }
-    others.add(PhotoReaction(
-      authorUserId: uid,
-      emoji: pendingEmoji,
-      coupleId: _coupleId ?? '',
-    ));
+    others.add(
+      PhotoReaction(
+        authorUserId: uid,
+        emoji: pendingEmoji,
+        coupleId: _coupleId ?? '',
+      ),
+    );
     return others;
   }
 
@@ -115,32 +118,34 @@ class ReactionProvider extends ChangeNotifier {
     notifyListeners();
 
     _subscription?.cancel();
-    _subscription = _service.watchCoupleReactions(coupleId).listen(
-      (reactions) {
-        _serverReactions = reactions;
-        // Once the server reflects an optimistic write, drop its override so the
-        // two no longer fight. We compare the user's own emoji per photo.
-        final uid = _myUid;
-        if (uid != null && _pendingMine.isNotEmpty) {
-          final confirmed = <String>[];
-          _pendingMine.forEach((photoId, expected) {
-            final serverMine = _serverEmojiFor(photoId, uid);
-            if (serverMine == expected) {
-              confirmed.add(photoId);
+    _subscription = _service
+        .watchCoupleReactions(coupleId)
+        .listen(
+          (reactions) {
+            _serverReactions = reactions;
+            // Once the server reflects an optimistic write, drop its override so the
+            // two no longer fight. We compare the user's own emoji per photo.
+            final uid = _myUid;
+            if (uid != null && _pendingMine.isNotEmpty) {
+              final confirmed = <String>[];
+              _pendingMine.forEach((photoId, expected) {
+                final serverMine = _serverEmojiFor(photoId, uid);
+                if (serverMine == expected) {
+                  confirmed.add(photoId);
+                }
+              });
+              for (final photoId in confirmed) {
+                _pendingMine.remove(photoId);
+              }
             }
-          });
-          for (final photoId in confirmed) {
-            _pendingMine.remove(photoId);
-          }
-        }
-        notifyListeners();
-      },
-      onError: (_) {
-        // Keep the last good data; surface nothing globally (per-action errors
-        // are handled in the write path).
-        notifyListeners();
-      },
-    );
+            notifyListeners();
+          },
+          onError: (_) {
+            // Keep the last good data; surface nothing globally (per-action errors
+            // are handled in the write path).
+            notifyListeners();
+          },
+        );
   }
 
   String? _serverEmojiFor(String photoId, String uid) {
@@ -186,8 +191,9 @@ class ReactionProvider extends ChangeNotifier {
 
     // Analytics — `add` (first reaction) vs `change` (swapped emoji). Never logs
     // the emoji itself or whose photo it is.
-    AnalyticsService.instance
-        .logReactionSet(previous == null ? 'add' : 'change');
+    AnalyticsService.instance.logReactionSet(
+      previous == null ? 'add' : 'change',
+    );
 
     try {
       await _service.setReaction(

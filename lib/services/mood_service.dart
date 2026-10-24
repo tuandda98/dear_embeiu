@@ -92,16 +92,13 @@ class MoodService {
       return;
     }
 
-    await _moodsCollection(coupleId).doc(uid).set(
-      {
-        'authorUserId': uid,
-        'mood': mood,
-        'note': clampedNote,
-        'date': dateKey,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _moodsCollection(coupleId).doc(uid).set({
+      'authorUserId': uid,
+      'mood': mood,
+      'note': clampedNote,
+      'date': dateKey,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   // ── Local fallback (Hive) ──────────────────────────────────────────────────

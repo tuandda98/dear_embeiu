@@ -101,7 +101,10 @@ class MoneyViews {
         return (step: step, top: (max + step - 1) ~/ step * step);
       }
     }
-    return (step: unit * 10, top: (max + unit * 10 - 1) ~/ (unit * 10) * unit * 10);
+    return (
+      step: unit * 10,
+      top: (max + unit * 10 - 1) ~/ (unit * 10) * unit * 10,
+    );
   }
 
   /// First month of [trend] with any money in it. Earlier months are
@@ -109,7 +112,7 @@ class MoneyViews {
   static String? firstActiveMonth(Map<String, MoneyMonthTotals?> trend) {
     for (final e in trend.entries) {
       final t = e.value;
-      if (t != null && (t.expense > 0 || t.income > 0)) return e.key;
+      if (t != null && t.expense > 0) return e.key;
     }
     return null;
   }
@@ -137,16 +140,9 @@ class MoneyViews {
     return (from, to);
   }
 
-  /// The total shown next to the result count: spending when there is any,
-  /// else income (transfers and adjustments never count).
-  static int resultTotal(Iterable<MoneyTx> rows) {
-    var spent = 0, earned = 0;
-    for (final t in rows) {
-      if (t.type == MoneyTxType.expense) spent += t.amount;
-      if (t.type == MoneyTxType.income) earned += t.amount;
-    }
-    return spent > 0 ? spent : earned;
-  }
+  /// The total shown next to the result count: spending (transfers,
+  /// adjustments and contributions never count).
+  static int resultTotal(Iterable<MoneyTx> rows) => MoneyMath.spentAll(rows);
 
   /// Where [query] matches [text] ignoring accents and case, in [text]'s
   /// own indexes (to tint that part, design §3.9). null = no match.

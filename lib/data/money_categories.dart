@@ -16,7 +16,6 @@ class MoneyCategoryDef {
 
 /// Where an unknown / deleted category lands ("Khác").
 const String kMoneyCategoryOther = 'other';
-const String kMoneyCategoryIncomeOther = 'income_other';
 
 const List<MoneyCategoryDef> kMoneyDefaultCategories = <MoneyCategoryDef>[
   MoneyCategoryDef('food', '', MoneyTxType.expense, '🍜'),
@@ -66,12 +65,6 @@ const List<MoneyCategoryDef> kMoneyDefaultCategories = <MoneyCategoryDef>[
   MoneyCategoryDef('travel_stay', 'travel', MoneyTxType.expense, '🏨'),
   MoneyCategoryDef('travel_fun', 'travel', MoneyTxType.expense, '🎢'),
   MoneyCategoryDef('other', '', MoneyTxType.expense, '📦'),
-  MoneyCategoryDef('salary', '', MoneyTxType.income, '💼'),
-  MoneyCategoryDef('bonus', '', MoneyTxType.income, '🎉'),
-  MoneyCategoryDef('side', '', MoneyTxType.income, '🧑‍💻'),
-  MoneyCategoryDef('gifted', '', MoneyTxType.income, '🧧'),
-  MoneyCategoryDef('interest', '', MoneyTxType.income, '📈'),
-  MoneyCategoryDef('income_other', '', MoneyTxType.income, '💰'),
 ];
 
 final Map<String, MoneyCategoryDef> _defaultById = {
@@ -126,12 +119,6 @@ String moneyDefaultCategoryName(AppLocalizations l, String id) => switch (id) {
   'travel_stay' => l.moneyCatTravelStay,
   'travel_fun' => l.moneyCatTravelFun,
   'other' => l.moneyCatOther,
-  'salary' => l.moneyCatSalary,
-  'bonus' => l.moneyCatBonus,
-  'side' => l.moneyCatSide,
-  'gifted' => l.moneyCatGifted,
-  'interest' => l.moneyCatInterest,
-  'income_other' => l.moneyCatIncomeOther,
   _ => l.moneyCatOther,
 };
 
@@ -198,8 +185,8 @@ MoneyCategory _withOverride(MoneyCategoryDef def, MoneyMeta meta, String name) {
   );
 }
 
-/// Lookup for one book: id → category, unknown ids fall back to "Khác" /
-/// "Thu khác" (a deleted custom category, D9).
+/// Lookup for one book: id → category, unknown ids fall back to "Khác"
+/// (a deleted custom category, D9).
 class MoneyCategoryIndex {
   MoneyCategoryIndex(Iterable<MoneyCategory> categories)
     : _byId = {for (final c in categories) c.id: c};
@@ -208,11 +195,7 @@ class MoneyCategoryIndex {
 
   Iterable<MoneyCategory> get all => _byId.values;
 
-  MoneyCategory of(String id, {MoneyTxType kind = MoneyTxType.expense}) =>
-      _byId[id] ??
-      _byId[kind == MoneyTxType.income
-          ? kMoneyCategoryIncomeOther
-          : kMoneyCategoryOther]!;
+  MoneyCategory of(String id) => _byId[id] ?? _byId[kMoneyCategoryOther]!;
 
   /// The group a category belongs to (itself when it is a group, or when
   /// its parent is gone).

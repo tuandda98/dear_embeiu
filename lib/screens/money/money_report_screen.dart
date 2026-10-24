@@ -93,7 +93,6 @@ class _MoneyReportScreenState extends State<MoneyReportScreen> {
     final loading = state == null || txs == null || !state.txLoaded;
     final list = txs ?? const <MoneyTx>[];
     final idx = state?.categories;
-    final shared = _book == MoneyBookKind.shared;
     final totals = MoneyMath.monthTotals(list, month);
     final cats = idx == null
         ? const <(String, int)>[]
@@ -116,10 +115,6 @@ class _MoneyReportScreenState extends State<MoneyReportScreen> {
             loading: loading,
           ),
         ),
-        if (shared && !loading && totals.expense > 0)
-          moneyBlock(
-            _PersonCard(txs: list, month: month, total: totals.expense),
-          ),
         if (!loading && cats.isNotEmpty && idx != null)
           moneyBlock(
             MoneyCard(
@@ -321,39 +316,6 @@ class _MonthCard extends StatelessWidget {
       }
     }
 
-    Widget cell(String label, int v, {bool income = false}) => Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 2),
-            loading
-                ? const ShimmerSkeleton(width: 80, height: 14)
-                : FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: MoneyAmountText(
-                      v,
-                      size: 14,
-                      prefix: income && v > 0 ? '+' : '',
-                      color: income && v > 0
-                          ? AppColors.moneyPositive
-                          : AppColors.textPrimary,
-                    ),
-                  ),
-          ],
-        ),
-      ),
-    );
-
     return MoneyCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -370,45 +332,15 @@ class _MonthCard extends StatelessWidget {
                   )
                 : null,
           ),
-          if (shared) ...[
-            const SizedBox(height: 12),
-            if (loading)
-              const ShimmerSkeleton(width: 170, height: 30)
-            else
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: MoneyAmountText(totals.expense, size: 30),
-              ),
-          ] else ...[
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    cell(l10n.moneyIncome, totals.income, income: true),
-                    const VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      color: AppColors.white,
-                    ),
-                    cell(l10n.moneyTypeExpense, totals.expense),
-                    const VerticalDivider(
-                      width: 1,
-                      thickness: 1,
-                      color: AppColors.white,
-                    ),
-                    cell(l10n.moneyReportLeft, totals.left),
-                  ],
-                ),
-              ),
+          const SizedBox(height: 12),
+          if (loading)
+            const ShimmerSkeleton(width: 170, height: 30)
+          else
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: MoneyAmountText(totals.expense, size: 30),
             ),
-          ],
           const SizedBox(height: 12),
           if (finding == null)
             const ShimmerSkeleton(width: 260, height: 14)
@@ -421,122 +353,6 @@ class _MonthCard extends StatelessWidget {
                 color: AppColors.textPrimary,
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// "Theo người" (shared): Thảo · Ví chung · Mình with their share of the
-/// month, and what each put into the shared wallet / funds.
-class _PersonCard extends StatelessWidget {
-  const _PersonCard({
-    required this.txs,
-    required this.month,
-    required this.total,
-  });
-
-  final List<MoneyTx> txs;
-  final String month;
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final money = context.read<MoneyProvider>();
-    final people = MoneyPeople.of(context);
-    final uid = money.uid ?? '';
-    final partner = money.partnerUid;
-    final paid = MoneyMath.paidBy(txs, month);
-    final contrib = MoneyMath.contributionsBy(txs, month: month);
-
-    Widget lane(Widget avatar, String name, int v, CrossAxisAlignment al) =>
-        Expanded(
-          child: Column(
-            crossAxisAlignment: al,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  avatar,
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: MoneyAmountText(v, size: 16),
-              ),
-              Text(
-                '${MoneyViews.percentOf(v, total)}%',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        );
-
-    return MoneyCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MoneyCardHeader(title: l10n.moneyReportByPerson),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              lane(
-                MoneyAvatar(
-                  letter: people.partnerName,
-                  color: people.partnerColor,
-                ),
-                people.partnerName,
-                paid[partner] ?? 0,
-                CrossAxisAlignment.start,
-              ),
-              lane(
-                const MoneyAvatar(letter: 'C'),
-                l10n.moneyJointWallet,
-                paid[kMoneyPayerWallet] ?? 0,
-                CrossAxisAlignment.center,
-              ),
-              lane(
-                MoneyAvatar(letter: people.myName, color: people.meColor),
-                l10n.moneyMe,
-                paid[uid] ?? 0,
-                CrossAxisAlignment.end,
-              ),
-            ],
-          ),
-          if ((contrib[partner] ?? 0) + (contrib[uid] ?? 0) > 0) ...[
-            const SizedBox(height: 12),
-            Text(
-              l10n.moneyReportContrib(
-                people.partnerName,
-                vnd(context, contrib[partner] ?? 0),
-                vnd(context, contrib[uid] ?? 0),
-              ),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
         ],
       ),
     );

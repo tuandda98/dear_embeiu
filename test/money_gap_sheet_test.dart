@@ -176,8 +176,6 @@ MoneyTx _sharedExp(String id, int amount, {String? linkId}) => MoneyTx(
   categoryId: 'food_out',
   note: 'Lẩu Thái',
   payer: 'me',
-  splitMode: MoneySplitMode.equal,
-  payerShare: (amount + 1) ~/ 2,
   memberUids: const ['her', 'me'],
   linkId: linkId,
   createdBy: 'me',
@@ -334,7 +332,7 @@ void main() {
       expect(find.text('Cà phê, trà sữa · 50k'), findsOneWidget);
     });
 
-    testWidgets('QR-03: hidden after a digit, on the Thu tab, and when '
+    testWidgets('QR-03: hidden after a digit, on the Góp quỹ tab, and when '
         'editing', (t) async {
       await _open(t, _oneBook(txs: repeats));
       expect(find.text('Ghi lại khoản quen'), findsOneWidget);
@@ -343,7 +341,7 @@ void main() {
       await t.tap(find.bySemanticsLabel('Xoá một ký tự'));
       await t.pump();
       expect(find.text('Ghi lại khoản quen'), findsOneWidget);
-      await t.tap(find.text('Thu').last);
+      await t.tap(find.text('Góp quỹ').last);
       await t.pumpAndSettle();
       expect(find.text('Ghi lại khoản quen'), findsNothing);
     });
@@ -586,147 +584,56 @@ void main() {
   });
 
   group('shared book', () {
-    testWidgets('TX-21: income in the shared book has no "Ai trả"; it lands '
-        'in a shared wallet', (t) async {
+    testWidgets('TX-21: "Góp quỹ" in the shared book is my contribution into '
+        'a shared wallet, paid from my own wallet', (t) async {
       final money = _pair();
       await _open(
         t,
         money,
         book: MoneyBookKind.shared,
-        type: MoneyTxType.income,
+        type: MoneyTxType.contribution,
       );
       await _keys(t, ['2', '0', '0', 'k']);
       await _detail(t);
-      expect(find.text('Ai trả'), findsNothing);
-      expect(find.text('Vào ví'), findsOneWidget);
-      await t.tap(find.byType(MoneyPrimaryButton));
-      await t.pumpAndSettle();
-      final tx = money.added.single.tx;
-      expect(tx.type, MoneyTxType.income);
-      expect(tx.inWalletId, 'joint');
-      expect(tx.payer, 'me');
-      expect(tx.splitMode, MoneySplitMode.none);
-    });
-
-    testWidgets('TX-22 / SPL-07: "Chi từ quỹ" — the fund pays, no one owes '
-        'anyone', (t) async {
-      final money = _pair(
-        fund: const [
-          MoneyWallet(
-            id: 'fund',
-            name: 'Quỹ Đà Lạt',
-            type: MoneyWalletType.goal,
-            emoji: '🏔️',
-            goalTarget: 5000000,
-            memberUids: ['her', 'me'],
-          ),
-        ],
-      );
-      await _open(t, money, book: MoneyBookKind.shared, walletId: 'fund');
-      await _keys(t, ['3', '0', '0', 'k']);
-      await _detail(t);
-      expect(
-        find.text('Trả từ Ví chung nên không ai phải trả lại ai.'),
-        findsOneWidget,
-      );
       expect(find.text('Chia thế nào'), findsNothing);
       await t.tap(find.byType(MoneyPrimaryButton));
       await t.pumpAndSettle();
-      final tx = money.added.single.tx;
-      expect(tx.payer, kMoneyPayerWallet);
-      expect(tx.outWalletId, 'fund');
-      expect(tx.splitMode, MoneySplitMode.none);
-      expect(tx.payerShare, 0);
-      expect(
-        money.added.single.own,
-        isNull,
-        reason: 'nothing leaves my wallet',
-      );
-    });
-
-    testWidgets('SPL-06: the share line follows the amount; before one it asks '
-        'for it', (t) async {
-      await _open(t, _pair(), book: MoneyBookKind.shared);
-      await _detail(t);
-      expect(
-        find.text('Nhập số tiền để xem mỗi người chịu bao nhiêu'),
-        findsOneWidget,
-      );
-      await t.tap(find.text('100k'));
-      await t.pumpAndSettle();
-      expect(
-        find.text('Mình chịu 50.000 ₫ · Thảo chịu 50.000 ₫'),
-        findsOneWidget,
-      );
-      await t.tap(find.text('50k'));
-      await t.pumpAndSettle();
-      expect(
-        find.text('Mình chịu 75.000 ₫ · Thảo chịu 75.000 ₫'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('SPL-04: "Tuỳ" — starts at half, the stepper moves 10 % and '
-        'stays in [0, amount]', (t) async {
-      final money = _pair();
-      await _open(t, money, book: MoneyBookKind.shared);
-      await t.tap(find.text('200k'));
-      await t.tap(find.text('100k'));
-      await t.pump();
-      await _detail(t);
-      await t.tap(find.text('Tuỳ'));
-      await t.pumpAndSettle();
-      final field = find.byWidgetPredicate(
-        (w) => w is TextField && w.decoration?.suffixText == '₫',
-      );
-      TextField custom() => t.widget<TextField>(field);
-      expect(custom().controller!.text, '150000');
-      await _tap(t, find.byTooltip('Thêm 10%'));
-      expect(custom().controller!.text, '180000');
-      for (var i = 0; i < 6; i++) {
-        await _tap(t, find.byTooltip('Thêm 10%'));
-      }
-      expect(
-        custom().controller!.text,
-        '300000',
-        reason: 'capped at the amount',
-      );
-      for (var i = 0; i < 10; i++) {
-        await _tap(t, find.byTooltip('Bớt 10%'));
-      }
-      expect(custom().controller!.text, '0', reason: 'floored at 0');
-      await t.enterText(field, '100000');
-      await t.pump();
-      expect(
-        find.text('Mình chịu 100.000 ₫ · Thảo chịu 200.000 ₫'),
-        findsOneWidget,
-      );
-      await t.tap(find.byType(MoneyPrimaryButton));
-      await t.pumpAndSettle();
-      final tx = money.added.single.tx;
-      expect(tx.splitMode, MoneySplitMode.custom);
-      expect(tx.payerShare, 100000);
+      final r = money.added.single;
+      expect(r.tx.type, MoneyTxType.contribution);
+      expect(r.tx.inWalletId, 'joint');
+      expect(r.tx.outWalletId, isEmpty);
+      expect(r.tx.payer, 'me');
+      expect(r.own, isNotNull, reason: 'the money leaves my own wallet');
     });
 
     testWidgets(
-      'BUG (Low) SPL-04: "Bớt 10%" at 0 stays at 0 — today the field reads 0 '
-      'as invalid (parseVndInput zero), so the stepper jumps 0 → half − 10% '
-      '(add_transaction_sheet.dart _customRow.step / _payerShare)',
+      'TX-22: "Chi từ quỹ" — the fund pays, nothing leaves my wallet',
       (t) async {
-        await _open(t, _pair(), book: MoneyBookKind.shared);
-        await t.tap(find.text('200k'));
-        await t.tap(find.text('100k'));
-        await t.pump();
-        await _detail(t);
-        await t.tap(find.text('Tuỳ'));
-        await t.pumpAndSettle();
-        final field = find.byWidgetPredicate(
-          (w) => w is TextField && w.decoration?.suffixText == '₫',
+        final money = _pair(
+          fund: const [
+            MoneyWallet(
+              id: 'fund',
+              name: 'Quỹ Đà Lạt',
+              type: MoneyWalletType.goal,
+              emoji: '🏔️',
+              goalTarget: 5000000,
+              memberUids: ['her', 'me'],
+            ),
+          ],
         );
-        await t.enterText(field, '30000');
-        await _tap(t, find.byTooltip('Bớt 10%')); // 30000 → 0
-        await _tap(t, find.byTooltip('Bớt 10%')); // 0 → should stay 0
-        expect(t.widget<TextField>(field).controller!.text, '0');
+        await _open(t, money, book: MoneyBookKind.shared, walletId: 'fund');
+        await _keys(t, ['3', '0', '0', 'k']);
+        await _detail(t);
+        await t.tap(find.byType(MoneyPrimaryButton));
+        await t.pumpAndSettle();
+        final tx = money.added.single.tx;
+        expect(tx.payer, kMoneyPayerWallet);
+        expect(tx.outWalletId, 'fund');
+        expect(
+          money.added.single.own,
+          isNull,
+          reason: 'nothing leaves my wallet',
+        );
       },
     );
 
@@ -740,23 +647,6 @@ void main() {
       await t.tap(find.byType(MoneyPrimaryButton));
       await t.pumpAndSettle();
       expect(money.added.single.own, 'momo');
-    });
-
-    testWidgets('SPL-11: the partner paid → no "Trừ vào ví của mình" row', (
-      t,
-    ) async {
-      final money = _pair();
-      await _open(t, money, book: MoneyBookKind.shared);
-      expect(find.text('Trừ vào ví của mình'), findsOneWidget);
-      await _keys(t, ['1', '0', '0', 'k']);
-      await _detail(t);
-      await t.tap(find.text('Thảo').first);
-      await t.pumpAndSettle();
-      expect(find.text('Trừ vào ví của mình'), findsNothing);
-      await t.tap(find.byType(MoneyPrimaryButton));
-      await t.pumpAndSettle();
-      expect(money.added.single.tx.payer, 'her');
-      expect(money.added.single.own, isNull);
     });
   });
 
@@ -795,12 +685,11 @@ void main() {
     });
   });
 
-  group('remembered split (Hive)', () {
-    testWidgets('SPL-08: first time "Chia đôi"; afterwards the last split and '
-        'payer are remembered on this phone', (t) async {
-      // The memory of the last split is a Hive box. Opened here only (in
-      // memory, so no file IO under the fake clock) and last in the file, so
-      // no other test sees it.
+  group('remembered payer (Hive)', () {
+    testWidgets('SPL-08: first time "Tiền riêng"; afterwards the last source '
+        'is remembered on this phone', (t) async {
+      // The memory is a Hive box. Opened here only (in memory, so no file IO
+      // under the fake clock) and last in the file, so no other test sees it.
       await t.runAsync(
         () => Hive.openBox<String>('app_settings', bytes: Uint8List(0)),
       );
@@ -808,23 +697,22 @@ void main() {
       await _open(t, money, book: MoneyBookKind.shared);
       await _keys(t, ['2', '0', '0', 'k']);
       await _detail(t);
-      // Default is half and half.
-      expect(
-        find.text('Mình chịu 100.000 ₫ · Thảo chịu 100.000 ₫'),
-        findsOneWidget,
-      );
-      await t.tap(find.text('Mình mời'));
+      await t.tap(find.text('Ví chung'));
       await t.pumpAndSettle();
       await t.tap(find.byType(MoneyPrimaryButton));
       await t.pumpAndSettle();
-      expect(money.added.single.tx.splitMode, MoneySplitMode.treat);
-      expect(Hive.box<String>('app_settings').get('money_last_split'), 'treat');
+      expect(money.added.single.tx.payer, kMoneyPayerWallet);
+      expect(
+        Hive.box<String>('app_settings').get('money_last_payer'),
+        'wallet',
+      );
 
       await t.tap(find.text('open'));
       await t.pumpAndSettle();
       await _keys(t, ['2', '0', '0', 'k']);
-      await _detail(t);
-      expect(find.text('Mình chịu 200.000 ₫ · Thảo chịu 0 ₫'), findsOneWidget);
+      await t.tap(find.byType(MoneyPrimaryButton));
+      await t.pumpAndSettle();
+      expect(money.added.last.tx.payer, kMoneyPayerWallet);
     });
   });
 }

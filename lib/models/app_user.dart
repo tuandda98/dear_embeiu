@@ -29,29 +29,29 @@ class AppUser {
   bool get hasInviteCode => inviteCode.trim().isNotEmpty;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'email': email,
-        'displayName': displayName,
-        'avatarUrl': avatarUrl,
-        'coupleId': coupleId,
-        'inviteCode': inviteCode,
-        'status': status,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'lastSeenAt': lastSeenAt?.toIso8601String(),
-      };
+    'id': id,
+    'email': email,
+    'displayName': displayName,
+    'avatarUrl': avatarUrl,
+    'coupleId': coupleId,
+    'inviteCode': inviteCode,
+    'status': status,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'lastSeenAt': lastSeenAt?.toIso8601String(),
+  };
 
   Map<String, dynamic> toFirestore() => {
-        'email': email,
-        'displayName': displayName,
-        'avatarUrl': avatarUrl,
-        'coupleId': coupleId,
-        'inviteCode': inviteCode,
-        'status': status,
-        'createdAt': createdAt,
-        'updatedAt': updatedAt,
-        'lastSeenAt': lastSeenAt,
-      };
+    'email': email,
+    'displayName': displayName,
+    'avatarUrl': avatarUrl,
+    'coupleId': coupleId,
+    'inviteCode': inviteCode,
+    'status': status,
+    'createdAt': createdAt,
+    'updatedAt': updatedAt,
+    'lastSeenAt': lastSeenAt,
+  };
 
   // Narrow payload for a couple membership change (create/join/leave). Sends
   // ONLY the fields that legitimately change when (un)pairing — never the
@@ -68,11 +68,11 @@ class AppUser {
   // always passes. (`displayName`/`avatarUrl` are also intentionally omitted —
   // a coupling op should not touch them.)
   Map<String, dynamic> toCoupleMembershipPayload() => {
-        'coupleId': coupleId,
-        'status': status,
-        'updatedAt': updatedAt,
-        'lastSeenAt': lastSeenAt,
-      };
+    'coupleId': coupleId,
+    'status': status,
+    'updatedAt': updatedAt,
+    'lastSeenAt': lastSeenAt,
+  };
 
   // Payload for merge-updates of an existing doc. Intentionally omits the
   // immutable `createdAt`: re-sending it round-trips the value through
@@ -80,28 +80,28 @@ class AppUser {
   // nanoseconds, which breaks the exact-equality `createdAt` check in
   // firestore.rules and yields permission-denied. Merge keeps the stored value.
   Map<String, dynamic> toFirestoreUpdate() => {
-        'email': email,
-        'displayName': displayName,
-        'avatarUrl': avatarUrl,
-        'coupleId': coupleId,
-        'inviteCode': inviteCode,
-        'status': status,
-        'updatedAt': updatedAt,
-        'lastSeenAt': lastSeenAt,
-      };
+    'email': email,
+    'displayName': displayName,
+    'avatarUrl': avatarUrl,
+    'coupleId': coupleId,
+    'inviteCode': inviteCode,
+    'status': status,
+    'updatedAt': updatedAt,
+    'lastSeenAt': lastSeenAt,
+  };
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
-        id: json['id'] as String,
-        email: json['email'] as String,
-        displayName: json['displayName'] as String,
-        avatarUrl: json['avatarUrl'] as String?,
-        coupleId: json['coupleId'] as String?,
-        inviteCode: json['inviteCode'] as String? ?? '',
-        status: json['status'] as String? ?? 'single',
-        createdAt: _parseDateTime(json['createdAt']) ?? DateTime.now(),
-        updatedAt: _parseDateTime(json['updatedAt']) ?? DateTime.now(),
-        lastSeenAt: _parseDateTime(json['lastSeenAt']),
-      );
+    id: json['id'] as String,
+    email: json['email'] as String,
+    displayName: json['displayName'] as String,
+    avatarUrl: json['avatarUrl'] as String?,
+    coupleId: json['coupleId'] as String?,
+    inviteCode: json['inviteCode'] as String? ?? '',
+    status: json['status'] as String? ?? 'single',
+    createdAt: _parseDateTime(json['createdAt']) ?? DateTime.now(),
+    updatedAt: _parseDateTime(json['updatedAt']) ?? DateTime.now(),
+    lastSeenAt: _parseDateTime(json['lastSeenAt']),
+  );
 
   AppUser copyWith({
     String? id,
@@ -119,13 +119,19 @@ class AppUser {
       id: id ?? this.id,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
-      avatarUrl: identical(avatarUrl, _unset) ? this.avatarUrl : avatarUrl as String?,
-      coupleId: identical(coupleId, _unset) ? this.coupleId : coupleId as String?,
+      avatarUrl: identical(avatarUrl, _unset)
+          ? this.avatarUrl
+          : avatarUrl as String?,
+      coupleId: identical(coupleId, _unset)
+          ? this.coupleId
+          : coupleId as String?,
       inviteCode: inviteCode ?? this.inviteCode,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      lastSeenAt: identical(lastSeenAt, _unset) ? this.lastSeenAt : lastSeenAt as DateTime?,
+      lastSeenAt: identical(lastSeenAt, _unset)
+          ? this.lastSeenAt
+          : lastSeenAt as DateTime?,
     );
   }
 
@@ -145,12 +151,14 @@ class AppUser {
     // Firestore Timestamp: read with microsecond precision so a read→write
     // round-trip is lossless. Truncating to milliseconds would change the
     // value and trip the immutable-`createdAt` checks in firestore.rules.
-    final dynamic microsecondsSinceEpoch = (value as dynamic).microsecondsSinceEpoch;
+    final dynamic microsecondsSinceEpoch =
+        (value as dynamic).microsecondsSinceEpoch;
     if (microsecondsSinceEpoch is int) {
       return DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
     }
 
-    final dynamic millisecondsSinceEpoch = (value as dynamic).millisecondsSinceEpoch;
+    final dynamic millisecondsSinceEpoch =
+        (value as dynamic).millisecondsSinceEpoch;
     if (millisecondsSinceEpoch is int) {
       return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
     }
@@ -158,4 +166,3 @@ class AppUser {
     return null;
   }
 }
-

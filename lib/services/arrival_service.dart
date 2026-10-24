@@ -271,11 +271,11 @@ class ArrivalService {
           'updatedAt': FieldValue.serverTimestamp(),
         })
       : _doc(coupleId, uid).set({
-    'share': true,
-    'auto': auto,
-    'last': event.toMap(Timestamp.fromDate),
-    'updatedAt': FieldValue.serverTimestamp(),
-  }, SetOptions(mergeFields: ['share', 'auto', 'last', 'updatedAt']));
+          'share': true,
+          'auto': auto,
+          'last': event.toMap(Timestamp.fromDate),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(mergeFields: ['share', 'auto', 'last', 'updatedAt']));
 
   /// Only the "tự báo" flag (sharing already on).
   Future<void> setAuto(String coupleId, String uid, bool auto) =>

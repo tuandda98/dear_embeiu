@@ -83,21 +83,21 @@ class Mood {
   bool get hasNote => note.trim().isNotEmpty;
 
   Map<String, dynamic> toMap() => {
-        'mood': mood,
-        if (note.trim().isNotEmpty) 'note': note.trim(),
-        'date': date,
-        'updatedAt': updatedAt?.toIso8601String(),
-      };
+    'mood': mood,
+    if (note.trim().isNotEmpty) 'note': note.trim(),
+    'date': date,
+    'updatedAt': updatedAt?.toIso8601String(),
+  };
 
   factory Mood.fromDoc(String id, Map<String, dynamic> data) => Mood(
-        authorUserId: (data['authorUserId'] as String?)?.trim().isNotEmpty == true
-            ? data['authorUserId'] as String
-            : id,
-        mood: (data['mood'] as String?)?.trim() ?? '',
-        note: (data['note'] as String?)?.trim() ?? '',
-        date: (data['date'] as String?)?.trim() ?? '',
-        updatedAt: _parseDate(data['updatedAt']),
-      );
+    authorUserId: (data['authorUserId'] as String?)?.trim().isNotEmpty == true
+        ? data['authorUserId'] as String
+        : id,
+    mood: (data['mood'] as String?)?.trim() ?? '',
+    note: (data['note'] as String?)?.trim() ?? '',
+    date: (data['date'] as String?)?.trim() ?? '',
+    updatedAt: _parseDate(data['updatedAt']),
+  );
 
   factory Mood.fromJson(Map<String, dynamic> json) =>
       Mood.fromDoc((json['authorUserId'] as String?) ?? '', json);

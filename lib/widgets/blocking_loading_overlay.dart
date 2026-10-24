@@ -24,9 +24,7 @@ class BlockingLoadingOverlay extends StatelessWidget {
           Positioned.fill(
             child: IgnorePointer(
               ignoring: false,
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.18),
-              ),
+              child: Container(color: Colors.black.withValues(alpha: 0.18)),
             ),
           ),
           Positioned.fill(
@@ -34,7 +32,10 @@ class BlockingLoadingOverlay extends StatelessWidget {
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 240),
                 margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -85,4 +86,3 @@ class BlockingLoadingOverlay extends StatelessWidget {
     );
   }
 }
-

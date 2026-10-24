@@ -31,8 +31,9 @@ class FirebaseBootstrapService {
       await _activateAppCheck();
 
       if (!kIsWeb) {
-        await FirebaseCrashlytics.instance
-            .setCrashlyticsCollectionEnabled(!kDebugMode);
+        await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+          !kDebugMode,
+        );
       }
     } catch (e) {
       _isFirebaseReady = false;
@@ -91,4 +92,3 @@ class FirebaseBootstrapService {
     }
   }
 }
-

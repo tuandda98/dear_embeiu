@@ -111,10 +111,9 @@ class CatchupService {
     try {
       // One list query knocks out every already-revealed day cheaply; only the
       // survivors cost an extra per-day read below.
-      final markersSnap = await _dailyAnswers(coupleId)
-          .orderBy('date', descending: true)
-          .limit(_markerLimit)
-          .get();
+      final markersSnap = await _dailyAnswers(
+        coupleId,
+      ).orderBy('date', descending: true).limit(_markerLimit).get();
       final markers = <String, Map<String, dynamic>>{
         for (final doc in markersSnap.docs) doc.id: doc.data(),
       };

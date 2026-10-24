@@ -28,7 +28,8 @@ class MoodGlyph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final play = animate && !reduceMotion;
     return Lottie.asset(
       option.lottie,

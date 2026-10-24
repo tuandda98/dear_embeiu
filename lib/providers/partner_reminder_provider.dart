@@ -20,8 +20,8 @@ class PartnerReminderProvider extends ChangeNotifier {
   PartnerReminderProvider({
     PartnerReminderService? service,
     ReminderService? reminderService,
-  })  : _service = service ?? PartnerReminderService(),
-        _reminderService = reminderService ?? ReminderService.instance;
+  }) : _service = service ?? PartnerReminderService(),
+       _reminderService = reminderService ?? ReminderService.instance;
 
   final PartnerReminderService _service;
   final ReminderService _reminderService;
@@ -43,10 +43,9 @@ class PartnerReminderProvider extends ChangeNotifier {
     _coupleId = coupleId;
     _myUid = myUid;
     _sub?.cancel();
-    _sub = _service.watchPartnerReminders(coupleId).listen(
-          _onReminders,
-          onError: (_) {},
-        );
+    _sub = _service
+        .watchPartnerReminders(coupleId)
+        .listen(_onReminders, onError: (_) {});
   }
 
   void _onReminders(List<PartnerReminder> reminders) {
@@ -58,11 +57,13 @@ class PartnerReminderProvider extends ChangeNotifier {
     final incoming = reminders.where((r) => r.authorUserId != uid && r.enabled);
     final l10n = AppL10n.strings;
     final items = incoming
-        .map((r) => (
-              reminder: r.toScheduleReminder(),
-              title: r.text,
-              body: l10n.partnerReminderNotifBody,
-            ))
+        .map(
+          (r) => (
+            reminder: r.toScheduleReminder(),
+            title: r.text,
+            body: l10n.partnerReminderNotifBody,
+          ),
+        )
         .toList(growable: false);
     // Fire-and-forget; the service clears the band first so this is a full
     // re-arm of the current set.

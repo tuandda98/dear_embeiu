@@ -25,11 +25,13 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Ai đã dạy bạn từ nhỏ một điều mà tới giờ bạn vẫn giữ?',
-    'en': 'Which grown-up from your childhood taught you something you still keep?',
+    'en':
+        'Which grown-up from your childhood taught you something you still keep?',
   },
   {
     'vi': 'Phòng của bạn hồi bé trông thế nào, góc nào bạn nhớ nhất?',
-    'en': 'What did your childhood room look like, and which corner do you miss?',
+    'en':
+        'What did your childhood room look like, and which corner do you miss?',
   },
   {
     'vi': 'Hồi nhỏ, mỗi dịp nghỉ hè bạn thường làm gì?',
@@ -41,7 +43,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Ngày đầu tiên đi học, bạn còn nhớ mình đã sợ điều gì không?',
-    'en': 'On your first day of school, do you remember what you were afraid of?',
+    'en':
+        'On your first day of school, do you remember what you were afraid of?',
   },
   {
     'vi': 'Nhà bạn có câu cửa miệng nào mà ai cũng hay nói không?',
@@ -57,7 +60,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Có nếp sinh hoạt nào của gia đình bạn muốn giữ cho tổ ấm sau này?',
-    'en': 'Is there a family routine you want to keep in your own home someday?',
+    'en':
+        'Is there a family routine you want to keep in your own home someday?',
   },
   {
     'vi': 'Lần đầu bạn thấy mình đã lớn là vào lúc nào?',
@@ -69,7 +73,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Nếu đưa người ấy về nơi bạn lớn lên, bạn muốn dẫn đi đâu trước?',
-    'en': 'If you took your partner to where you grew up, where would you go first?',
+    'en':
+        'If you took your partner to where you grew up, where would you go first?',
   },
 
   // ── Ước mơ & tương lai (dreams & the future) — 15 ──────────────────────────
@@ -83,7 +88,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Có thị trấn nhỏ nào bạn nghĩ hợp để chúng mình sống chậm lại?',
-    'en': 'Is there a small town where you think you two could live more slowly?',
+    'en':
+        'Is there a small town where you think you two could live more slowly?',
   },
   {
     'vi': 'Bạn muốn chúng mình cùng dành dụm cho điều gì trong năm tới?',
@@ -114,7 +120,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
     'en': 'Where should your retirement start with a trip to?',
   },
   {
-    'vi': 'Việc gì chúng mình cứ hẹn lần hẹn lữa mà bạn muốn làm luôn trong tháng này?',
+    'vi':
+        'Việc gì chúng mình cứ hẹn lần hẹn lữa mà bạn muốn làm luôn trong tháng này?',
     'en': 'What would you like the two of you to stop putting off this month?',
   },
   {
@@ -123,7 +130,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Nếu có một cuốn album cho năm năm tới, trang đầu sẽ là ảnh gì?',
-    'en': 'If you had an album for the next five years, what would page one be?',
+    'en':
+        'If you had an album for the next five years, what would page one be?',
   },
   {
     'vi': 'Vài năm nữa, bạn mong công việc của chúng mình sẽ ra sao?',
@@ -169,7 +177,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Việc nhà nào bạn thấy dễ chịu, việc nào bạn muốn nhường lại?',
-    'en': 'Which chore do you find soothing, and which would you rather pass on?',
+    'en':
+        'Which chore do you find soothing, and which would you rather pass on?',
   },
   {
     'vi': 'Cuối ngày, có điều gì thì bạn thấy hôm nay thế là đủ?',
@@ -238,7 +247,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
     'en': 'Which adventurous sport would you try with your partner?',
   },
   {
-    'vi': 'Nếu được sống thử ở nước ngoài một tháng, chúng mình nên chọn nước nào?',
+    'vi':
+        'Nếu được sống thử ở nước ngoài một tháng, chúng mình nên chọn nước nào?',
     'en': 'If you two lived abroad for a month, where would you choose?',
   },
   {
@@ -389,14 +399,16 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Có câu nói nào từng làm bạn buồn rất lâu không?',
-    'en': 'Is there something you once heard that made you sad for a long time?',
+    'en':
+        'Is there something you once heard that made you sad for a long time?',
   },
   {
     'vi': 'Khi vui đến mức khó giấu, bạn thể hiện ra sao?',
     'en': 'When you are really happy, how does it show?',
   },
   {
-    'vi': 'Lúc buồn, bạn muốn được an ủi bằng lời hay chỉ cần có người ngồi cạnh?',
+    'vi':
+        'Lúc buồn, bạn muốn được an ủi bằng lời hay chỉ cần có người ngồi cạnh?',
     'en': 'Would you rather be comforted with words or with quiet company?',
   },
   {
@@ -489,7 +501,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Bạn muốn người ấy hỏi thẳng hay tự đoán ý bạn?',
-    'en': 'Would you rather your partner ask directly or read between the lines?',
+    'en':
+        'Would you rather your partner ask directly or read between the lines?',
   },
   {
     'vi': 'Khi tâm sự, bạn cần lời khuyên hay chỉ cần có người nghe?',
@@ -509,7 +522,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Có điều gì bạn ngại nói vì sợ người ấy buồn không?',
-    'en': 'Is there something you hold back for fear of upsetting your partner?',
+    'en':
+        'Is there something you hold back for fear of upsetting your partner?',
   },
   {
     'vi': 'Mỗi ngày chúng mình nên dành bao lâu chỉ để trò chuyện?',
@@ -605,7 +619,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   },
   {
     'vi': 'Nếu làm một tấm bưu thiếp cho chúng mình, mặt trước vẽ gì?',
-    'en': 'If you made a postcard for the two of you, what would the front show?',
+    'en':
+        'If you made a postcard for the two of you, what would the front show?',
   },
   {
     'vi': 'Nếu chúng mình có một câu khẩu hiệu riêng, đó sẽ là câu gì?',
@@ -615,7 +630,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
   // ── Lời hứa & mong muốn nhỏ (small promises & wishes) — 5 ──────────────────
   {
     'vi': 'Tuần này có điều nhỏ nào bạn muốn nhờ người ấy làm cho mình?',
-    'en': 'Is there a small thing you would like your partner to do for you this week?',
+    'en':
+        'Is there a small thing you would like your partner to do for you this week?',
   },
   {
     'vi': 'Tháng tới chúng mình nên hứa với nhau điều gì?',
@@ -630,7 +646,8 @@ const List<Map<String, String>> dailyQuestionsExtra = <Map<String, String>>[
     'en': 'Is there something you hope your partner never stops doing?',
   },
   {
-    'vi': 'Bạn muốn tự hứa với lòng điều gì để thương người ấy khéo hơn một chút?',
+    'vi':
+        'Bạn muốn tự hứa với lòng điều gì để thương người ấy khéo hơn một chút?',
     'en': 'What would you promise yourself in order to love a little better?',
   },
 ];

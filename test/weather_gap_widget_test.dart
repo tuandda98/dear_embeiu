@@ -116,11 +116,7 @@ class _GateService extends FakeWeatherService {
     DateTime? now,
   }) async {
     await gate.future;
-    return super.fetchForecasts(
-      cityIds,
-      languageCode: languageCode,
-      now: now,
-    );
+    return super.fetchForecasts(cityIds, languageCode: languageCode, now: now);
   }
 }
 
@@ -220,7 +216,9 @@ void main() {
   ) async {
     await pump(tester, FakeWeatherService(), choices: {}, waiting: true);
     expect(
-      find.text('Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.'),
+      find.text(
+        'Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.',
+      ),
       findsOneWidget,
     );
     expect(find.textContaining('Thảo'), findsNothing);
@@ -229,32 +227,33 @@ void main() {
 
   // ── CH-04 ────────────────────────────────────────────────────────────────
 
-  testWidgets('CH-04: "Để sau" closes the sheet; the card then offers "Chọn giúp"', (
-    tester,
-  ) async {
-    final svc = FakeWeatherService()
-      ..server = {'vn-ha-noi': fc()}
-      ..hive.clear();
-    await pump(tester, svc, choices: {}, child: _openers(_couple()));
-    await tester.tap(find.byKey(const Key('open-chain')));
-    await tester.pumpAndSettle();
-    expect(find.byType(CityPicker), findsOneWidget);
+  testWidgets(
+    'CH-04: "Để sau" closes the sheet; the card then offers "Chọn giúp"',
+    (tester) async {
+      final svc = FakeWeatherService()
+        ..server = {'vn-ha-noi': fc()}
+        ..hive.clear();
+      await pump(tester, svc, choices: {}, child: _openers(_couple()));
+      await tester.tap(find.byKey(const Key('open-chain')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CityPicker), findsOneWidget);
 
-    await tester.tap(find.text('Hà Nội'));
-    await tester.pump();
-    expect(find.text('Còn Thảo đang ở đâu?'), findsOneWidget);
-    await tester.tap(find.text('Để sau'));
-    await tester.pumpAndSettle();
-    expect(find.byType(CityPicker), findsNothing);
-    expect(svc.writes, ['me=vn-ha-noi by me'], reason: 'nothing for Thảo');
-
-    svc.choices.add({'me': ch('me', 'vn-ha-noi')}); // the server echo
-    for (var i = 0; i < 4; i++) {
+      await tester.tap(find.text('Hà Nội'));
       await tester.pump();
-    }
-    expect(find.text('Thảo đang ở đâu?'), findsOneWidget);
-    expect(find.text('Chọn giúp'), findsOneWidget);
-  });
+      expect(find.text('Còn Thảo đang ở đâu?'), findsOneWidget);
+      await tester.tap(find.text('Để sau'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CityPicker), findsNothing);
+      expect(svc.writes, ['me=vn-ha-noi by me'], reason: 'nothing for Thảo');
+
+      svc.choices.add({'me': ch('me', 'vn-ha-noi')}); // the server echo
+      for (var i = 0; i < 4; i++) {
+        await tester.pump();
+      }
+      expect(find.text('Thảo đang ở đâu?'), findsOneWidget);
+      expect(find.text('Chọn giúp'), findsOneWidget);
+    },
+  );
 
   // ── FE-16 / CARD-08 ──────────────────────────────────────────────────────
 
@@ -383,7 +382,9 @@ void main() {
     expect(svc.calls.single, ['vn-ha-noi']);
   });
 
-  testWidgets('SR-10: English card shows the short name "HCMC"', (tester) async {
+  testWidgets('SR-10: English card shows the short name "HCMC"', (
+    tester,
+  ) async {
     final svc = FakeWeatherService()
       ..server = {'vn-ha-noi': fc(), 'vn-tp-hcm': fc(symbol: 'rain')};
     await pump(
@@ -436,12 +437,12 @@ void main() {
       find.descendant(of: sheet, matching: find.text('BẠN')),
       findsOneWidget,
     );
-    final meY = tester.getTopLeft(
-      find.descendant(of: sheet, matching: find.text('BẠN')),
-    ).dy;
-    final herY = tester.getTopLeft(
-      find.descendant(of: sheet, matching: find.text('THẢO')),
-    ).dy;
+    final meY = tester
+        .getTopLeft(find.descendant(of: sheet, matching: find.text('BẠN')))
+        .dy;
+    final herY = tester
+        .getTopLeft(find.descendant(of: sheet, matching: find.text('THẢO')))
+        .dy;
     expect(meY, lessThan(herY));
 
     // The scale: both places print the same two end labels (22° … 31°).
@@ -472,12 +473,17 @@ void main() {
     final phone = DateTime.now().timeZoneOffset;
     final differing = [
       for (final id in ['vn-ha-noi', 'jp-tokyo'])
-        if (WeatherProvider.cityUtcOffset(weatherCityById(id)!, DateTime.now()) !=
+        if (WeatherProvider.cityUtcOffset(
+              weatherCityById(id)!,
+              DateTime.now(),
+            ) !=
             phone)
           id,
     ];
     expect(differing, isNotEmpty, reason: 'Hà Nội +7 and Tokyo +9 differ');
-    final stamps = _texts(tester).where((t) => t.contains('bên đó đang')).toList();
+    final stamps = _texts(
+      tester,
+    ).where((t) => t.contains('bên đó đang')).toList();
     expect(stamps.length, differing.length);
     expect(
       stamps.every((t) => RegExp(r'bên đó đang \d\d:\d\d').hasMatch(t)),
@@ -505,52 +511,64 @@ void main() {
     expect(find.byType(WeatherNudgeButton), findsNothing);
   });
 
-  testWidgets('SH-03: control — the same rain with fresh numbers shows the nudge', (
-    tester,
-  ) async {
-    final n = DateTime.now().toUtc();
-    await openDetail(
-      tester,
-      server: {
-        'vn-ha-noi': live(fetched: n),
-        'vn-tp-hcm': live(fetched: n, rainNow: true),
-      },
-      choices: {'me': ch('me', 'vn-ha-noi'), 'other': ch('other', 'vn-tp-hcm')},
-    );
-    expect(find.byType(WeatherNudgeButton), findsWidgets);
-  });
+  testWidgets(
+    'SH-03: control — the same rain with fresh numbers shows the nudge',
+    (tester) async {
+      final n = DateTime.now().toUtc();
+      await openDetail(
+        tester,
+        server: {
+          'vn-ha-noi': live(fetched: n),
+          'vn-tp-hcm': live(fetched: n, rainNow: true),
+        },
+        choices: {
+          'me': ch('me', 'vn-ha-noi'),
+          'other': ch('other', 'vn-tp-hcm'),
+        },
+      );
+      expect(find.byType(WeatherNudgeButton), findsWidgets);
+    },
+  );
 
-  testWidgets('SH-06: numbers older than 24 h or none → error row, no invented figures', (
-    tester,
-  ) async {
-    final n = DateTime.now().toUtc();
-    await openDetail(
-      tester,
-      server: {
-        'vn-ha-noi': live(fetched: n),
-        'vn-tp-hcm': live(fetched: n.subtract(const Duration(hours: 30))),
-      },
-      choices: {'me': ch('me', 'vn-ha-noi'), 'other': ch('other', 'vn-tp-hcm')},
-    );
-    expect(find.text('Chưa tải được thời tiết'), findsWidgets);
-    expect(find.text('Thử lại'), findsWidgets);
-    // Only my place has a scale; Thảo's block has none.
-    expect(find.textContaining('Từ giờ tới khuya'), findsOneWidget);
-    expect(find.byType(WeatherNudgeButton), findsNothing);
-  });
+  testWidgets(
+    'SH-06: numbers older than 24 h or none → error row, no invented figures',
+    (tester) async {
+      final n = DateTime.now().toUtc();
+      await openDetail(
+        tester,
+        server: {
+          'vn-ha-noi': live(fetched: n),
+          'vn-tp-hcm': live(fetched: n.subtract(const Duration(hours: 30))),
+        },
+        choices: {
+          'me': ch('me', 'vn-ha-noi'),
+          'other': ch('other', 'vn-tp-hcm'),
+        },
+      );
+      expect(find.text('Chưa tải được thời tiết'), findsWidgets);
+      expect(find.text('Thử lại'), findsWidgets);
+      // Only my place has a scale; Thảo's block has none.
+      expect(find.textContaining('Từ giờ tới khuya'), findsOneWidget);
+      expect(find.byType(WeatherNudgeButton), findsNothing);
+    },
+  );
 
-  testWidgets('SH-06: a place the server has no data for → the same error row', (
-    tester,
-  ) async {
-    final n = DateTime.now().toUtc();
-    await openDetail(
-      tester,
-      server: {'vn-ha-noi': live(fetched: n)},
-      choices: {'me': ch('me', 'vn-ha-noi'), 'other': ch('other', 'vn-tp-hcm')},
-    );
-    expect(find.text('Chưa tải được thời tiết'), findsWidgets);
-    expect(find.textContaining('Từ giờ tới khuya'), findsOneWidget);
-  });
+  testWidgets(
+    'SH-06: a place the server has no data for → the same error row',
+    (tester) async {
+      final n = DateTime.now().toUtc();
+      await openDetail(
+        tester,
+        server: {'vn-ha-noi': live(fetched: n)},
+        choices: {
+          'me': ch('me', 'vn-ha-noi'),
+          'other': ch('other', 'vn-tp-hcm'),
+        },
+      );
+      expect(find.text('Chưa tải được thời tiết'), findsWidgets);
+      expect(find.textContaining('Từ giờ tới khuya'), findsOneWidget);
+    },
+  );
 
   // ── ST-03 / ST-06 ────────────────────────────────────────────────────────
 
@@ -612,7 +630,9 @@ void main() {
   // ── LG-01 ────────────────────────────────────────────────────────────────
 
   Future<void> expectNoVietnamese(WidgetTester tester) async {
-    final all = _texts(tester).map((t) => t.replaceAll(RegExp('thảo', caseSensitive: false), '')).toList();
+    final all = _texts(tester)
+        .map((t) => t.replaceAll(RegExp('thảo', caseSensitive: false), ''))
+        .toList();
     final bad = all.where(_vietnamese.hasMatch).toList();
     expect(bad, isEmpty, reason: 'Vietnamese on an English screen: $bad');
   }
@@ -723,11 +743,19 @@ void main() {
 
   testWidgets('A11-03: invite buttons are ≥ 44 dp', (tester) async {
     await pump(tester, FakeWeatherService(), choices: {});
-    expectTarget(tester, find.ancestor(of: find.text('Chọn thành phố'), matching: anyButton));
-    expectTarget(tester, find.ancestor(of: find.text('Ẩn'), matching: find.byType(InkWell)));
+    expectTarget(
+      tester,
+      find.ancestor(of: find.text('Chọn thành phố'), matching: anyButton),
+    );
+    expectTarget(
+      tester,
+      find.ancestor(of: find.text('Ẩn'), matching: find.byType(InkWell)),
+    );
   });
 
-  testWidgets('A11-03: nudge, "Chọn giúp" and retry are ≥ 44 dp', (tester) async {
+  testWidgets('A11-03: nudge, "Chọn giúp" and retry are ≥ 44 dp', (
+    tester,
+  ) async {
     await pump(
       tester,
       FakeWeatherService()
@@ -741,14 +769,20 @@ void main() {
       FakeWeatherService()..server = {'vn-ha-noi': fc()},
       choices: {'me': ch('me', 'vn-ha-noi')},
     );
-    expectTarget(tester, find.ancestor(of: find.text('Chọn giúp'), matching: anyButton));
+    expectTarget(
+      tester,
+      find.ancestor(of: find.text('Chọn giúp'), matching: anyButton),
+    );
 
     await pump(
       tester,
       FakeWeatherService()..server = null,
       choices: {'me': ch('me', 'vn-ha-noi')},
     );
-    expectTarget(tester, find.ancestor(of: find.text('Thử lại'), matching: anyButton));
+    expectTarget(
+      tester,
+      find.ancestor(of: find.text('Thử lại'), matching: anyButton),
+    );
   });
 
   testWidgets('A11-03: city rows in the picker are ≥ 52 dp', (tester) async {

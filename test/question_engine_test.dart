@@ -24,7 +24,8 @@ QuestionContext ctxFor(
   DateTime? anniversary,
 }) {
   final dateOnly = DateTime(date.year, date.month, date.day);
-  final key = '${dateOnly.year.toString().padLeft(4, '0')}-'
+  final key =
+      '${dateOnly.year.toString().padLeft(4, '0')}-'
       '${dateOnly.month.toString().padLeft(2, '0')}-'
       '${dateOnly.day.toString().padLeft(2, '0')}';
   return QuestionContext(
@@ -53,8 +54,10 @@ void main() {
     final engine = QuestionEngine.withDefaults();
 
     test('Mon/Wed/Sun ask the template source for the right group', () {
-      expect(engine.planFor(ctxFor(monday)).first,
-          'template:$kTplGroupWeekStart');
+      expect(
+        engine.planFor(ctxFor(monday)).first,
+        'template:$kTplGroupWeekStart',
+      );
       expect(
         engine.planFor(ctxFor(monday.add(const Duration(days: 2)))).first,
         'template:$kTplGroupFeeling',
@@ -66,14 +69,22 @@ void main() {
     });
 
     test('Tue/Thu/Sat go to the bank, Fri to revisit', () {
-      expect(engine.planFor(ctxFor(monday.add(const Duration(days: 1)))).first,
-          'bank');
-      expect(engine.planFor(ctxFor(monday.add(const Duration(days: 3)))).first,
-          'bank');
-      expect(engine.planFor(ctxFor(monday.add(const Duration(days: 5)))).first,
-          'bank');
-      expect(engine.planFor(ctxFor(monday.add(const Duration(days: 4)))).first,
-          'revisit');
+      expect(
+        engine.planFor(ctxFor(monday.add(const Duration(days: 1)))).first,
+        'bank',
+      );
+      expect(
+        engine.planFor(ctxFor(monday.add(const Duration(days: 3)))).first,
+        'bank',
+      );
+      expect(
+        engine.planFor(ctxFor(monday.add(const Duration(days: 5)))).first,
+        'bank',
+      );
+      expect(
+        engine.planFor(ctxFor(monday.add(const Duration(days: 4)))).first,
+        'revisit',
+      );
     });
 
     test('every plan carries the [template, bank] fallback, deduped', () {
@@ -93,17 +104,27 @@ void main() {
 
     test('calendar overrides win over the weekday rotation', () {
       // 2026-02-14 (Valentine) is a Saturday — a bank day by rotation.
-      expect(engine.planFor(ctxFor(DateTime(2026, 2, 14))).first,
-          'template:$kTplGroupValentine');
+      expect(
+        engine.planFor(ctxFor(DateTime(2026, 2, 14))).first,
+        'template:$kTplGroupValentine',
+      );
       // 2027-01-01 (New Year) is a Friday — a revisit day by rotation.
-      expect(engine.planFor(ctxFor(DateTime(2027, 1, 1))).first,
-          'template:$kTplGroupNewYear');
-      expect(engine.planFor(ctxFor(DateTime(2026, 12, 25))).first,
-          'template:$kTplGroupChristmas');
-      expect(engine.planFor(ctxFor(DateTime(2026, 10, 20))).first,
-          'template:$kTplGroupVnWomen');
-      expect(engine.planFor(ctxFor(DateTime(2027, 3, 8))).first,
-          'template:$kTplGroupWomensDay');
+      expect(
+        engine.planFor(ctxFor(DateTime(2027, 1, 1))).first,
+        'template:$kTplGroupNewYear',
+      );
+      expect(
+        engine.planFor(ctxFor(DateTime(2026, 12, 25))).first,
+        'template:$kTplGroupChristmas',
+      );
+      expect(
+        engine.planFor(ctxFor(DateTime(2026, 10, 20))).first,
+        'template:$kTplGroupVnWomen',
+      );
+      expect(
+        engine.planFor(ctxFor(DateTime(2027, 3, 8))).first,
+        'template:$kTplGroupWomensDay',
+      );
     });
 
     test('month edges, streak, photo-less weekend and mood add hooks', () {
@@ -193,8 +214,11 @@ void main() {
           askedBankIds: asked,
         );
         expect(candidate, isNotNull);
-        expect(asked.contains(candidate!.questionId), isFalse,
-            reason: 'repeat on $dateKey');
+        expect(
+          asked.contains(candidate!.questionId),
+          isFalse,
+          reason: 'repeat on $dateKey',
+        );
         asked.add(candidate.questionId!);
       }
       expect(asked.toSet().length, asked.length);
@@ -209,8 +233,10 @@ void main() {
         askedBankIds: all,
       );
       expect(pick, isNotNull);
-      expect(pick!.questionId,
-          inInclusiveRange(0, BankQuestionSource.bankLength - 1));
+      expect(
+        pick!.questionId,
+        inInclusiveRange(0, BankQuestionSource.bankLength - 1),
+      );
       // One short of exhausted → still no-repeat on the last remaining id.
       final nearly = all.sublist(1);
       expect(BankQuestionSource.isExhausted(nearly), isFalse);
@@ -224,7 +250,9 @@ void main() {
 
     test('out-of-range asked ids never count towards exhaustion', () {
       final junk = List<int>.generate(
-          BankQuestionSource.bankLength, (i) => i + 100000);
+        BankQuestionSource.bankLength,
+        (i) => i + 100000,
+      );
       expect(BankQuestionSource.isExhausted(junk), isFalse);
       final pick = BankQuestionSource.pick(
         coupleId: 'couple-abc',
@@ -235,8 +263,10 @@ void main() {
     });
 
     test('appending to the bank does not shift existing indices', () {
-      expect(BankQuestionSource.bankLength,
-          dailyQuestions.length + dailyQuestionsExtra.length);
+      expect(
+        BankQuestionSource.bankLength,
+        dailyQuestions.length + dailyQuestionsExtra.length,
+      );
       for (int i = 0; i < dailyQuestions.length; i++) {
         expect(BankQuestionSource.entryAt(i), dailyQuestions[i]);
       }
@@ -292,18 +322,20 @@ void main() {
   group('template source', () {
     const source = TemplateQuestionSource();
 
-    test('proposeGroup is deterministic and fills no placeholders raw',
-        () async {
-      final ctx = ctxFor(DateTime(2026, 9, 7));
-      final a = await source.proposeGroup(ctx, kTplGroupWeekStart);
-      final b = await source.proposeGroup(ctx, kTplGroupWeekStart);
-      expect(a, isNotNull);
-      expect(a!.templateKey, b!.templateKey);
-      expect(a.questionVi.contains('%'), isFalse);
-      expect(a.questionEn.contains('%'), isFalse);
-      expect(a.source, 'template');
-      expect(a.templateKey!.startsWith('$kTplGroupWeekStart:'), isTrue);
-    });
+    test(
+      'proposeGroup is deterministic and fills no placeholders raw',
+      () async {
+        final ctx = ctxFor(DateTime(2026, 9, 7));
+        final a = await source.proposeGroup(ctx, kTplGroupWeekStart);
+        final b = await source.proposeGroup(ctx, kTplGroupWeekStart);
+        expect(a, isNotNull);
+        expect(a!.templateKey, b!.templateKey);
+        expect(a.questionVi.contains('%'), isFalse);
+        expect(a.questionEn.contains('%'), isFalse);
+        expect(a.source, 'template');
+        expect(a.templateKey!.startsWith('$kTplGroupWeekStart:'), isTrue);
+      },
+    );
 
     test('avoids keys listed in recentTemplateKeys', () async {
       final plain = await source.proposeGroup(
@@ -311,58 +343,73 @@ void main() {
         kTplGroupWeekStart,
       );
       final avoided = await source.proposeGroup(
-        ctxFor(DateTime(2026, 9, 7),
-            recentTemplateKeys: <String>[plain!.templateKey!]),
+        ctxFor(
+          DateTime(2026, 9, 7),
+          recentTemplateKeys: <String>[plain!.templateKey!],
+        ),
         kTplGroupWeekStart,
       );
       expect(avoided, isNotNull);
       expect(avoided!.templateKey, isNot(plain.templateKey));
     });
 
-    test('mood group substitutes a real word and skips unknown moods',
-        () async {
-      final known = await source.proposeGroup(
-        ctxFor(DateTime(2026, 9, 7), partnerMood: 'tired'),
-        kTplGroupMoodPartner,
-      );
-      expect(known, isNotNull);
-      expect(known!.questionVi.contains('mệt'), isTrue);
-      expect(known.questionEn.contains('tired'), isTrue);
+    test(
+      'mood group substitutes a real word and skips unknown moods',
+      () async {
+        final known = await source.proposeGroup(
+          ctxFor(DateTime(2026, 9, 7), partnerMood: 'tired'),
+          kTplGroupMoodPartner,
+        );
+        expect(known, isNotNull);
+        expect(known!.questionVi.contains('mệt'), isTrue);
+        expect(known.questionEn.contains('tired'), isTrue);
 
-      final unknown = await source.proposeGroup(
-        ctxFor(DateTime(2026, 9, 7), partnerMood: 'not-a-mood'),
-        kTplGroupMoodPartner,
-      );
-      expect(unknown, isNull);
-    });
+        final unknown = await source.proposeGroup(
+          ctxFor(DateTime(2026, 9, 7), partnerMood: 'not-a-mood'),
+          kTplGroupMoodPartner,
+        );
+        expect(unknown, isNull);
+      },
+    );
 
-    test('mood question reads right for BOTH partners (shared marker)',
-        () async {
-      // The phone that resolves first sees its partner's mood, but the text is
-      // stored once and read by both — the mood's owner included. So nothing
-      // may point at "the partner" or at the reader as the one feeling it.
-      for (final t in templatesForGroup(kTplGroupMoodPartner)) {
-        expect(t.vi.contains('người ấy'), isFalse, reason: t.key);
-        expect(t.en.toLowerCase().contains('your partner'), isFalse,
-            reason: t.key);
-      }
-      for (final word in kMoodWordVi.values) {
-        expect(word.contains('bạn'), isFalse, reason: word);
-      }
-      for (final mood in kMoodWordVi.keys) {
-        for (int day = 1; day <= 8; day++) {
-          final q = await source.proposeGroup(
-            ctxFor(DateTime(2026, 9, day), partnerMood: mood),
-            kTplGroupMoodPartner,
+    test(
+      'mood question reads right for BOTH partners (shared marker)',
+      () async {
+        // The phone that resolves first sees its partner's mood, but the text is
+        // stored once and read by both — the mood's owner included. So nothing
+        // may point at "the partner" or at the reader as the one feeling it.
+        for (final t in templatesForGroup(kTplGroupMoodPartner)) {
+          expect(t.vi.contains('người ấy'), isFalse, reason: t.key);
+          expect(
+            t.en.toLowerCase().contains('your partner'),
+            isFalse,
+            reason: t.key,
           );
-          expect(q, isNotNull, reason: mood);
-          expect(q!.questionVi.contains(kMoodWordVi[mood]!), isTrue,
-              reason: q.questionVi);
-          expect(q.questionEn.contains(kMoodWordEn[mood]!), isTrue,
-              reason: q.questionEn);
         }
-      }
-    });
+        for (final word in kMoodWordVi.values) {
+          expect(word.contains('bạn'), isFalse, reason: word);
+        }
+        for (final mood in kMoodWordVi.keys) {
+          for (int day = 1; day <= 8; day++) {
+            final q = await source.proposeGroup(
+              ctxFor(DateTime(2026, 9, day), partnerMood: mood),
+              kTplGroupMoodPartner,
+            );
+            expect(q, isNotNull, reason: mood);
+            expect(
+              q!.questionVi.contains(kMoodWordVi[mood]!),
+              isTrue,
+              reason: q.questionVi,
+            );
+            expect(
+              q.questionEn.contains(kMoodWordEn[mood]!),
+              isTrue,
+              reason: q.questionEn,
+            );
+          }
+        }
+      },
+    );
 
     test('milestone copy only counts down BEFORE the milestone', () async {
       // 100 days after 2024-01-01 is 2024-04-10; two days before → "còn 2".
@@ -396,8 +443,10 @@ void main() {
       );
       expect(hit, isNotNull);
       expect(hit!.milestone, 730);
-      expect(hit.offset.abs() <= TemplateQuestionSource.milestoneWindowDays,
-          isTrue);
+      expect(
+        hit.offset.abs() <= TemplateQuestionSource.milestoneWindowDays,
+        isTrue,
+      );
       expect(
         TemplateQuestionSource.nearestMilestoneOffset(
           DateTime(2024, 1, 1),

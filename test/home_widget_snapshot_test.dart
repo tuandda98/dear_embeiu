@@ -74,7 +74,10 @@ void main() {
   });
 
   test('names are trimmed; a blank partner name stays blank', () {
-    final s = HomeWidgetSnapshot.build(couple: couple(name2: '  '), l10n: vi);
+    final s = HomeWidgetSnapshot.build(
+      couple: couple(name2: '  '),
+      l10n: vi,
+    );
     expect(s['name2'], '');
   });
 

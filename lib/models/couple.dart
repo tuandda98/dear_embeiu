@@ -37,7 +37,8 @@ class Couple {
     required this.updatedAt,
   });
 
-  bool get isWaitingForPartner => memberCount < 2 || status == 'waiting_partner';
+  bool get isWaitingForPartner =>
+      memberCount < 2 || status == 'waiting_partner';
 
   // Convert to JSON for storage
   Map<String, dynamic> toJson() => {
@@ -151,8 +152,11 @@ class Couple {
     couplePhotoStoragePath: json['couplePhotoStoragePath'] as String?,
     inviteCode: json['inviteCode'] as String? ?? '',
     coupleCode: json['coupleCode'] as String?,
-    memberIds: (json['memberIds'] as List?)?.map((e) => '$e').toList() ?? const [],
-    memberCount: json['memberCount'] as int? ?? ((json['memberIds'] as List?)?.length ?? 0),
+    memberIds:
+        (json['memberIds'] as List?)?.map((e) => '$e').toList() ?? const [],
+    memberCount:
+        json['memberCount'] as int? ??
+        ((json['memberIds'] as List?)?.length ?? 0),
     createdByUserId: json['createdByUserId'] as String? ?? '',
     status: json['status'] as String? ?? 'waiting_partner',
     createdAt: _parseDateTime(json['createdAt']) ?? DateTime.now(),
@@ -176,25 +180,24 @@ class Couple {
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) =>
-      Couple(
-        id: id ?? this.id,
-        person1Name: person1Name ?? this.person1Name,
-        person2Name: person2Name ?? this.person2Name,
-        anniversaryDate: anniversaryDate ?? this.anniversaryDate,
-        couplePhotoPath: couplePhotoPath ?? this.couplePhotoPath,
-        couplePhotoUrl: couplePhotoUrl ?? this.couplePhotoUrl,
-        couplePhotoStoragePath:
-            couplePhotoStoragePath ?? this.couplePhotoStoragePath,
-        inviteCode: inviteCode ?? this.inviteCode,
-        coupleCode: coupleCode ?? this.coupleCode,
-        memberIds: memberIds ?? this.memberIds,
-        memberCount: memberCount ?? this.memberCount,
-        createdByUserId: createdByUserId ?? this.createdByUserId,
-        status: status ?? this.status,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  }) => Couple(
+    id: id ?? this.id,
+    person1Name: person1Name ?? this.person1Name,
+    person2Name: person2Name ?? this.person2Name,
+    anniversaryDate: anniversaryDate ?? this.anniversaryDate,
+    couplePhotoPath: couplePhotoPath ?? this.couplePhotoPath,
+    couplePhotoUrl: couplePhotoUrl ?? this.couplePhotoUrl,
+    couplePhotoStoragePath:
+        couplePhotoStoragePath ?? this.couplePhotoStoragePath,
+    inviteCode: inviteCode ?? this.inviteCode,
+    coupleCode: coupleCode ?? this.coupleCode,
+    memberIds: memberIds ?? this.memberIds,
+    memberCount: memberCount ?? this.memberCount,
+    createdByUserId: createdByUserId ?? this.createdByUserId,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) {
@@ -212,12 +215,14 @@ class Couple {
     // Firestore Timestamp: read with microsecond precision so a read→write
     // round-trip is lossless. Truncating to milliseconds would change the
     // value and trip the immutable-`createdAt` checks in firestore.rules.
-    final dynamic microsecondsSinceEpoch = (value as dynamic).microsecondsSinceEpoch;
+    final dynamic microsecondsSinceEpoch =
+        (value as dynamic).microsecondsSinceEpoch;
     if (microsecondsSinceEpoch is int) {
       return DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
     }
 
-    final dynamic millisecondsSinceEpoch = (value as dynamic).millisecondsSinceEpoch;
+    final dynamic millisecondsSinceEpoch =
+        (value as dynamic).millisecondsSinceEpoch;
     if (millisecondsSinceEpoch is int) {
       return DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
     }
@@ -225,4 +230,3 @@ class Couple {
     return null;
   }
 }
-

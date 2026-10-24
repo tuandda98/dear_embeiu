@@ -26,10 +26,7 @@ const List<AppLanguage> kAppLanguages = [
 const int _kSearchThreshold = 6;
 
 class AppLanguage {
-  const AppLanguage({
-    required this.code,
-    required this.endonym,
-  });
+  const AppLanguage({required this.code, required this.endonym});
 
   /// BCP-47 language code, or null for "follow the device language".
   final String? code;
@@ -47,9 +44,9 @@ String appLanguageLabel(AppLanguage lang, AppLocalizations l10n) =>
 
 /// The [AppLanguage] currently in effect for [locale].
 AppLanguage currentAppLanguage(Locale? locale) => kAppLanguages.firstWhere(
-      (l) => l.code == locale?.languageCode,
-      orElse: () => kAppLanguages.first,
-    );
+  (l) => l.code == locale?.languageCode,
+  orElse: () => kAppLanguages.first,
+);
 
 /// Opens the shared language picker bottom sheet. Reused by the auth-screen
 /// pill and the profile language row so there is one picker to maintain.
@@ -91,9 +88,12 @@ class LanguageToggleButton extends StatelessWidget {
     // When following the system language the pill shows the globe plus the code
     // MaterialApp actually resolved (e.g. "🌐 VI") instead of a bare dash.
     final bool isSystem = selected.code == null;
-    final String resolvedCode =
-        Localizations.localeOf(context).languageCode.toUpperCase();
-    final String pillCode = isSystem ? resolvedCode : selected.code!.toUpperCase();
+    final String resolvedCode = Localizations.localeOf(
+      context,
+    ).languageCode.toUpperCase();
+    final String pillCode = isSystem
+        ? resolvedCode
+        : selected.code!.toUpperCase();
 
     return Container(
       decoration: BoxDecoration(
@@ -122,13 +122,15 @@ class LanguageToggleButton extends StatelessWidget {
                 if (isSystem)
                   const Icon(IconsaxPlusLinear.global, size: 14, color: fgColor)
                 else
-                  Text(selected.code!.toUpperCase(),
-                      style: const TextStyle(
-                        color: fgColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      )),
+                  Text(
+                    selected.code!.toUpperCase(),
+                    style: const TextStyle(
+                      color: fgColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 const SizedBox(width: 5),
                 Text(
                   pillCode,
@@ -140,8 +142,11 @@ class LanguageToggleButton extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 3),
-                Icon(IconsaxPlusLinear.arrow_down_1,
-                    size: 14, color: fgColor.withValues(alpha: 0.7)),
+                Icon(
+                  IconsaxPlusLinear.arrow_down_1,
+                  size: 14,
+                  color: fgColor.withValues(alpha: 0.7),
+                ),
               ],
             ),
           ),
@@ -207,7 +212,11 @@ class _LanguageSheetState extends State<_LanguageSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(IconsaxPlusLinear.global, size: 18, color: AppColors.accentRose),
+                Icon(
+                  IconsaxPlusLinear.global,
+                  size: 18,
+                  color: AppColors.accentRose,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   l10n.languageTitle,
@@ -228,7 +237,10 @@ class _LanguageSheetState extends State<_LanguageSheet> {
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
                   isDense: true,
-                  prefixIcon: const Icon(IconsaxPlusLinear.search_normal, size: 20),
+                  prefixIcon: const Icon(
+                    IconsaxPlusLinear.search_normal,
+                    size: 20,
+                  ),
                   hintText: l10n.languageSearchHint,
                 ),
               ),
@@ -313,8 +325,9 @@ class _LanguageTile extends StatelessWidget {
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 15,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                     ),
                   ),
                   if (subtitle != null && subtitle!.isNotEmpty) ...[
@@ -332,8 +345,11 @@ class _LanguageTile extends StatelessWidget {
               ),
             ),
             if (isSelected)
-              Icon(IconsaxPlusLinear.tick_circle,
-                  color: AppColors.accentRose, size: 20),
+              Icon(
+                IconsaxPlusLinear.tick_circle,
+                color: AppColors.accentRose,
+                size: 20,
+              ),
           ],
         ),
       ),
@@ -361,7 +377,11 @@ class _LanguageChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: isSystem
-          ? const Icon(IconsaxPlusLinear.global, size: 20, color: AppColors.accentLove)
+          ? const Icon(
+              IconsaxPlusLinear.global,
+              size: 20,
+              color: AppColors.accentLove,
+            )
           : Text(
               lang.code!.toUpperCase(),
               style: const TextStyle(

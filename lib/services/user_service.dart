@@ -11,8 +11,8 @@ import '../models/app_user.dart';
 
 class UserService {
   UserService({FirebaseFirestore? firestore, DateTime Function()? clock})
-      : _firestore = firestore,
-        _clock = clock ?? DateTime.now;
+    : _firestore = firestore,
+      _clock = clock ?? DateTime.now;
 
   final FirebaseFirestore? _firestore;
   final DateTime Function() _clock;
@@ -46,10 +46,7 @@ class UserService {
       return null;
     }
 
-    return AppUser.fromJson({
-      'id': snapshot.id,
-      ...snapshot.data()!,
-    });
+    return AppUser.fromJson({'id': snapshot.id, ...snapshot.data()!});
   }
 
   /// Marks [uid] as seen now: writes ONLY `lastSeenAt` (server time), never
@@ -82,7 +79,9 @@ class UserService {
       return null;
     }
 
-    final snap = await _coupleCodesCollection.doc(code.trim().toUpperCase()).get();
+    final snap = await _coupleCodesCollection
+        .doc(code.trim().toUpperCase())
+        .get();
     if (!snap.exists || snap.data() == null) {
       return null;
     }
@@ -165,7 +164,9 @@ class UserService {
       return;
     }
 
-    await _usersCollection.doc(user.id).set(user.toFirestoreUpdate(), SetOptions(merge: true));
+    await _usersCollection
+        .doc(user.id)
+        .set(user.toFirestoreUpdate(), SetOptions(merge: true));
     await _syncInviteCode(user);
   }
 
@@ -303,7 +304,10 @@ class UserService {
 
     final now = DateTime.now();
     final docs = snapshot.docs.toList()
-      ..sort((a, b) => _deviceUpdatedAt(b.data()).compareTo(_deviceUpdatedAt(a.data())));
+      ..sort(
+        (a, b) =>
+            _deviceUpdatedAt(b.data()).compareTo(_deviceUpdatedAt(a.data())),
+      );
 
     for (var i = 0; i < docs.length; i++) {
       final doc = docs[i];
@@ -357,15 +361,13 @@ class UserService {
       data['createdAt'] = now;
     }
 
-    await _inviteCodesCollection.doc(normalizedCode).set(data, SetOptions(merge: true));
+    await _inviteCodesCollection
+        .doc(normalizedCode)
+        .set(data, SetOptions(merge: true));
   }
 
   String _generateInviteCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return List.generate(
-      6,
-      (_) => chars[_random.nextInt(chars.length)],
-    ).join();
+    return List.generate(6, (_) => chars[_random.nextInt(chars.length)]).join();
   }
 }
-

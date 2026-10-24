@@ -127,8 +127,7 @@ class _AnswerReactionRowState extends State<AnswerReactionRow> {
               color: Colors.transparent,
               child: Container(
                 width: stripWidth,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.cardSurface,
                   borderRadius: BorderRadius.circular(999),
@@ -184,8 +183,10 @@ class _AnswerReactionRowState extends State<AnswerReactionRow> {
     }
 
     final mine = provider.myReaction(widget.date, widget.answerAuthorUid);
-    final partner =
-        provider.partnerReaction(widget.date, widget.answerAuthorUid);
+    final partner = provider.partnerReaction(
+      widget.date,
+      widget.answerAuthorUid,
+    );
     final failed = provider.hasError(widget.date, widget.answerAuthorUid);
 
     if (!widget.canReact) {
@@ -196,9 +197,7 @@ class _AnswerReactionRowState extends State<AnswerReactionRow> {
       return Padding(
         padding: widget.padding,
         child: Row(
-          children: [
-            _EmojiPill(emoji: partner.emoji, highlighted: true),
-          ],
+          children: [_EmojiPill(emoji: partner.emoji, highlighted: true)],
         ),
       );
     }
@@ -220,8 +219,10 @@ class _AnswerReactionRowState extends State<AnswerReactionRow> {
               child: AnimatedContainer(
                 duration: AppMotion.fast,
                 curve: AppMotion.curve,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: mine == null
                       ? AppColors.accentLove.withValues(alpha: 0.06)
@@ -249,14 +250,14 @@ class _AnswerReactionRowState extends State<AnswerReactionRow> {
                     ),
                   )
                 : mine == null
-                    ? Text(
-                        l10n.answerReactionHint,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textTertiary,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                ? Text(
+                    l10n.answerReactionHint,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),

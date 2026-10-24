@@ -24,46 +24,58 @@ void main() {
   // captured; what is checked is the call sites and the single funnel.
 
   group('analytics', () {
-    test('AN-01: every weather event goes through AnalyticsService.logEvent', () {
-      for (final f in [
-        'lib/widgets/weather/weather_card.dart',
-        'lib/widgets/weather/weather_sheets.dart',
-        'lib/providers/weather_provider.dart',
-        'lib/services/weather_service.dart',
-      ]) {
-        expect(read(f), isNot(contains('FirebaseAnalytics')), reason: f);
-      }
-      expect(card, contains('AnalyticsService.instance.logEvent(name, params: params)'));
-    });
+    test(
+      'AN-01: every weather event goes through AnalyticsService.logEvent',
+      () {
+        for (final f in [
+          'lib/widgets/weather/weather_card.dart',
+          'lib/widgets/weather/weather_sheets.dart',
+          'lib/providers/weather_provider.dart',
+          'lib/services/weather_service.dart',
+        ]) {
+          expect(read(f), isNot(contains('FirebaseAnalytics')), reason: f);
+        }
+        expect(
+          card,
+          contains('AnalyticsService.instance.logEvent(name, params: params)'),
+        );
+      },
+    );
 
-    test('AN-01: logEvent is a no-op without a bound SDK or after opt-out', () async {
-      final src = read('lib/services/analytics_service.dart');
-      final at = src.indexOf('void logEvent(String name');
-      expect(
-        src.substring(at, at + 400),
-        contains('if (analytics == null || !_enabled)'),
-      );
-      // Runtime: in a test the SDK is never bound, opt-out flips the flag,
-      // and logging neither throws nor needs Hive.
-      final dir = Directory.systemTemp.createTempSync('weather_gap_hive');
-      Hive.init(dir.path);
-      await Hive.openBox<String>('app_settings');
-      addTearDown(() async {
-        await Hive.close();
-        dir.deleteSync(recursive: true);
-      });
-      final a = AnalyticsService.instance;
-      await a.setEnabled(false);
-      expect(a.isEnabled, isFalse);
-      expect(Hive.box<String>('app_settings').get('analytics_enabled'), 'false');
-      logWeatherEvent(WeatherEvents.citySet, {
-        'who': 'self',
-        'region': 'vn',
-        'entry': 'card',
-      });
-      await a.setEnabled(true);
-      expect(a.isEnabled, isTrue);
-    });
+    test(
+      'AN-01: logEvent is a no-op without a bound SDK or after opt-out',
+      () async {
+        final src = read('lib/services/analytics_service.dart');
+        final at = src.indexOf('void logEvent(String name');
+        expect(
+          src.substring(at, at + 400),
+          contains('if (analytics == null || !_enabled)'),
+        );
+        // Runtime: in a test the SDK is never bound, opt-out flips the flag,
+        // and logging neither throws nor needs Hive.
+        final dir = Directory.systemTemp.createTempSync('weather_gap_hive');
+        Hive.init(dir.path);
+        await Hive.openBox<String>('app_settings');
+        addTearDown(() async {
+          await Hive.close();
+          dir.deleteSync(recursive: true);
+        });
+        final a = AnalyticsService.instance;
+        await a.setEnabled(false);
+        expect(a.isEnabled, isFalse);
+        expect(
+          Hive.box<String>('app_settings').get('analytics_enabled'),
+          'false',
+        );
+        logWeatherEvent(WeatherEvents.citySet, {
+          'who': 'self',
+          'region': 'vn',
+          'entry': 'card',
+        });
+        await a.setEnabled(true);
+        expect(a.isEnabled, isTrue);
+      },
+    );
 
     test('AN-02: weather_city_set carries who / region / entry only', () {
       expect(WeatherEvents.citySet, 'weather_city_set');
@@ -71,28 +83,35 @@ void main() {
         r'logWeatherEvent\(WeatherEvents\.citySet, \{(.*?)\}\);',
         dotAll: true,
       ).firstMatch(sheets)!;
-      final keys = RegExp(r"'(\w+)':").allMatches(m.group(1)!).map((e) => e.group(1)).toList();
+      final keys = RegExp(
+        r"'(\w+)':",
+      ).allMatches(m.group(1)!).map((e) => e.group(1)).toList();
       expect(keys, ['who', 'region', 'entry']);
       expect(m.group(1), contains("forPartner ? 'partner' : 'self'"));
       expect(m.group(1), contains("city.isVietnam ? 'vn' : 'intl'"));
       expect(m.group(1), isNot(contains('city.id')));
     });
 
-    test('AN-02 / CH-22: the event sits inside `if (ok)`, the failure branch logs nothing', () {
-      final then = RegExp(
-        r'write\.then\(\(ok\) \{\s*if \(ok\) \{\s*logWeatherEvent\(WeatherEvents\.citySet.*?return;\s*\}(.*?)\}\);',
-        dotAll: true,
-      ).firstMatch(sheets);
-      expect(then, isNotNull, reason: 'log first in `if (ok)`, then return');
-      expect(then!.group(1), isNot(contains('logWeatherEvent')));
-      expect(then.group(1), contains('showSnackBar'));
-    });
+    test(
+      'AN-02 / CH-22: the event sits inside `if (ok)`, the failure branch logs nothing',
+      () {
+        final then = RegExp(
+          r'write\.then\(\(ok\) \{\s*if \(ok\) \{\s*logWeatherEvent\(WeatherEvents\.citySet.*?return;\s*\}(.*?)\}\);',
+          dotAll: true,
+        ).firstMatch(sheets);
+        expect(then, isNotNull, reason: 'log first in `if (ok)`, then return');
+        expect(then!.group(1), isNot(contains('logWeatherEvent')));
+        expect(then.group(1), contains('showSnackBar'));
+      },
+    );
 
     test('AN-03: weather_card_tap {state} — fixed vocabulary, no city', () {
       expect(WeatherEvents.cardTap, 'weather_card_tap');
       expect(
         card,
-        contains("logWeatherEvent(WeatherEvents.cardTap, {'state': _stateName(w, error)});"),
+        contains(
+          "logWeatherEvent(WeatherEvents.cardTap, {'state': _stateName(w, error)});",
+        ),
       );
       final states = RegExp(r"return '(\w+)';")
           .allMatches(card.substring(card.indexOf('static String _stateName')))
@@ -102,16 +121,24 @@ void main() {
       expect(states, ['error', 'both', 'mine_only', 'partner_only', 'empty']);
     });
 
-    test('AN-03 / CT-06: weather_cta_tap {condition, entry}; card for card+sheet', () {
-      expect(WeatherEvents.ctaTap, 'weather_cta_tap');
-      final m = RegExp(
-        r'logWeatherEvent\(WeatherEvents\.ctaTap, \{(.*?)\}\);',
-        dotAll: true,
-      ).firstMatch(card)!.group(1)!;
-      expect(m, contains("'condition': weatherCtaCondition(cta)"));
-      expect(m, contains("'entry': entry == 'notification' ? 'notification' : 'card'"));
-      expect(RegExp(r"'(\w+)':").allMatches(m).length, 2);
-    });
+    test(
+      'AN-03 / CT-06: weather_cta_tap {condition, entry}; card for card+sheet',
+      () {
+        expect(WeatherEvents.ctaTap, 'weather_cta_tap');
+        final m = RegExp(
+          r'logWeatherEvent\(WeatherEvents\.ctaTap, \{(.*?)\}\);',
+          dotAll: true,
+        ).firstMatch(card)!.group(1)!;
+        expect(m, contains("'condition': weatherCtaCondition(cta)"));
+        expect(
+          m,
+          contains(
+            "'entry': entry == 'notification' ? 'notification' : 'card'",
+          ),
+        );
+        expect(RegExp(r"'(\w+)':").allMatches(m).length, 2);
+      },
+    );
 
     test('CT-06: the care screen is opened with source "weather"', () {
       final at = card.indexOf('void openWeatherCare(');
@@ -131,17 +158,26 @@ void main() {
       expect(card, contains("WeatherCta.warm => 'cold'"));
     });
 
-    test('AN-04: weather_notif_toggle {enabled} is logged after the permission, before the write', () {
-      expect(WeatherEvents.noticeToggle, 'weather_notif_toggle');
-      final at = sheets.indexOf('Future<void> toggle(bool value)');
-      final body = sheets.substring(at, sheets.indexOf('final noticeOn', at));
-      final denied = body.indexOf('requestPermissions()');
-      final log = body.indexOf("logWeatherEvent(WeatherEvents.noticeToggle, {'enabled': value});");
-      final set = body.indexOf('w.setNoticeEnabled(value)');
-      expect(denied, greaterThan(-1));
-      expect(log, greaterThan(denied), reason: 'a denied permission logs nothing');
-      expect(set, greaterThan(log));
-    });
+    test(
+      'AN-04: weather_notif_toggle {enabled} is logged after the permission, before the write',
+      () {
+        expect(WeatherEvents.noticeToggle, 'weather_notif_toggle');
+        final at = sheets.indexOf('Future<void> toggle(bool value)');
+        final body = sheets.substring(at, sheets.indexOf('final noticeOn', at));
+        final denied = body.indexOf('requestPermissions()');
+        final log = body.indexOf(
+          "logWeatherEvent(WeatherEvents.noticeToggle, {'enabled': value});",
+        );
+        final set = body.indexOf('w.setNoticeEnabled(value)');
+        expect(denied, greaterThan(-1));
+        expect(
+          log,
+          greaterThan(denied),
+          reason: 'a denied permission logs nothing',
+        );
+        expect(set, greaterThan(log));
+      },
+    );
   });
 
   // ── LG-03: ARB parity ────────────────────────────────────────────────────
@@ -168,7 +204,10 @@ void main() {
     });
 
     test('LG-03 / LG-01: no Vietnamese letters in the English strings', () {
-      final vn = RegExp('[ăâđêôơưàáạảãèéẹẻẽìíịỉĩòóọỏõùúụủũỳýỵỷỹ]', caseSensitive: false);
+      final vn = RegExp(
+        '[ăâđêôơưàáạảãèéẹẻẽìíịỉĩòóọỏõùúụủũỳýỵỷỹ]',
+        caseSensitive: false,
+      );
       for (final k in keys(en)) {
         if (k.startsWith('@')) continue;
         expect(vn.hasMatch(en[k] as String), isFalse, reason: '$k: ${en[k]}');
@@ -189,62 +228,98 @@ void main() {
   group('notice plumbing', () {
     final push = read('lib/services/push_notification_service.dart');
 
-    test('NT-16: partner_left cancels 1160 in the background AND the foreground handler', () {
-      final at = push.indexOf('Future<void> _cancelWeatherNoticeIfPartnerLeft');
-      final body = push.substring(at, push.indexOf('\n}\n', at));
-      expect(body, contains("message.data['type'] != 'partner_left'"));
-      expect(body, contains('ReminderService.instance.cancelWeatherMorning()'));
-      expect(
-        '_cancelWeatherNoticeIfPartnerLeft(message)'.allMatches(push).length,
-        2,
-        reason: 'top-level background handler + foreground listener',
-      );
-      // The CF side wakes the app (iOS content-available / Android data msg).
-      final cf = read('functions/index.js');
-      final left = cf.indexOf('exports.notifyPartnerLeft');
-      final wake = cf.indexOf('{wakeClients: true}', left);
-      expect(wake, greaterThan(cf.indexOf('type: "partner_left"', left)));
-    });
+    test(
+      'NT-16: partner_left cancels 1160 in the background AND the foreground handler',
+      () {
+        final at = push.indexOf(
+          'Future<void> _cancelWeatherNoticeIfPartnerLeft',
+        );
+        final body = push.substring(at, push.indexOf('\n}\n', at));
+        expect(body, contains("message.data['type'] != 'partner_left'"));
+        expect(
+          body,
+          contains('ReminderService.instance.cancelWeatherMorning()'),
+        );
+        expect(
+          '_cancelWeatherNoticeIfPartnerLeft(message)'.allMatches(push).length,
+          2,
+          reason: 'top-level background handler + foreground listener',
+        );
+        // The CF side wakes the app (iOS content-available / Android data msg).
+        final cf = read('functions/index.js');
+        final left = cf.indexOf('exports.notifyPartnerLeft');
+        final wake = cf.indexOf('{wakeClients: true}', left);
+        expect(wake, greaterThan(cf.indexOf('type: "partner_left"', left)));
+      },
+    );
 
-    test('NT-13: a payload with an unknown city / cta only scrolls to the card', () {
-      final home = read('lib/screens/home_screen.dart');
-      final at = home.indexOf('void _onWeatherNoticeTap()');
-      final body = home.substring(at, home.indexOf('One "Có gì mới" attempt', at));
-      expect(body, contains('if (city == null || cta == null) {\n        _scrollToCard(_weatherKey);\n        return;'));
-      expect(body, contains('} catch (_) {\n      _scrollToCard(_weatherKey);'));
-      // openWeatherCare (the care screen) appears once, behind both guards.
-      expect('openWeatherCare('.allMatches(body).length, 1);
-      expect(body.indexOf('openWeatherCare('), greaterThan(body.indexOf('return;')));
-    });
+    test(
+      'NT-13: a payload with an unknown city / cta only scrolls to the card',
+      () {
+        final home = read('lib/screens/home_screen.dart');
+        final at = home.indexOf('void _onWeatherNoticeTap()');
+        final body = home.substring(
+          at,
+          home.indexOf('One "Có gì mới" attempt', at),
+        );
+        expect(
+          body,
+          contains(
+            'if (city == null || cta == null) {\n        _scrollToCard(_weatherKey);\n        return;',
+          ),
+        );
+        expect(
+          body,
+          contains('} catch (_) {\n      _scrollToCard(_weatherKey);'),
+        );
+        // openWeatherCare (the care screen) appears once, behind both guards.
+        expect('openWeatherCare('.allMatches(body).length, 1);
+        expect(
+          body.indexOf('openWeatherCare('),
+          greaterThan(body.indexOf('return;')),
+        );
+      },
+    );
 
-    test('NT-18: 1160 is one fixed id and replaces itself (never two pending)', () {
-      final r = read('lib/services/reminder_service.dart');
-      expect('= 1160;'.allMatches(r).length, 1);
-      final at = r.indexOf('Future<void> scheduleWeatherMorning(');
-      final body = r.substring(at, r.indexOf('\n  }\n', at));
-      expect(body.indexOf('await cancelWeatherMorning()'),
-          lessThan(body.indexOf('zonedSchedule(')));
-      // NOT covered: what iOS does when ~64 other notifications are pending.
-    });
+    test(
+      'NT-18: 1160 is one fixed id and replaces itself (never two pending)',
+      () {
+        final r = read('lib/services/reminder_service.dart');
+        expect('= 1160;'.allMatches(r).length, 1);
+        final at = r.indexOf('Future<void> scheduleWeatherMorning(');
+        final body = r.substring(at, r.indexOf('\n  }\n', at));
+        expect(
+          body.indexOf('await cancelWeatherMorning()'),
+          lessThan(body.indexOf('zonedSchedule(')),
+        );
+        // NOT covered: what iOS does when ~64 other notifications are pending.
+      },
+    );
 
-    test('ST-07: the weather section of Settings only exists inside `if (hasCouple)`', () {
-      final s = read('lib/screens/settings_screen.dart');
-      final open = s.indexOf('if (hasCouple) ...[');
-      expect(open, greaterThan(-1));
-      var depth = 0;
-      var close = -1;
-      for (var i = s.indexOf('[', open); i < s.length; i++) {
-        if (s[i] == '[') depth++;
-        if (s[i] == ']' && --depth == 0) {
-          close = i;
-          break;
+    test(
+      'ST-07: the weather section of Settings only exists inside `if (hasCouple)`',
+      () {
+        final s = read('lib/screens/settings_screen.dart');
+        final open = s.indexOf('if (hasCouple) ...[');
+        expect(open, greaterThan(-1));
+        var depth = 0;
+        var close = -1;
+        for (var i = s.indexOf('[', open); i < s.length; i++) {
+          if (s[i] == '[') depth++;
+          if (s[i] == ']' && --depth == 0) {
+            close = i;
+            break;
+          }
         }
-      }
-      final inside = s.substring(open, close);
-      expect(inside, contains('WeatherSettingsSection('));
-      expect(s.indexOf('WeatherSettingsSection('), s.lastIndexOf('WeatherSettingsSection('));
-      expect(inside, contains('coupleProvider.couple!'));
-    });
+        final inside = s.substring(open, close);
+        expect(inside, contains('WeatherSettingsSection('));
+        expect(
+          s.indexOf('WeatherSettingsSection('),
+          s.lastIndexOf('WeatherSettingsSection('),
+        );
+        expect(inside, contains('coupleProvider.couple!'));
+      },
+    );
 
     test('FE-06: the callable has a 15 s client timeout', () {
       final svc = read('lib/services/weather_service.dart');

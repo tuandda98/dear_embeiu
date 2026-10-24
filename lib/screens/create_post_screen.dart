@@ -233,8 +233,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.accentLove,
             foregroundColor: AppColors.white,
-            disabledBackgroundColor:
-                AppColors.accentLove.withValues(alpha: 0.40),
+            disabledBackgroundColor: AppColors.accentLove.withValues(
+              alpha: 0.40,
+            ),
             disabledForegroundColor: AppColors.white.withValues(alpha: 0.9),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(999),

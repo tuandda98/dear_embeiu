@@ -40,8 +40,9 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final titleText = Text(title, style: AppTheme.sectionTitleStyle());
     return Row(
-      crossAxisAlignment:
-          trailing != null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: trailing != null
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
@@ -57,10 +58,7 @@ class SectionHeader extends StatelessWidget {
                 titleText,
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  style: AppTheme.sectionSubtitleStyle(),
-                ),
+                Text(subtitle!, style: AppTheme.sectionSubtitleStyle()),
               ],
             ],
           ),

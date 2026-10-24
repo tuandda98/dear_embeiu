@@ -60,7 +60,8 @@ PreferredSizeWidget subScreenAppBar(
     // legacy centred text title.
     centerTitle: chip == null,
     titleSpacing: chip == null ? null : 0,
-    title: chip ??
+    title:
+        chip ??
         (title == null
             ? null
             : Text(

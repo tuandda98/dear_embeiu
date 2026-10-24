@@ -10273,42 +10273,6 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get moneyCatOther;
 
-  /// No description provided for @moneyCatSalary.
-  ///
-  /// In en, this message translates to:
-  /// **'Salary'**
-  String get moneyCatSalary;
-
-  /// No description provided for @moneyCatBonus.
-  ///
-  /// In en, this message translates to:
-  /// **'Bonus'**
-  String get moneyCatBonus;
-
-  /// No description provided for @moneyCatSide.
-  ///
-  /// In en, this message translates to:
-  /// **'Side work'**
-  String get moneyCatSide;
-
-  /// No description provided for @moneyCatGifted.
-  ///
-  /// In en, this message translates to:
-  /// **'Gifts received'**
-  String get moneyCatGifted;
-
-  /// No description provided for @moneyCatInterest.
-  ///
-  /// In en, this message translates to:
-  /// **'Interest'**
-  String get moneyCatInterest;
-
-  /// No description provided for @moneyCatIncomeOther.
-  ///
-  /// In en, this message translates to:
-  /// **'Other income'**
-  String get moneyCatIncomeOther;
-
   /// No description provided for @moneyWalletCash.
   ///
   /// In en, this message translates to:
@@ -10526,68 +10490,8 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Income'**
-  String get moneyIncome;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Income minus spent'**
-  String get moneyIncomeMinusSpent;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Who paid this month'**
-  String get moneyWhoPaid;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Total {amount}'**
-  String moneyLaneTotal(String amount);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Me'**
   String get moneyMe;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'{partner} paid {a}, shared wallet {b}, I paid {c}'**
-  String moneyLanesSemantics(String partner, String a, String b, String c);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'I\'ve covered more'**
-  String get moneyBalanceMeAhead;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'{name} has covered more'**
-  String moneyBalancePartnerAhead(String name);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'We\'re even'**
-  String get moneyBalanceEven;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'If {name} pays me this back, we\'re even'**
-  String moneyBalanceMeAheadSub(String name);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'If I pay {name} this back, we\'re even'**
-  String moneyBalancePartnerAheadSub(String name);
 
   /// Sổ tiền (feature expenses)
   ///
@@ -10676,20 +10580,8 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Each of us put in {amount} this month'**
-  String moneyJointContribEach(String amount);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'{percent}% of {target}'**
   String moneyGoalProgress(String percent, String target);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'{name} paid · {split}'**
-  String moneyPaidBy(String name, String split);
 
   /// Sổ tiền (feature expenses)
   ///
@@ -10702,30 +10594,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Paid from shared wallet'**
   String get moneyPaidFromJoint;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'split'**
-  String get moneySplitEqual;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'treat'**
-  String get moneySplitTreat;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'covered'**
-  String get moneySplitForPartner;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'custom'**
-  String get moneySplitCustom;
 
   /// Sổ tiền (feature expenses)
   ///
@@ -10808,12 +10676,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'{name} settled up · not spending'**
-  String moneySettleSub(String name);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Also in the shared book'**
   String get moneyLinkedBadge;
 
@@ -10876,12 +10738,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expense'**
   String get moneyTypeExpense;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Income'**
-  String get moneyTypeIncome;
 
   /// Sổ tiền (feature expenses)
   ///
@@ -10952,20 +10808,8 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Into wallet'**
-  String get moneyIntoWallet;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Take it from my wallet'**
   String get moneyDeductMine;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Don\'t deduct'**
-  String get moneyNoDeduct;
 
   /// Sổ tiền (feature expenses)
   ///
@@ -10976,92 +10820,8 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'To'**
-  String get moneyToWallet;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Add a note'**
   String get moneyAddNote;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Who paid'**
-  String get moneyWhoPays;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'How to split'**
-  String get moneyHowSplit;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Split'**
-  String get moneySplitEqualCap;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'My treat'**
-  String get moneyTreatMe;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'{name}\'s treat'**
-  String moneyTreatPartner(String name);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Covered'**
-  String get moneyForPartnerCap;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Custom'**
-  String get moneyCustomCap;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'{name} pays'**
-  String moneyBears(String name);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'{a} pays {x} · {b} pays {y}'**
-  String moneyShares(String a, String x, String b, String y);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Enter an amount to see each share'**
-  String get moneySharesNeedAmount;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Paid from the shared wallet, so nobody owes anyone.'**
-  String get moneyNoOneOwes;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'10% less'**
-  String get moneyStepDown;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'10% more'**
-  String get moneyStepUp;
 
   /// Sổ tiền (feature expenses)
   ///
@@ -11110,12 +10870,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved {amount} · {category}'**
   String moneySaved(String amount, String category);
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Saved {amount} · transfer'**
-  String moneySavedTransfer(String amount);
 
   /// Sổ tiền (feature expenses)
   ///
@@ -11368,6 +11122,258 @@ abstract class AppLocalizations {
   /// **'Currency'**
   String get moneyCurrencyTitle;
 
+  /// No description provided for @moneyTypeSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get moneyTypeSave;
+
+  /// No description provided for @moneySavedContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Put {amount} into {fund}'**
+  String moneySavedContribution(String amount, String fund);
+
+  /// No description provided for @moneySaveInto.
+  ///
+  /// In en, this message translates to:
+  /// **'Into'**
+  String get moneySaveInto;
+
+  /// No description provided for @moneyPaidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from'**
+  String get moneyPaidFrom;
+
+  /// No description provided for @moneyMyMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'My own money'**
+  String get moneyMyMoney;
+
+  /// No description provided for @moneyGoalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goals'**
+  String get moneyGoalsTitle;
+
+  /// No description provided for @moneyChTplNoCoffee7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without bubble tea or coffee'**
+  String get moneyChTplNoCoffee7;
+
+  /// No description provided for @moneyChTplNoSnack7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without snacks'**
+  String get moneyChTplNoSnack7;
+
+  /// No description provided for @moneyChTplNoGrab7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without ride-hailing'**
+  String get moneyChTplNoGrab7;
+
+  /// No description provided for @moneyChTplNoShop7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without shopping'**
+  String get moneyChTplNoShop7;
+
+  /// No description provided for @moneyChTplNoClothes14.
+  ///
+  /// In en, this message translates to:
+  /// **'14 days without new clothes'**
+  String get moneyChTplNoClothes14;
+
+  /// No description provided for @moneyChTplCookHome14.
+  ///
+  /// In en, this message translates to:
+  /// **'14 days cooking at home'**
+  String get moneyChTplCookHome14;
+
+  /// No description provided for @moneyChTplNoTech30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days without gadgets'**
+  String get moneyChTplNoTech30;
+
+  /// No description provided for @moneyChTplEatOutCap7.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat out under {amount} this week'**
+  String moneyChTplEatOutCap7(String amount);
+
+  /// No description provided for @moneyChTplDateCap7.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates under {amount} this week'**
+  String moneyChTplDateCap7(String amount);
+
+  /// No description provided for @moneyChTplAllCap7.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend under {amount} this week'**
+  String moneyChTplAllCap7(String amount);
+
+  /// No description provided for @moneyChallengesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving challenges'**
+  String get moneyChallengesTitle;
+
+  /// No description provided for @moneyChallengeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New challenge'**
+  String get moneyChallengeNew;
+
+  /// No description provided for @moneyChallengeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Make your own'**
+  String get moneyChallengeCustom;
+
+  /// No description provided for @moneyChallengeDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days left'**
+  String moneyChallengeDaysLeft(String n);
+
+  /// No description provided for @moneyChallengeCleanDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} days'**
+  String moneyChallengeCleanDays(String done, String total);
+
+  /// No description provided for @moneyChallengeSpentOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {limit}'**
+  String moneyChallengeSpentOf(String spent, String limit);
+
+  /// No description provided for @moneyChallengeWon.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get moneyChallengeWon;
+
+  /// No description provided for @moneyChallengeLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again next time'**
+  String get moneyChallengeLost;
+
+  /// No description provided for @moneyChallengeStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop challenge'**
+  String get moneyChallengeStop;
+
+  /// No description provided for @moneyChallengeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get moneyChallengeStart;
+
+  /// No description provided for @moneyChallengeKindNoSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending'**
+  String get moneyChallengeKindNoSpend;
+
+  /// No description provided for @moneyChallengeKindCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend under'**
+  String get moneyChallengeKindCap;
+
+  /// No description provided for @moneyChallengeLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit'**
+  String get moneyChallengeLimit;
+
+  /// No description provided for @moneyChallengeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All spending'**
+  String get moneyChallengeAll;
+
+  /// No description provided for @moneyChallengeDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days'**
+  String moneyChallengeDays(String n);
+
+  /// No description provided for @moneyChallengeMax.
+  ///
+  /// In en, this message translates to:
+  /// **'3 challenges are running'**
+  String get moneyChallengeMax;
+
+  /// No description provided for @moneyChallengeLastDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day of your challenge'**
+  String get moneyChallengeLastDayTitle;
+
+  /// No description provided for @moneyChallengeStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started: {title}'**
+  String moneyChallengeStarted(String title);
+
+  /// No description provided for @moneyRecapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{month} in review'**
+  String moneyRecapTitle(String month);
+
+  /// No description provided for @moneyRecapKeptBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Stayed within the monthly limit'**
+  String get moneyRecapKeptBudget;
+
+  /// No description provided for @moneyRecapSpentLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} less than {month}'**
+  String moneyRecapSpentLess(String amount, String month);
+
+  /// No description provided for @moneyRecapSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} into funds'**
+  String moneyRecapSaved(String amount);
+
+  /// No description provided for @moneyRecapChallenges.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished {n} challenges'**
+  String moneyRecapChallenges(String n);
+
+  /// No description provided for @moneyRecapLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged spending on {n} of {total} days'**
+  String moneyRecapLogged(String n, String total);
+
+  /// No description provided for @moneyRecapEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'A new month. Set a limit for it?'**
+  String get moneyRecapEmpty;
+
+  /// No description provided for @moneyChallengeLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get moneyChallengeLength;
+
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
@@ -11569,12 +11575,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Transfer'**
-  String get moneyTransferBtn;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Fix balance'**
   String get moneyFixBalance;
 
@@ -11611,36 +11611,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Cash on hand'**
-  String get moneyHintCash;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Techcombank, VCB…'**
-  String get moneyHintBank;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'MoMo, ZaloPay…'**
-  String get moneyHintEwallet;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Card debt shows as a negative balance. That\'s expected.'**
-  String get moneyHintCredit;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Saving for one thing, with a deadline'**
-  String get moneyHintGoal;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Name'**
   String get moneyName;
 
@@ -11661,12 +11631,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Count in total money'**
   String get moneyIncludeInTotal;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
-  /// **'Turn off for money you hold for someone else'**
-  String get moneyIncludeInTotalSub;
 
   /// Sổ tiền (feature expenses)
   ///
@@ -11935,12 +11899,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Settle up'**
-  String get moneySettle;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'not spending'**
   String get moneyNotSpending;
 
@@ -12127,12 +12085,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses) · stage 3A
   ///
   /// In en, this message translates to:
-  /// **'Left'**
-  String get moneyReportLeft;
-
-  /// Sổ tiền (feature expenses) · stage 3A
-  ///
-  /// In en, this message translates to:
   /// **'{category} was the biggest spend, {percent}% of the month.'**
   String moneyReportTopCategory(String category, String percent);
 
@@ -12147,18 +12099,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Most of it was {sub}, {amount}.'**
   String moneyReportTopChild(String sub, String amount);
-
-  /// Sổ tiền (feature expenses) · stage 3A
-  ///
-  /// In en, this message translates to:
-  /// **'By person'**
-  String get moneyReportByPerson;
-
-  /// Sổ tiền (feature expenses) · stage 3A
-  ///
-  /// In en, this message translates to:
-  /// **'Put into the shared wallet and funds this month: {partner} {a}, me {b}.'**
-  String moneyReportContrib(String partner, String a, String b);
 
   /// Sổ tiền (feature expenses) · stage 3A
   ///
@@ -12427,18 +12367,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'Who put in what'**
-  String get moneyGoalEach;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{name} put in {a}, I put in {b}, {left} still to go'**
-  String moneyGoalEachSemantics(String name, String a, String b, String left);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
   /// **'Contributions'**
   String get moneyGoalHistory;
 
@@ -12481,12 +12409,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses), stage 3B
   ///
   /// In en, this message translates to:
-  /// **'Who\'s putting in'**
-  String get moneyContributeWho;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
   /// **'From wallet'**
   String get moneyContributeFrom;
 
@@ -12513,168 +12435,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Amount to put in'**
   String get moneyContributeHint;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Which fund?'**
-  String get moneyPickFund;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'No shared fund yet. Create one, like “Đà Lạt trip”, and put in together.'**
-  String get moneyNoFundYet;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{name} pays me back'**
-  String moneySettlePaysMe(String name);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'I pay {name} back'**
-  String moneySettlePaysPartner(String name);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Edit for a partial payment'**
-  String get moneySettlePartial;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'All of it'**
-  String get moneySettleAll;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Half · {amount}'**
-  String moneySettleHalf(String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Add it to my wallet'**
-  String get moneySettleToOwn;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Adds a line to my book, not counted as income'**
-  String get moneySettleToOwnSub;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Adds a line to my book, not counted as spending'**
-  String get moneySettleFromOwnSub;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'The app doesn\'t move any money. Tap below once {name} has sent it or handed over cash. This evens out the shared book and doesn\'t count as spending.'**
-  String moneySettleNoteThem(String name);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'The app doesn\'t move any money. Tap below once the money has reached {name}. This evens out the shared book and doesn\'t count as spending.'**
-  String moneySettleNoteMe(String name);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Mark as settled'**
-  String get moneySettleDo;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'At most {amount}'**
-  String moneySettleTooMuch(String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Why {amount}'**
-  String moneySettleWhy(String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Plus: I covered {name}. Minus: {name} covered me. {n} treats and shared-wallet payments don\'t count.'**
-  String moneySettleLegend(String name, int n);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Plus: I covered {name}. Minus: {name} covered me. Shared-wallet payments don\'t count.'**
-  String moneySettleLegendNoTreat(String name);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Total'**
-  String get moneySettleSum;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Everything before {date}'**
-  String moneySettleEarlier(String date);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{date} · {name} paid · {split}'**
-  String moneySettleRowSub(String date, String name, String split);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{date} · {name} paid back'**
-  String moneySettleRowBack(String date, String name);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Recorded: {name} paid back {amount}'**
-  String moneySettledThem(String name, String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'Recorded: I paid {name} back {amount}'**
-  String moneySettledMe(String name, String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'we\'re even now'**
-  String get moneySettledEven;
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{amount} still open'**
-  String moneySettledLeft(String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{wallet} +{amount}'**
-  String moneySettledIn(String wallet, String amount);
-
-  /// Sổ tiền (feature expenses), stage 3B
-  ///
-  /// In en, this message translates to:
-  /// **'{wallet} −{amount}'**
-  String moneySettledOut(String wallet, String amount);
 
   /// Sổ tiền (feature expenses), stage 3B
   ///
@@ -12765,30 +12525,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.'**
   String get moneyLinkedPayerLocked;
-
-  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
-  ///
-  /// In en, this message translates to:
-  /// **'Get the latest number'**
-  String get moneySettleNeedSync;
-
-  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t get the latest number. Try again once you\'re online.'**
-  String get moneySettleOffline;
-
-  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
-  ///
-  /// In en, this message translates to:
-  /// **'The shared book is already even. Nothing to settle.'**
-  String get moneySettleAlreadyEven;
-
-  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
-  ///
-  /// In en, this message translates to:
-  /// **'The amount just changed to {amount}. Check it, then tap again.'**
-  String moneySettleChanged(String amount);
 }
 
 class _AppLocalizationsDelegate

@@ -83,8 +83,9 @@ class HeaderIconButton extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.white.withValues(alpha: 0.72),
                 shape: BoxShape.circle,
-                border:
-                    Border.all(color: AppColors.white.withValues(alpha: 0.65)),
+                border: Border.all(
+                  color: AppColors.white.withValues(alpha: 0.65),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.accentRose.withValues(alpha: 0.14),

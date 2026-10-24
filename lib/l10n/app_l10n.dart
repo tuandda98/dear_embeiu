@@ -15,8 +15,7 @@ import 'app_localizations.dart';
 class AppL10n {
   AppL10n._();
 
-  static AppLocalizations _current =
-      lookupAppLocalizations(const Locale('en'));
+  static AppLocalizations _current = lookupAppLocalizations(const Locale('en'));
 
   /// The localizations for the currently resolved locale. Defaults to English
   /// until [setLocale] runs for the first time.

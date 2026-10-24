@@ -6387,24 +6387,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyCatOther => 'Other';
 
   @override
-  String get moneyCatSalary => 'Salary';
-
-  @override
-  String get moneyCatBonus => 'Bonus';
-
-  @override
-  String get moneyCatSide => 'Side work';
-
-  @override
-  String get moneyCatGifted => 'Gifts received';
-
-  @override
-  String get moneyCatInterest => 'Interest';
-
-  @override
-  String get moneyCatIncomeOther => 'Other income';
-
-  @override
   String get moneyWalletCash => 'Cash';
 
   @override
@@ -6552,47 +6534,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get moneyIncome => 'Income';
-
-  @override
-  String get moneyIncomeMinusSpent => 'Income minus spent';
-
-  @override
-  String get moneyWhoPaid => 'Who paid this month';
-
-  @override
-  String moneyLaneTotal(String amount) {
-    return 'Total $amount';
-  }
-
-  @override
   String get moneyMe => 'Me';
-
-  @override
-  String moneyLanesSemantics(String partner, String a, String b, String c) {
-    return '$partner paid $a, shared wallet $b, I paid $c';
-  }
-
-  @override
-  String get moneyBalanceMeAhead => 'I\'ve covered more';
-
-  @override
-  String moneyBalancePartnerAhead(String name) {
-    return '$name has covered more';
-  }
-
-  @override
-  String get moneyBalanceEven => 'We\'re even';
-
-  @override
-  String moneyBalanceMeAheadSub(String name) {
-    return 'If $name pays me this back, we\'re even';
-  }
-
-  @override
-  String moneyBalancePartnerAheadSub(String name) {
-    return 'If I pay $name this back, we\'re even';
-  }
 
   @override
   String get moneyRecent => 'Recent';
@@ -6653,18 +6595,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyManageWallets => 'Manage wallets';
 
   @override
-  String moneyJointContribEach(String amount) {
-    return 'Each of us put in $amount this month';
-  }
-
-  @override
   String moneyGoalProgress(String percent, String target) {
     return '$percent% of $target';
-  }
-
-  @override
-  String moneyPaidBy(String name, String split) {
-    return '$name paid · $split';
   }
 
   @override
@@ -6674,18 +6606,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyPaidFromJoint => 'Paid from shared wallet';
-
-  @override
-  String get moneySplitEqual => 'split';
-
-  @override
-  String get moneySplitTreat => 'treat';
-
-  @override
-  String get moneySplitForPartner => 'covered';
-
-  @override
-  String get moneySplitCustom => 'custom';
 
   @override
   String moneyEditedBy(String name, String time) {
@@ -6744,11 +6664,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String moneySettleSub(String name) {
-    return '$name settled up · not spending';
-  }
-
-  @override
   String get moneyLinkedBadge => 'Also in the shared book';
 
   @override
@@ -6785,9 +6700,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyTypeExpense => 'Expense';
-
-  @override
-  String get moneyTypeIncome => 'Income';
 
   @override
   String get moneyTypeTransfer => 'Transfer';
@@ -6827,68 +6739,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyWallet => 'Wallet';
 
   @override
-  String get moneyIntoWallet => 'Into wallet';
-
-  @override
   String get moneyDeductMine => 'Take it from my wallet';
-
-  @override
-  String get moneyNoDeduct => 'Don\'t deduct';
 
   @override
   String get moneyFromWallet => 'From';
 
   @override
-  String get moneyToWallet => 'To';
-
-  @override
   String get moneyAddNote => 'Add a note';
-
-  @override
-  String get moneyWhoPays => 'Who paid';
-
-  @override
-  String get moneyHowSplit => 'How to split';
-
-  @override
-  String get moneySplitEqualCap => 'Split';
-
-  @override
-  String get moneyTreatMe => 'My treat';
-
-  @override
-  String moneyTreatPartner(String name) {
-    return '$name\'s treat';
-  }
-
-  @override
-  String get moneyForPartnerCap => 'Covered';
-
-  @override
-  String get moneyCustomCap => 'Custom';
-
-  @override
-  String moneyBears(String name) {
-    return '$name pays';
-  }
-
-  @override
-  String moneyShares(String a, String x, String b, String y) {
-    return '$a pays $x · $b pays $y';
-  }
-
-  @override
-  String get moneySharesNeedAmount => 'Enter an amount to see each share';
-
-  @override
-  String get moneyNoOneOwes =>
-      'Paid from the shared wallet, so nobody owes anyone.';
-
-  @override
-  String get moneyStepDown => '10% less';
-
-  @override
-  String get moneyStepUp => '10% more';
 
   @override
   String get moneyDate => 'Date';
@@ -6916,11 +6773,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String moneySaved(String amount, String category) {
     return 'Saved $amount · $category';
-  }
-
-  @override
-  String moneySavedTransfer(String amount) {
-    return 'Saved $amount · transfer';
   }
 
   @override
@@ -7085,6 +6937,160 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyCurrencyTitle => 'Currency';
 
   @override
+  String get moneyTypeSave => 'Save';
+
+  @override
+  String moneySavedContribution(String amount, String fund) {
+    return 'Put $amount into $fund';
+  }
+
+  @override
+  String get moneySaveInto => 'Into';
+
+  @override
+  String get moneyPaidFrom => 'Paid from';
+
+  @override
+  String get moneyMyMoney => 'My own money';
+
+  @override
+  String get moneyGoalsTitle => 'Savings goals';
+
+  @override
+  String get moneyChTplNoCoffee7 => '7 days without bubble tea or coffee';
+
+  @override
+  String get moneyChTplNoSnack7 => '7 days without snacks';
+
+  @override
+  String get moneyChTplNoGrab7 => '7 days without ride-hailing';
+
+  @override
+  String get moneyChTplNoShop7 => '7 days without shopping';
+
+  @override
+  String get moneyChTplNoClothes14 => '14 days without new clothes';
+
+  @override
+  String get moneyChTplCookHome14 => '14 days cooking at home';
+
+  @override
+  String get moneyChTplNoTech30 => '30 days without gadgets';
+
+  @override
+  String moneyChTplEatOutCap7(String amount) {
+    return 'Eat out under $amount this week';
+  }
+
+  @override
+  String moneyChTplDateCap7(String amount) {
+    return 'Dates under $amount this week';
+  }
+
+  @override
+  String moneyChTplAllCap7(String amount) {
+    return 'Spend under $amount this week';
+  }
+
+  @override
+  String get moneyChallengesTitle => 'Saving challenges';
+
+  @override
+  String get moneyChallengeNew => 'New challenge';
+
+  @override
+  String get moneyChallengeCustom => 'Make your own';
+
+  @override
+  String moneyChallengeDaysLeft(String n) {
+    return '$n days left';
+  }
+
+  @override
+  String moneyChallengeCleanDays(String done, String total) {
+    return '$done/$total days';
+  }
+
+  @override
+  String moneyChallengeSpentOf(String spent, String limit) {
+    return '$spent of $limit';
+  }
+
+  @override
+  String get moneyChallengeWon => 'Done';
+
+  @override
+  String get moneyChallengeLost => 'Try again next time';
+
+  @override
+  String get moneyChallengeStop => 'Stop challenge';
+
+  @override
+  String get moneyChallengeStart => 'Start';
+
+  @override
+  String get moneyChallengeKindNoSpend => 'No spending';
+
+  @override
+  String get moneyChallengeKindCap => 'Spend under';
+
+  @override
+  String get moneyChallengeLimit => 'Limit';
+
+  @override
+  String get moneyChallengeAll => 'All spending';
+
+  @override
+  String moneyChallengeDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String get moneyChallengeMax => '3 challenges are running';
+
+  @override
+  String get moneyChallengeLastDayTitle => 'Last day of your challenge';
+
+  @override
+  String moneyChallengeStarted(String title) {
+    return 'Started: $title';
+  }
+
+  @override
+  String moneyRecapTitle(String month) {
+    return '$month in review';
+  }
+
+  @override
+  String get moneyRecapKeptBudget => 'Stayed within the monthly limit';
+
+  @override
+  String moneyRecapSpentLess(String amount, String month) {
+    return 'Spent $amount less than $month';
+  }
+
+  @override
+  String moneyRecapSaved(String amount) {
+    return 'Saved $amount into funds';
+  }
+
+  @override
+  String moneyRecapChallenges(String n) {
+    return 'Finished $n challenges';
+  }
+
+  @override
+  String moneyRecapLogged(String n, String total) {
+    return 'Logged spending on $n of $total days';
+  }
+
+  @override
+  String get moneyRecapEmpty => 'A new month. Set a limit for it?';
+
+  @override
+  String get moneyChallengeLength => 'Length';
+
+  @override
   String get moneyKeyThousand => 'thousand';
 
   @override
@@ -7209,9 +7215,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get moneyTransferBtn => 'Transfer';
-
-  @override
   String get moneyFixBalance => 'Fix balance';
 
   @override
@@ -7238,22 +7241,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyNewGoal => 'New goal';
 
   @override
-  String get moneyHintCash => 'Cash on hand';
-
-  @override
-  String get moneyHintBank => 'Techcombank, VCB…';
-
-  @override
-  String get moneyHintEwallet => 'MoMo, ZaloPay…';
-
-  @override
-  String get moneyHintCredit =>
-      'Card debt shows as a negative balance. That\'s expected.';
-
-  @override
-  String get moneyHintGoal => 'Saving for one thing, with a deadline';
-
-  @override
   String get moneyName => 'Name';
 
   @override
@@ -7264,10 +7251,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyIncludeInTotal => 'Count in total money';
-
-  @override
-  String get moneyIncludeInTotalSub =>
-      'Turn off for money you hold for someone else';
 
   @override
   String get moneyCreateWallet => 'Create wallet';
@@ -7431,9 +7414,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This book already has 80 custom categories.';
 
   @override
-  String get moneySettle => 'Settle up';
-
-  @override
   String get moneyNotSpending => 'not spending';
 
   @override
@@ -7550,9 +7530,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get moneyReportLeft => 'Left';
-
-  @override
   String moneyReportTopCategory(String category, String percent) {
     return '$category was the biggest spend, $percent% of the month.';
   }
@@ -7565,14 +7542,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String moneyReportTopChild(String sub, String amount) {
     return 'Most of it was $sub, $amount.';
-  }
-
-  @override
-  String get moneyReportByPerson => 'By person';
-
-  @override
-  String moneyReportContrib(String partner, String a, String b) {
-    return 'Put into the shared wallet and funds this month: $partner $a, me $b.';
   }
 
   @override
@@ -7753,14 +7722,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get moneyGoalEach => 'Who put in what';
-
-  @override
-  String moneyGoalEachSemantics(String name, String a, String b, String left) {
-    return '$name put in $a, I put in $b, $left still to go';
-  }
-
-  @override
   String get moneyGoalHistory => 'Contributions';
 
   @override
@@ -7794,9 +7755,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get moneyContributeWho => 'Who\'s putting in';
-
-  @override
   String get moneyContributeFrom => 'From wallet';
 
   @override
@@ -7816,124 +7774,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyContributeHint => 'Amount to put in';
-
-  @override
-  String get moneyPickFund => 'Which fund?';
-
-  @override
-  String get moneyNoFundYet =>
-      'No shared fund yet. Create one, like “Đà Lạt trip”, and put in together.';
-
-  @override
-  String moneySettlePaysMe(String name) {
-    return '$name pays me back';
-  }
-
-  @override
-  String moneySettlePaysPartner(String name) {
-    return 'I pay $name back';
-  }
-
-  @override
-  String get moneySettlePartial => 'Edit for a partial payment';
-
-  @override
-  String get moneySettleAll => 'All of it';
-
-  @override
-  String moneySettleHalf(String amount) {
-    return 'Half · $amount';
-  }
-
-  @override
-  String get moneySettleToOwn => 'Add it to my wallet';
-
-  @override
-  String get moneySettleToOwnSub =>
-      'Adds a line to my book, not counted as income';
-
-  @override
-  String get moneySettleFromOwnSub =>
-      'Adds a line to my book, not counted as spending';
-
-  @override
-  String moneySettleNoteThem(String name) {
-    return 'The app doesn\'t move any money. Tap below once $name has sent it or handed over cash. This evens out the shared book and doesn\'t count as spending.';
-  }
-
-  @override
-  String moneySettleNoteMe(String name) {
-    return 'The app doesn\'t move any money. Tap below once the money has reached $name. This evens out the shared book and doesn\'t count as spending.';
-  }
-
-  @override
-  String get moneySettleDo => 'Mark as settled';
-
-  @override
-  String moneySettleTooMuch(String amount) {
-    return 'At most $amount';
-  }
-
-  @override
-  String moneySettleWhy(String amount) {
-    return 'Why $amount';
-  }
-
-  @override
-  String moneySettleLegend(String name, int n) {
-    return 'Plus: I covered $name. Minus: $name covered me. $n treats and shared-wallet payments don\'t count.';
-  }
-
-  @override
-  String moneySettleLegendNoTreat(String name) {
-    return 'Plus: I covered $name. Minus: $name covered me. Shared-wallet payments don\'t count.';
-  }
-
-  @override
-  String get moneySettleSum => 'Total';
-
-  @override
-  String moneySettleEarlier(String date) {
-    return 'Everything before $date';
-  }
-
-  @override
-  String moneySettleRowSub(String date, String name, String split) {
-    return '$date · $name paid · $split';
-  }
-
-  @override
-  String moneySettleRowBack(String date, String name) {
-    return '$date · $name paid back';
-  }
-
-  @override
-  String moneySettledThem(String name, String amount) {
-    return 'Recorded: $name paid back $amount';
-  }
-
-  @override
-  String moneySettledMe(String name, String amount) {
-    return 'Recorded: I paid $name back $amount';
-  }
-
-  @override
-  String get moneySettledEven => 'we\'re even now';
-
-  @override
-  String moneySettledLeft(String amount) {
-    return '$amount still open';
-  }
-
-  @override
-  String moneySettledIn(String wallet, String amount) {
-    return '$wallet +$amount';
-  }
-
-  @override
-  String moneySettledOut(String wallet, String amount) {
-    return '$wallet −$amount';
-  }
 
   @override
   String get moneyLogFromDecision => 'Log the cost';
@@ -7990,20 +7830,4 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get moneyLinkedPayerLocked =>
       'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.';
-
-  @override
-  String get moneySettleNeedSync => 'Get the latest number';
-
-  @override
-  String get moneySettleOffline =>
-      'Couldn\'t get the latest number. Try again once you\'re online.';
-
-  @override
-  String get moneySettleAlreadyEven =>
-      'The shared book is already even. Nothing to settle.';
-
-  @override
-  String moneySettleChanged(String amount) {
-    return 'The amount just changed to $amount. Check it, then tap again.';
-  }
 }

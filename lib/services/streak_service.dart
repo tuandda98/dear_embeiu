@@ -51,15 +51,15 @@ class StreakService {
         .limit(windowLimit)
         .snapshots()
         .map((snapshot) {
-      final dates = <String>[];
-      for (final doc in snapshot.docs) {
-        final data = doc.data();
-        if (data['bothAnswered'] == true) {
-          final date = (data['date'] as String?)?.trim();
-          dates.add((date != null && date.isNotEmpty) ? date : doc.id);
-        }
-      }
-      return dates;
-    });
+          final dates = <String>[];
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            if (data['bothAnswered'] == true) {
+              final date = (data['date'] as String?)?.trim();
+              dates.add((date != null && date.isNotEmpty) ? date : doc.id);
+            }
+          }
+          return dates;
+        });
   }
 }

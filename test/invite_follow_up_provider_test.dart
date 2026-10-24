@@ -61,14 +61,13 @@ void main() {
     bool waiting = true,
     DateTime? createdAt,
     List<String?> codes = const ['ABC234', 'PERSO1'],
-  }) =>
-      provider.refreshInviteFollowUps(
-        coupleId: coupleId,
-        waiting: waiting,
-        coupleCreatedAt: createdAt ?? DateTime.now(),
-        inviteCodes: codes,
-        l10n: l10n,
-      );
+  }) => provider.refreshInviteFollowUps(
+    coupleId: coupleId,
+    waiting: waiting,
+    coupleCreatedAt: createdAt ?? DateTime.now(),
+    inviteCodes: codes,
+    l10n: l10n,
+  );
 
   test('PA2: send while the band is being written → no +2h nudge', () async {
     final os = _FakeReminders()..hold = Completer<void>();
@@ -84,64 +83,71 @@ void main() {
     expect(os.armed, {1181, 1182});
   });
 
-  test('PA6: a send for another account or couple keeps the +2h nudge',
-      () async {
-    final os = _FakeReminders();
-    final provider = ReminderProvider(service: os);
+  test(
+    'PA6: a send for another account or couple keeps the +2h nudge',
+    () async {
+      final os = _FakeReminders();
+      final provider = ReminderProvider(service: os);
 
-    await provider.markInviteShared('OTHER9'); // someone else's code, just now
-    await refresh(provider, codes: ['NEW234', 'PERSO1']);
+      await provider.markInviteShared(
+        'OTHER9',
+      ); // someone else's code, just now
+      await refresh(provider, codes: ['NEW234', 'PERSO1']);
 
-    expect(os.scheduled, [false]);
-    expect(os.armed, contains(1180));
-  });
+      expect(os.scheduled, [false]);
+      expect(os.armed, contains(1180));
+    },
+  );
 
-  test('PA6: own personal code sent < 1h before creating the couple counts',
-      () async {
-    final os = _FakeReminders();
-    final provider = ReminderProvider(service: os);
+  test(
+    'PA6: own personal code sent < 1h before creating the couple counts',
+    () async {
+      final os = _FakeReminders();
+      final provider = ReminderProvider(service: os);
 
-    await provider.markInviteShared('perso1');
-    await refresh(
-      provider,
-      createdAt: DateTime.now().add(const Duration(minutes: 30)),
-    );
-    expect(os.scheduled, [true]);
-    expect(os.armed, {1181, 1182});
+      await provider.markInviteShared('perso1');
+      await refresh(
+        provider,
+        createdAt: DateTime.now().add(const Duration(minutes: 30)),
+      );
+      expect(os.scheduled, [true]);
+      expect(os.armed, {1181, 1182});
 
-    // More than an hour before: an old send, not this couple's.
-    await refresh(
-      ReminderProvider(service: os),
-      coupleId: 'c2',
-      createdAt: DateTime.now().add(const Duration(hours: 2)),
-    );
-    expect(os.scheduled, [true, false]);
-  });
+      // More than an hour before: an old send, not this couple's.
+      await refresh(
+        ReminderProvider(service: os),
+        coupleId: 'c2',
+        createdAt: DateTime.now().add(const Duration(hours: 2)),
+      );
+      expect(os.scheduled, [true, false]);
+    },
+  );
 
-  test('PA-N3: a send stamped by 1.9.0 (one key per device) still counts',
-      () async {
-    final os = _FakeReminders();
-    final createdAt = DateTime.now().subtract(const Duration(minutes: 30));
-    // Sent on 1.9.0 five minutes after creating the couple, then updated.
-    await Hive.box<String>('app_settings').put(
-      'invite_shared_at',
-      '${createdAt.add(const Duration(minutes: 5)).millisecondsSinceEpoch}',
-    );
-    await refresh(ReminderProvider(service: os), createdAt: createdAt);
-    expect(os.scheduled, [true]);
-    expect(os.armed, {1181, 1182});
+  test(
+    'PA-N3: a send stamped by 1.9.0 (one key per device) still counts',
+    () async {
+      final os = _FakeReminders();
+      final createdAt = DateTime.now().subtract(const Duration(minutes: 30));
+      // Sent on 1.9.0 five minutes after creating the couple, then updated.
+      await Hive.box<String>('app_settings').put(
+        'invite_shared_at',
+        '${createdAt.add(const Duration(minutes: 5)).millisecondsSinceEpoch}',
+      );
+      await refresh(ReminderProvider(service: os), createdAt: createdAt);
+      expect(os.scheduled, [true]);
+      expect(os.armed, {1181, 1182});
 
-    // More than an hour before the couple: that send was for something else.
-    await refresh(
-      ReminderProvider(service: os),
-      coupleId: 'c2',
-      createdAt: DateTime.now().add(const Duration(hours: 2)),
-    );
-    expect(os.scheduled, [true, false]);
-  });
+      // More than an hour before the couple: that send was for something else.
+      await refresh(
+        ReminderProvider(service: os),
+        coupleId: 'c2',
+        createdAt: DateTime.now().add(const Duration(hours: 2)),
+      );
+      expect(os.scheduled, [true, false]);
+    },
+  );
 
-  test('PA7: once active, the couple never gets invite nudges again',
-      () async {
+  test('PA7: once active, the couple never gets invite nudges again', () async {
     final os = _FakeReminders()..armed.addAll([1180, 1181, 1182]);
     final provider = ReminderProvider(service: os);
 

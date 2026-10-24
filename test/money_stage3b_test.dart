@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:dear_embeiu/providers/couple_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +23,6 @@ import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:dear_embeiu/widgets/money/add_transaction_sheet.dart';
 import 'package:dear_embeiu/widgets/money/money_notification_text.dart';
 import 'package:dear_embeiu/widgets/money/money_ui.dart';
-import 'package:dear_embeiu/widgets/money/settle_sheet.dart';
 
 /// Sổ tiền stage 3B (feature expenses): fund screen + "Góp vào quỹ",
 /// settle-up, decision-wheel "Ghi chi", the evening reminder 1210–1211 and
@@ -82,18 +80,6 @@ class _Money extends MoneyProvider {
     bool byUser = false,
   }) => deleted.add(tx.id);
 
-  /// What the server says when the settle sheet re-checks; unset = the
-  /// number the sheet opened with. `null` inside = offline.
-  ({int? balance})? fresh;
-  int rechecks = 0;
-
-  @override
-  Future<int?> refreshCoupleBalance() async {
-    rechecks++;
-    final f = fresh;
-    return f == null ? coupleBalance() : f.balance;
-  }
-
   @override
   void refreshDay() {}
 
@@ -140,7 +126,6 @@ MoneyWallet _dalat({String? deadline}) => MoneyWallet(
 
 MoneyBookState _shared({
   List<MoneyTx> txs = const [],
-  int coupleNet = 0,
   int fund = 0,
   String? deadline,
 }) {
@@ -156,7 +141,6 @@ MoneyBookState _shared({
     DateTime.now().subtract(const Duration(days: 45)),
   );
   s.netSums = {'v_dalat': fund};
-  s.coupleNet = coupleNet;
   s.netSumsAt = DateTime.now();
   return s;
 }
@@ -168,29 +152,6 @@ MoneyTx _contrib(String id, int amount, String payer) => MoneyTx(
   date: _today,
   inWalletId: 'v_dalat',
   payer: payer,
-  splitMode: MoneySplitMode.none,
-  memberUids: const ['her', 'me'],
-);
-
-MoneyTx _sx(
-  String id,
-  int amount,
-  String payer,
-  MoneySplitMode split, {
-  MoneyTxType type = MoneyTxType.expense,
-  String out = '',
-}) => MoneyTx(
-  id: id,
-  type: type,
-  amount: amount,
-  date: _today,
-  categoryId: type == MoneyTxType.expense ? 'food_out' : '',
-  outWalletId: out,
-  payer: payer,
-  splitMode: split,
-  payerShare: type == MoneyTxType.settle
-      ? 0
-      : MoneyMath.payerShareFor(split, amount),
   memberUids: const ['her', 'me'],
 );
 
@@ -302,9 +263,7 @@ void main() {
       expect(rows.first.amount, 2); // the live copy wins
     });
 
-    testWidgets('screen: 40%, lanes Thảo | Mình, per-month line', (
-      tester,
-    ) async {
+    testWidgets('screen: 40%, per-month line', (tester) async {
       _phone(tester);
       final deadline = MoneyMath.dateKey(
         DateTime(DateTime.now().year, DateTime.now().month + 3, 28),
@@ -330,7 +289,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('40%'), findsOneWidget);
-      expect(find.text('Mỗi người góp'), findsOneWidget);
       final per = MoneyMath.perMonthNeeded(3000000, _today, deadline);
       expect(find.textContaining(_v(per)), findsOneWidget);
       expect(find.textContaining('Để kịp'), findsOneWidget);
@@ -393,247 +351,19 @@ void main() {
     });
   });
 
-  group('Thanh toán (settle)', () {
-    test('parts add up to the balance; treats + the wallet left out', () {
-      final txs = [
-        _sx('a', 480000, 'me', MoneySplitMode.equal), // +240.000
-        _sx('b', 70000, 'her', MoneySplitMode.forPartner), // −70.000
-        _sx('c', 200000, 'me', MoneySplitMode.treat), // 0
-        _sx('d', 90000, 'wallet', MoneySplitMode.none, out: 'joint'), // 0
-        _sx('e', 50000, 'her', MoneySplitMode.none, type: MoneyTxType.settle),
-      ];
-      final parts = moneySettleParts(txs, 'me');
-      expect(parts.map((p) => p.tx.id), ['a', 'b', 'e']);
-      expect(
-        parts.fold<int>(0, (s, p) => s + p.signed),
-        MoneyMath.coupleBalance(txs, 'me'),
-      );
-      expect(moneyTreatCount(txs), 1);
-      expect(moneySettleHalf(359000), 179500);
-      expect(moneySettleHalf(359001), 179501);
-    });
-
-    Future<_Money> openSettle(WidgetTester tester, {int net = 359000}) async {
-      _phone(tester);
-      final money = _Money()
-        ..debugSetBooks(
-          uid: 'me',
-          own: _own(),
-          shared: _shared(coupleNet: net),
-        );
-      await tester.pumpWidget(_app(money, _Opener(SettleSheet.show)));
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
-      return money;
-    }
-
-    testWidgets('Trả hết: Thảo pays 359.000 back into my wallet', (
-      tester,
-    ) async {
-      AppL10n.setLocale(const Locale('vi'));
-      final money = await openSettle(tester);
-      expect(find.text('Thảo trả lại cho mình'), findsOneWidget);
-      expect(find.text('Vì sao là ${_v(359000)}'), findsOneWidget);
-      // The field groups thousands like the rest of the screen (smoke).
-      expect(find.widgetWithText(TextField, '359.000'), findsOneWidget);
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      final r = money.added.single;
-      expect(r.tx.type, MoneyTxType.settle);
-      expect(r.tx.payer, 'her');
-      expect(r.tx.amount, 359000);
-      expect(r.own, 'cash');
-      expect(find.text('Đã ghi Thảo trả lại ${_v(359000)}'), findsOneWidget);
-      // Hoàn tác → the settle (and its own half) are deleted.
-      await tester.tap(find.text('Hoàn tác'));
-      await tester.pumpAndSettle();
-      expect(money.deleted, [r.tx.id]);
-    });
-
-    testWidgets('Một nửa → 179.500; switch off → nothing in my book', (
-      tester,
-    ) async {
-      final money = await openSettle(tester);
-      await tester.tap(find.text('Một nửa · ${_v(179500)}'));
-      await tester.pump();
-      await tester.tap(find.byType(Switch));
-      await tester.pump();
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(money.added.single.tx.amount, 179500);
-      expect(money.added.single.own, isNull);
-    });
-
-    testWidgets('number changed on the server: sheet updates, no write', (
-      tester,
-    ) async {
-      final money = await openSettle(tester);
-      // The partner settled 159.000 on her phone meanwhile.
-      money.fresh = (balance: 200000);
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(money.added, isEmpty);
-      expect(
-        find.text(
-          'Số cần trả vừa đổi thành ${_v(200000)}. Xem lại rồi bấm lần nữa nhé.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('Vì sao là ${_v(200000)}'), findsOneWidget);
-      // Second tap: same number on the server → written, the new amount.
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(money.added.single.tx.amount, 200000);
-      expect(money.added.single.tx.payer, 'her');
-      expect(money.rechecks, 2);
-    });
-
-    testWidgets('the sign flipped / already even / offline: nothing written', (
-      tester,
-    ) async {
-      final money = await openSettle(tester);
-      // Both phones "Trả hết": the other one went first → even now.
-      money.fresh = (balance: 0);
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(money.added, isEmpty);
-      expect(find.byType(SettleSheet), findsNothing);
-      expect(
-        find.text('Sổ chung đã cân bằng rồi, không cần thanh toán nữa.'),
-        findsOneWidget,
-      );
-
-      // Reopen; the server can't be reached → no write, a note.
-      await tester.pump(const Duration(seconds: 5));
-      money.fresh = null;
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
-      money.fresh = (balance: null);
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(money.added, isEmpty);
-      expect(
-        find.text('Chưa lấy được số mới nhất. Có mạng rồi thử lại nhé.'),
-        findsOneWidget,
-      );
-
-      // Flipped: now I owe her → shown, not written.
-      money.fresh = (balance: -50000);
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(money.added, isEmpty);
-      expect(find.text('Mình trả lại cho Thảo'), findsOneWidget);
-    });
-
-    testWidgets('cached sums (stale): Save only fetches, never writes', (
-      tester,
-    ) async {
-      _phone(tester);
-      final money = _Money()
-        ..debugSetBooks(
-          uid: 'me',
-          own: _own(),
-          shared: _shared(coupleNet: 359000)..netSumsStale = true,
-        );
-      await tester.pumpWidget(_app(money, _Opener(SettleSheet.show)));
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
-      expect(find.text('Đánh dấu đã thanh toán'), findsNothing);
-      await tester.tap(find.text('Tải số mới nhất'));
-      await tester.pumpAndSettle();
-      expect(money.added, isEmpty);
-      expect(money.rechecks, greaterThanOrEqualTo(1));
-    });
-
-    testWidgets('a typed part 100k; more than owed is refused', (tester) async {
-      final money = await openSettle(tester, net: -170000);
-      expect(find.text('Mình trả lại cho Thảo'), findsOneWidget);
-      await tester.enterText(find.byType(TextField), '200k');
-      await tester.pump();
-      expect(find.text('Tối đa ${_v(170000)}'), findsOneWidget);
-      await tester.enterText(find.byType(TextField), '100k');
-      await tester.pump();
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      final r = money.added.single;
-      expect(r.tx.amount, 100000);
-      expect(r.tx.payer, 'me');
-    });
-    testWidgets('names from CoupleProvider (no scope): saving still writes', (
-      tester,
-    ) async {
-      // Real app path: MoneyPeople.of reads CoupleProvider. Called from the
-      // save tap it must not subscribe (provider asserts outside build and the
-      // settle was silently never written — smoke 2026-10-22).
-      _phone(tester);
-      final money = _Money()
-        ..debugSetBooks(
-          uid: 'me',
-          own: _own(),
-          shared: _shared(coupleNet: 359000),
-        );
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<MoneyProvider>.value(value: money),
-            ChangeNotifierProvider<CoupleProvider>(
-              create: (_) => CoupleProvider(),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('vi'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: _Opener(SettleSheet.show)),
-          ),
-        ),
-      );
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Đánh dấu đã thanh toán'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      expect(money.added.single.tx.amount, 359000);
-      // ...and the sheet closes with its toast. The wallet name for the toast
-      // used to subscribe too → caught as "write failed" under the sheet, the
-      // sheet stayed open on the old number (+ a ghost "Các khoản trước"
-      // line) — iOS smoke 2026-10-24.
-      expect(find.byType(SettleSheet), findsNothing);
-      expect(find.textContaining('trả lại'), findsWidgets);
-    });
-  });
-
   group('MoneyScreen entry points', () {
-    testWidgets('shared: "Thanh toán" while uneven, "Góp vào quỹ" link', (
-      tester,
-    ) async {
+    testWidgets('shared: goals card with the "Góp quỹ" link', (tester) async {
       _phone(tester);
       final money = _Money()
-        ..debugSetBooks(
-          uid: 'me',
-          own: _own(),
-          shared: _shared(coupleNet: 359000, fund: 2000000),
-        );
+        ..debugSetBooks(uid: 'me', own: _own(), shared: _shared(fund: 2000000));
       await tester.pumpWidget(
         _app(money, const MoneyScreen(initialBook: MoneyBookKind.shared)),
       );
       await tester.pump();
       expect(tester.takeException(), isNull);
-      expect(find.text('Thanh toán'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Góp vào quỹ'), 200);
-      expect(find.text('Góp vào quỹ'), findsOneWidget);
-    });
-
-    testWidgets('even → no "Thanh toán"', (tester) async {
-      _phone(tester);
-      final money = _Money()
-        ..debugSetBooks(uid: 'me', own: _own(), shared: _shared());
-      await tester.pumpWidget(
-        _app(money, const MoneyScreen(initialBook: MoneyBookKind.shared)),
-      );
-      await tester.pump();
-      expect(find.text('Hai bên đang ngang nhau'), findsOneWidget);
-      expect(find.text('Thanh toán'), findsNothing);
+      await tester.scrollUntilVisible(find.text('Góp quỹ'), 200);
+      expect(find.text('Mục tiêu tiết kiệm'), findsOneWidget);
+      expect(find.text('Góp quỹ'), findsOneWidget);
     });
   });
 

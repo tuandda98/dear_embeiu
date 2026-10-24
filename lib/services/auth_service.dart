@@ -62,9 +62,9 @@ class AuthService {
     FlutterSecureStorage? secureStorage,
     FirebaseAuth? firebaseAuth,
     UserService? userService,
-  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
-        _firebaseAuth = firebaseAuth,
-        _userService = userService ?? UserService();
+  }) : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+       _firebaseAuth = firebaseAuth,
+       _userService = userService ?? UserService();
 
   static const String _usersStorageKey = 'mock_auth_users';
   static const String _sessionStorageKey = 'mock_auth_session_user_id';
@@ -113,10 +113,12 @@ class AuthService {
       }
 
       if (existingProfile != null) {
-        final refreshedProfile = await _ensureInviteCode(existingProfile.copyWith(
-          lastSeenAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ));
+        final refreshedProfile = await _ensureInviteCode(
+          existingProfile.copyWith(
+            lastSeenAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
         // Robustness (app-robustness A4): the lastSeenAt/updatedAt refresh is
         // pure housekeeping — it must not block the route. Fire-and-forget so
         // these two Firestore writes happen off the cold-start critical path.
@@ -124,7 +126,9 @@ class AuthService {
         return refreshedProfile;
       }
 
-      final createdProfile = await _ensureInviteCode(_buildFirebaseProfile(firebaseUser));
+      final createdProfile = await _ensureInviteCode(
+        _buildFirebaseProfile(firebaseUser),
+      );
       await _userService.saveUserProfile(createdProfile);
       return createdProfile;
     }
@@ -135,7 +139,9 @@ class AuthService {
     }
 
     final users = await _loadUserRecords();
-    final record = users.where((user) => user['id'] == sessionUserId).firstOrNull;
+    final record = users
+        .where((user) => user['id'] == sessionUserId)
+        .firstOrNull;
 
     if (record == null) {
       await _delete(_sessionStorageKey);
@@ -245,10 +251,7 @@ class AuthService {
       lastSeenAt: now,
     );
 
-    users.add({
-      ...user.toJson(),
-      'password': normalizedPassword,
-    });
+    users.add({...user.toJson(), 'password': normalizedPassword});
 
     await _saveUserRecords(users);
     await _write(_sessionStorageKey, user.id);
@@ -274,12 +277,16 @@ class AuthService {
 
         await _ensureFirebaseSessionReady(firebaseUser);
 
-        final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
-        final user = await _ensureInviteCode(_buildSignInProfile(
-          firebaseUser: firebaseUser,
-          fallbackEmail: email.trim().toLowerCase(),
-          existingProfile: existingProfile,
-        ));
+        final existingProfile = await _userService.fetchUserProfile(
+          firebaseUser.uid,
+        );
+        final user = await _ensureInviteCode(
+          _buildSignInProfile(
+            firebaseUser: firebaseUser,
+            fallbackEmail: email.trim().toLowerCase(),
+            existingProfile: existingProfile,
+          ),
+        );
 
         if (existingProfile == null) {
           await _userService.saveUserProfile(user);
@@ -317,15 +324,13 @@ class AuthService {
       );
     }
 
-    final signedInUser = await _ensureInviteCode(AppUser.fromJson(record).copyWith(
-      updatedAt: DateTime.now(),
-      lastSeenAt: DateTime.now(),
-    ));
+    final signedInUser = await _ensureInviteCode(
+      AppUser.fromJson(
+        record,
+      ).copyWith(updatedAt: DateTime.now(), lastSeenAt: DateTime.now()),
+    );
 
-    users[index] = {
-      ...signedInUser.toJson(),
-      'password': record['password'],
-    };
+    users[index] = {...signedInUser.toJson(), 'password': record['password']};
 
     await _saveUserRecords(users);
     await _write(_sessionStorageKey, signedInUser.id);
@@ -382,7 +387,9 @@ class AuthService {
         throw const AuthException('social-canceled');
       }
       // SDK text is English and technical — log it, never show it.
-      debugPrint('AuthService Google sign-in error ${e.code}: ${e.description}');
+      debugPrint(
+        'AuthService Google sign-in error ${e.code}: ${e.description}',
+      );
       throw AuthException(failed);
     } catch (e) {
       // e.g. iOS without the REVERSED_CLIENT_ID URL scheme (PlatformException).
@@ -471,13 +478,17 @@ class AuthService {
 
       await _ensureFirebaseSessionReady(firebaseUser);
 
-      final existingProfile = await _userService.fetchUserProfile(firebaseUser.uid);
+      final existingProfile = await _userService.fetchUserProfile(
+        firebaseUser.uid,
+      );
       if (existingProfile != null) {
-        final user = await _ensureInviteCode(_buildSignInProfile(
-          firebaseUser: firebaseUser,
-          fallbackEmail: email,
-          existingProfile: existingProfile,
-        ));
+        final user = await _ensureInviteCode(
+          _buildSignInProfile(
+            firebaseUser: firebaseUser,
+            fallbackEmail: email,
+            existingProfile: existingProfile,
+          ),
+        );
         await _userService.updateUserProfile(user);
         return (user: user, isNewUser: false);
       }
@@ -751,9 +762,9 @@ class AuthService {
       await _functions
           .httpsCallable('sendCustomPasswordResetEmail')
           .call<dynamic>(<String, dynamic>{
-        'email': email.trim().toLowerCase(),
-        'languageCode': _activeLanguageCode,
-      });
+            'email': email.trim().toLowerCase(),
+            'languageCode': _activeLanguageCode,
+          });
     } on FirebaseFunctionsException catch (e) {
       // CF returns success for unknown email (anti-enumeration) so we only
       // surface real errors (network failure, Resend down, etc.).
@@ -827,8 +838,11 @@ class AuthService {
   /// locale MaterialApp resolved (synced into [AppL10n] via
   /// localeResolutionCallback); falls back to 'vi'.
   String get _activeLanguageCode {
-    final code =
-        AppL10n.strings.localeName.split(RegExp('[_-]')).first.trim().toLowerCase();
+    final code = AppL10n.strings.localeName
+        .split(RegExp('[_-]'))
+        .first
+        .trim()
+        .toLowerCase();
     return code.isNotEmpty ? code : 'vi';
   }
 
@@ -891,8 +905,7 @@ class AuthService {
     final firebaseUser = _auth.currentUser;
     // A linked Google grant goes too, whatever confirmed the deletion (AU3).
     final hasGoogle = _hasGoogle(firebaseUser);
-    if (firebaseUser != null &&
-        _reauthProvider(firebaseUser) == 'google.com') {
+    if (firebaseUser != null && _reauthProvider(firebaseUser) == 'google.com') {
       // PF16: Google has no sheet to re-authenticate with.
       await _refreshIdTokenBeforeDelete(firebaseUser);
     }
@@ -981,7 +994,9 @@ class AuthService {
       // `not-handled`, `invalid-response`… The user confirmed in our dialog
       // already: delete without revoking, the callable decides — on this
       // account's session only (BUG-24).
-      debugPrint('AuthService Apple delete sheet error ${e.code}: ${e.message}');
+      debugPrint(
+        'AuthService Apple delete sheet error ${e.code}: ${e.message}',
+      );
       await _requireSession(firebaseUser.uid);
       await _refreshIdTokenBeforeDelete(firebaseUser);
       return;
@@ -1073,7 +1088,9 @@ class AuthService {
     // can leave that Apple ID signed in). Thrown on, that error looked like a
     // sheet error to AU6, which then deleted whoever was signed in (BUG-24).
     await _signOutQuietly();
-    throw AuthException(signedIn == null ? 'session-gone' : 'apple-id-mismatch');
+    throw AuthException(
+      signedIn == null ? 'session-gone' : 'apple-id-mismatch',
+    );
   }
 
   /// BUG-24 — the delete callable and [setPassword] act on whichever session
@@ -1141,7 +1158,9 @@ class AuthService {
 
   Future<void> updateCurrentUser(AppUser user) async {
     if (isUsingFirebase) {
-      await _userService.updateUserProfile(user.copyWith(updatedAt: DateTime.now()));
+      await _userService.updateUserProfile(
+        user.copyWith(updatedAt: DateTime.now()),
+      );
       return;
     }
 
@@ -1151,10 +1170,7 @@ class AuthService {
       return;
     }
 
-    users[index] = {
-      ...user.toJson(),
-      'password': users[index]['password'],
-    };
+    users[index] = {...user.toJson(), 'password': users[index]['password']};
 
     await _saveUserRecords(users);
   }
@@ -1227,7 +1243,8 @@ class AuthService {
       cachedCouple = null;
     }
 
-    if (cachedCouple != null && cachedCouple.memberIds.contains(firebaseUser.uid)) {
+    if (cachedCouple != null &&
+        cachedCouple.memberIds.contains(firebaseUser.uid)) {
       final isActive = cachedCouple.memberIds.length >= 2;
       return base.copyWith(
         coupleId: cachedCouple.id,
@@ -1349,7 +1366,9 @@ class AuthService {
       case 'unavailable':
         return l10n.authFirestoreUnavailable;
       default:
-        debugPrint('AuthService firestore error ${exception.code}: ${exception.message}');
+        debugPrint(
+          'AuthService firestore error ${exception.code}: ${exception.message}',
+        );
         return l10n.authFirestoreGeneric;
     }
   }
@@ -1433,7 +1452,8 @@ class AuthService {
     final preservedEmail = (existingProfile?.email.trim().isNotEmpty == true)
         ? existingProfile!.email
         : (firebaseEmail?.isNotEmpty == true ? firebaseEmail! : fallbackEmail);
-    final preferredDisplayName = firebaseUser.displayName?.trim().isNotEmpty == true
+    final preferredDisplayName =
+        firebaseUser.displayName?.trim().isNotEmpty == true
         ? firebaseUser.displayName!.trim()
         : (existingProfile?.displayName ?? fallbackEmail.split('@').first);
 
@@ -1479,10 +1499,7 @@ class AuthService {
 
   String _generateInviteCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return List.generate(
-      6,
-      (_) => chars[_random.nextInt(chars.length)],
-    ).join();
+    return List.generate(6, (_) => chars[_random.nextInt(chars.length)]).join();
   }
 }
 
@@ -1494,4 +1511,3 @@ extension<T> on Iterable<T> {
     return first;
   }
 }
-

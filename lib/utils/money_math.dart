@@ -6,14 +6,11 @@ import '../models/money.dart';
 /// (null = deleted, or hidden in its undo window).
 typedef MoneyLocalWrite = ({MoneyTx? before, MoneyTx? after});
 
-/// Month totals of one book (D7). [left] = income − spent ("Thu trừ chi").
+/// Month totals of one book (D34: spending only, there is no income).
 class MoneyMonthTotals {
-  const MoneyMonthTotals(this.expense, this.income);
+  const MoneyMonthTotals(this.expense);
 
   final int expense;
-  final int income;
-
-  int get left => income - expense;
 }
 
 /// Where a budget stands this month. [level]: 0, 80 (≥ 80 %) or 100 (≥ 100 %).
@@ -34,6 +31,39 @@ class MoneyBudgetStatus {
 
   /// Negative once over budget.
   int get left => budget - spent;
+}
+
+/// Where a saving challenge stands (D34 §4).
+class MoneyChallengeStatus {
+  const MoneyChallengeStatus({
+    required this.spent,
+    required this.daysPassed,
+    required this.cleanDays,
+    required this.ended,
+    required this.failed,
+    required this.lastDay,
+  });
+
+  /// Matching spending inside the window so far.
+  final int spent;
+
+  /// Days of the window already started (today included), 0..days.
+  final int daysPassed;
+
+  /// noSpend: started days without a matching expense.
+  final int cleanDays;
+
+  /// The window is over (today is after [lastDay]).
+  final bool ended;
+
+  /// Already lost: a matching expense (noSpend) or past the limit (cap).
+  final bool failed;
+
+  /// 'YYYY-MM-DD' of the window's last day.
+  final String lastDay;
+
+  bool get won => ended && !failed;
+  bool get running => !ended && !failed;
 }
 
 /// Pure money arithmetic for Sổ tiền (overview D7, D9, D11, D19 + design
@@ -75,19 +105,24 @@ class MoneyMath {
     for (var i = n - 1; i >= 0; i--) addMonths(month, -i),
   ];
 
-  // ---- thu – chi -----------------------------------------------------------
+  // ---- chi ------------------------------------------------------------------
 
-  /// Spent / earned in [month]. Transfers, adjustments, contributions and
-  /// settlements only move balances — they are never spending or income.
+  /// Spent in [month]. Transfers, adjustments and contributions only move
+  /// balances — they are never spending.
   static MoneyMonthTotals monthTotals(Iterable<MoneyTx> txs, String month) {
-    var expense = 0, income = 0;
+    var expense = 0;
     for (final t in txs) {
-      if (t.month != month) continue;
-      if (t.type == MoneyTxType.expense) expense += t.amount;
-      if (t.type == MoneyTxType.income) income += t.amount;
+      if (t.month == month && t.type == MoneyTxType.expense) {
+        expense += t.amount;
+      }
     }
-    return MoneyMonthTotals(expense, income);
+    return MoneyMonthTotals(expense);
   }
+
+  /// Spent across all of [txs], any month.
+  static int spentAll(Iterable<MoneyTx> txs) => txs
+      .where((t) => t.type == MoneyTxType.expense)
+      .fold(0, (sum, t) => sum + t.amount);
 
   /// Spent in [month] on [categoryId] and its children ('' = everything).
   static int spentIn(
@@ -172,8 +207,7 @@ class MoneyMath {
   /// Σ measure(after) − Σ measure(before). A new entry adds itself, an edit
   /// adds only the difference (100k → 120k = −20k, not −120k), a delete
   /// takes back what the server still counts, and a new entry deleted in
-  /// its undo window changes nothing. [measure] = `t.deltaFor(walletId)` for
-  /// a wallet, or the entry's part of [coupleBalance].
+  /// its undo window changes nothing. [measure] = `t.deltaFor(walletId)`.
   static int localCorrection(
     Iterable<MoneyLocalWrite> writes,
     int Function(MoneyTx t) measure,
@@ -264,91 +298,55 @@ class MoneyMath {
 
   // ---- sổ chung ------------------------------------------------------------
 
-  /// `payerShare` for a split (D7/D12). Odd amounts split evenly round UP
-  /// for the payer (75.001 → 37.501).
-  static int payerShareFor(MoneySplitMode mode, int amount, {int custom = 0}) {
-    switch (mode) {
-      case MoneySplitMode.equal:
-        return (amount + 1) ~/ 2;
-      case MoneySplitMode.treat:
-        return amount;
-      case MoneySplitMode.forPartner:
-      case MoneySplitMode.none:
-        return 0;
-      case MoneySplitMode.custom:
-        return custom.clamp(0, amount);
-    }
-  }
+  // ---- thử thách (D34 §4) ---------------------------------------------------
 
-  /// Who has covered more, all time (D7). Positive = [me] covered more (the
-  /// partner should pay back that much); negative = the partner did.
-  /// Only expenses and settlements a PERSON paid count; the shared wallet
-  /// and contributions never create a debt.
-  static int coupleBalance(Iterable<MoneyTx> txs, String me) {
-    var sum = 0;
-    for (final t in txs) {
-      if (t.type != MoneyTxType.expense && t.type != MoneyTxType.settle) {
-        continue;
-      }
-      final payer = t.payer;
-      if (payer == null || payer == kMoneyPayerWallet) continue;
-      final owed = t.amount - t.payerShare;
-      sum += payer == me ? owed : -owed;
-    }
-    return sum;
-  }
+  static DateTime _day(String key) => DateTime.utc(
+    int.parse(key.substring(0, 4)),
+    int.parse(key.substring(5, 7)),
+    int.parse(key.substring(8, 10)),
+  );
 
-  /// [coupleBalance] from the server's aggregate `sum()` per payer
-  /// (expenses + settlements): what each of us covered for the other is
-  /// amount − payerShare.
-  static int coupleBalanceFromSums({
-    required int mineAmount,
-    required int mineShare,
-    required int partnerAmount,
-    required int partnerShare,
-  }) => (mineAmount - mineShare) - (partnerAmount - partnerShare);
+  static String _key(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
 
-  /// The settlement that evens out [balance] (from [coupleBalance]): the
-  /// person who covered less pays the difference. null when already even.
-  static ({String payer, int amount})? settlementFor(
-    int balance, {
-    required String me,
-    required String partner,
+  /// Grades [c] on [txs] (entries of its book) as of [today]. [groupOf]
+  /// maps a category to its group, so "Ăn uống" also covers "Cà phê".
+  static MoneyChallengeStatus challengeStatus(
+    MoneyChallenge c,
+    Iterable<MoneyTx> txs,
+    String today, {
+    String Function(String id)? groupOf,
   }) {
-    if (balance == 0) return null;
-    return balance > 0
-        ? (payer: partner, amount: balance)
-        : (payer: me, amount: -balance);
-  }
-
-  /// "Ai trả tháng này": spending of [month] per payer (uid or 'wallet').
-  /// The three lanes always add up to the month's shared spending.
-  static Map<String, int> paidBy(Iterable<MoneyTx> txs, String month) {
-    final out = <String, int>{};
+    final start = _day(c.startDate);
+    final lastDay = _key(start.add(Duration(days: c.days - 1)));
+    final ids = c.categoryIds.toSet();
+    bool matches(MoneyTx t) =>
+        t.type == MoneyTxType.expense &&
+        t.date.compareTo(c.startDate) >= 0 &&
+        t.date.compareTo(lastDay) <= 0 &&
+        (ids.isEmpty ||
+            ids.contains(t.categoryId) ||
+            ids.contains(groupOf?.call(t.categoryId) ?? t.categoryId));
+    var spent = 0;
+    final spendDays = <String>{};
     for (final t in txs) {
-      if (t.type != MoneyTxType.expense || t.month != month) continue;
-      final key = t.payer ?? kMoneyPayerWallet;
-      out[key] = (out[key] ?? 0) + t.amount;
+      if (!matches(t)) continue;
+      spent += t.amount;
+      spendDays.add(t.date);
     }
-    return out;
-  }
-
-  /// Contributions per person into [walletId] (all time), or into any wallet
-  /// in [month] when [walletId] is null ("Mỗi người góp … tháng này").
-  static Map<String, int> contributionsBy(
-    Iterable<MoneyTx> txs, {
-    String? walletId,
-    String? month,
-  }) {
-    final out = <String, int>{};
-    for (final t in txs) {
-      if (t.type != MoneyTxType.contribution) continue;
-      if (walletId != null && t.inWalletId != walletId) continue;
-      if (month != null && t.month != month) continue;
-      final key = t.payer ?? '';
-      out[key] = (out[key] ?? 0) + t.amount;
-    }
-    return out;
+    final elapsed = _day(today).difference(start).inDays + 1;
+    final daysPassed = elapsed.clamp(0, c.days);
+    final failed = switch (c.kind) {
+      MoneyChallengeKind.noSpend => spent > 0,
+      MoneyChallengeKind.cap => spent > c.limit,
+    };
+    return MoneyChallengeStatus(
+      spent: spent,
+      daysPassed: daysPassed,
+      cleanDays: (daysPassed - spendDays.length).clamp(0, c.days),
+      ended: today.compareTo(lastDay) > 0,
+      failed: failed,
+      lastDay: lastDay,
+    );
   }
 
   /// The other half of [tx]'s link (D11) among [others] (the other book).
@@ -433,7 +431,7 @@ class MoneyMath {
     final list = txs.toList()..sort(_byNewest);
     for (final t in list) {
       if (t.type != kind || t.categoryId != categoryId) continue;
-      final id = kind == MoneyTxType.income ? t.inWalletId : t.outWalletId;
+      final id = t.outWalletId;
       if (usable.containsKey(id)) return id;
     }
     if (preferred != null && usable.containsKey(preferred)) return preferred;

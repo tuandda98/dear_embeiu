@@ -25,12 +25,11 @@ import 'package:dear_embeiu/services/reminder_service.dart';
 import 'package:dear_embeiu/utils/money_input.dart';
 import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:dear_embeiu/utils/money_views.dart';
-import 'package:dear_embeiu/widgets/money/add_transaction_sheet.dart';
 import 'package:dear_embeiu/widgets/money/money_reminder_tile.dart';
 import 'package:dear_embeiu/widgets/money/money_ui.dart';
 
 // Sổ tiền: screens, gap cases of project/features/expenses/test-cases.md
-// (WAL-04/05/06/08/12, TX-11, CAT-05/07, GOAL-14, BUD-14, REP-07..12,
+// (WAL-04/05/06/12, TX-11, CAT-05/07, GOAL-14, BUD-14, REP-07..12,
 // SRCH-10/11, HM-07, A11Y-04/05/06, I18N-02, OFF-03, ED-16, AM-22).
 
 int _ids = 0;
@@ -225,8 +224,6 @@ MoneyTx _sExp(String id, int amount, String payer, String note) => MoneyTx(
   categoryId: 'food_out',
   note: note,
   payer: payer,
-  splitMode: MoneySplitMode.equal,
-  payerShare: (amount + 1) ~/ 2,
   memberUids: const ['her', 'me'],
   createdBy: payer,
 );
@@ -319,11 +316,10 @@ void main() {
           _exp('a', 220000, note: 'Lẩu', wallet: 'momo'),
           MoneyTx(
             id: 'i',
-            type: MoneyTxType.income,
+            type: MoneyTxType.adjust,
             amount: 1000000,
             date: _today,
             inWalletId: 'momo',
-            categoryId: 'side',
             note: 'Freelance',
           ),
           _exp('z', 99000, note: 'Ví khác', wallet: 'cash'),
@@ -425,30 +421,6 @@ void main() {
       expect(tx.outWalletId, 'momo');
       expect(tx.inWalletId, isEmpty);
       expect(find.text('Đã sửa số dư MoMo'), findsOneWidget);
-    });
-
-    testWidgets('WAL-08: "Chuyển tiền" opens a transfer from THIS wallet', (
-      t,
-    ) async {
-      final m = withWallets();
-      await _pump(
-        t,
-        m,
-        const MoneyWalletScreen(book: MoneyBookKind.own, walletId: 'momo'),
-      );
-      await _tap(t, find.text('Chuyển tiền'));
-      expect(find.byType(AddTransactionSheet), findsOneWidget);
-      expect(find.text('Từ ví'), findsOneWidget);
-      await t.tap(find.text('5').last);
-      await t.tap(find.text('0').last);
-      await t.tap(find.text('k').last);
-      await t.pump();
-      await t.tap(find.byType(MoneyPrimaryButton).last);
-      await t.pumpAndSettle();
-      final tx = m.added.single.tx;
-      expect(tx.type, MoneyTxType.transfer);
-      expect(tx.outWalletId, 'momo');
-      expect(tx.inWalletId, isNot('momo'));
     });
   });
 
@@ -684,9 +656,7 @@ void main() {
   });
 
   group('goal screen', () {
-    testWidgets('GOAL-14: the fund bar and the two lanes read as sentences', (
-      t,
-    ) async {
+    testWidgets('GOAL-14: the fund bar reads as a sentence', (t) async {
       final h = t.ensureSemantics();
       const fund = MoneyWallet(
         id: 'v_dalat',
@@ -703,7 +673,6 @@ void main() {
         date: _today,
         inWalletId: 'v_dalat',
         payer: who,
-        splitMode: MoneySplitMode.none,
         memberUids: const ['her', 'me'],
         createdBy: who,
       );
@@ -726,45 +695,37 @@ void main() {
         find.bySemanticsLabel(RegExp(r'40% của 5\.000\.000 đồng')),
         findsOneWidget,
       );
-      expect(
-        find.bySemanticsLabel(
-          RegExp(
-            r'Thảo góp 800\.000 đồng, mình góp 1\.200\.000 đồng, còn thiếu 3\.000\.000 đồng',
-          ),
-        ),
-        findsOneWidget,
-      );
       h.dispose();
     });
   });
 
   group('report screen', () {
-    testWidgets('REP-07: a month with income only → "chưa có khoản chi nào"', (
-      t,
-    ) async {
-      final m = _Money()
-        ..debugSetBooks(
-          uid: 'me',
-          own: _own(
-            txs: [
-              MoneyTx(
-                id: 'i',
-                type: MoneyTxType.income,
-                amount: 1000000,
-                date: _today,
-                inWalletId: 'cash',
-                categoryId: 'salary',
-              ),
-            ],
-          ),
+    testWidgets(
+      'REP-07: a month with no spending (only a balance adjustment) → "chưa có khoản chi nào"',
+      (t) async {
+        final m = _Money()
+          ..debugSetBooks(
+            uid: 'me',
+            own: _own(
+              txs: [
+                MoneyTx(
+                  id: 'i',
+                  type: MoneyTxType.adjust,
+                  amount: 1000000,
+                  date: _today,
+                  inWalletId: 'cash',
+                ),
+              ],
+            ),
+          );
+        await _pump(t, m, const MoneyReportScreen());
+        expect(
+          find.text('Tháng ${DateTime.now().month} chưa có khoản chi nào.'),
+          findsOneWidget,
         );
-      await _pump(t, m, const MoneyReportScreen());
-      expect(
-        find.text('Tháng ${DateTime.now().month} chưa có khoản chi nào.'),
-        findsOneWidget,
-      );
-      expect(find.text('Chi theo danh mục'), findsNothing);
-    });
+        expect(find.text('Chi theo danh mục'), findsNothing);
+      },
+    );
 
     testWidgets('REP-09: months that could not load stay empty with a note', (
       t,
@@ -773,12 +734,12 @@ void main() {
       final m =
           _Money(
             trendData: {
-              months[0]: const MoneyMonthTotals(100000, 0),
+              months[0]: const MoneyMonthTotals(100000),
               months[1]: null,
-              months[2]: const MoneyMonthTotals(200000, 0),
+              months[2]: const MoneyMonthTotals(200000),
               months[3]: null,
-              months[4]: const MoneyMonthTotals(300000, 0),
-              months[5]: const MoneyMonthTotals(50000, 0),
+              months[4]: const MoneyMonthTotals(300000),
+              months[5]: const MoneyMonthTotals(50000),
             },
           )..debugSetBooks(
             uid: 'me',
@@ -806,7 +767,7 @@ void main() {
       final m =
           _Money(
             trendData: {
-              for (final x in months) x: const MoneyMonthTotals(120000, 0),
+              for (final x in months) x: const MoneyMonthTotals(120000),
             },
           )..debugSetBooks(
             uid: 'me',

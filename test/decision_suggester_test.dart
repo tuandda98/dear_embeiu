@@ -348,8 +348,18 @@ void main() {
 
   test('top 5 groups a bank pick by resultId across languages (BUG-6)', () {
     final rows = DecisionProvider.topOf([
-      pick(DecisionKind.eat, '2026-10-01', 'Thịt kho tàu trứng', resultId: 'thit_kho_tau'),
-      pick(DecisionKind.eat, '2026-10-02', 'Braised pork belly with eggs', resultId: 'thit_kho_tau'),
+      pick(
+        DecisionKind.eat,
+        '2026-10-01',
+        'Thịt kho tàu trứng',
+        resultId: 'thit_kho_tau',
+      ),
+      pick(
+        DecisionKind.eat,
+        '2026-10-02',
+        'Braised pork belly with eggs',
+        resultId: 'thit_kho_tau',
+      ),
       pick(DecisionKind.eat, '2026-10-03', 'Bún bò mẹ nấu'),
       pick(DecisionKind.eat, '2026-10-04', 'bún bò  mẹ nấu'),
       pick(DecisionKind.go, '2026-10-04', 'Đi cà phê', resultId: 'ca_phe'),

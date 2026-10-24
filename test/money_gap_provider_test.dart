@@ -78,11 +78,8 @@ class _Svc extends Fake implements MoneyService {
   final List<StreamController<({List<MoneyTx> txs, bool fromServer})>>
   txStreams = [];
   int netSumCalls = 0;
-  int paidSumCalls = 0;
   bool offline = false;
   Map<String, int> nextNet = const {'cash': 0};
-  ({int amount, int share}) mineSums = (amount: 0, share: 0);
-  ({int amount, int share}) theirSums = (amount: 0, share: 0);
   final List<List<MoneyWallet>> created = [];
   Object? createError;
   Object? commitError;
@@ -113,6 +110,8 @@ class _Svc extends Fake implements MoneyService {
   @override
   Stream<List<MoneyBudget>> watchBudgets() => const Stream.empty();
   @override
+  Stream<List<MoneyChallenge>> watchChallenges() => const Stream.empty();
+  @override
   Stream<MoneyMeta> watchMeta() => const Stream.empty();
   @override
   Future<bool> hasAnyTx() async => false;
@@ -122,13 +121,6 @@ class _Svc extends Fake implements MoneyService {
     netSumCalls++;
     if (offline) throw StateError('offline');
     return nextNet;
-  }
-
-  @override
-  Future<({int amount, int share})> paidSums(String payer) async {
-    paidSumCalls++;
-    if (offline) throw StateError('offline');
-    return payer == 'me' ? mineSums : theirSums;
   }
 
   @override
@@ -264,7 +256,7 @@ void main() {
       r,
     ) async {
       await r.attach(t, shared: true);
-      final net = r.own.netSumCalls, paid = r.sh!.paidSumCalls;
+      final net = r.own.netSumCalls, sharedNet = r.sh!.netSumCalls;
       final subs = r.own.txStreams.length + r.sh!.txStreams.length;
 
       // Home calls it after EVERY build; the old code scheduled the sums
@@ -275,7 +267,7 @@ void main() {
       }
       await r.wait(t, 1000); // the debounce (600 ms) would have fired by now
       expect(r.own.netSumCalls, net, reason: 'no aggregate for the own book');
-      expect(r.sh!.paidSumCalls, paid, reason: 'nor for the shared book');
+      expect(r.sh!.netSumCalls, sharedNet, reason: 'nor for the shared book');
       expect(
         r.own.txStreams.length + r.sh!.txStreams.length,
         subs,
@@ -320,13 +312,13 @@ void main() {
         ),
       );
       await t.pump(const Duration(seconds: 2)); // first build + its reads
-      final net = r.own.netSumCalls, paid = r.sh!.paidSumCalls;
+      final net = r.own.netSumCalls, sharedNet = r.sh!.netSumCalls;
       final subs = r.own.txStreams.length + r.sh!.txStreams.length;
       for (var i = 0; i < 100; i++) {
         await t.pump(const Duration(milliseconds: 100)); // 10 s of Home
       }
       expect(r.own.netSumCalls, net, reason: 'no balance reads while idle');
-      expect(r.sh!.paidSumCalls, paid);
+      expect(r.sh!.netSumCalls, sharedNet);
       expect(r.own.txStreams.length + r.sh!.txStreams.length, subs);
     });
 
@@ -335,16 +327,16 @@ void main() {
       r,
     ) async {
       await r.attach(t, shared: true);
-      final net = r.own.netSumCalls, paid = r.sh!.paidSumCalls;
+      final net = r.own.netSumCalls, sharedNet = r.sh!.netSumCalls;
 
       r.p.onResume();
       r.p.onResume(); // two resumes inside the debounce → still one read
       await r.wait(t, 700);
       expect(r.own.netSumCalls, net + 1);
-      expect(r.sh!.paidSumCalls, paid + 2, reason: 'mine + partner, once');
+      expect(r.sh!.netSumCalls, sharedNet + 1, reason: 'shared book, once');
       await r.wait(t); // and then quiet
       expect(r.own.netSumCalls, net + 1);
-      expect(r.sh!.paidSumCalls, paid + 2);
+      expect(r.sh!.netSumCalls, sharedNet + 1);
     });
 
     _rig('AGG-03 / MON-05: past midnight the window moves, one re-read, '
@@ -446,56 +438,6 @@ void main() {
   });
 
   group('two phones', () {
-    _rigShared('BAL-15: settle re-reads the SERVER number, not the cache', (
-      t,
-      r,
-    ) async {
-      // The cached number still says "she owes 120k".
-      r.sSh!
-        ..coupleNet = 120000
-        ..netSumsAt = DateTime(2026, 10, 23)
-        ..netSumsStale = true;
-      expect(r.p.coupleBalance(), 120000);
-      // The other phone already settled: the server says even.
-      r.sh!.mineSums = (amount: 240000, share: 120000);
-      r.sh!.theirSums = (amount: 240000, share: 120000);
-
-      expect(await r.p.refreshCoupleBalance(), 0);
-      expect(
-        MoneyMath.settlementFor(0, me: 'me', partner: 'her'),
-        isNull,
-        reason: 'nothing left to write: the second "Trả hết" writes no row',
-      );
-      expect(r.p.coupleBalance(), 0);
-    });
-
-    _rigShared('BAL-15: offline → null, so a settle never goes out on a '
-        'cached number', (t, r) async {
-      r.sSh!
-        ..coupleNet = 120000
-        ..netSumsAt = DateTime(2026, 10, 23);
-      r.sh!.offline = true;
-      expect(await r.p.refreshCoupleBalance(), isNull);
-      expect(r.sSh!.netSumsStale, isTrue);
-    });
-
-    _rigShared('BAL-15: a number still owed is returned as the new plan', (
-      t,
-      r,
-    ) async {
-      r.sSh!
-        ..coupleNet = 120000
-        ..netSumsAt = DateTime(2026, 10, 23);
-      r.sh!.mineSums = (amount: 100000, share: 50000);
-      r.sh!.theirSums = (amount: 0, share: 0);
-      final fresh = await r.p.refreshCoupleBalance();
-      expect(fresh, 50000);
-      expect(MoneyMath.settlementFor(fresh!, me: 'me', partner: 'her'), (
-        payer: 'her',
-        amount: 50000,
-      ));
-    });
-
     test('ED-08: the edit writes editCount as old+1 (absolute), so the '
         'second of two edits from one version is refused by the rules', () {
       final svc = MoneyService.shared('c1', const [
@@ -511,8 +453,6 @@ void main() {
         inWalletId: '',
         categoryId: 'food_out',
         payer: 'me',
-        splitMode: MoneySplitMode.equal,
-        payerShare: 50000,
         memberUids: ['me', 'her'],
         createdBy: 'me',
         editCount: 3,
@@ -647,7 +587,6 @@ void main() {
         expect(r.p.own, isNotNull, reason: 'the own book stays');
         expect(r.p.visibleTxs(MoneyBookKind.shared), isEmpty);
         expect(r.p.balances(MoneyBookKind.shared), isEmpty);
-        expect(r.p.coupleBalance(), isNull);
         expect(notified, 1);
       },
     );

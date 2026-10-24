@@ -147,7 +147,7 @@ final _ownTx = <MoneyTx>[
   _o(
     'o4',
     '2026-10-05',
-    MoneyTxType.income,
+    MoneyTxType.adjust,
     18500000,
     '',
     'w_tcb',
@@ -218,7 +218,7 @@ final _ownTx = <MoneyTx>[
   _o(
     'o12',
     '2026-10-12',
-    MoneyTxType.income,
+    MoneyTxType.adjust,
     2000000,
     '',
     'w_momo',
@@ -381,8 +381,6 @@ MoneyTx _s(
   String cat,
   String note,
   String payer,
-  MoneySplitMode split,
-  int share,
 ) => MoneyTx(
   id: id,
   type: type,
@@ -393,40 +391,13 @@ MoneyTx _s(
   categoryId: cat,
   note: note,
   payer: payer == 'wallet' ? kMoneyPayerWallet : payer,
-  splitMode: split,
-  payerShare: share,
   memberUids: _pair,
 );
 
-const _none = MoneySplitMode.none, _eq = MoneySplitMode.equal;
 const _c = MoneyTxType.contribution;
 final _sharedTx = <MoneyTx>[
-  _s(
-    'c1',
-    '2026-10-01',
-    _c,
-    1000000,
-    '',
-    'v_chung',
-    '',
-    'Góp đầu tháng',
-    _me,
-    _none,
-    0,
-  ),
-  _s(
-    'c2',
-    '2026-10-01',
-    _c,
-    1000000,
-    '',
-    'v_chung',
-    '',
-    'Góp đầu tháng',
-    _her,
-    _none,
-    0,
-  ),
+  _s('c1', '2026-10-01', _c, 1000000, '', 'v_chung', '', 'Góp đầu tháng', _me),
+  _s('c2', '2026-10-01', _c, 1000000, '', 'v_chung', '', 'Góp đầu tháng', _her),
   _s(
     's1',
     '2026-10-03',
@@ -437,8 +408,6 @@ final _sharedTx = <MoneyTx>[
     'food_out',
     'Lẩu Thái Phố Huế',
     _me,
-    _eq,
-    240000,
   ),
   _s(
     's2',
@@ -450,8 +419,6 @@ final _sharedTx = <MoneyTx>[
     'move_fuel',
     'Đổ xăng cho anh',
     _her,
-    MoneySplitMode.forPartner,
-    0,
   ),
   _s(
     's3',
@@ -463,8 +430,6 @@ final _sharedTx = <MoneyTx>[
     'date_movie',
     'CGV Vincom Bà Triệu',
     _me,
-    MoneySplitMode.treat,
-    200000,
   ),
   _s(
     's4',
@@ -476,8 +441,6 @@ final _sharedTx = <MoneyTx>[
     'food_market',
     'Đi chợ cuối tuần',
     'wallet',
-    _none,
-    0,
   ),
   _s(
     's5',
@@ -489,8 +452,6 @@ final _sharedTx = <MoneyTx>[
     'food_coffee',
     'Trà sữa Phúc Long',
     _her,
-    _eq,
-    45000,
   ),
   _s(
     's6',
@@ -502,48 +463,10 @@ final _sharedTx = <MoneyTx>[
     'food_out',
     'Bún chả Hàng Mành',
     _me,
-    _eq,
-    75000,
   ),
-  _s(
-    'c3',
-    '2026-10-12',
-    _c,
-    1200000,
-    '',
-    'v_dalat',
-    '',
-    'Góp Quỹ Đà Lạt',
-    _me,
-    _none,
-    0,
-  ),
-  _s(
-    's7',
-    '2026-10-13',
-    _e,
-    86000,
-    '',
-    '',
-    'move_grab',
-    'Grab về nhà',
-    _her,
-    _eq,
-    43000,
-  ),
-  _s(
-    'c4',
-    '2026-10-14',
-    _c,
-    800000,
-    '',
-    'v_dalat',
-    '',
-    'Góp Quỹ Đà Lạt',
-    _her,
-    _none,
-    0,
-  ),
+  _s('c3', '2026-10-12', _c, 1200000, '', 'v_dalat', '', 'Góp Quỹ Đà Lạt', _me),
+  _s('s7', '2026-10-13', _e, 86000, '', '', 'move_grab', 'Grab về nhà', _her),
+  _s('c4', '2026-10-14', _c, 800000, '', 'v_dalat', '', 'Góp Quỹ Đà Lạt', _her),
   _s(
     's9',
     '2026-10-15',
@@ -554,21 +477,6 @@ final _sharedTx = <MoneyTx>[
     'home_power',
     'Tiền điện tháng 9',
     _me,
-    _eq,
-    590000,
-  ),
-  _s(
-    's8',
-    '2026-10-16',
-    MoneyTxType.settle,
-    400000,
-    '',
-    '',
-    '',
-    'Thảo trả lại một phần',
-    _her,
-    _none,
-    0,
   ),
   _s(
     's10',
@@ -580,8 +488,6 @@ final _sharedTx = <MoneyTx>[
     'food_market',
     'Siêu thị Winmart',
     'wallet',
-    _none,
-    0,
   ),
   _s(
     's12',
@@ -593,8 +499,6 @@ final _sharedTx = <MoneyTx>[
     'food_snack',
     'Bánh mì chảo',
     _her,
-    MoneySplitMode.treat,
-    60000,
   ),
   _s(
     's11',
@@ -606,22 +510,8 @@ final _sharedTx = <MoneyTx>[
     'food_coffee',
     'Cà phê The Note',
     _me,
-    MoneySplitMode.custom,
-    50000,
   ),
-  _s(
-    's13',
-    '2026-10-20',
-    _e,
-    96000,
-    '',
-    '',
-    'home_water',
-    'Tiền nước',
-    _her,
-    _eq,
-    48000,
-  ),
+  _s('s13', '2026-10-20', _e, 96000, '', '', 'home_water', 'Tiền nước', _her),
 ];
 
 const _sharedBudgets = <MoneyBudget>[
@@ -855,7 +745,7 @@ void main() {
   group('report', () {
     test('data.js own month: 9.552.000 spent, home 59% mostly rent', () {
       final t = MoneyMath.monthTotals(_ownTx, _m);
-      expect((t.expense, t.income, t.left), (9552000, 20500000, 10948000));
+      expect(t.expense, 9552000);
       final cats = MoneyMath.byCategory(_ownTx, _m, groupOf: _group);
       expect(cats.first, ('home', 5680000));
       expect(MoneyViews.percentOf(cats.first.$2, t.expense), 59);
@@ -870,17 +760,11 @@ void main() {
       expect(sum, t.expense);
     });
 
-    test('data.js shared: food 54%, who paid, contributions', () {
+    test('data.js shared: food 54%', () {
       final t = MoneyMath.monthTotals(_sharedTx, _m);
       final cats = MoneyMath.byCategory(_sharedTx, _m, groupOf: _group);
       expect(cats.first, ('food', 1942000));
       expect(MoneyViews.percentOf(1942000, t.expense), 54);
-      final paid = MoneyMath.paidBy(_sharedTx, _m);
-      expect(paid, {_me: 2120000, _her: 402000, kMoneyPayerWallet: 1052000});
-      expect(MoneyMath.contributionsBy(_sharedTx, month: _m), {
-        _me: 2200000,
-        _her: 1800000,
-      });
     });
 
     test('trend axis, book start, Tết', () {
@@ -889,8 +773,8 @@ void main() {
       final shared = {
         for (final m in MoneyMath.trendMonths(_m, 6))
           m: m == _m
-              ? const MoneyMonthTotals(3574000, 0)
-              : const MoneyMonthTotals(0, 0),
+              ? const MoneyMonthTotals(3574000)
+              : const MoneyMonthTotals(0),
       };
       expect(MoneyViews.firstActiveMonth(shared), _m);
       final withGap = {...shared, '2026-07': null};
@@ -901,19 +785,17 @@ void main() {
       expect(MoneyViews.hasTet('2026-10'), isFalse);
     });
 
-    testWidgets('own screen: Thu | Chi | Còn lại + finding', (tester) async {
+    testWidgets('own screen: month spent + finding', (tester) async {
       final money = _Money(
         trendData: {
           for (final m in MoneyMath.trendMonths(_m, 6))
             m: m == _m
                 ? MoneyMath.monthTotals(_ownTx, _m)
-                : MoneyMonthTotals(_ownHistory[m]!, 18500000),
+                : MoneyMonthTotals(_ownHistory[m]!),
         },
       )..debugSetBooks(uid: _me, own: _ownBook());
       await _pump(tester, money, const MoneyReportScreen());
-      expect(find.text('+20.500.000$_nb₫'), findsOneWidget);
       expect(find.text('9.552.000$_nb₫'), findsOneWidget);
-      expect(find.text('10.948.000$_nb₫'), findsOneWidget);
       expect(
         find.text(
           'Chi nhiều nhất là Nhà cửa, chiếm 59% cả tháng. '
@@ -932,15 +814,13 @@ void main() {
       expect(find.text('Chi theo ví'), findsOneWidget);
     });
 
-    testWidgets('shared screen: person lanes, contributions, new book', (
-      tester,
-    ) async {
+    testWidgets('shared screen: finding, new book', (tester) async {
       final money = _Money(
         trendData: {
           for (final m in MoneyMath.trendMonths(_m, 6))
             m: m == _m
-                ? const MoneyMonthTotals(3574000, 0)
-                : const MoneyMonthTotals(0, 0),
+                ? const MoneyMonthTotals(3574000)
+                : const MoneyMonthTotals(0),
         },
       )..debugSetBooks(uid: _me, own: _ownBook(), shared: _sharedBook());
       await _pump(
@@ -953,15 +833,6 @@ void main() {
         find.text(
           'Ăn uống chiếm 54% chi chung. '
           'Phần lớn là Đi chợ, siêu thị, 1.052.000$_nb₫.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('59%'), findsOneWidget); // Tuấn 2.120.000
-      expect(find.text('29%'), findsOneWidget); // Ví chung 1.052.000
-      expect(
-        find.text(
-          'Góp vào ví chung và quỹ tháng này: '
-          'Thảo 1.800.000$_nb₫, mình 2.200.000$_nb₫.',
         ),
         findsOneWidget,
       );
@@ -1000,7 +871,7 @@ void main() {
         for (final m in MoneyMath.trendMonths(_m, 12))
           m: m == _m
               ? MoneyMath.monthTotals(_ownTx, _m)
-              : MoneyMonthTotals(_ownHistory[m] ?? 0, 0),
+              : MoneyMonthTotals(_ownHistory[m] ?? 0),
       },
     )..debugSetBooks(uid: _me, own: own, shared: _sharedBook());
     var n = 0;

@@ -60,7 +60,8 @@ Widget _app(_Auth auth) {
           body: Column(
             children: [
               TextButton(
-                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.login),
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRoutes.login),
                 child: const Text('to login'),
               ),
               TextButton(
@@ -139,7 +140,10 @@ void main() {
     await tester.enterText(fields.at(2), 'secret1');
     await tester.enterText(fields.at(3), 'secret1');
     await _tap(tester, find.byType(Checkbox));
-    await _tap(tester, find.widgetWithText(FilledButton, l10n.createAccountBtn));
+    await _tap(
+      tester,
+      find.widgetWithText(FilledButton, l10n.createAccountBtn),
+    );
 
     await _backThenSucceed(tester, auth);
   });

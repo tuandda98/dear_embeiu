@@ -72,8 +72,6 @@ const sharedExpense = (uid, overrides = {}) =>
   expense(uid, {
     outWalletId: '',
     payer: uid,
-    splitMode: 'equal',
-    payerShare: 60000,
     memberUids: PAIR,
     ...overrides,
   });
@@ -85,6 +83,20 @@ const edit = (uid, overrides = {}) => ({
   updatedBy: uid,
   updatedAt: serverTimestamp(),
   editCount: 1,
+  ...overrides,
+});
+
+const challenge = (uid, overrides = {}) => ({
+  title: '7 ngày không trà sữa',
+  kind: 'noSpend',
+  categoryIds: ['food_coffee'],
+  limit: 0,
+  startDate: '2026-10-25',
+  days: 7,
+  templateId: 'no_coffee_7',
+  cancelled: false,
+  createdBy: uid,
+  createdAt: serverTimestamp(),
   ...overrides,
 });
 
@@ -180,11 +192,11 @@ describe('firestore: money — own book', () => {
       {goalReachedAt: serverTimestamp(), updatedAt: serverTimestamp()}));
   });
 
-  it('expense / income / transfer / adjust shapes', async () => {
+  it('expense / transfer / adjust / contribution shapes; income is gone (D34)', async () => {
     const db = authedDb('alice');
     const p = (id) => doc(db, OWN('alice', 'moneyTx', id));
     await assertSucceeds(setDoc(p('e'), expense('alice')));
-    await assertSucceeds(setDoc(p('i'), expense('alice',
+    await assertFails(setDoc(p('i'), expense('alice',
       {type: 'income', outWalletId: '', inWalletId: 'tcb', categoryId: 'salary', amount: 15000000})));
     await assertSucceeds(setDoc(p('t'), expense('alice',
       {type: 'transfer', outWalletId: 'tcb', inWalletId: 'cash', categoryId: ''})));
@@ -194,10 +206,9 @@ describe('firestore: money — own book', () => {
       {type: 'contribution', categoryId: '', linkId: 'L5'})));
   });
 
-  it('expense needs a wallet in the own book; income cannot take from one', async () => {
+  it('expense needs a wallet in the own book', async () => {
     const db = authedDb('alice');
     await assertFails(setDoc(doc(db, T), expense('alice', {outWalletId: ''})));
-    await assertFails(setDoc(doc(db, T), expense('alice', {type: 'income', inWalletId: 'tcb'})));
   });
 
   it('transfer into the same wallet is refused', async () => {
@@ -210,7 +221,7 @@ describe('firestore: money — own book', () => {
       expense('alice', {type: 'adjust', outWalletId: 'tcb', inWalletId: 'cash'})));
   });
 
-  it('settle is shared-book only', async () => {
+  it('settle is gone (D34)', async () => {
     await assertFails(setDoc(doc(authedDb('alice'), T),
       expense('alice', {type: 'settle', outWalletId: '', categoryId: ''})));
   });
@@ -235,7 +246,7 @@ describe('firestore: money — own book', () => {
   it('own entries refuse payer / splitMode / payerShare / memberUids', async () => {
     const db = authedDb('alice');
     await assertFails(setDoc(doc(db, T), expense('alice', {payer: 'alice'})));
-    await assertFails(setDoc(doc(db, T), expense('alice', {splitMode: 'equal'})));
+    await assertFails(setDoc(doc(db, T), expense('alice', {splitMode: 'none'})));
     await assertFails(setDoc(doc(db, T), expense('alice', {payerShare: 0})));
     await assertFails(setDoc(doc(db, T), expense('alice', {memberUids: PAIR})));
   });
@@ -322,6 +333,51 @@ describe('firestore: money — own book', () => {
   });
 });
 
+describe('firestore: money — challenges (D34)', () => {
+  beforeEach(async () => {
+    await seedDoc('couples/c1', validCouple({memberIds: PAIR, createdByUserId: 'alice'}));
+  });
+
+  it('own: owner creates a valid challenge; shape is checked', async () => {
+    const db = authedDb('alice');
+    const C = (id) => doc(db, OWN('alice', 'moneyChallenges', id));
+    await assertSucceeds(setDoc(C('a'), challenge('alice')));
+    await assertSucceeds(setDoc(C('b'), challenge('alice', {kind: 'cap', categoryIds: [], limit: 500000})));
+    await assertFails(setDoc(C('c'), challenge('alice', {kind: 'cap', limit: 0})));
+    await assertFails(setDoc(C('d'), challenge('alice', {limit: 5})));
+    await assertFails(setDoc(C('e'), challenge('alice', {days: 10})));
+    await assertFails(setDoc(C('f'), challenge('alice', {title: ''})));
+    await assertFails(setDoc(C('g'), challenge('alice', {title: 'x'.repeat(41)})));
+    await assertFails(setDoc(C('h'), challenge('alice', {categoryIds: Array.from({length: 13}, (_, i) => `c${i}`)})));
+    await assertFails(setDoc(C('i'), challenge('alice', {cancelled: true})));
+    await assertFails(setDoc(C('j'), challenge('alice', {createdAt: TS})));
+    await assertFails(setDoc(C('k'), challenge('bob')));
+    await assertFails(setDoc(C('l'), challenge('alice', {kind: 'streak'})));
+    await assertFails(setDoc(doc(authedDb('bob'), OWN('alice', 'moneyChallenges', 'm')), challenge('bob')));
+    await assertFails(getDoc(doc(authedDb('bob'), OWN('alice', 'moneyChallenges', 'a'))));
+  });
+
+  it('own: only cancelling is an allowed edit; no delete', async () => {
+    const P = OWN('alice', 'moneyChallenges', 'x');
+    await seedDoc(P, stored(challenge('alice')));
+    const db = authedDb('alice');
+    await assertFails(updateDoc(doc(db, P), {days: 30, updatedAt: serverTimestamp()}));
+    await assertFails(updateDoc(doc(db, P), {cancelled: true, updatedAt: TS}));
+    await assertSucceeds(updateDoc(doc(db, P), {cancelled: true, updatedAt: serverTimestamp()}));
+    await assertFails(deleteDoc(doc(db, P)));
+  });
+
+  it('shared: both members create / read / cancel; others cannot', async () => {
+    const P = SH('moneyChallenges', 's1');
+    await assertSucceeds(setDoc(doc(authedDb('bob'), P), challenge('bob')));
+    await assertSucceeds(getDoc(doc(authedDb('alice'), P)));
+    await assertFails(getDoc(doc(authedDb('dave'), P)));
+    await assertFails(setDoc(doc(authedDb('dave'), SH('moneyChallenges', 's2')), challenge('dave')));
+    await assertSucceeds(updateDoc(doc(authedDb('alice'), P), {cancelled: true, updatedAt: serverTimestamp()}));
+    await assertFails(deleteDoc(doc(authedDb('alice'), P)));
+  });
+});
+
 describe('firestore: money — shared book', () => {
   beforeEach(async () => {
     await seedActiveCouple('c1', 'alice', 'bob');
@@ -364,22 +420,13 @@ describe('firestore: money — shared book', () => {
     await assertFails(getDocs(collection(authedDb('dave'), 'couples/c1/moneyTx')));
   });
 
-  it('the balance sums (aggregate per payer / per wallet) work for the pair only', async () => {
-    await seedDoc(T, stored(sharedExpense('alice', {amount: 480000, payerShare: 240000})));
-    await seedDoc(SH('moneyTx', 's2'), stored(sharedExpense('bob', {type: 'settle', categoryId: '',
-      splitMode: 'none', payerShare: 0, amount: 100000})));
-    const paid = (db, who) => getAggregateFromServer(query(collection(db, 'couples/c1/moneyTx'),
-      where('memberUids', '==', PAIR), where('type', 'in', ['expense', 'settle']), where('payer', '==', who)),
-    {amount: sum('amount'), share: sum('payerShare')});
-    const mine = await assertSucceeds(paid(authedDb('bob'), 'alice'));
-    if (mine.data().amount !== 480000 || mine.data().share !== 240000) {
-      throw new Error(`alice sums ${JSON.stringify(mine.data())}`);
-    }
-    const theirs = await assertSucceeds(paid(authedDb('alice'), 'bob'));
-    if (theirs.data().amount !== 100000) throw new Error(`bob sums ${JSON.stringify(theirs.data())}`);
-    await assertSucceeds(getAggregateFromServer(query(collection(authedDb('alice'), 'couples/c1/moneyTx'),
-      where('memberUids', '==', PAIR), where('outWalletId', '==', 'joint')), {t: sum('amount')}));
-    await assertFails(paid(authedDb('dave'), 'alice'));
+  it('the wallet sums (aggregate) work for the pair only', async () => {
+    await seedDoc(T, stored(sharedExpense('alice', {payer: 'wallet', outWalletId: 'joint', amount: 480000})));
+    const sums = (db) => getAggregateFromServer(query(collection(db, 'couples/c1/moneyTx'),
+      where('memberUids', '==', PAIR), where('outWalletId', '==', 'joint')), {t: sum('amount')});
+    const r = await assertSucceeds(sums(authedDb('bob')));
+    if (r.data().t !== 480000) throw new Error(`joint sums ${JSON.stringify(r.data())}`);
+    await assertFails(sums(authedDb('dave')));
     // Without the pair filter the rules cannot prove access.
     await assertFails(getAggregateFromServer(query(collection(authedDb('alice'), 'couples/c1/moneyTx'),
       where('payer', '==', 'alice')), {t: sum('amount')}));
@@ -405,9 +452,9 @@ describe('firestore: money — shared book', () => {
     await assertSucceeds(setDoc(doc(db, T), sharedExpense('alice', {payer: 'bob'})));
     await assertFails(setDoc(doc(db, SH('moneyTx', 'a')), sharedExpense('alice', {payer: 'dave'})));
     await assertFails(setDoc(doc(db, SH('moneyTx', 'b')),
-      sharedExpense('alice', {payer: 'wallet', splitMode: 'none', payerShare: 0})));
+      sharedExpense('alice', {payer: 'wallet'})));
     await assertSucceeds(setDoc(doc(db, SH('moneyTx', 'c')),
-      sharedExpense('alice', {payer: 'wallet', outWalletId: 'joint', splitMode: 'none', payerShare: 0})));
+      sharedExpense('alice', {payer: 'wallet', outWalletId: 'joint'})));
   });
 
   it('a person paid ⇒ no shared wallet pays too (no double count)', async () => {
@@ -416,23 +463,22 @@ describe('firestore: money — shared book', () => {
     await assertFails(setDoc(doc(db, SH('moneyTx', 'd1')), sharedExpense('alice', {outWalletId: 'joint'})));
     await assertFails(setDoc(doc(db, SH('moneyTx', 'd2')), sharedExpense('alice', {payer: 'bob', outWalletId: 'joint'})));
     await assertFails(setDoc(doc(db, SH('moneyTx', 'd3')), sharedExpense('alice',
-      {type: 'transfer', categoryId: '', outWalletId: 'joint', inWalletId: 'dalat', splitMode: 'none', payerShare: 0})));
+      {type: 'transfer', categoryId: '', outWalletId: 'joint', inWalletId: 'dalat'})));
     await assertSucceeds(setDoc(doc(db, SH('moneyTx', 'd4')), sharedExpense('alice',
-      {type: 'transfer', categoryId: '', payer: 'wallet', outWalletId: 'joint', inWalletId: 'dalat', splitMode: 'none', payerShare: 0})));
+      {type: 'transfer', categoryId: '', payer: 'wallet', outWalletId: 'joint', inWalletId: 'dalat'})));
     // Editing a person-paid entry onto the shared wallet must switch the payer.
     const T2 = SH('moneyTx', 'd5');
     await seedDoc(T2, stored(sharedExpense('alice')));
     await assertFails(updateDoc(doc(db, T2), edit('alice', {outWalletId: 'joint'})));
     await assertSucceeds(updateDoc(doc(db, T2),
-      edit('alice', {outWalletId: 'joint', payer: 'wallet', splitMode: 'none', payerShare: 0})));
+      edit('alice', {outWalletId: 'joint', payer: 'wallet'})));
   });
 
-  it('payerShare negative or above amount is refused; bad splitMode too', async () => {
+  it('splitMode / payerShare are gone (D34)', async () => {
     const db = authedDb('alice');
-    await assertFails(setDoc(doc(db, T), sharedExpense('alice', {payerShare: -1})));
-    await assertFails(setDoc(doc(db, T), sharedExpense('alice', {payerShare: 120001})));
-    await assertFails(setDoc(doc(db, T), sharedExpense('alice', {splitMode: 'half'})));
-    await assertSucceeds(setDoc(doc(db, T), sharedExpense('alice', {payerShare: 120000, splitMode: 'treat'})));
+    await assertFails(setDoc(doc(db, T), sharedExpense('alice', {payerShare: 60000})));
+    await assertFails(setDoc(doc(db, T), sharedExpense('alice', {splitMode: 'equal'})));
+    await assertSucceeds(setDoc(doc(db, T), sharedExpense('alice')));
   });
 
   it('shared entries need their shared keys', async () => {
@@ -440,19 +486,15 @@ describe('firestore: money — shared book', () => {
     await assertFails(setDoc(doc(authedDb('alice'), T), plain));
   });
 
-  it('settle: a person pays, no wallet, payerShare 0', async () => {
-    const db = authedDb('bob');
-    const settle = sharedExpense('bob', {type: 'settle', categoryId: '', splitMode: 'none', payerShare: 0, amount: 170000});
-    await assertSucceeds(setDoc(doc(db, T), settle));
-    await assertFails(setDoc(doc(db, SH('moneyTx', 'a')), {...settle, payerShare: 1}));
-    await assertFails(setDoc(doc(db, SH('moneyTx', 'b')), {...settle, inWalletId: 'joint'}));
-    await assertFails(setDoc(doc(db, SH('moneyTx', 'c')), {...settle, payer: 'wallet'}));
+  it('settle is gone from the shared book too (D34)', async () => {
+    await assertFails(setDoc(doc(authedDb('bob'), T),
+      sharedExpense('bob', {type: 'settle', categoryId: '', amount: 170000})));
   });
 
   it('contribution goes INTO a shared wallet, paid by a person', async () => {
     const db = authedDb('alice');
     const c = sharedExpense('alice', {type: 'contribution', inWalletId: 'dalat', categoryId: '',
-      splitMode: 'none', payerShare: 0, amount: 2000000, linkId: 'L5'});
+      amount: 2000000, linkId: 'L5'});
     await assertSucceeds(setDoc(doc(db, T), c));
     // em ghi hộ "anh góp" is allowed: payer = the partner.
     await assertSucceeds(setDoc(doc(db, SH('moneyTx', 'a')), {...c, payer: 'bob'}));
@@ -468,7 +510,7 @@ describe('firestore: money — shared book', () => {
 
   it('two edits from the same starting point: the second is refused', async () => {
     await seedDoc(T, stored(sharedExpense('alice')));
-    await assertSucceeds(updateDoc(doc(authedDb('alice'), T), edit('alice', {amount: 480000, payerShare: 240000})));
+    await assertSucceeds(updateDoc(doc(authedDb('alice'), T), edit('alice', {amount: 480000})));
     await assertFails(updateDoc(doc(authedDb('bob'), T), edit('bob', {note: 'stale', editCount: 1})));
   });
 
@@ -477,18 +519,17 @@ describe('firestore: money — shared book', () => {
     const db = authedDb('alice');
     await assertFails(updateDoc(doc(db, T), edit('alice', {memberUids: ['bob', 'alice']})));
     await assertFails(updateDoc(doc(db, T), edit('alice', {createdBy: 'bob'})));
-    await assertFails(updateDoc(doc(db, T), edit('alice', {type: 'settle', categoryId: '', splitMode: 'none', payerShare: 0})));
+    await assertFails(updateDoc(doc(db, T), edit('alice', {type: 'contribution', categoryId: ''})));
   });
 
   it('a linked entry: the partner edits note/category/date but not the money', async () => {
-    await seedDoc(T, stored(sharedExpense('alice', {linkId: 'L2', amount: 480000, payerShare: 240000})));
+    await seedDoc(T, stored(sharedExpense('alice', {linkId: 'L2', amount: 480000})));
     const bob = authedDb('bob');
     await assertSucceeds(updateDoc(doc(bob, T), edit('bob', {note: 'Lẩu Thái', categoryId: 'food_market', date: '2026-10-19'})));
-    for (const change of [{amount: 48000, payerShare: 0}, {payer: 'bob'}, {payerShare: 0},
-      {splitMode: 'treat'}, {outWalletId: 'joint', payer: 'wallet'}]) {
+    for (const change of [{amount: 48000}, {payer: 'bob'}, {outWalletId: 'joint', payer: 'wallet'}]) {
       await assertFails(updateDoc(doc(bob, T), edit('bob', {...change, editCount: 2})));
     }
-    await assertSucceeds(updateDoc(doc(authedDb('alice'), T), edit('alice', {amount: 520000, payerShare: 260000, editCount: 2})));
+    await assertSucceeds(updateDoc(doc(authedDb('alice'), T), edit('alice', {amount: 520000, editCount: 2})));
   });
 
   it('a linked entry is deleted only by its creator; plain ones by either member', async () => {

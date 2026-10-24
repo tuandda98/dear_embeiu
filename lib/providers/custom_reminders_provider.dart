@@ -41,8 +41,9 @@ class CustomRemindersProvider extends ChangeNotifier {
   /// Set/clear the active couple context. Called from SessionResolver when a
   /// couple becomes active (and cleared on sign-out / no-couple).
   void setCouple(String? coupleId, String? uid) {
-    _coupleId =
-        (coupleId != null && coupleId.trim().isNotEmpty) ? coupleId : null;
+    _coupleId = (coupleId != null && coupleId.trim().isNotEmpty)
+        ? coupleId
+        : null;
     _myUid = (uid != null && uid.trim().isNotEmpty) ? uid : null;
   }
 
@@ -78,9 +79,9 @@ class CustomRemindersProvider extends ChangeNotifier {
       _reminders
         ..clear()
         ..addAll(
-          box.values
-              .whereType<Map<dynamic, dynamic>>()
-              .map(CustomReminder.fromMap),
+          box.values.whereType<Map<dynamic, dynamic>>().map(
+            CustomReminder.fromMap,
+          ),
         );
       _loaded = true;
       notifyListeners();
@@ -219,8 +220,10 @@ class CustomRemindersProvider extends ChangeNotifier {
       await _schedule(synced);
     }
     notifyListeners();
-    AnalyticsService.instance
-        .logReminderUpdated('edit', notifyPartner: synced.notifyPartner);
+    AnalyticsService.instance.logReminderUpdated(
+      'edit',
+      notifyPartner: synced.notifyPartner,
+    );
   }
 
   /// Restore a previously deleted reminder (called by swipe-to-delete undo).
@@ -229,16 +232,19 @@ class CustomRemindersProvider extends ChangeNotifier {
     if (_reminders.any((r) => r.id == reminder.id)) return;
     // The old partner mirror was deleted on delete(); drop the stale id so the
     // mirror is re-created fresh if this reminder is shared.
-    final synced =
-        await _syncPartner(reminder.copyWith(clearPartnerReminderId: true));
+    final synced = await _syncPartner(
+      reminder.copyWith(clearPartnerReminderId: true),
+    );
     _reminders.add(synced);
     await _persist(synced);
     if (synced.enabled) {
       await _schedule(synced);
     }
     notifyListeners();
-    AnalyticsService.instance
-        .logReminderUpdated('restore', notifyPartner: synced.notifyPartner);
+    AnalyticsService.instance.logReminderUpdated(
+      'restore',
+      notifyPartner: synced.notifyPartner,
+    );
   }
 
   /// Delete a reminder and cancel its schedule (also removes the partner mirror
@@ -258,8 +264,10 @@ class CustomRemindersProvider extends ChangeNotifier {
       debugPrint('CustomRemindersProvider.delete failed: $error');
     }
     notifyListeners();
-    AnalyticsService.instance
-        .logReminderUpdated('delete', notifyPartner: wasShared);
+    AnalyticsService.instance.logReminderUpdated(
+      'delete',
+      notifyPartner: wasShared,
+    );
   }
 
   /// Toggle a reminder on/off → reschedule or cancel accordingly.
@@ -294,13 +302,7 @@ class CustomRemindersProvider extends ChangeNotifier {
       return null;
     }
     // Convert the timezone-aware value to a plain DateTime for formatting.
-    return DateTime(
-      next.year,
-      next.month,
-      next.day,
-      next.hour,
-      next.minute,
-    );
+    return DateTime(next.year, next.month, next.day, next.hour, next.minute);
   }
 
   Future<void> _schedule(CustomReminder reminder) async {

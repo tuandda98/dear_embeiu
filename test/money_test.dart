@@ -23,8 +23,6 @@ MoneyTx tx(
   String cat = '',
   String note = '',
   String? payer,
-  MoneySplitMode? split,
-  int share = 0,
   bool shared = false,
   bool pending = false,
   String? linkId,
@@ -39,8 +37,6 @@ MoneyTx tx(
   categoryId: cat,
   note: note,
   payer: payer,
-  splitMode: split,
-  payerShare: share,
   memberUids: shared ? members : const [],
   pending: pending,
   linkId: linkId,
@@ -48,7 +44,6 @@ MoneyTx tx(
 );
 
 const e = MoneyTxType.expense;
-const eq = MoneySplitMode.equal;
 
 // data.js `sharedTx`.
 final sharedTx = <MoneyTx>[
@@ -59,7 +54,6 @@ final sharedTx = <MoneyTx>[
     1000000,
     into: 'v_chung',
     payer: me,
-    split: MoneySplitMode.none,
     shared: true,
   ),
   tx(
@@ -69,20 +63,9 @@ final sharedTx = <MoneyTx>[
     1000000,
     into: 'v_chung',
     payer: partner,
-    split: MoneySplitMode.none,
     shared: true,
   ),
-  tx(
-    's1',
-    '2026-10-03',
-    e,
-    480000,
-    cat: 'food_out',
-    payer: me,
-    split: eq,
-    share: 240000,
-    shared: true,
-  ),
+  tx('s1', '2026-10-03', e, 480000, cat: 'food_out', payer: me, shared: true),
   tx(
     's2',
     '2026-10-04',
@@ -90,20 +73,9 @@ final sharedTx = <MoneyTx>[
     70000,
     cat: 'move_fuel',
     payer: partner,
-    split: MoneySplitMode.forPartner,
     shared: true,
   ),
-  tx(
-    's3',
-    '2026-10-06',
-    e,
-    200000,
-    cat: 'date_movie',
-    payer: me,
-    split: MoneySplitMode.treat,
-    share: 200000,
-    shared: true,
-  ),
+  tx('s3', '2026-10-06', e, 200000, cat: 'date_movie', payer: me, shared: true),
   tx(
     's4',
     '2026-10-08',
@@ -112,7 +84,6 @@ final sharedTx = <MoneyTx>[
     out: 'v_chung',
     cat: 'food_market',
     payer: kMoneyPayerWallet,
-    split: MoneySplitMode.none,
     shared: true,
   ),
   tx(
@@ -122,21 +93,9 @@ final sharedTx = <MoneyTx>[
     90000,
     cat: 'food_coffee',
     payer: partner,
-    split: eq,
-    share: 45000,
     shared: true,
   ),
-  tx(
-    's6',
-    '2026-10-11',
-    e,
-    150000,
-    cat: 'food_out',
-    payer: me,
-    split: eq,
-    share: 75000,
-    shared: true,
-  ),
+  tx('s6', '2026-10-11', e, 150000, cat: 'food_out', payer: me, shared: true),
   tx(
     'c3',
     '2026-10-12',
@@ -144,7 +103,6 @@ final sharedTx = <MoneyTx>[
     1200000,
     into: 'v_dalat',
     payer: me,
-    split: MoneySplitMode.none,
     shared: true,
   ),
   tx(
@@ -154,8 +112,6 @@ final sharedTx = <MoneyTx>[
     86000,
     cat: 'move_grab',
     payer: partner,
-    split: eq,
-    share: 43000,
     shared: true,
   ),
   tx(
@@ -165,7 +121,6 @@ final sharedTx = <MoneyTx>[
     800000,
     into: 'v_dalat',
     payer: partner,
-    split: MoneySplitMode.none,
     shared: true,
   ),
   tx(
@@ -175,17 +130,6 @@ final sharedTx = <MoneyTx>[
     1180000,
     cat: 'home_power',
     payer: me,
-    split: eq,
-    share: 590000,
-    shared: true,
-  ),
-  tx(
-    's8',
-    '2026-10-16',
-    MoneyTxType.settle,
-    400000,
-    payer: partner,
-    split: MoneySplitMode.none,
     shared: true,
   ),
   tx(
@@ -196,7 +140,6 @@ final sharedTx = <MoneyTx>[
     out: 'v_chung',
     cat: 'food_market',
     payer: kMoneyPayerWallet,
-    split: MoneySplitMode.none,
     shared: true,
   ),
   tx(
@@ -206,8 +149,6 @@ final sharedTx = <MoneyTx>[
     60000,
     cat: 'food_snack',
     payer: partner,
-    split: MoneySplitMode.treat,
-    share: 60000,
     shared: true,
   ),
   tx(
@@ -217,8 +158,6 @@ final sharedTx = <MoneyTx>[
     110000,
     cat: 'food_coffee',
     payer: me,
-    split: MoneySplitMode.custom,
-    share: 50000,
     shared: true,
   ),
   tx(
@@ -228,8 +167,6 @@ final sharedTx = <MoneyTx>[
     96000,
     cat: 'home_water',
     payer: partner,
-    split: eq,
-    share: 48000,
     shared: true,
   ),
 ];
@@ -384,18 +321,11 @@ void main() {
         includeInTotal: false,
       ),
     ];
-    // Acceptance §6: spend 120k from MoMo, salary 15tr into Techcombank,
-    // move 500k Techcombank → cash, adjust MoMo down to 1.000.000.
+    // Acceptance §6: spend 120k from MoMo, top up Techcombank by 15tr (an
+    // adjustment — there is no income any more, D34), move 500k Techcombank → cash, adjust MoMo down to 1.000.000.
     final txs = [
       tx('a', '2026-10-20', e, 120000, out: 'momo', cat: 'food_out'),
-      tx(
-        'b',
-        '2026-10-05',
-        MoneyTxType.income,
-        15000000,
-        into: 'tcb',
-        cat: 'salary',
-      ),
+      tx('b', '2026-10-05', MoneyTxType.adjust, 15000000, into: 'tcb'),
       tx(
         'c',
         '2026-10-10',
@@ -420,11 +350,9 @@ void main() {
       );
     });
 
-    test('transfers / adjustments never count as spending or income', () {
+    test('transfers / adjustments never count as spending', () {
       final t = MoneyMath.monthTotals(txs, '2026-10');
       expect(t.expense, 120000);
-      expect(t.income, 15000000);
-      expect(t.left, 15000000 - 120000);
       expect(MoneyMath.monthTotals(txs, '2026-09').expense, 99000);
     });
 
@@ -490,23 +418,6 @@ void main() {
       expect(momo([(before: lunch, after: null)]), 100000);
       // A new entry deleted in its undo window: not counted, not taken twice.
       expect(momo([(before: null, after: null)]), 0);
-      // Couple balance: my 480k equal split edited to treat → +240k → +0.
-      final dinner = tx(
-        'd',
-        '2026-10-20',
-        e,
-        480000,
-        payer: me,
-        split: eq,
-        share: 240000,
-        shared: true,
-      );
-      expect(
-        MoneyMath.localCorrection([
-          (before: dinner, after: dinner.copyWith(payerShare: 480000)),
-        ], (t) => MoneyMath.coupleBalance([t], me)),
-        -240000,
-      );
     });
 
     test('wallet cap ±100 tỷ', () {
@@ -582,152 +493,7 @@ void main() {
   });
 
   group('MoneyMath — shared book', () {
-    test('balance of the reference book = 359.000 (I covered more)', () {
-      expect(MoneyMath.coupleBalance(sharedTx, me), 359000);
-      expect(MoneyMath.coupleBalance(sharedTx, partner), -359000);
-      // The same number from the server's per-payer sums (review #4).
-      int sumOf(String who, int Function(MoneyTx t) f) => [
-        for (final t in sharedTx)
-          if ((t.type == e || t.type == MoneyTxType.settle) && t.payer == who)
-            f(t),
-      ].fold(0, (a, b) => a + b);
-      expect(
-        MoneyMath.coupleBalanceFromSums(
-          mineAmount: sumOf(me, (t) => t.amount),
-          mineShare: sumOf(me, (t) => t.payerShare),
-          partnerAmount: sumOf(partner, (t) => t.amount),
-          partnerShare: sumOf(partner, (t) => t.payerShare),
-        ),
-        359000,
-      );
-      expect(MoneyMath.settlementFor(359000, me: me, partner: partner), (
-        payer: partner,
-        amount: 359000,
-      ));
-      expect(MoneyMath.settlementFor(0, me: me, partner: partner), isNull);
-    });
-
-    test('acceptance §6 scenario, step by step', () {
-      final rows = <MoneyTx>[
-        tx(
-          '1',
-          '2026-10-01',
-          e,
-          480000,
-          payer: me,
-          split: eq,
-          share: 240000,
-          shared: true,
-        ),
-      ];
-      expect(MoneyMath.coupleBalance(rows, me), 240000);
-      rows.add(
-        tx(
-          '2',
-          '2026-10-01',
-          e,
-          70000,
-          payer: partner,
-          split: MoneySplitMode.forPartner,
-          shared: true,
-        ),
-      );
-      expect(MoneyMath.coupleBalance(rows, me), 170000);
-      rows.add(
-        tx(
-          '3',
-          '2026-10-01',
-          e,
-          200000,
-          payer: me,
-          split: MoneySplitMode.treat,
-          share: MoneyMath.payerShareFor(MoneySplitMode.treat, 200000),
-          shared: true,
-        ),
-      );
-      expect(MoneyMath.coupleBalance(rows, me), 170000);
-      // Partial settlement: the partner pays back 100k of 170k.
-      rows.add(
-        tx(
-          'p',
-          '2026-10-01',
-          MoneyTxType.settle,
-          100000,
-          payer: partner,
-          split: MoneySplitMode.none,
-          shared: true,
-        ),
-      );
-      expect(MoneyMath.coupleBalance(rows, me), 70000);
-      // "Tuỳ 300k, A chịu 100k" → B owes 200k more.
-      rows.add(
-        tx(
-          '4',
-          '2026-10-01',
-          e,
-          300000,
-          payer: me,
-          split: MoneySplitMode.custom,
-          share: 100000,
-          shared: true,
-        ),
-      );
-      expect(MoneyMath.coupleBalance(rows, me), 270000);
-      final settle = MoneyMath.settlementFor(
-        MoneyMath.coupleBalance(rows, me),
-        me: me,
-        partner: partner,
-      )!;
-      expect(settle, (payer: partner, amount: 270000));
-      rows.add(
-        tx(
-          '5',
-          '2026-10-02',
-          MoneyTxType.settle,
-          settle.amount,
-          payer: settle.payer,
-          split: MoneySplitMode.none,
-          shared: true,
-        ),
-      );
-      expect(MoneyMath.coupleBalance(rows, me), 0);
-      expect(MoneyMath.monthTotals(rows, '2026-10').expense, 1050000);
-    });
-
-    test(
-      'payerShare for the 4 splits (odd amounts round up for the payer)',
-      () {
-        expect(MoneyMath.payerShareFor(eq, 75001), 37501);
-        expect(MoneyMath.payerShareFor(eq, 480000), 240000);
-        expect(MoneyMath.payerShareFor(MoneySplitMode.treat, 200000), 200000);
-        expect(MoneyMath.payerShareFor(MoneySplitMode.forPartner, 70000), 0);
-        expect(
-          MoneyMath.payerShareFor(
-            MoneySplitMode.custom,
-            300000,
-            custom: 100000,
-          ),
-          100000,
-        );
-        expect(
-          MoneyMath.payerShareFor(
-            MoneySplitMode.custom,
-            300000,
-            custom: 999999,
-          ),
-          300000,
-        );
-        expect(MoneyMath.payerShareFor(MoneySplitMode.none, 1), 0);
-      },
-    );
-
-    test('three lanes add up to the month; shared wallet = in − out', () {
-      final paid = MoneyMath.paidBy(sharedTx, '2026-10');
-      expect(paid, {me: 2120000, partner: 402000, kMoneyPayerWallet: 1052000});
-      expect(
-        paid.values.fold<int>(0, (s, v) => s + v),
-        MoneyMath.monthTotals(sharedTx, '2026-10').expense,
-      );
+    test('shared wallet = in − out; a goal is filled by contributions', () {
       final wallets = [
         wallet(id: 'v_chung', name: 'Ví chung', type: MoneyWalletType.cash),
         wallet(
@@ -740,14 +506,6 @@ void main() {
       final b = MoneyMath.balancesFrom(wallets, sharedTx);
       expect(b['v_chung'], 2000000 - 1052000);
       expect(b['v_dalat'], 2000000);
-      expect(MoneyMath.contributionsBy(sharedTx, walletId: 'v_dalat'), {
-        me: 1200000,
-        partner: 800000,
-      });
-      expect(
-        MoneyMath.contributionsBy(sharedTx, month: '2026-10')[partner],
-        1800000,
-      );
     });
 
     test('goal progress + per month needed (Quỹ Đà Lạt)', () {
@@ -778,8 +536,6 @@ void main() {
         e,
         520000,
         payer: me,
-        split: eq,
-        share: 260000,
         shared: true,
         linkId: 'L2',
       );
@@ -796,8 +552,6 @@ void main() {
         amount: 520000,
         date: '2026-10-03',
         payer: me,
-        splitMode: eq,
-        payerShare: 260000,
         memberUids: members,
         linkId: 'L2',
         updatedBy: '',
@@ -809,8 +563,6 @@ void main() {
         amount: 520000,
         date: '2026-10-03',
         payer: me,
-        splitMode: eq,
-        payerShare: 260000,
         memberUids: members,
         linkId: 'L2',
         updatedBy: partner,
@@ -834,8 +586,6 @@ void main() {
         e,
         amount,
         payer: by,
-        split: eq,
-        share: amount ~/ 2,
         shared: true,
         linkId: 'L2',
         by: by,
@@ -893,15 +643,6 @@ void main() {
       expect(
         MoneyMath.defaultCategory(const [], e, now: now, fallback: 'food_out'),
         'food_out',
-      );
-      expect(
-        MoneyMath.defaultCategory(
-          rows,
-          MoneyTxType.income,
-          now: now,
-          fallback: 'salary',
-        ),
-        'salary',
       );
     });
 
@@ -974,7 +715,7 @@ void main() {
         tx('5', '2026-10-17', e, 5000, cat: 'move_parking'),
         tx('6', '2026-10-17', e, 50000, cat: 'food_out'),
         tx('7', '2026-10-16', e, 9, cat: 'shop'),
-        tx('8', '2026-10-16', MoneyTxType.income, 9, cat: 'salary'),
+        tx('8', '2026-10-16', MoneyTxType.adjust, 9, into: 'w'),
       ];
       expect(MoneyMath.quickRepeats(rows).map((t) => t.id), ['3', '1', '6']);
     });
@@ -1090,47 +831,40 @@ void main() {
 
   group('categories', () {
     for (final lang in ['vi', 'en']) {
-      test(
-        '12 expense groups + children and 6 income groups, all named ($lang)',
-        () {
-          final l = lookupAppLocalizations(Locale(lang));
-          final idx = MoneyCategoryIndex(
-            resolveMoneyCategories(MoneyMeta.empty, l),
-          );
-          final expenseGroups = idx
-              .pickable(MoneyTxType.expense)
-              .where((c) => c.isGroup);
-          final incomeGroups = idx
-              .pickable(MoneyTxType.income)
-              .where((c) => c.isGroup);
-          expect(expenseGroups.length, 12);
-          expect(incomeGroups.length, 6);
-          expect(kMoneyDefaultCategories.length, 53);
-          final names = <String>{};
-          for (final c in kMoneyDefaultCategories) {
-            final name = moneyDefaultCategoryName(l, c.id);
-            expect(name, isNotEmpty);
-            // Only "other" may fall back to the "other" name.
-            if (c.id != kMoneyCategoryOther) {
-              expect(name == l.moneyCatOther, isFalse, reason: c.id);
-            }
-            names.add('${c.parentId}/$name');
-            expect(
-              c.emoji.length,
-              lessThanOrEqualTo(kMoneyEmojiMax),
-              reason: c.id,
-            );
-            expect(c.id.length, lessThanOrEqualTo(kMoneyIdMax));
-            if (c.parentId.isNotEmpty) {
-              expect(idx.of(c.parentId).isGroup, isTrue, reason: c.id);
-            }
+      test('12 expense groups + children, all named ($lang)', () {
+        final l = lookupAppLocalizations(Locale(lang));
+        final idx = MoneyCategoryIndex(
+          resolveMoneyCategories(MoneyMeta.empty, l),
+        );
+        final expenseGroups = idx
+            .pickable(MoneyTxType.expense)
+            .where((c) => c.isGroup);
+        expect(expenseGroups.length, 12);
+        expect(kMoneyDefaultCategories.length, 47);
+        final names = <String>{};
+        for (final c in kMoneyDefaultCategories) {
+          final name = moneyDefaultCategoryName(l, c.id);
+          expect(name, isNotEmpty);
+          // Only "other" may fall back to the "other" name.
+          if (c.id != kMoneyCategoryOther) {
+            expect(name == l.moneyCatOther, isFalse, reason: c.id);
           }
+          names.add('${c.parentId}/$name');
           expect(
-            idx.of('food_coffee').name,
-            lang == 'vi' ? 'Cà phê, trà sữa' : 'Coffee & bubble tea',
+            c.emoji.length,
+            lessThanOrEqualTo(kMoneyEmojiMax),
+            reason: c.id,
           );
-        },
-      );
+          expect(c.id.length, lessThanOrEqualTo(kMoneyIdMax));
+          if (c.parentId.isNotEmpty) {
+            expect(idx.of(c.parentId).isGroup, isTrue, reason: c.id);
+          }
+        }
+        expect(
+          idx.of('food_coffee').name,
+          lang == 'vi' ? 'Cà phê, trà sữa' : 'Coffee & bubble tea',
+        );
+      });
     }
 
     test('add / rename / hide per book; old entries keep the name', () {
@@ -1164,10 +898,6 @@ void main() {
       );
       expect(idx.of('edu').name, 'Học tập');
       expect(idx.of('deleted_custom').id, kMoneyCategoryOther);
-      expect(
-        idx.of('deleted_custom', kind: MoneyTxType.income).id,
-        kMoneyCategoryIncomeOther,
-      );
     });
   });
 
@@ -1204,10 +934,6 @@ void main() {
         isFalse,
       );
       expect(
-        tx('1', '2026-10-20', MoneyTxType.settle, 1).isWellFormed,
-        isFalse,
-      );
-      expect(
         tx('1', '2026-10-20', e, 1, out: 'w', payer: me).isWellFormed,
         isFalse,
       );
@@ -1230,7 +956,6 @@ void main() {
           120000,
           out: 'joint',
           payer: me,
-          share: 60000,
           shared: true,
         ).isWellFormed,
         isFalse,
@@ -1253,30 +978,6 @@ void main() {
           e,
           1,
           payer: kMoneyPayerWallet,
-          shared: true,
-        ).isWellFormed,
-        isFalse,
-      );
-      expect(
-        tx(
-          '1',
-          '2026-10-20',
-          e,
-          10,
-          payer: me,
-          share: 11,
-          shared: true,
-        ).isWellFormed,
-        isFalse,
-      );
-      expect(
-        tx(
-          '1',
-          '2026-10-20',
-          MoneyTxType.settle,
-          10,
-          payer: me,
-          share: 1,
           shared: true,
         ).isWellFormed,
         isFalse,

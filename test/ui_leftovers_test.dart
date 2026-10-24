@@ -131,8 +131,9 @@ void main() {
           for (final lang in ['vi', 'en']) {
             final l10n = lookupAppLocalizations(Locale(lang));
             for (final label in _chipLabels(l10n)) {
-              for (final MapEntry(key: kind, value: trailing)
-                  in _trailings(l10n).entries) {
+              for (final MapEntry(key: kind, value: trailing) in _trailings(
+                l10n,
+              ).entries) {
                 final what = '$lang "$label" + $kind';
                 // One key per case: an overflow is reported once per render
                 // object, so a reused one would hide the next case's.
@@ -194,8 +195,9 @@ void main() {
     testWidgets('a short chip stays centred on the screen', (tester) async {
       _phone(tester, 375, 1);
       final l10n = lookupAppLocalizations(const Locale('vi'));
-      for (final MapEntry(key: kind, value: trailing)
-          in _trailings(l10n).entries) {
+      for (final MapEntry(key: kind, value: trailing) in _trailings(
+        l10n,
+      ).entries) {
         await tester.pumpWidget(
           _app(
             Scaffold(

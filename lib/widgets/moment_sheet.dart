@@ -167,15 +167,15 @@ class MomentSheet extends StatelessWidget {
   }
 
   Widget _grabHandle() => Center(
-        child: Container(
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.textTertiary.withValues(alpha: 0.40),
-            borderRadius: BorderRadius.circular(999),
-          ),
-        ),
-      );
+    child: Container(
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: AppColors.textTertiary.withValues(alpha: 0.40),
+        borderRadius: BorderRadius.circular(999),
+      ),
+    ),
+  );
 
   /// 72×72 nucleus disc — the flower's nucleus blown up, or a locked padlock.
   Widget _hero(Color color) {
@@ -188,8 +188,11 @@ class MomentSheet extends StatelessWidget {
             shape: BoxShape.circle,
             color: AppColors.textTertiary.withValues(alpha: 0.10),
           ),
-          child: const Icon(IconsaxPlusLinear.lock_1,
-              size: 30, color: AppColors.textTertiary),
+          child: const Icon(
+            IconsaxPlusLinear.lock_1,
+            size: 30,
+            color: AppColors.textTertiary,
+          ),
         ),
       );
     }
@@ -307,15 +310,15 @@ class MomentSheet extends StatelessWidget {
   }
 
   Widget _dateLine(String text) => Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontFamily: AppTheme.fontFamily,
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-      );
+    text,
+    textAlign: TextAlign.center,
+    style: const TextStyle(
+      fontFamily: AppTheme.fontFamily,
+      color: AppColors.textSecondary,
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    ),
+  );
 
   Widget _thumbnail(Photo p) {
     return AspectRatio(
@@ -343,11 +346,14 @@ class MomentSheet extends StatelessWidget {
   }
 
   Widget _thumbFallback() => Container(
-        color: AppColors.surfaceLight,
-        alignment: Alignment.center,
-        child: const Icon(IconsaxPlusBold.gallery,
-            size: 28, color: AppColors.textTertiary),
-      );
+    color: AppColors.surfaceLight,
+    alignment: Alignment.center,
+    child: const Icon(
+      IconsaxPlusBold.gallery,
+      size: 28,
+      color: AppColors.textTertiary,
+    ),
+  );
 
   /// The optional CTA: "View in Gallery" for bloomed photos, or the locked
   /// nudges (Add a memory / Answer today). days/streak bloomed → no CTA.

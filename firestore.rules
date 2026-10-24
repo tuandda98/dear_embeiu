@@ -1386,14 +1386,15 @@ service cloud.firestore {
     function moneyTxOk(d, shared) {
       let base = ['type', 'amount', 'outWalletId', 'inWalletId', 'date',
         'categoryId', 'note', 'createdBy', 'createdAt'];
-      let keys = shared ? base.concat(['payer', 'splitMode', 'payerShare', 'memberUids']) : base;
+      let keys = shared ? base.concat(['payer', 'memberUids']) : base;
       let hasOut = d.outWalletId != '';
       let hasIn = d.inWalletId != '';
       let person = shared && d.payer in d.memberUids;
       return d.keys().hasAll(keys)
         && d.keys().hasOnly(keys.concat(['linkId', 'recurringId', 'source',
           'updatedBy', 'updatedAt', 'editCount']))
-        && d.type in ['expense', 'income', 'transfer', 'adjust', 'contribution', 'settle']
+        // D34: no income, no settle.
+        && d.type in ['expense', 'transfer', 'adjust', 'contribution']
         && moneyIsAmount(d.amount)
         && moneyIsId(d.outWalletId)
         && moneyIsId(d.inWalletId)
@@ -1408,19 +1409,13 @@ service cloud.firestore {
         && (!shared || (d.memberUids is list
           && d.memberUids.size() == 2
           // A person paid ⇒ from their own pocket, never also out of a shared
-          // wallet (else the wallet drops AND the couple balance counts it).
-          && ((person && !hasOut) || (d.payer == 'wallet' && hasOut))
-          && d.splitMode in ['equal', 'treat', 'for_partner', 'custom', 'none']
-          && d.payerShare is int
-          && d.payerShare >= 0
-          && d.payerShare <= d.amount))
+          // wallet.
+          && ((person && !hasOut) || (d.payer == 'wallet' && hasOut))))
         && ((d.type == 'expense' && !hasIn && (hasOut || person))
-          || (d.type == 'income' && hasIn && !hasOut)
           || (d.type == 'transfer' && hasIn && hasOut && d.inWalletId != d.outWalletId)
           || (d.type == 'adjust' && hasIn != hasOut)
           || (d.type == 'contribution'
-            && (shared ? (hasIn && !hasOut && person) : (hasOut && !hasIn)))
-          || (d.type == 'settle' && shared && person && !hasIn && !hasOut && d.payerShare == 0));
+            && (shared ? (hasIn && !hasOut && person) : (hasOut && !hasIn))));
     }
 
     function moneyTxCreateOk(d) {
@@ -1462,7 +1457,7 @@ service cloud.firestore {
         && moneyTxEditOk()
         && (!('linkId' in resource.data)
           || resource.data.createdBy == request.auth.uid
-          || moneyUnchanged(['amount', 'outWalletId', 'inWalletId', 'payer', 'payerShare', 'splitMode']));
+          || moneyUnchanged(['amount', 'outWalletId', 'inWalletId', 'payer']));
       allow delete: if moneyInPair(coupleId)
         && (!('linkId' in resource.data) || resource.data.createdBy == request.auth.uid);
     }
@@ -1506,6 +1501,51 @@ service cloud.firestore {
         && moneyBudgetOk(request.resource.data)
         && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
         && request.resource.data.updatedAt == request.time;
+    }
+
+    // ---- saving challenges (D34 §4): never deleted, only cancelled ----
+    function moneyChallengeOk(d) {
+      let keys = ['title', 'kind', 'categoryIds', 'limit', 'startDate', 'days',
+        'templateId', 'cancelled', 'createdBy', 'createdAt'];
+      return d.keys().hasAll(keys)
+        && d.keys().hasOnly(keys.concat(['updatedAt']))
+        && d.title is string && d.title.size() >= 1 && d.title.size() <= 40
+        && d.kind in ['noSpend', 'cap']
+        && d.categoryIds is list && d.categoryIds.size() <= 12
+        && d.limit is int
+        && (d.kind == 'cap' ? moneyIsAmount(d.limit) : d.limit == 0)
+        && moneyIsDate(d.startDate)
+        && d.days in [7, 14, 30]
+        && moneyIsId(d.templateId)
+        && d.cancelled is bool;
+    }
+
+    function moneyChallengeCancelOk() {
+      return moneyChallengeOk(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['cancelled', 'updatedAt'])
+        && request.resource.data.cancelled == true
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /users/{userId}/moneyChallenges/{challengeId} {
+      allow read: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && moneyChallengeOk(request.resource.data)
+        && request.resource.data.cancelled == false
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyIsOwner(userId) && moneyChallengeCancelOk();
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId}/moneyChallenges/{challengeId} {
+      allow read: if isCoupleMember(coupleId);
+      allow create: if moneyCoupleFull(coupleId)
+        && moneyChallengeOk(request.resource.data)
+        && request.resource.data.cancelled == false
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyCoupleFull(coupleId) && moneyChallengeCancelOk();
+      allow delete: if false;
     }
 
     // ---- category tweaks + default wallet: one doc `main` per book ----

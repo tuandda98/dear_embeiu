@@ -43,9 +43,10 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
         duration: const Duration(milliseconds: 820),
       )..repeat(reverse: true);
       _controller = c;
-      _scaleAnimation = Tween<double>(begin: 0.9, end: 1.16).animate(
-        CurvedAnimation(parent: c, curve: Curves.easeInOut),
-      );
+      _scaleAnimation = Tween<double>(
+        begin: 0.9,
+        end: 1.16,
+      ).animate(CurvedAnimation(parent: c, curve: Curves.easeInOut));
     }
   }
 
@@ -171,4 +172,3 @@ class AnimatedCoupleName extends StatelessWidget {
     );
   }
 }
-

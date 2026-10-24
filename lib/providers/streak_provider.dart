@@ -32,8 +32,8 @@ enum StreakState {
 /// simply hide the chip. Never throws, never toasts.
 class StreakProvider extends ChangeNotifier {
   StreakProvider({StreakService? service, DailyQuestionService? repairService})
-      : _service = service ?? StreakService(),
-        _repairService = repairService ?? DailyQuestionService();
+    : _service = service ?? StreakService(),
+      _repairService = repairService ?? DailyQuestionService();
 
   final StreakService _service;
 
@@ -166,16 +166,18 @@ class StreakProvider extends ChangeNotifier {
     }
 
     _subscription?.cancel();
-    _subscription = _service.watchRevealedDates(coupleId).listen(
-      (dates) => _recompute(dates),
-      onError: (_) {
-        // Fail-soft: hide the chip, never surface the error.
-        _hasError = true;
-        _isLoading = false;
-        _state = StreakState.hidden;
-        notifyListeners();
-      },
-    );
+    _subscription = _service
+        .watchRevealedDates(coupleId)
+        .listen(
+          (dates) => _recompute(dates),
+          onError: (_) {
+            // Fail-soft: hide the chip, never surface the error.
+            _hasError = true;
+            _isLoading = false;
+            _state = StreakState.hidden;
+            notifyListeners();
+          },
+        );
   }
 
   /// Re-derives the streak from the last snapshot when the local calendar day
@@ -372,9 +374,7 @@ class StreakProvider extends ChangeNotifier {
     try {
       final box = await _openGuardBox();
       final raw = box.get(coupleId);
-      final done = <int>{
-        if (raw is List) ...raw.whereType<int>(),
-      };
+      final done = <int>{if (raw is List) ...raw.whereType<int>()};
       if (done.contains(milestone)) {
         return;
       }

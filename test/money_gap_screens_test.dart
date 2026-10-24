@@ -330,8 +330,8 @@ void main() {
       await t.pump();
       await t.tap(find.bySemanticsLabel('Ghi khoản'));
       await t.pumpAndSettle();
-      // The form of the shared book asks who paid.
-      expect(find.textContaining('Mình trả'), findsWidgets);
+      // The form of the shared book asks where the money comes from.
+      expect(find.text('Tiền từ đâu'), findsWidgets);
     });
 
     testWidgets('HM-03: error → "Thử lại" calls onRetry and opens nothing', (
@@ -575,8 +575,6 @@ MoneyTx _sharedExp(String id, {String? updatedBy, DateTime? updatedAt}) =>
       categoryId: 'food_out',
       note: 'Lẩu Thái',
       payer: 'me',
-      splitMode: MoneySplitMode.equal,
-      payerShare: 240000,
       memberUids: const ['her', 'me'],
       createdBy: 'me',
       updatedBy: updatedBy,

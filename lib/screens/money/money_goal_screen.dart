@@ -14,11 +14,9 @@ import '../../services/money_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/money_flows.dart';
 import '../../utils/money_input.dart';
-import '../../utils/money_math.dart';
 import '../../widgets/header_icon_button.dart';
 import '../../widgets/money/add_transaction_sheet.dart';
 import '../../widgets/money/money_ui.dart';
-import '../../widgets/money/settle_sheet.dart' show moneyUndoAdd;
 import '../../widgets/shimmer_skeleton.dart';
 import '../../widgets/sub_screen_header.dart';
 import 'money_wallets_screen.dart' show MoneyWalletSheet;
@@ -45,71 +43,7 @@ String moneyFullDate(BuildContext context, DateTime d) {
       : DateFormat.yMMMd(lang).format(d);
 }
 
-/// "Góp vào quỹ" from the shared overview: one fund → its sheet, several →
-/// pick one, none → a line + "Tạo mục tiêu".
-Future<void> pickFundToContribute(BuildContext context) async {
-  final money = context.read<MoneyProvider>();
-  final goals = [
-    for (final w in money.shared?.wallets ?? const <MoneyWallet>[])
-      if (w.isGoal && !w.archived) w,
-  ];
-  if (goals.length == 1) {
-    return MoneyContributeSheet.show(
-      context,
-      book: MoneyBookKind.shared,
-      wallet: goals.first,
-    );
-  }
-  final l10n = context.l10n;
-  final picked = await showMoneySheet<Object>(
-    context,
-    builder: (sheet) => Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MoneySheetTitle(title: l10n.moneyPickFund),
-          if (goals.isEmpty) ...[
-            Text(
-              l10n.moneyNoFundYet,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            MoneyPrimaryButton(
-              label: l10n.moneyCreateGoal,
-              onPressed: () => Navigator.of(sheet).pop(true),
-            ),
-          ],
-          for (final w in goals)
-            MoneyWalletRow(
-              wallet: w,
-              balance: money.balances(MoneyBookKind.shared)[w.id] ?? 0,
-              onTap: () => Navigator.of(sheet).pop(w),
-            ),
-        ],
-      ),
-    ),
-  );
-  if (!context.mounted) return;
-  if (picked is MoneyWallet) {
-    return MoneyContributeSheet.show(
-      context,
-      book: MoneyBookKind.shared,
-      wallet: picked,
-    );
-  }
-  if (picked == true) {
-    return MoneyWalletSheet.show(context, book: MoneyBookKind.shared);
-  }
-}
-
-/// A fund ("Quỹ Đà Lạt"): how full, what to save a month, who put in what
-/// (shared), the history, and Chi từ quỹ · Góp vào quỹ pinned at the
+/// A fund ("Quỹ Đà Lạt"): how full, what to save a month, the history, and Chi từ quỹ · Góp vào quỹ pinned at the
 /// bottom (thumb zone, §15 #9).
 class MoneyGoalScreen extends StatefulWidget {
   const MoneyGoalScreen({
@@ -154,7 +88,6 @@ class _MoneyGoalScreenState extends State<MoneyGoalScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final money = context.watch<MoneyProvider>();
-    final people = MoneyPeople.of(context);
     money.activeBook = widget.book;
     final shared = widget.book == MoneyBookKind.shared;
     final w = money
@@ -234,26 +167,6 @@ class _MoneyGoalScreenState extends State<MoneyGoalScreen> {
                             shared: shared,
                             ready: ready,
                           ),
-                          if (shared) ...[
-                            const SizedBox(height: 16),
-                            _EachCard(
-                              people: people,
-                              mine:
-                                  MoneyMath.contributionsBy(
-                                    history,
-                                    walletId: w.id,
-                                  )[money.uid] ??
-                                  0,
-                              theirs:
-                                  MoneyMath.contributionsBy(
-                                    history,
-                                    walletId: w.id,
-                                  )[money.partnerUid] ??
-                                  0,
-                              left: view.left,
-                              loading: loadingHistory,
-                            ),
-                          ],
                           const SizedBox(height: 16),
                           MoneyCard(
                             child: Column(
@@ -435,133 +348,6 @@ class _GoalCard extends StatelessWidget {
   }
 }
 
-/// (Shared) "Mỗi người góp": two lanes + a 3-part bar (partner, me, what is
-/// still missing left empty).
-class _EachCard extends StatelessWidget {
-  const _EachCard({
-    required this.people,
-    required this.mine,
-    required this.theirs,
-    required this.left,
-    required this.loading,
-  });
-
-  final MoneyPeople people;
-  final int mine;
-  final int theirs;
-  final int left;
-  final bool loading;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    Widget lane(
-      Widget avatar,
-      String name,
-      int amount,
-      CrossAxisAlignment al,
-    ) => Expanded(
-      child: Column(
-        crossAxisAlignment: al,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              avatar,
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          loading
-              ? const ShimmerSkeleton(width: 90, height: 16)
-              : FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: MoneyAmountText(amount, size: 16),
-                ),
-        ],
-      ),
-    );
-    return MoneyCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MoneyCardHeader(title: l10n.moneyGoalEach),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              lane(
-                MoneyAvatar(
-                  letter: people.partnerName,
-                  color: people.partnerColor,
-                ),
-                people.partnerName,
-                theirs,
-                CrossAxisAlignment.start,
-              ),
-              lane(
-                MoneyAvatar(letter: people.myName, color: people.meColor),
-                l10n.moneyMe,
-                mine,
-                CrossAxisAlignment.end,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Semantics(
-            label: l10n.moneyGoalEachSemantics(
-              people.partnerName,
-              vndSpoken(context, theirs),
-              vndSpoken(context, mine),
-              vndSpoken(context, left),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: SizedBox(
-                height: 8,
-                child: ColoredBox(
-                  color: AppColors.surfaceLight,
-                  child: Row(
-                    children: [
-                      for (final (v, color) in [
-                        (theirs, people.partnerColor),
-                        (mine, people.meColor),
-                        (left, Colors.transparent),
-                      ])
-                        if (!loading && v > 0)
-                          Expanded(
-                            // Flex is an int; scale so huge amounts fit.
-                            flex: (v ~/ 1000).clamp(1, 1 << 30),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 1,
-                              ),
-                              child: ColoredBox(color: color),
-                            ),
-                          ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Chi từ quỹ (outline) · Góp vào quỹ (navy), 2:3, both h52 (design §11).
 class _Actions extends StatelessWidget {
   const _Actions({required this.onSpend, required this.onContribute});
@@ -665,8 +451,7 @@ class MoneyContributeSheet extends StatefulWidget {
 
 class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
   final TextEditingController _amount = TextEditingController();
-  bool _byMe = true;
-  String? _fromId; // own wallet; '' = Không trừ (shared only)
+  String? _fromId; // the own wallet the money leaves
   bool _busy = false;
 
   bool get _shared => widget.book == MoneyBookKind.shared;
@@ -682,9 +467,7 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
     final money = context.read<MoneyProvider>();
     final list = _ownWallets(money);
     final usual = money.own?.meta.defaultWalletId;
-    _fromId = list.any((w) => w.id == usual)
-        ? usual
-        : list.firstOrNull?.id ?? (_shared ? '' : null);
+    _fromId = list.any((w) => w.id == usual) ? usual : list.firstOrNull?.id;
   }
 
   @override
@@ -711,9 +494,7 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
     try {
       final MoneyTx tx;
       final MoneyWriteOutcome outcome;
-      final ownWallet = _shared && _byMe && (_fromId ?? '').isNotEmpty
-          ? _fromId
-          : null;
+      final ownWallet = _shared && (_fromId ?? '').isNotEmpty ? _fromId : null;
       if (_shared) {
         tx = MoneyTx(
           id: id,
@@ -721,8 +502,7 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
           amount: amount,
           date: money.today,
           inWalletId: w.id,
-          payer: _byMe ? money.uid : money.partnerUid,
-          splitMode: MoneySplitMode.none,
+          payer: money.uid,
           memberUids: state.service.memberUids,
         );
         outcome = await money.contribute(
@@ -790,7 +570,6 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final money = context.watch<MoneyProvider>();
-    final people = MoneyPeople.of(context);
     final amount = _value;
     final own = _ownWallets(money);
     final needsWallet = !_shared && (_fromId == null || _fromId!.isEmpty);
@@ -820,26 +599,7 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
             label: l10n.moneyContributeHint,
             onChanged: (_) => setState(() {}),
           ),
-          if (_shared) ...[
-            label(l10n.moneyContributeWho),
-            MoneyChipRow(
-              children: [
-                MoneyChip(
-                  label: l10n.moneyMe,
-                  radio: true,
-                  selected: _byMe,
-                  onTap: () => setState(() => _byMe = true),
-                ),
-                MoneyChip(
-                  label: people.partnerName,
-                  radio: true,
-                  selected: !_byMe,
-                  onTap: () => setState(() => _byMe = false),
-                ),
-              ],
-            ),
-          ],
-          if ((!_shared || _byMe) && (own.isNotEmpty || _shared)) ...[
+          if (own.isNotEmpty) ...[
             label(_shared ? l10n.moneyDeductMine : l10n.moneyContributeFrom),
             MoneyChipRow(
               children: [
@@ -850,13 +610,6 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
                     radio: true,
                     selected: _fromId == w.id,
                     onTap: () => setState(() => _fromId = w.id),
-                  ),
-                if (_shared)
-                  MoneyChip(
-                    label: l10n.moneyNoDeduct,
-                    radio: true,
-                    selected: _fromId == '',
-                    onTap: () => setState(() => _fromId = ''),
                   ),
               ],
             ),

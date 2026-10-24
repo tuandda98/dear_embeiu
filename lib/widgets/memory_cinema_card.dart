@@ -70,7 +70,8 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final allowed = TickerMode.valuesOf(context).enabled &&
+    final allowed =
+        TickerMode.valuesOf(context).enabled &&
         !AppMotion.reduceMotion(context);
     // Only touch the timer when the gate actually flips: this method also
     // re-runs for unrelated inherited widgets (e.g. provider watches higher in
@@ -197,13 +198,18 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
                 ),
               ),
               if (photo.id == widget.onThisDayId)
-                Positioned(top: 14, left: 14, child: _buildOnThisDayBadge(photo)),
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  child: _buildOnThisDayBadge(photo),
+                ),
               Positioned(
                 top: 14,
                 right: 14,
                 child: ReactionCountBadge(
-                  reactions:
-                      context.watch<ReactionProvider>().reactionsFor(photo.id),
+                  reactions: context.watch<ReactionProvider>().reactionsFor(
+                    photo.id,
+                  ),
                 ),
               ),
               Positioned(
@@ -224,9 +230,10 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
   /// (manual swipes) cut instantly to a static frame.
   Widget _buildSlide(Photo photo) {
     final reduceMotion = AppMotion.reduceMotion(context);
-    final decodeWidth = (MediaQuery.of(context).size.width *
-            MediaQuery.of(context).devicePixelRatio)
-        .round();
+    final decodeWidth =
+        (MediaQuery.of(context).size.width *
+                MediaQuery.of(context).devicePixelRatio)
+            .round();
     final slide = SizedBox.expand(
       key: ValueKey('cinema-slide-${photo.id}'),
       child: Hero(
@@ -254,10 +261,7 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
       // which lets tall photos letterbox (same fix as the counter backdrop).
       layoutBuilder: (currentChild, previousChildren) => Stack(
         fit: StackFit.expand,
-        children: [
-          ...previousChildren,
-          ?currentChild,
-        ],
+        children: [...previousChildren, ?currentChild],
       ),
       child: slide,
     );
@@ -274,7 +278,9 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
     if (reduceMotion) {
       return child;
     }
-    return child.animate(key: ValueKey('kenburns-${photo.id}')).scale(
+    return child
+        .animate(key: ValueKey('kenburns-${photo.id}'))
+        .scale(
           begin: const Offset(1.0, 1.0),
           end: const Offset(1.10, 1.10),
           duration: _slideDuration + const Duration(seconds: 2),
@@ -303,7 +309,9 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
 
   Widget _buildCaptionRow(Photo photo) {
     final caption = photo.caption?.trim();
-    final date = DateFormat(context.l10n.fullDateFormat).format(photo.uploadDate);
+    final date = DateFormat(
+      context.l10n.fullDateFormat,
+    ).format(photo.uploadDate);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -358,8 +366,9 @@ class _MemoryCinemaCardState extends State<MemoryCinemaCard> {
             width: i == _index ? 16 : 6,
             height: 6,
             decoration: BoxDecoration(
-              color: AppColors.white
-                  .withValues(alpha: i == _index ? 0.95 : 0.45),
+              color: AppColors.white.withValues(
+                alpha: i == _index ? 0.95 : 0.45,
+              ),
               borderRadius: BorderRadius.circular(999),
             ),
           ),

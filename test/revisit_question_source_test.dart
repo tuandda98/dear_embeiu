@@ -39,15 +39,12 @@ void main() {
     final targets = revisitTargetsFor(today);
 
     test('4 mốc theo đúng thứ tự ưu tiên 365 > 100 > 30 > tháng trước', () {
-      expect(
-        targets.map((t) => t.bucket).toList(),
-        <String>[
-          revisitBucketYear,
-          revisitBucketHundred,
-          revisitBucketThirty,
-          revisitBucketMonth,
-        ],
-      );
+      expect(targets.map((t) => t.bucket).toList(), <String>[
+        revisitBucketYear,
+        revisitBucketHundred,
+        revisitBucketThirty,
+        revisitBucketMonth,
+      ]);
       expect(targets.map((t) => t.bucket).toList(), revisitBucketPriority);
     });
 
@@ -151,16 +148,11 @@ void main() {
 
     test('bỏ qua 7 ngày gần nhất và ngày sai định dạng', () {
       final fresh = <String>[
-        for (var i = 0; i <= 7; i++)
-          keyOf(today.subtract(Duration(days: i))),
+        for (var i = 0; i <= 7; i++) keyOf(today.subtract(Duration(days: i))),
         'hôm-qua',
       ];
       expect(
-        pickRevisitDate(
-          today: today,
-          availableDateKeys: fresh,
-          seedKey: seed,
-        ),
+        pickRevisitDate(today: today, availableDateKeys: fresh, seedKey: seed),
         isNull,
       );
     });
@@ -346,8 +338,11 @@ void main() {
           final vi = text.vi.toLowerCase();
           final en = text.en.toLowerCase();
           expect(vi.contains('khoảng'), isTrue, reason: text.vi);
-          expect(en.contains('about') || en.contains('around'), isTrue,
-              reason: text.en);
+          expect(
+            en.contains('about') || en.contains('around'),
+            isTrue,
+            reason: text.en,
+          );
           for (final w in exactWords) {
             expect(vi.contains(w), isFalse, reason: '$bucket: ${text.vi}');
           }
@@ -381,8 +376,7 @@ void main() {
           expect(t.viSuffix.trim().isNotEmpty, isTrue, reason: bucket);
           expect(t.enPrefix.trim().isNotEmpty, isTrue, reason: bucket);
           expect(t.enSuffix.trim().isNotEmpty, isTrue, reason: bucket);
-          final joined =
-              t.viPrefix + t.viSuffix + t.enPrefix + t.enSuffix;
+          final joined = t.viPrefix + t.viSuffix + t.enPrefix + t.enSuffix;
           expect(joined.contains('{'), isFalse, reason: bucket);
           expect(joined.contains('}'), isFalse, reason: bucket);
           // Giọng văn: "chúng mình", không dùng "hai đứa".
@@ -392,23 +386,25 @@ void main() {
       }
     });
 
-    test('mẫu "khoảng" có cho 365/100/30, không có cho tháng (luôn khớp đúng)',
-        () {
-      expect(revisitTemplatesApprox.keys.toSet(), <String>{
-        revisitBucketYear,
-        revisitBucketHundred,
-        revisitBucketThirty,
-      });
-      for (final variants in revisitTemplatesApprox.values) {
-        expect(variants, isNotEmpty);
-        for (final t in variants) {
-          final joined = t.viPrefix + t.viSuffix + t.enPrefix + t.enSuffix;
-          expect(joined.contains('{'), isFalse);
-          expect(joined.contains('}'), isFalse);
-          expect(joined.contains('hai đứa'), isFalse);
+    test(
+      'mẫu "khoảng" có cho 365/100/30, không có cho tháng (luôn khớp đúng)',
+      () {
+        expect(revisitTemplatesApprox.keys.toSet(), <String>{
+          revisitBucketYear,
+          revisitBucketHundred,
+          revisitBucketThirty,
+        });
+        for (final variants in revisitTemplatesApprox.values) {
+          expect(variants, isNotEmpty);
+          for (final t in variants) {
+            final joined = t.viPrefix + t.viSuffix + t.enPrefix + t.enSuffix;
+            expect(joined.contains('{'), isFalse);
+            expect(joined.contains('}'), isFalse);
+            expect(joined.contains('hai đứa'), isFalse);
+          }
         }
-      }
-    });
+      },
+    );
   });
 
   group('buildRevisitHints', () {
@@ -433,7 +429,7 @@ void main() {
       expect(fnv1a32('abc'), fnv1a32('abc'));
       expect(fnv1a32('abc') == fnv1a32('abd'), isFalse);
       expect(fnv1a32('couple|2026-09-05') <= 0xFFFFFFFF, isTrue);
-      expect(fnv1a32('') , 0x811c9dc5);
+      expect(fnv1a32(''), 0x811c9dc5);
     });
   });
 }

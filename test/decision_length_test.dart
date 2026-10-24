@@ -66,9 +66,6 @@ void main() {
       validateCustomOptions([bowl * 21, 'Em']),
       CustomOptionsIssue.tooLong,
     );
-    expect(
-      validateCustomOptions([family * 5, 'Em']),
-      isNull,
-    );
+    expect(validateCustomOptions([family * 5, 'Em']), isNull);
   });
 }

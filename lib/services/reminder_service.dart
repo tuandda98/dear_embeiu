@@ -952,6 +952,12 @@ class ReminderService {
   static const int idMoneyEveningToday = 1210;
   static const int idMoneyEveningTomorrow = 1211;
 
+  // Saving challenges (D34 §4), 1212–1217: ONE-SHOT 09:00 on each running
+  // challenge's last day (3 per book × 2 books). Owned by
+  // ReminderProvider.refreshMoneyChallenges; the band is replaced each time.
+  static const int idMoneyChallengeBase = 1212;
+  static const int maxMoneyChallenges = 6;
+
   /// The slots to arm at [minuteOfDay]: today (unless something was already
   /// logged today or the time has passed) + tomorrow. [variant] picks one of
   /// the 3 bodies by date, so the line changes day to day.
@@ -1010,6 +1016,49 @@ class ReminderService {
         continue;
       }
       await _scheduleAt(id: s.id, when: when, title: s.title, body: s.body);
+    }
+  }
+
+  /// Replaces the challenge band with [slots] (first [maxMoneyChallenges]).
+  Future<void> scheduleMoneyChallenges(
+    List<({DateTime when, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelMoneyChallenges();
+    var i = 0;
+    for (final s in slots) {
+      if (i >= maxMoneyChallenges) break;
+      final when = tz.TZDateTime(
+        tz.local,
+        s.when.year,
+        s.when.month,
+        s.when.day,
+        s.when.hour,
+        s.when.minute,
+      );
+      if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
+        continue;
+      }
+      await _scheduleAt(
+        id: idMoneyChallengeBase + i,
+        when: when,
+        title: s.title,
+        body: s.body,
+      );
+      i++;
+    }
+  }
+
+  Future<void> cancelMoneyChallenges() async {
+    for (var i = 0; i < maxMoneyChallenges; i++) {
+      try {
+        await _plugin.cancel(idMoneyChallengeBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
     }
   }
 

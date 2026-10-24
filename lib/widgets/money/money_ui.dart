@@ -85,7 +85,9 @@ String moneyTooBigText(BuildContext context, int max, {MoneyBookKind? book}) {
 
 /// The grey line under an empty amount (VND only: "Gõ 50k, 1tr2…").
 String moneyAmountHintText(BuildContext context, {MoneyBookKind? book}) =>
-    moneyCurrency(context, book: book).isVnd ? context.l10n.moneyAmountHint : '';
+    moneyCurrency(context, book: book).isVnd
+    ? context.l10n.moneyAmountHint
+    : '';
 
 /// What a screen reader says for an amount ("120.000 đồng", "12.5 US
 /// dollars"), never "₫" / "$".
@@ -166,14 +168,6 @@ String moneyWalletTypeLabel(AppLocalizations l10n, MoneyWalletType t) =>
       MoneyWalletType.credit => l10n.moneyWalletCredit,
       MoneyWalletType.goal => l10n.moneyWalletGoal,
     };
-
-String moneySplitLabel(AppLocalizations l10n, MoneySplitMode? m) => switch (m) {
-  MoneySplitMode.equal => l10n.moneySplitEqual,
-  MoneySplitMode.treat => l10n.moneySplitTreat,
-  MoneySplitMode.forPartner => l10n.moneySplitForPartner,
-  MoneySplitMode.custom => l10n.moneySplitCustom,
-  _ => '',
-};
 
 // ── people ────────────────────────────────────────────────────────────────
 
@@ -322,7 +316,7 @@ class MoneyAmountText extends StatelessWidget {
   final double size;
   final Color color;
 
-  /// "+" for income ("−" comes from the amount's sign).
+  /// "+" for a contribution ("−" comes from the amount's sign).
   final String prefix;
   final FontWeight weight;
   final TextAlign? textAlign;
@@ -789,7 +783,7 @@ class MoneyTxRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final cat = ctx.categories.of(tx.categoryId, kind: tx.type);
+    final cat = ctx.categories.of(tx.categoryId);
     var glyph = cat.emoji;
     var plainGlyph = false;
     var title = tx.note.trim();
@@ -826,26 +820,14 @@ class MoneyTxRow extends StatelessWidget {
           sub = l10n.moneyContribOwnSub(walletName);
           if (title.isEmpty) title = l10n.moneyWalletGoal;
         }
-      case MoneyTxType.settle:
-        glyph = '=';
-        plainGlyph = true;
-        sub = l10n.moneySettleSub(ctx.personName(context, tx.payer));
-        if (title.isEmpty) title = l10n.moneySettle;
       case MoneyTxType.expense:
-      case MoneyTxType.income:
         if (title.isEmpty) title = cat.name;
         if (ctx.shared && tx.payer != null) {
           avatar = ctx.avatarFor(tx.payer);
           if (tx.payer == kMoneyPayerWallet) {
             sub = l10n.moneyPaidFromJoint;
           } else {
-            final split = tx.type == MoneyTxType.expense
-                ? moneySplitLabel(l10n, tx.splitMode)
-                : '';
-            final who = ctx.personName(context, tx.payer);
-            sub = split.isEmpty
-                ? l10n.moneyPaidByNoSplit(who)
-                : l10n.moneyPaidBy(who, split);
+            sub = l10n.moneyPaidByNoSplit(ctx.personName(context, tx.payer));
           }
         } else {
           sub = walletName.isEmpty ? cat.name : '${cat.name} · $walletName';
@@ -854,12 +836,10 @@ class MoneyTxRow extends StatelessWidget {
 
     final amountColor = switch (tx.type) {
       MoneyTxType.expense => AppColors.textPrimary,
-      MoneyTxType.income => AppColors.moneyPositive,
       MoneyTxType.contribution when ctx.shared => AppColors.moneyPositive,
       _ => AppColors.textSecondary,
     };
     final prefix = switch (tx.type) {
-      MoneyTxType.income => '+',
       MoneyTxType.contribution when ctx.shared => '+',
       _ => '',
     };
