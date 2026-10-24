@@ -93,6 +93,7 @@ class _MoneyWalletsScreenState extends State<MoneyWalletsScreen> {
     if (_book == MoneyBookKind.shared && !money.hasShared) {
       _book = MoneyBookKind.own;
     }
+    money.activeBook = _book;
     final state = money.book(_book);
     final wallets = state?.wallets ?? const <MoneyWallet>[];
     final balances = money.balances(_book);
@@ -279,7 +280,12 @@ Widget moneyGoalRow(
   final deadline = w.goalDeadline;
   final perMonth = deadline == null || target <= 0
       ? 0
-      : MoneyMath.perMonthNeeded(target - balance, money.today, deadline);
+      : MoneyMath.perMonthNeeded(
+          target - balance,
+          money.today,
+          deadline,
+          step: moneyCurrency(context).roundStep,
+        );
   final sub = perMonth > 0
       ? l10n.moneyGoalPerMonthShort(vnd(context, perMonth))
       : l10n.moneyGoalProgress('$pct', vnd(context, target));
@@ -307,7 +313,7 @@ class MoneyWalletScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final money = context.watch<MoneyProvider>();
+    final money = context.watch<MoneyProvider>()..activeBook = book;
     final w = money
         .book(book)
         ?.wallets
@@ -615,11 +621,14 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
   String _initialAmount() {
     final e = widget.editing;
     if (e == null) return '';
-    if (e.isGoal) return '${e.goalTarget ?? ''}';
+    final c = moneyCurrency(context);
+    if (e.isGoal) {
+      return e.goalTarget == null ? '' : moneyInputText(e.goalTarget!, c);
+    }
     final v = e.type == MoneyWalletType.credit
         ? -e.openingBalance
         : e.openingBalance;
-    return '$v';
+    return moneyInputText(v, c);
   }
 
   static const Map<MoneyWalletType, String> _defaultEmoji = {
@@ -656,7 +665,7 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
     final l10n = context.l10n;
     final money = context.read<MoneyProvider>();
     final raw = _amount.text.trim();
-    final parsed = parseVndInput(raw, max: kMoneyWalletMax);
+    final parsed = moneyParse(context, raw, max: kMoneyWalletMax);
     // A 0 opening balance is valid (the box is pre-filled "0" when editing).
     final value = raw.isEmpty || parsed.error == VndParseError.zero
         ? 0
@@ -745,7 +754,7 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
     final money = context.read<MoneyProvider>();
     final name = _name.text.trim();
     final raw = _amount.text.trim();
-    final parsed = parseVndInput(raw, max: kMoneyWalletMax);
+    final parsed = moneyParse(context, raw, max: kMoneyWalletMax);
     final amountOk =
         raw.isEmpty || parsed.ok || parsed.error == VndParseError.zero;
     final hints = {
@@ -757,7 +766,12 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
     };
     final target = _goal && parsed.ok ? parsed.value! : 0;
     final perMonth = _goal && _deadline != null && target > 0
-        ? MoneyMath.perMonthNeeded(target, money.today, _deadline!)
+        ? MoneyMath.perMonthNeeded(
+            target,
+            money.today,
+            _deadline!,
+            step: moneyCurrency(context).roundStep,
+          )
         : 0;
     final canSave = name.isNotEmpty && amountOk && !(_goal && target <= 0);
     return SingleChildScrollView(
@@ -1040,7 +1054,7 @@ class _MoneyFixBalanceSheetState extends State<MoneyFixBalanceSheet> {
 
   /// The real balance typed (credit: what is owed, stored negative).
   int? get _realValue {
-    final r = parseVndInput(_real.text, max: kMoneyWalletMax);
+    final r = moneyParse(context, _real.text, max: kMoneyWalletMax);
     if (_real.text.trim() == '0') return 0;
     if (!r.ok) return null;
     return _credit ? -r.value! : r.value!;

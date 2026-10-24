@@ -37,6 +37,7 @@ class _MoneyBudgetsScreenState extends State<MoneyBudgetsScreen> {
     if (_book == MoneyBookKind.shared && !money.hasShared) {
       _book = MoneyBookKind.own;
     }
+    money.activeBook = _book;
     final state = money.book(_book);
     final today = money.today;
     final month = today.substring(0, 7);
@@ -563,7 +564,9 @@ class _MoneyBudgetSheetState extends State<MoneyBudgetSheet> {
 
   void _prefill() {
     final b = _existing;
-    _amount.text = b == null ? '' : '${b.amount}';
+    _amount.text = b == null
+        ? ''
+        : moneyInputText(b.amount, moneyCurrency(context, book: widget.book));
   }
 
   String _nameOf(String id) {
@@ -573,7 +576,7 @@ class _MoneyBudgetSheetState extends State<MoneyBudgetSheet> {
   }
 
   Future<void> _save() async {
-    final r = parseVndInput(_amount.text, max: kMoneyTxMax);
+    final r = moneyParse(context, _amount.text);
     if (!r.ok) return;
     final money = context.read<MoneyProvider>();
     final l10n = context.l10n;
@@ -618,7 +621,7 @@ class _MoneyBudgetSheetState extends State<MoneyBudgetSheet> {
     final l10n = context.l10n;
     final money = context.watch<MoneyProvider>();
     final idx = money.book(widget.book)?.categories;
-    final r = parseVndInput(_amount.text, max: kMoneyTxMax);
+    final r = moneyParse(context, _amount.text);
     final existing = money.budgetFor(widget.book, _cat);
     final groups = [
       for (final c in idx?.pickable(MoneyTxType.expense) ?? <MoneyCategory>[])

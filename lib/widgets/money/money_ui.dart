@@ -13,6 +13,7 @@ import '../../providers/money_provider.dart';
 import '../../providers/sleep_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/person_palette.dart';
+import '../../utils/money_currency.dart';
 import '../../utils/money_input.dart';
 import '../../utils/money_math.dart';
 import '../../utils/money_views.dart';
@@ -29,18 +30,81 @@ import '../sub_screen_header.dart';
 String moneyLang(BuildContext context) =>
     Localizations.localeOf(context).languageCode;
 
-/// `1.250.000 ₫` / `₫1,250,000` in the app language.
-String vnd(BuildContext context, int amount) =>
-    formatVnd(amount, locale: moneyLang(context));
+/// The currency amounts print in (D31): [book]'s when given, otherwise the
+/// book on screen ([MoneyProvider.activeBook]). No provider (tests) → VND.
+MoneyCurrency moneyCurrency(BuildContext context, {MoneyBookKind? book}) {
+  try {
+    final money = Provider.of<MoneyProvider>(context, listen: false);
+    return money.currencyOf(book ?? money.activeBook);
+  } on ProviderNotFoundException {
+    return MoneyCurrency.vnd;
+  }
+}
 
-/// What a screen reader says for an amount ("120.000 đồng"), never "₫".
-String vndSpoken(BuildContext context, int amount) {
+/// `1.250.000 ₫` / `₫1,250,000` / `$12.50` in the app language.
+String vnd(BuildContext context, int amount, {MoneyBookKind? book}) =>
+    formatMoney(
+      amount,
+      moneyCurrency(context, book: book),
+      locale: moneyLang(context),
+    );
+
+/// `50k` / `1.2M` / `$12.5` for chips, axes and short lines.
+String vndShort(BuildContext context, int amount, {MoneyBookKind? book}) =>
+    formatMoneyShort(
+      amount,
+      moneyCurrency(context, book: book),
+      locale: moneyLang(context),
+    );
+
+/// Reads a typed amount in the book's currency (smallest units).
+VndParseResult moneyParse(
+  BuildContext context,
+  String raw, {
+  int max = kMoneyTxMax,
+  MoneyBookKind? book,
+}) => parseMoneyInput(
+  raw,
+  currency: moneyCurrency(context, book: book),
+  max: max,
+);
+
+/// "Tối đa 10 tỷ một khoản" for VND; other currencies name the cap in their
+/// own money ("Tối đa $100,000,000.00 một khoản").
+String moneyTooBigText(BuildContext context, int max, {MoneyBookKind? book}) {
+  final l10n = context.l10n;
+  final perWallet = max != kMoneyTxMax;
+  if (moneyCurrency(context, book: book).isVnd) {
+    return perWallet ? l10n.moneyWalletTooBig : l10n.moneyAmountTooBig;
+  }
+  final cap = vnd(context, max, book: book);
+  return perWallet
+      ? l10n.moneyWalletTooBigFor(cap)
+      : l10n.moneyAmountTooBigFor(cap);
+}
+
+/// The grey line under an empty amount: how to type money in this book.
+String moneyAmountHintText(BuildContext context, {MoneyBookKind? book}) {
+  final l10n = context.l10n;
+  final c = moneyCurrency(context, book: book);
+  if (c.isVnd) return l10n.moneyAmountHint;
   final vi = moneyLang(context) == 'vi';
+  final mark = vi ? ',' : '.';
+  return c.decimals > 0
+      ? l10n.moneyAmountHintOther('12${mark}50', '1${mark}5K', '2M')
+      : l10n.moneyAmountHintOther('500', '1${mark}5K', '2M');
+}
+
+/// What a screen reader says for an amount ("120.000 đồng", "12.5 US
+/// dollars"), never "₫" / "$".
+String vndSpoken(BuildContext context, int amount, {MoneyBookKind? book}) {
+  final vi = moneyLang(context) == 'vi';
+  final c = moneyCurrency(context, book: book);
   final digits = NumberFormat.decimalPattern(
     vi ? 'vi' : 'en',
-  ).format(amount.abs());
+  ).format(amount.abs() / c.minor);
   final sign = amount < 0 ? (vi ? 'âm ' : 'minus ') : '';
-  return '$sign$digits ${vi ? 'đồng' : 'dong'}';
+  return '$sign$digits ${vi ? c.viName : c.enName}';
 }
 
 DateTime moneyParseDate(String key) => DateTime(
@@ -256,9 +320,13 @@ class MoneyAmountText extends StatelessWidget {
     this.prefix = '',
     this.weight = FontWeight.w600,
     this.textAlign,
+    this.book,
   });
 
   final int amount;
+
+  /// Whose currency (D31); null = the book on screen.
+  final MoneyBookKind? book;
   final double size;
   final Color color;
 
@@ -269,20 +337,21 @@ class MoneyAmountText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = vnd(context, amount);
-    final i = s.indexOf('₫');
+    final symbol = moneyCurrency(context, book: book).symbol;
+    final s = vnd(context, amount, book: book);
+    final i = s.indexOf(symbol);
     final unitSize = size >= 30 ? 16.0 : (size >= 20 ? 14.0 : size);
     final unit = TextSpan(
-      text: '₫',
+      text: symbol,
       style: TextStyle(
         fontSize: unitSize,
         color: size >= 20 ? AppColors.textSecondary : color,
         fontWeight: FontWeight.w600,
       ),
     );
-    final before = s.substring(0, i), after = s.substring(i + 1);
+    final before = s.substring(0, i), after = s.substring(i + symbol.length);
     return Semantics(
-      label: '$prefix${vndSpoken(context, amount)}',
+      label: '$prefix${vndSpoken(context, amount, book: book)}',
       child: ExcludeSemantics(
         child: Text.rich(
           TextSpan(
@@ -1503,11 +1572,11 @@ class MoneyNumberField extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final raw = controller.text;
-    final r = parseVndInput(raw, max: max);
+    final r = moneyParse(context, raw, max: max);
     final error = raw.trim().isEmpty
         ? null
         : r.error == VndParseError.tooBig
-        ? (max == kMoneyTxMax ? l10n.moneyAmountTooBig : l10n.moneyWalletTooBig)
+        ? moneyTooBigText(context, max)
         : r.error == VndParseError.invalid
         ? l10n.moneyAmountInvalid
         : null;
@@ -1532,7 +1601,7 @@ class MoneyNumberField extends StatelessWidget {
           decoration: InputDecoration(
             labelText: big ? null : label,
             hintText: big ? label : null,
-            suffixText: big ? null : '₫',
+            suffixText: big ? null : moneyCurrency(context).symbol,
             filled: true,
             fillColor: AppColors.surfaceLight,
             isDense: !big,

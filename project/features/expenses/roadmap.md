@@ -40,7 +40,8 @@ Mỗi mốc là một bản phát hành MINOR riêng. Mốc A tự đứng đư�
 - [ ] Cân bằng bằng aggregate theo `payer` khi sổ dài (nợ §8)
 
 ### ⚪ Later
-- [ ] Đa tiền tệ (field `currency` đã chừa) (D24)
+- [x] Tiền tệ theo sổ, không quy đổi (D31, 2026-10-25)
+- [ ] Mỗi ví một loại tiền + tỷ giá quy đổi ở báo cáo (phần còn lại của D24)
 - [ ] Nhập CSV từ Money Lover / MISA
 - [ ] Recap tháng dạng thẻ chia sẻ ("Tháng 10 chúng mình ăn ngoài 23 bữa")
 - [ ] Ứng viên premium khi có monetization: khoá cả app, báo cáo năm — KHÔNG gate ghi chép cơ bản hay dữ liệu cũ (CLAUDE.md §10)

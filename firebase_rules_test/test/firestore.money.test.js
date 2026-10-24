@@ -308,6 +308,18 @@ describe('firestore: money — own book', () => {
     await assertFails(setDoc(doc(db, OWN('alice', 'moneyMeta', 'main')), {...ok, updatedAt: TS}));
     await assertFails(getDoc(doc(authedDb('bob'), OWN('alice', 'moneyMeta', 'main'))));
   });
+
+  it('meta: currency is one of the listed ISO codes (D31)', async () => {
+    const db = authedDb('alice');
+    const M = OWN('alice', 'moneyMeta', 'main');
+    for (const c of ['VND', 'USD', 'EUR', 'JPY', 'KRW', 'THB']) {
+      await assertSucceeds(setDoc(doc(db, M), {currency: c, updatedAt: serverTimestamp()}, {merge: true}));
+    }
+    for (const c of ['usd', 'BTC', '', 1, null]) {
+      await assertFails(setDoc(doc(db, M), {currency: c, updatedAt: serverTimestamp()}, {merge: true}));
+    }
+    await assertFails(setDoc(doc(authedDb('bob'), M), {currency: 'USD', updatedAt: serverTimestamp()}));
+  });
 });
 
 describe('firestore: money — shared book', () => {
@@ -524,6 +536,9 @@ describe('firestore: money — shared book', () => {
     await assertSucceeds(getDoc(doc(authedDb('alice'), M)));
     await assertFails(getDoc(doc(authedDb('dave'), M)));
     await assertFails(setDoc(doc(authedDb('dave'), M), {updatedAt: serverTimestamp()}));
+    await assertSucceeds(setDoc(doc(authedDb('alice'), M), {currency: 'USD', updatedAt: serverTimestamp()}, {merge: true}));
+    await assertFails(setDoc(doc(authedDb('alice'), M), {currency: 'XYZ', updatedAt: serverTimestamp()}, {merge: true}));
+    await assertFails(setDoc(doc(authedDb('dave'), M), {currency: 'USD', updatedAt: serverTimestamp()}));
   });
 
   it('guests cannot touch either book', async () => {

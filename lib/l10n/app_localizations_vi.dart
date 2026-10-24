@@ -6818,6 +6818,53 @@ class AppLocalizationsVi extends AppLocalizations {
   String get moneyKeyDelete => 'Xoá một ký tự';
 
   @override
+  String get moneyKeyBillion => 'tỷ';
+
+  @override
+  String moneyAmountHintOther(String a, String b, String c) {
+    return 'Gõ $a, $b hay $c đều được';
+  }
+
+  @override
+  String moneyAmountTooBigFor(String max) {
+    return 'Tối đa $max một khoản. Kiểm tra lại số 0 nhé.';
+  }
+
+  @override
+  String moneyWalletTooBigFor(String max) {
+    return 'Tối đa $max một ví.';
+  }
+
+  @override
+  String get moneyAddSource => 'Thêm nguồn';
+
+  @override
+  String get moneyAddSourceTitle => 'Thêm nguồn tiền';
+
+  @override
+  String get moneyAddSourceBankSub => 'Chuyển khoản, quẹt thẻ ghi nợ';
+
+  @override
+  String get moneyAddSourceCardSub => 'Quẹt thẻ trước, trả ngân hàng sau';
+
+  @override
+  String get moneyAddSourceEwalletSub => 'MoMo, ZaloPay, ShopeePay…';
+
+  @override
+  String get moneyAddSourceCashSub => 'Tiền giấy mang theo người';
+
+  @override
+  String get moneyCurrencyTitle => 'Tiền tệ';
+
+  @override
+  String get moneyCurrencyBody =>
+      'Mọi khoản trong sổ này tính bằng loại tiền bạn chọn.';
+
+  @override
+  String get moneyCurrencyLocked =>
+      'Sổ đã có khoản ghi nên không đổi được tiền tệ. App không tự quy đổi tỷ giá.';
+
+  @override
   String get moneyKeyThousand => 'nghìn';
 
   @override

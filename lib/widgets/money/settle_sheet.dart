@@ -106,7 +106,7 @@ class _SettleSheetState extends State<SettleSheet> {
         usual ??
         (wallets.any((w) => w.id == fallback) ? fallback : null) ??
         wallets.firstOrNull?.id;
-    _toOwn = _walletId != null;
+    _toOwn = _walletId != null && money.booksLinkable;
     // Opened on a cached number: fetch the server's now, Save waits for it.
     if (money.shared?.netSumsStale ?? false) {
       unawaited(money.refreshCoupleBalance());
@@ -122,11 +122,17 @@ class _SettleSheetState extends State<SettleSheet> {
   /// `170.000` / `170,000` in the field, like every other amount on screen
   /// (parseVndInput reads both back). AppL10n, not context: also runs in
   /// initState, where Localizations can't be looked up yet.
-  String _grouped(int v) =>
-      NumberFormat.decimalPattern(AppL10n.strings.localeName).format(v);
+  String _grouped(int v) {
+    final c = _money.currencyOf(MoneyBookKind.shared);
+    if (!c.isVnd) return moneyInputText(v, c);
+    return NumberFormat.decimalPattern(AppL10n.strings.localeName).format(v);
+  }
 
   int? get _value {
-    final r = parseVndInput(_amount.text, max: kMoneyTxMax);
+    final r = parseMoneyInput(
+      _amount.text,
+      currency: _money.currencyOf(MoneyBookKind.shared),
+    );
     return r.ok ? r.value : null;
   }
 
@@ -173,7 +179,9 @@ class _SettleSheetState extends State<SettleSheet> {
       _balance = fresh;
       _plan = plan;
       _amount.text = _grouped(plan.amount);
-      _notice = l10n.moneySettleChanged(vnd(context, plan.amount));
+      _notice = l10n.moneySettleChanged(
+        vnd(context, plan.amount, book: MoneyBookKind.shared),
+      );
     });
     return false;
   }
@@ -220,7 +228,7 @@ class _SettleSheetState extends State<SettleSheet> {
       HapticFeedback.lightImpact();
       AnalyticsService.instance.logMoneySettle();
       if (!mounted) return;
-      final a = vnd(context, amount);
+      final a = vnd(context, amount, book: MoneyBookKind.shared);
       final walletName = ownWallet == null
           ? null
           : MoneyRowContext.of(
@@ -236,7 +244,9 @@ class _SettleSheetState extends State<SettleSheet> {
               : l10n.moneySettledOut(walletName, a),
         amount == _plan.amount
             ? l10n.moneySettledEven
-            : l10n.moneySettledLeft(vnd(context, _plan.amount - amount)),
+            : l10n.moneySettledLeft(
+                vnd(context, _plan.amount - amount, book: MoneyBookKind.shared),
+              ),
       ].join(' · ');
       Navigator.of(context).pop(
         _SettleResult(
@@ -277,7 +287,9 @@ class _SettleSheetState extends State<SettleSheet> {
     } else if (value == null) {
       saveLabel = l10n.moneySaveNeedAmount;
     } else if (value > owed) {
-      saveLabel = l10n.moneySettleTooMuch(vnd(context, owed));
+      saveLabel = l10n.moneySettleTooMuch(
+        vnd(context, owed, book: MoneyBookKind.shared),
+      );
     } else {
       saveLabel = l10n.moneySettleDo;
     }
@@ -340,14 +352,16 @@ class _SettleSheetState extends State<SettleSheet> {
               ),
               if (owed > 1)
                 MoneyChip(
-                  label: l10n.moneySettleHalf(vnd(context, half)),
+                  label: l10n.moneySettleHalf(
+                    vnd(context, half, book: MoneyBookKind.shared),
+                  ),
                   radio: true,
                   selected: value == half,
                   onTap: () => _set(half),
                 ),
             ],
           ),
-          if (wallets.isNotEmpty) ...[
+          if (wallets.isNotEmpty && money.booksLinkable) ...[
             const SizedBox(height: 12),
             MergeSemantics(
               child: Row(
@@ -469,7 +483,8 @@ class _WhyCard extends StatelessWidget {
     final treats = moneyTreatCount(txs);
     final ctx = MoneyRowContext.of(context, money, MoneyBookKind.shared);
 
-    String signed(int v) => '${v > 0 ? '+' : '−'}${vnd(context, v.abs())}';
+    String signed(int v) =>
+        '${v > 0 ? '+' : '−'}${vnd(context, v.abs(), book: MoneyBookKind.shared)}';
 
     Widget line(Widget avatar, String title, String sub, int v) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -527,7 +542,9 @@ class _WhyCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            l10n.moneySettleWhy(vnd(context, balance.abs())),
+            l10n.moneySettleWhy(
+              vnd(context, balance.abs(), book: MoneyBookKind.shared),
+            ),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,

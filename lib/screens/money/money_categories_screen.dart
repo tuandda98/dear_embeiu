@@ -44,6 +44,7 @@ class _MoneyCategoriesScreenState extends State<MoneyCategoriesScreen> {
     if (_book == MoneyBookKind.shared && !money.hasShared) {
       _book = MoneyBookKind.own;
     }
+    money.activeBook = _book;
     final state = money.book(_book);
     final idx = state?.categories;
     final groups = <MoneyCategory>[];

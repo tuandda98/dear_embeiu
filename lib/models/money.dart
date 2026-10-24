@@ -506,6 +506,7 @@ class MoneyMeta {
     this.overrides = const <String, ({String name, String emoji})>{},
     this.hiddenCategoryIds = const <String>{},
     this.defaultWalletId,
+    this.currency = 'VND',
   });
 
   static const MoneyMeta empty = MoneyMeta();
@@ -516,6 +517,9 @@ class MoneyMeta {
   final Map<String, ({String name, String emoji})> overrides;
   final Set<String> hiddenCategoryIds;
   final String? defaultWalletId;
+
+  /// ISO code of the book's money (D31); missing = VND.
+  final String currency;
 
   static MoneyMeta fromDoc(Map<String, dynamic>? d) {
     if (d == null) return empty;
@@ -538,6 +542,7 @@ class MoneyMeta {
       },
       hiddenCategoryIds: _strings(d['hiddenCategoryIds']).toSet(),
       defaultWalletId: wallet is String && wallet.isNotEmpty ? wallet : null,
+      currency: d['currency'] is String ? d['currency'] as String : 'VND',
     );
   }
 }

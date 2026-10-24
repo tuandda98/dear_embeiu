@@ -18,7 +18,12 @@ class MoneyGoalView {
     this.deadline,
   });
 
-  factory MoneyGoalView.of(MoneyWallet w, int balance, String today) {
+  factory MoneyGoalView.of(
+    MoneyWallet w,
+    int balance,
+    String today, {
+    int step = 1000,
+  }) {
     final target = w.goalTarget ?? 0;
     final left = target - balance;
     final deadline = w.goalDeadline;
@@ -29,7 +34,7 @@ class MoneyGoalView {
       left: left < 0 ? 0 : left,
       perMonth: deadline == null || target <= 0
           ? 0
-          : MoneyMath.perMonthNeeded(left, today, deadline),
+          : MoneyMath.perMonthNeeded(left, today, deadline, step: step),
       deadline: deadline,
     );
   }

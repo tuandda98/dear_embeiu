@@ -12,7 +12,6 @@ import '../../services/analytics_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_motion.dart';
 import '../../theme/app_theme.dart';
-import '../../utils/money_input.dart';
 import '../../utils/money_math.dart';
 import '../../utils/money_views.dart';
 import '../../widgets/money/money_ui.dart';
@@ -79,6 +78,7 @@ class _MoneyReportScreenState extends State<MoneyReportScreen> {
     if (_book == MoneyBookKind.shared && !money.hasShared) {
       _book = MoneyBookKind.own;
     }
+    money.activeBook = _book;
     final state = money.book(_book);
     final today = money.today;
     final month = widget.month ?? today.substring(0, 7);
@@ -765,9 +765,9 @@ class _TrendBlock extends StatelessWidget {
                 bars: bars,
                 budget: budget,
                 monthLabel: label,
-                short: (v) => formatVndShort(v, locale: lang),
+                short: (v) => vndShort(context, v),
                 budgetLabel: (v) =>
-                    l10n.moneyReportBudgetLine(formatVndShort(v, locale: lang)),
+                    l10n.moneyReportBudgetLine(vndShort(context, v)),
                 tet: l10n.moneyReportTet,
                 skipOddLabels: bars.length > 6,
               ),

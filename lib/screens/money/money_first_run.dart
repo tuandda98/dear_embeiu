@@ -5,7 +5,9 @@ import '../../l10n/l10n.dart';
 import '../../models/money.dart';
 import '../../providers/money_provider.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/money_currency.dart';
 import '../../utils/money_input.dart';
+import '../../widgets/money/money_currency_sheet.dart';
 import '../../widgets/money/money_ui.dart';
 
 /// One starter wallet the first-run screen offers.
@@ -21,7 +23,11 @@ class _Pick {
   bool on;
   final TextEditingController raw = TextEditingController();
 
-  VndParseResult get parsed => parseVndInput(raw.text, max: kMoneyWalletMax);
+  /// The own book's currency (D31), set by the screen on every build.
+  MoneyCurrency currency = MoneyCurrency.vnd;
+
+  VndParseResult get parsed =>
+      parseMoneyInput(raw.text, currency: currency, max: kMoneyWalletMax);
 
   bool get valid => raw.text.trim().isEmpty || parsed.ok;
 
@@ -95,6 +101,12 @@ class _MoneyFirstRunState extends State<MoneyFirstRun> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final picks = _picks!;
+    final currency = context.watch<MoneyProvider>().currencyOf(
+      MoneyBookKind.own,
+    );
+    for (final p in picks) {
+      p.currency = currency;
+    }
     final total = picks
         .where((p) => p.on)
         .fold<int>(0, (sum, p) => sum + p.balance);
@@ -120,6 +132,47 @@ class _MoneyFirstRunState extends State<MoneyFirstRun> {
           ),
         ),
         const SizedBox(height: 16),
+        // D31: the money this book counts in; only while it is still empty.
+        MoneyCard(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: _busy
+                ? null
+                : () =>
+                      showMoneyCurrencySheet(context, book: MoneyBookKind.own),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.moneyCurrencyTitle,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${currency.code} · ${currency.symbol}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         MoneyCard(
           child: Column(
             children: [

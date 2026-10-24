@@ -98,7 +98,11 @@ class MoneyHomeEntry extends StatelessWidget {
       money.visibleTxs(MoneyBookKind.shared),
       month,
     );
-    final spent = vnd(context, sharedTotals.expense);
+    final spent = vnd(
+      context,
+      sharedTotals.expense,
+      book: MoneyBookKind.shared,
+    );
     final status = money.budgetStatus(MoneyBookKind.shared, '', month: month);
     final book = waiting ? MoneyBookKind.own : MoneyBookKind.shared;
 
@@ -153,7 +157,7 @@ class MoneyHomeEntry extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         );
       case MoneyHomeEntryKind.monthEmpty:
-        plainSub = l10n.moneyHomeZero(vnd(context, 0));
+        plainSub = l10n.moneyHomeZero(vnd(context, 0, book: book));
         sub = Text(
           plainSub,
           style: subStyle,
@@ -184,7 +188,11 @@ class MoneyHomeEntry extends StatelessWidget {
           ],
         );
       case MoneyHomeEntryKind.over:
-        final over = vnd(context, status!.spent - status.budget);
+        final over = vnd(
+          context,
+          status!.spent - status.budget,
+          book: MoneyBookKind.shared,
+        );
         final head = l10n.moneyHomeSpentOnly(spent);
         final tail = l10n.moneyHomeOverPart(over);
         plainSub = '$head · $tail';

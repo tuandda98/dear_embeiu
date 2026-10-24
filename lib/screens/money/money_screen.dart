@@ -16,6 +16,7 @@ import '../../theme/app_motion.dart';
 import '../../utils/money_math.dart';
 import '../../widgets/header_icon_button.dart';
 import '../../widgets/money/add_transaction_sheet.dart';
+import '../../widgets/money/money_currency_sheet.dart';
 import '../../widgets/money/money_ui.dart';
 import '../../widgets/segmented_pill.dart';
 import '../../widgets/shimmer_skeleton.dart';
@@ -161,7 +162,9 @@ class _MoneyScreenState extends State<MoneyScreen> {
       if (e.isPermissionDenied) {
         showMoneySnack(
           context,
-          message: l10n.moneyConflictTitle(MoneyPeople.of(context, listen: false).partnerName),
+          message: l10n.moneyConflictTitle(
+            MoneyPeople.of(context, listen: false).partnerName,
+          ),
           detail: l10n.moneyConflictBody,
         );
       } else {
@@ -223,6 +226,27 @@ class _MoneyScreenState extends State<MoneyScreen> {
                 _push(MoneyWalletsScreen(book: _book));
               },
             ),
+            // D31: which money this book counts in.
+            ListTile(
+              leading: const Icon(IconsaxPlusLinear.dollar_circle),
+              title: Text(l10n.moneyCurrencyTitle),
+              trailing: Text(
+                () {
+                  final c = context.read<MoneyProvider>().currencyOf(_book);
+                  return '${c.code} · ${c.symbol}';
+                }(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              minTileHeight: 52,
+              onTap: () {
+                Navigator.of(sheet).pop();
+                showMoneyCurrencySheet(context, book: _book);
+              },
+            ),
             ListTile(
               leading: const Icon(IconsaxPlusLinear.category_2),
               title: Text(l10n.moneyCategories),
@@ -273,9 +297,11 @@ class _MoneyScreenState extends State<MoneyScreen> {
     );
   }
 
-  void _push(Widget screen) => Navigator.of(
-    context,
-  ).push(_moneyRoute(screen));
+  // The pushed screen may have switched the book on show: take it back.
+  void _push(Widget screen) =>
+      Navigator.of(context).push(_moneyRoute(screen)).then((_) {
+        if (mounted) setState(() {});
+      });
 
   void _editTx(MoneyTx t) =>
       AddTransactionSheet.show(context, book: _book, editing: t);
@@ -288,6 +314,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
     if (_book == MoneyBookKind.shared && !money.hasShared) {
       _book = MoneyBookKind.own;
     }
+    money.activeBook = _book;
     _surfaceWriteError(money);
     _openFocusedFund(money);
     if (_book == MoneyBookKind.shared) _ensureSharedStarter(money);
@@ -618,7 +645,8 @@ class _MonthCard extends StatelessWidget {
             finding = l10n.moneyFindingOver(vnd(context, -status.left));
           } else {
             final daysLeft = (daysTotal - passed).clamp(1, daysTotal);
-            final perDay = (status.left ~/ daysLeft) ~/ 1000 * 1000;
+            final step = moneyCurrency(context).roundStep;
+            final perDay = (status.left ~/ daysLeft) ~/ step * step;
             finding = l10n.moneyFindingPerDay(
               '$passed',
               '$daysTotal',

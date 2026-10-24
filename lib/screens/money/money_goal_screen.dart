@@ -155,6 +155,7 @@ class _MoneyGoalScreenState extends State<MoneyGoalScreen> {
     final l10n = context.l10n;
     final money = context.watch<MoneyProvider>();
     final people = MoneyPeople.of(context);
+    money.activeBook = widget.book;
     final shared = widget.book == MoneyBookKind.shared;
     final w = money
         .book(widget.book)
@@ -165,7 +166,14 @@ class _MoneyGoalScreenState extends State<MoneyGoalScreen> {
     final balance = w == null
         ? 0
         : money.balances(widget.book)[w.id] ?? w.openingBalance;
-    final view = w == null ? null : MoneyGoalView.of(w, balance, money.today);
+    final view = w == null
+        ? null
+        : MoneyGoalView.of(
+            w,
+            balance,
+            money.today,
+            step: money.currencyOf(widget.book).roundStep,
+          );
     final history = moneyWalletHistory(
       walletId: widget.walletId,
       fetched: _fetched,
@@ -686,7 +694,7 @@ class _MoneyContributeSheetState extends State<MoneyContributeSheet> {
   }
 
   int? get _value {
-    final r = parseVndInput(_amount.text, max: kMoneyTxMax);
+    final r = moneyParse(context, _amount.text);
     return r.ok ? r.value : null;
   }
 

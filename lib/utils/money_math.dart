@@ -248,12 +248,18 @@ class MoneyMath {
   }
 
   /// "Cần để dành ~X mỗi tháng": what is left, spread over the months to the
-  /// deadline, rounded UP to the thousand. 0 once reached.
-  static int perMonthNeeded(int left, String today, String deadline) {
+  /// deadline, rounded UP to [step] (1.000 ₫, $1 — the currency's
+  /// `roundStep`). 0 once reached.
+  static int perMonthNeeded(
+    int left,
+    String today,
+    String deadline, {
+    int step = 1000,
+  }) {
     if (left <= 0) return 0;
     final months = monthsUntil(today, deadline);
     final per = (left + months - 1) ~/ months;
-    return ((per + 999) ~/ 1000) * 1000;
+    return ((per + step - 1) ~/ step) * step;
   }
 
   // ---- sổ chung ------------------------------------------------------------

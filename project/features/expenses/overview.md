@@ -219,7 +219,7 @@ users/{uid}/moneyDebts/{autoId}   // CHỈ sổ riêng (D14)
 
 - **D23 — Ảnh hoá đơn (mốc C):** tối đa 1 ảnh/khoản, nén ≤1600px, Storage `money_receipts/{uid}/…` (riêng) và `money_receipts_couple/{coupleId}/…` (chung), rules như ảnh couple. Để mốc C vì thêm Storage rules + chi phí lưu trữ mà không làm người ta ghi nhiều hơn.
 
-- **D24 — Đa tiền tệ: Later.** Field `currency` đã chừa ở ví; rules mốc A ép `== 'VND'`. *Lý do:* ít cặp cần (yêu xa nước ngoài), mà làm đúng cần tỉ giá + quy đổi ở báo cáo.
+- **D24 — Đa tiền tệ: Later.** Field `currency` đã chừa ở ví; rules mốc A ép `== 'VND'`. *Lý do:* ít cặp cần (yêu xa nước ngoài), mà làm đúng cần tỉ giá + quy đổi ở báo cáo. **[2026-10-25] Làm một nửa — xem D31:** mỗi SỔ một loại tiền, chưa có ví khác tiền và quy đổi.
 
 - **D25 — Điểm vào UI (đề xuất; Designer chốt chung cả đợt vì Home đã dày):**
   - **Màn `MoneyScreen`** (màn con, chip theo tên chốt ở §11): đầu màn chuyển sổ **Của mình · Chung** (Chung ẩn khi đang chờ) · thẻ tháng (chi, thu, còn lại, ngân sách) · ví (cuộn ngang, có tổng tài sản) · dải cân bằng (sổ chung, ẩn khi lệch 0) · danh sách theo ngày · nút thêm nổi. Các tab con hoặc màn con: Báo cáo · Ngân sách · Ví & mục tiêu · Tìm kiếm · Cài đặt sổ (danh mục, nhắc, khoá, xuất).
@@ -238,6 +238,12 @@ users/{uid}/moneyDebts/{autoId}   // CHỈ sổ riêng (D14)
 - **D29 — Không AI, không liên kết ngân hàng, không đọc SMS/thông báo ngân hàng.** *Lý do:* luật đợt (không AI trả phí); đọc SMS/thông báo cần quyền nhạy cảm Play rất khó duyệt; liên kết ngân hàng cần đối tác.
 
 - **D30 — Khai báo store: user đã duyệt 2026-10-20.** Thêm "Financial info → Other financial info" (Apple App Privacy) / "Thông tin tài chính → Thông tin tài chính khác" (Play An toàn dữ liệu), mục đích "Tính năng của ứng dụng", không chia sẻ bên thứ ba; sửa privacy policy `docs/` (dữ liệu tiền lưu ở Firebase, sổ riêng chỉ chủ đọc, sổ chung hai người đọc, xoá khi xoá tài khoản). Làm trước khi gửi duyệt mốc A.
+
+- **D31 — Tiền tệ theo sổ (user yêu cầu 2026-10-25: "chọn loại tiền tệ").** Mỗi sổ (riêng / chung) có 1 loại tiền, lưu `{book}/moneyMeta/main.currency`, thiếu = VND. 12 mã: VND USD EUR GBP AUD CAD SGD JPY KRW CNY TWD THB (`lib/utils/money_currency.dart`, rules `moneyMetaOk` liệt kê y hệt). Số tiền vẫn là `int` nhưng theo **đơn vị nhỏ nhất** của loại tiền: đồng, cent, yên. Trần rules giữ nguyên số (10 tỷ đơn vị nhỏ = 100 triệu USD một khoản). **Không quy đổi:** chỉ đổi được khi sổ còn trống (chưa ví nào, hoặc chưa khoản nào + không ngân sách + mọi ví số dư 0, không mục tiêu); sổ đã có dữ liệu thì sheet khoá và nói lý do. Hai sổ khác tiền thì **không nối** (không "Trừ vào ví của mình", thanh toán không ghi về ví riêng) — chặn ở `MoneyProvider.addTx` (`booksLinkable`) chứ không chỉ ẩn UI. Chọn ở: menu ⋯ của Sổ tiền → "Tiền tệ", và dòng "Tiền tệ" trên màn lần đầu của sổ riêng. Còn lại cho sau: mỗi ví một loại tiền + tỷ giá (*lý do:* cần nguồn tỷ giá và báo cáo quy về một loại, chưa có người dùng cần).
+
+- **D32 — "Thêm nguồn" ngay trong form ghi khoản (user 2026-10-25: "ngoài tiền mặt user có thể chuyển khoản hoặc quẹt thẻ").** Nguồn tiền vẫn là ví (D2), không thêm trường "phương thức thanh toán". Mọi hàng chip ví trong form có thêm chip "+ Thêm nguồn" → sheet 4 lựa chọn: Ngân hàng (chuyển khoản, thẻ ghi nợ) · Thẻ tín dụng · Ví điện tử · Tiền mặt. Đã có ví loại đó thì chọn luôn ví đó; chưa có thì tạo ví số dư 0 tên theo loại và chọn ngay (sửa số dư sau ở Ví). *Lý do:* trước đây sổ chỉ có "Tiền mặt" nếu người dùng bỏ qua màn lần đầu, muốn có thẻ phải thoát form vào Ví.
+
+- **D33 — Bàn phím nhập tiền theo ngôn ngữ (bug user báo 2026-10-25: "tiếng Anh lại có củ, tr, k").** Tiếng Việt + VND giữ `k · tr · củ` và phím `,`; mọi trường hợp khác `K · M · B` và phím thập phân theo ngôn ngữ (`.` en, `,` vi). Loại tiền có cent: phím `00` thay `000`, tối đa 2 số sau dấu. Chip số nhanh theo loại tiền (`50k` · `$5`/`5 $` · `¥500`), dòng gợi ý và lỗi quá trần nói theo loại tiền. Bộ đọc số hiểu cả `k/m/b` hoa lẫn thường nên không đổi gì ở phần đọc.
 
 ## 5. Rules (chỉ ADDITIVE) + Cloud Functions
 

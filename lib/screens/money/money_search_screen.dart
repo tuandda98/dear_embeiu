@@ -9,6 +9,7 @@ import '../../models/money.dart';
 import '../../providers/money_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/money_currency.dart';
 import '../../utils/money_input.dart';
 import '../../utils/money_views.dart';
 import '../../widgets/money/add_transaction_sheet.dart';
@@ -276,8 +277,7 @@ class _MoneySearchScreenState extends State<MoneySearchScreen> {
 
   String _amountLabel() {
     final l10n = context.l10n;
-    final lang = moneyLang(context);
-    String s(int v) => formatVndShort(v, locale: lang);
+    String s(int v) => vndShort(context, v);
     if (_min != null && _max != null) return '${s(_min!)} – ${s(_max!)}';
     if (_min != null) return l10n.moneySearchFromOnly(s(_min!));
     if (_max != null) return l10n.moneySearchToOnly(s(_max!));
@@ -291,6 +291,7 @@ class _MoneySearchScreenState extends State<MoneySearchScreen> {
     if (_book == MoneyBookKind.shared && !money.hasShared) {
       _book = MoneyBookKind.own;
     }
+    money.activeBook = _book;
     final state = money.book(_book);
     final shared = _book == MoneyBookKind.shared;
     final people = MoneyPeople.of(context);
@@ -602,11 +603,12 @@ class _AmountSheet extends StatefulWidget {
 }
 
 class _AmountSheetState extends State<_AmountSheet> {
+  late final MoneyCurrency _currency = moneyCurrency(context);
   late final TextEditingController _from = TextEditingController(
-    text: widget.min == null ? '' : '${widget.min}',
+    text: widget.min == null ? '' : moneyInputText(widget.min!, _currency),
   );
   late final TextEditingController _to = TextEditingController(
-    text: widget.max == null ? '' : '${widget.max}',
+    text: widget.max == null ? '' : moneyInputText(widget.max!, _currency),
   );
 
   @override
@@ -619,7 +621,7 @@ class _AmountSheetState extends State<_AmountSheet> {
   /// null = empty, -1 = not a number.
   int? _value(TextEditingController c) {
     if (c.text.trim().isEmpty) return null;
-    final r = parseVndInput(c.text, max: kMoneyTxMax);
+    final r = moneyParse(context, c.text);
     return r.ok ? r.value : -1;
   }
 

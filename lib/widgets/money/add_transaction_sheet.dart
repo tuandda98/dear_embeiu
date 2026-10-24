@@ -17,6 +17,7 @@ import '../../services/money_analytics.dart';
 import '../../services/money_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_motion.dart';
+import '../../utils/money_currency.dart';
 import '../../utils/money_input.dart';
 import '../../utils/money_math.dart';
 import '../segmented_pill.dart';
@@ -34,20 +35,54 @@ class MoneyAmountInput {
   /// The value came from a chip / "khoản quen": a digit replaces it.
   bool chipMode = false;
 
-  static const List<String> units = <String>['k', 'tr', 'củ'];
+  /// The book's money (D31). The sheet sets it with [lang] on every build.
+  MoneyCurrency currency = MoneyCurrency.vnd;
+
+  /// App language: Vietnamese + VND keeps the "k · tr · củ" keys.
+  String lang = 'vi';
+
+  /// Vietnamese slang keys, only for a Vietnamese user counting đồng.
+  static const List<String> viUnits = <String>['k', 'tr', 'củ'];
+
+  /// Everyone else: thousand / million / billion.
+  static const List<String> enUnits = <String>['K', 'M', 'B'];
+
+  /// Every unit key any keypad shows (styling, tests).
+  static const List<String> allUnits = <String>[...viUnits, ...enUnits];
+
+  /// Kept for older call sites: the Vietnamese set.
+  static const List<String> units = viUnits;
   static const int maxLength = 16;
 
+  bool get _vi => lang == 'vi';
+
+  /// The 3 unit keys this keypad shows.
+  List<String> get keypadUnits => _vi && currency.isVnd ? viUnits : enUnits;
+
+  /// "," in Vietnamese, "." in English.
+  String get decimalKey => _vi ? ',' : '.';
+
+  /// "000" for đồng / yen, "00" when the currency has cents.
+  String get zerosKey => currency.decimals > 0 ? '00' : '000';
+
   String? get _unit {
-    for (final u in units) {
+    for (final u in allUnits) {
       if (raw.contains(u)) return u;
     }
     return null;
   }
 
-  VndParseResult get parsed => parseVndInput(raw);
+  String? get _mark {
+    for (final m in const [',', '.']) {
+      if (raw.contains(m)) return m;
+    }
+    return null;
+  }
+
+  VndParseResult get parsed => parseMoneyInput(raw, currency: currency);
 
   void press(String key) {
-    if (units.contains(key)) {
+    if (allUnits.contains(key)) {
       // One unit, right after a digit ("50k", "1tr2").
       if (chipMode || raw.isEmpty || _unit != null) return;
       if (!RegExp(r'\d$').hasMatch(raw)) return;
@@ -58,8 +93,17 @@ class MoneyAmountInput {
       raw = '';
       chipMode = false;
     }
-    if (raw.isEmpty && (key == '0' || key == '000' || key == ',')) return;
-    if (key == ',' && (raw.contains(',') || _unit != null)) return;
+    final isMark = key == ',' || key == '.';
+    if (raw.isEmpty && (key == '0' || key == '000' || key == '00' || isMark)) {
+      return;
+    }
+    if (isMark && (_mark != null || _unit != null)) return;
+    // At most 2 digits after the mark ("1,25tr", "12.50").
+    final mark = _mark;
+    if (!isMark && mark != null && _unit == null) {
+      final after = raw.length - raw.indexOf(mark) - 1;
+      if (after + key.length > 2) return;
+    }
     if (raw.length + key.length > maxLength) return;
     raw += key;
   }
@@ -75,16 +119,17 @@ class MoneyAmountInput {
     }
   }
 
-  /// 50k / 100k … chip: fill, then add up on the next tap.
+  /// 50k / 100k … chip ([value] in smallest units): fill, then add up on
+  /// the next tap.
   void addChip(int value) {
     final current = parsed;
     final base = chipMode && current.ok ? current.value! : 0;
-    raw = '${base + value}';
+    raw = moneyInputText(base + value, currency);
     chipMode = true;
   }
 
   void setValue(int value) {
-    raw = '$value';
+    raw = moneyInputText(value, currency);
     chipMode = true;
   }
 }
@@ -270,6 +315,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     super.initState();
     final money = context.read<MoneyProvider>();
     _date = money.today;
+    _input.currency = money.currencyOf(_book);
     final e = _editing;
     if (e != null) {
       _loadEdit(e, money);
@@ -313,7 +359,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           ? MoneySplitMode.equal
           : e.splitMode!;
       _sharedWalletId = e.outWalletId.isNotEmpty ? e.outWalletId : e.inWalletId;
-      if (_split == MoneySplitMode.custom) _custom.text = '${e.payerShare}';
+      if (_split == MoneySplitMode.custom) {
+        _custom.text = moneyInputText(e.payerShare, _input.currency);
+      }
       _deductId = '';
     } else {
       _walletId = e.type == MoneyTxType.income ? e.inWalletId : e.outWalletId;
@@ -379,7 +427,16 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   void _resetFor({MoneyTxType? type, MoneyBookKind? book}) {
     setState(() {
       if (type != null) _type = type;
-      if (book != null) _book = book;
+      if (book != null && book != _book) {
+        _book = book;
+        // "50k" typed for one book means nothing in another currency.
+        final c = _money.currencyOf(book);
+        if (c != _input.currency) {
+          _input.currency = c;
+          _input.raw = '';
+          _custom.text = '';
+        }
+      }
       _categoryId = '';
       _walletId = null;
       _fromId = null;
@@ -419,7 +476,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         if (t.splitMode != null && t.splitMode != MoneySplitMode.none) {
           _split = t.splitMode!;
           if (_split == MoneySplitMode.custom) {
-            _custom.text = '${t.payerShare}';
+            _custom.text = moneyInputText(t.payerShare, _input.currency);
           }
         }
         if (t.outWalletId.isNotEmpty) _sharedWalletId = t.outWalletId;
@@ -449,7 +506,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   int _payerShare(int amount) {
     if (_payer == _Payer.wallet) return 0;
     if (_split == MoneySplitMode.custom) {
-      final r = parseVndInput(_custom.text, max: amount);
+      final r = parseMoneyInput(
+        _custom.text,
+        currency: _input.currency,
+        max: amount,
+      );
       // 0 is valid: the payer bears none of it.
       final custom = r.ok
           ? r.value!
@@ -544,7 +605,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   }
 
   String? get _ownDeduct =>
-      _sharedExpense && _payer == _Payer.me && (_deductId ?? '').isNotEmpty
+      _sharedExpense &&
+          _payer == _Payer.me &&
+          (_deductId ?? '').isNotEmpty &&
+          _money.booksLinkable
       ? _deductId
       : null;
 
@@ -599,7 +663,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       context,
       title: l10n.moneyDiscardTitle,
       body: l10n.moneyDiscardBody(
-        vnd(context, amount ?? 0),
+        vnd(context, amount ?? 0, book: _book),
         _type == MoneyTxType.transfer
             ? l10n.moneyTypeTransfer
             : (cat?.name ?? ''),
@@ -635,7 +699,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final after = before + tx.amount;
       final level = MoneyMath.crossedLevel(before, after, budget.amount);
       if (level == null) continue;
-      final over = vnd(context, after - budget.amount);
+      final over = vnd(context, after - budget.amount, book: _book);
       final pct = '${MoneyMath.budgetStatus(after, budget.amount).percent}';
       if (catId.isEmpty) {
         return level >= 100
@@ -685,9 +749,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                   old.note.isEmpty
                       ? money.book(kind)!.categories.of(old.categoryId).name
                       : old.note,
-                  vnd(context, linked.amount),
+                  vnd(context, linked.amount, book: _book),
                   wallet,
-                  vnd(context, draft.amount),
+                  vnd(context, draft.amount, book: _book),
                 ),
                 confirm: l10n.moneyLinkedBoth,
                 cancel: l10n.moneyLinkedSharedOnly,
@@ -731,8 +795,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       if (!mounted) return;
       final cat = money.book(kind)!.categories.of(tx.categoryId, kind: tx.type);
       final message = tx.type == MoneyTxType.transfer
-          ? l10n.moneySavedTransfer(vnd(context, tx.amount))
-          : l10n.moneySaved(vnd(context, tx.amount), cat.name);
+          ? l10n.moneySavedTransfer(vnd(context, tx.amount, book: _book))
+          : l10n.moneySaved(vnd(context, tx.amount, book: _book), cat.name);
       final offline = outcome == MoneyWriteOutcome.queued
           ? (kind == MoneyBookKind.shared
                 ? l10n.moneySavedOffline
@@ -843,7 +907,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             content: Text(
               l10n.moneyDeleteBothBody(
                 _titleOf(e),
-                vnd(context, e.amount),
+                vnd(context, e.amount, book: _book),
                 wallet,
               ),
               style: const TextStyle(fontSize: 15),
@@ -880,7 +944,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     if (!mounted) return;
     Navigator.of(context).pop(
       _SheetResult(
-        l10n.moneyDeleted(_titleOf(e), vnd(context, e.amount)),
+        l10n.moneyDeleted(_titleOf(e), vnd(context, e.amount, book: _book)),
         undo: () => money.undoDelete(e.id),
         duration: MoneyProvider.deleteDelay,
       ),
@@ -907,6 +971,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final money = context.watch<MoneyProvider>();
+    _input
+      ..currency = money.currencyOf(_book)
+      ..lang = moneyLang(context);
     final media = MediaQuery.of(context);
     final draft = _draft();
     final overCap = draft != null && _overCap(draft);
@@ -1003,7 +1070,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     if (_input.raw.isEmpty) return l10n.moneySaveNeedAmount;
     if (!p.ok || overCap) return l10n.moneySaveFixAmount;
     if (draft == null) return l10n.moneySaveNeedWallet;
-    return l10n.moneySaveAmount(vnd(context, draft.amount));
+    return l10n.moneySaveAmount(vnd(context, draft.amount, book: _book));
   }
 
   Widget _topRow(AppLocalizations l10n, MoneyProvider money) {
@@ -1112,9 +1179,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final people = MoneyPeople.of(context);
       hint = l10n.moneyLinkedLocked(people.partnerName);
     } else if (_input.raw.isEmpty) {
-      hint = l10n.moneyAmountHint;
+      hint = moneyAmountHintText(context, book: _book);
     } else if (tooBig) {
-      hint = l10n.moneyAmountTooBig;
+      hint = moneyTooBigText(context, kMoneyTxMax, book: _book);
       bad = true;
     } else if (p.error == VndParseError.invalid) {
       hint = l10n.moneyAmountInvalid;
@@ -1129,7 +1196,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     }
     return Semantics(
       label: l10n.moneyAmountLabel,
-      value: p.ok ? vndSpoken(context, value) : _input.raw,
+      value: p.ok ? vndSpoken(context, value, book: _book) : _input.raw,
       liveRegion: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -1146,6 +1213,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                   fit: BoxFit.scaleDown,
                   child: MoneyAmountText(
                     value,
+                    book: _book,
                     size: tooBig ? 30 : 40,
                     color: tooBig || overCap
                         ? AppColors.moneyNegative
@@ -1179,20 +1247,19 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   }
 
   Widget _chips() {
-    const values = <(String, int)>[
-      ('50k', 50000),
-      ('100k', 100000),
-      ('200k', 200000),
-      ('500k', 500000),
-    ];
+    final c = _input.currency;
+    final lang = moneyLang(context);
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 8,
       children: [
-        for (final (label, v) in values)
+        for (final major in c.quickAmounts)
           MoneyChip(
-            label: label,
-            onTap: () => setState(() => _input.addChip(v)),
+            // "50k" in Vietnamese đồng, "50K" / "$5" otherwise.
+            label: c.isVnd && lang == 'vi'
+                ? '${major ~/ 1000}k'
+                : formatMoneyShort(major * c.minor, c, locale: lang),
+            onTap: () => setState(() => _input.addChip(major * c.minor)),
           ),
       ],
     );
@@ -1213,7 +1280,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             MoneyChip(
               emoji: idx.of(t.categoryId).emoji,
               label:
-                  '${t.note.isEmpty ? idx.of(t.categoryId).name : t.note} · ${formatVndShort(t.amount, locale: moneyLang(context))}',
+                  '${t.note.isEmpty ? idx.of(t.categoryId).name : t.note} · ${vndShort(context, t.amount, book: _book)}',
               onTap: () => _useRepeat(t),
             ),
         ],
@@ -1288,6 +1355,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     String? selected,
     ValueChanged<String> onPick, {
     bool withNone = false,
+    MoneyBookKind? addTo,
   }) {
     final l10n = context.l10n;
     final locked = _locked || (_shared && _payerLocked);
@@ -1308,8 +1376,118 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             selected: (selected ?? '').isEmpty,
             onTap: locked ? null : () => onPick(''),
           ),
+        // Card / bank transfer / e-wallet without leaving the sheet (D32).
+        if (addTo != null && !locked)
+          MoneyChip(
+            icon: IconsaxPlusLinear.add,
+            label: l10n.moneyAddSource,
+            onTap: () => _addSource(addTo, onPick),
+          ),
       ],
     );
+  }
+
+  /// "+ Nguồn tiền": bank account (transfers), credit card or e-wallet. A
+  /// wallet of that kind already there is just picked; otherwise one is
+  /// made with balance 0 (edit it later in Ví) and picked.
+  Future<void> _addSource(
+    MoneyBookKind kind,
+    ValueChanged<String> onPick,
+  ) async {
+    final l10n = context.l10n;
+    final type = await showMoneySheet<MoneyWalletType>(
+      context,
+      name: 'MoneyAddSourceSheet',
+      builder: (sheet) => Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Text(
+                l10n.moneyAddSourceTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            for (final (t, emoji, title, sub) in [
+              (
+                MoneyWalletType.bank,
+                '🏦',
+                l10n.moneyWalletBank,
+                l10n.moneyAddSourceBankSub,
+              ),
+              (
+                MoneyWalletType.credit,
+                '💳',
+                l10n.moneyWalletCredit,
+                l10n.moneyAddSourceCardSub,
+              ),
+              (
+                MoneyWalletType.ewallet,
+                '📱',
+                l10n.moneyWalletEwallet,
+                l10n.moneyAddSourceEwalletSub,
+              ),
+              (
+                MoneyWalletType.cash,
+                '💵',
+                l10n.moneyWalletCash,
+                l10n.moneyAddSourceCashSub,
+              ),
+            ])
+              ListTile(
+                leading: ExcludeSemantics(
+                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                ),
+                title: Text(title),
+                subtitle: Text(sub),
+                minTileHeight: 56,
+                onTap: () => Navigator.of(sheet).pop(t),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (type == null || !mounted) return;
+    final money = _money;
+    final book = money.book(kind);
+    if (book == null) return;
+    final have = book.wallets
+        .where((w) => w.type == type && !w.archived)
+        .firstOrNull;
+    if (have != null) {
+      setState(() => onPick(have.id));
+      return;
+    }
+    final id = book.service.newWalletId();
+    final w = MoneyWallet(
+      id: id,
+      name: moneyWalletTypeLabel(l10n, type),
+      type: type,
+      emoji: switch (type) {
+        MoneyWalletType.bank => '🏦',
+        MoneyWalletType.credit => '💳',
+        MoneyWalletType.ewallet => '📱',
+        _ => '💵',
+      },
+      openingBalance: 0,
+      order: book.wallets.length + 1,
+    );
+    try {
+      final outcome = money.createWallet(kind, w);
+      // Picked right away: the write is queued even offline.
+      if (mounted) setState(() => onPick(id));
+      await outcome;
+    } catch (e) {
+      debugPrint('money: add source failed: $e');
+      if (mounted) showMoneySnack(context, message: l10n.moneyWriteFailed);
+    }
   }
 
   List<Widget> _walletRows(AppLocalizations l10n, MoneyProvider money) {
@@ -1317,7 +1495,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final list = _wallets(_book, goals: true);
       return [
         _label(l10n.moneyFromWallet),
-        _walletChips(list, _fromId, (id) => setState(() => _fromId = id)),
+        _walletChips(
+          list,
+          _fromId,
+          (id) => setState(() => _fromId = id),
+          addTo: _book,
+        ),
         _label(l10n.moneyToWallet),
         _walletChips(
           [
@@ -1326,11 +1509,15 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           ],
           _toId,
           (id) => setState(() => _toId = id),
+          addTo: _book,
         ),
       ];
     }
     if (_sharedExpense) {
-      if (_payer == _Payer.me && money.own != null && !_isEdit) {
+      if (_payer == _Payer.me &&
+          money.own != null &&
+          !_isEdit &&
+          money.booksLinkable) {
         return [
           _label(l10n.moneyDeductMine),
           _walletChips(
@@ -1338,6 +1525,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             _deductId,
             (id) => setState(() => _deductId = id),
             withNone: true,
+            addTo: MoneyBookKind.own,
           ),
         ];
       }
@@ -1348,6 +1536,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             _wallets(_book, goals: true),
             _sharedWalletId,
             (id) => setState(() => _sharedWalletId = id),
+            addTo: _book,
           ),
         ];
       }
@@ -1360,6 +1549,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           _wallets(_book, goals: true),
           _sharedWalletId,
           (id) => setState(() => _sharedWalletId = id),
+          addTo: _book,
         ),
       ];
     }
@@ -1380,6 +1570,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         ),
         _walletId,
         (id) => setState(() => _walletId = id),
+        addTo: _book,
       ),
     ];
   }
@@ -1525,7 +1716,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                             if (m == MoneySplitMode.custom &&
                                 _custom.text.isEmpty &&
                                 amount != null) {
-                              _custom.text = '${(amount + 1) ~/ 2}';
+                              _custom.text = moneyInputText(
+                                (amount + 1) ~/ 2,
+                                _input.currency,
+                              );
                             }
                           }),
                   ),
@@ -1541,9 +1735,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 ? l10n.moneySharesNeedAmount
                 : l10n.moneyShares(
                     payerName,
-                    vnd(context, _payerShare(amount)),
+                    vnd(context, _payerShare(amount), book: _book),
                     otherName,
-                    vnd(context, amount - _payerShare(amount)),
+                    vnd(context, amount - _payerShare(amount), book: _book),
                   ),
           ),
         );
@@ -1631,12 +1825,16 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     void step(int dir) {
       final a = amount ?? 0;
       if (a <= 0) return;
-      final r = parseVndInput(_custom.text, max: a);
+      final r = parseMoneyInput(
+        _custom.text,
+        currency: _input.currency,
+        max: a,
+      );
       final cur = r.ok
           ? r.value!
           : (r.error == VndParseError.zero ? 0 : (a + 1) ~/ 2);
       final next = (cur + dir * (a / 10).round()).clamp(0, a);
-      setState(() => _custom.text = '$next');
+      setState(() => _custom.text = moneyInputText(next, _input.currency));
     }
 
     return Padding(
@@ -1669,7 +1867,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 isDense: true,
                 filled: true,
                 fillColor: AppColors.surfaceLight,
-                suffixText: '₫',
+                suffixText: _input.currency.symbol,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
@@ -1693,17 +1891,20 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   }
 
   Widget _keypad(AppLocalizations l10n) {
-    const keys = <String>[
+    // Vietnamese + đồng: k · tr · củ. Anything else: K · M · B.
+    final u = _input.keypadUnits;
+    final keys = <String>[
       '1', '2', '3', '⌫', //
-      '4', '5', '6', 'k',
-      '7', '8', '9', 'tr',
-      ',', '0', '000', 'củ',
+      '4', '5', '6', u[0],
+      '7', '8', '9', u[1],
+      _input.decimalKey, '0', _input.zerosKey, u[2],
     ];
     String? spoken(String k) => switch (k) {
       '⌫' => l10n.moneyKeyDelete,
-      'k' => l10n.moneyKeyThousand,
-      'tr' => l10n.moneyKeyMillion,
+      'k' || 'K' => l10n.moneyKeyThousand,
+      'tr' || 'M' => l10n.moneyKeyMillion,
       'củ' => l10n.moneyKeyCu,
+      'B' => l10n.moneyKeyBillion,
       _ => null,
     };
     return Padding(
@@ -1725,7 +1926,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                     label: spoken(k) ?? k,
                     excludeSemantics: true,
                     child: Material(
-                      color: MoneyAmountInput.units.contains(k)
+                      color: MoneyAmountInput.allUnits.contains(k)
                           ? AppColors.textPrimary.withValues(alpha: 0.08)
                           : AppColors.surfaceLight,
                       borderRadius: BorderRadius.circular(16),
@@ -1751,11 +1952,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                               : Text(
                                   k,
                                   style: TextStyle(
-                                    fontSize: MoneyAmountInput.units.contains(k)
+                                    fontSize:
+                                        MoneyAmountInput.allUnits.contains(k)
                                         ? 16
                                         : 22,
                                     fontWeight:
-                                        MoneyAmountInput.units.contains(k)
+                                        MoneyAmountInput.allUnits.contains(k)
                                         ? FontWeight.w700
                                         : FontWeight.w600,
                                     color: AppColors.textPrimary,
@@ -1864,9 +2066,7 @@ class _MoneyCategoryPickerState extends State<MoneyCategoryPicker> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        settings: const RouteSettings(
-                          name: 'MoneyCategories',
-                        ),
+                        settings: const RouteSettings(name: 'MoneyCategories'),
                         builder: (_) => MoneyCategoriesScreen(
                           book: widget.book,
                           kind: widget.kind,

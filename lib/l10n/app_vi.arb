@@ -7078,6 +7078,28 @@
   "@moneyKeyDelete": {
     "description": "Sổ tiền (feature expenses)"
   },
+  "moneyKeyBillion": "tỷ",
+  "moneyAmountHintOther": "Gõ {a}, {b} hay {c} đều được",
+  "@moneyAmountHintOther": {
+    "placeholders": {"a": {"type": "String"}, "b": {"type": "String"}, "c": {"type": "String"}}
+  },
+  "moneyAmountTooBigFor": "Tối đa {max} một khoản. Kiểm tra lại số 0 nhé.",
+  "@moneyAmountTooBigFor": {
+    "placeholders": {"max": {"type": "String"}}
+  },
+  "moneyWalletTooBigFor": "Tối đa {max} một ví.",
+  "@moneyWalletTooBigFor": {
+    "placeholders": {"max": {"type": "String"}}
+  },
+  "moneyAddSource": "Thêm nguồn",
+  "moneyAddSourceTitle": "Thêm nguồn tiền",
+  "moneyAddSourceBankSub": "Chuyển khoản, quẹt thẻ ghi nợ",
+  "moneyAddSourceCardSub": "Quẹt thẻ trước, trả ngân hàng sau",
+  "moneyAddSourceEwalletSub": "MoMo, ZaloPay, ShopeePay…",
+  "moneyAddSourceCashSub": "Tiền giấy mang theo người",
+  "moneyCurrencyTitle": "Tiền tệ",
+  "moneyCurrencyBody": "Mọi khoản trong sổ này tính bằng loại tiền bạn chọn.",
+  "moneyCurrencyLocked": "Sổ đã có khoản ghi nên không đổi được tiền tệ. App không tự quy đổi tỷ giá.",
   "moneyKeyThousand": "nghìn",
   "@moneyKeyThousand": {
     "description": "Sổ tiền (feature expenses)"

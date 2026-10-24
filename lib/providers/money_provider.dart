@@ -12,6 +12,7 @@ import '../models/money.dart';
 import '../services/analytics_service.dart';
 import '../services/money_analytics.dart';
 import '../services/money_service.dart';
+import '../utils/money_currency.dart';
 import '../utils/money_math.dart';
 
 /// Live state of one book, the same for both: entries of the last ~45 days
@@ -740,7 +741,8 @@ class MoneyProvider extends ChangeNotifier {
       source: draft.source ?? 'manual',
     );
     MoneyTx? mine;
-    if (s.isShared && own != null && ownWalletId != null) {
+    // Books in different currencies never share an amount (D31).
+    if (s.isShared && own != null && ownWalletId != null && booksLinkable) {
       final linkId = own.service.newTxId();
       mine = _ownSideOf(tx, ownWalletId, linkId: linkId, me: uid);
       if (mine != null) tx = tx.copyWith(linkId: linkId);
@@ -1228,6 +1230,39 @@ class MoneyProvider extends ChangeNotifier {
     final s = book(kind);
     if (s == null) throw StateError('money-no-book');
     return s.service.setMeta(fields);
+  }
+
+  // ── currency (D31) ──
+  /// The book whose screens are on top (MoneyScreen's tab, a wallet / goal /
+  /// budget screen): amounts printed without an explicit book use its
+  /// currency. Set while building, never notifies.
+  MoneyBookKind activeBook = MoneyBookKind.own;
+
+  MoneyCurrency currencyOf(MoneyBookKind kind) =>
+      MoneyCurrency.of(book(kind)?.meta.currency);
+
+  /// Amounts are never converted, so only a book with nothing in it yet may
+  /// switch: no entry ever, no budget, every wallet at 0 with no goal.
+  bool canChangeCurrency(MoneyBookKind kind) {
+    final s = book(kind);
+    if (s == null || s.budgets.isNotEmpty) return false;
+    // No wallet yet = nothing ever written (an entry needs a wallet or a
+    // payer, and wallets are never deleted): the first-run screen.
+    if (s.walletsFromServer && s.wallets.isEmpty) return true;
+    if (s.everLogged != false) return false;
+    return s.wallets.every(
+      (w) => w.openingBalance == 0 && w.goalTarget == null,
+    );
+  }
+
+  /// A shared entry can also land in my own book ("Trừ vào ví của mình",
+  /// settle into my wallet) only while both books count the same money.
+  bool get booksLinkable =>
+      currencyOf(MoneyBookKind.own) == currencyOf(MoneyBookKind.shared);
+
+  Future<MoneyWriteOutcome> setCurrency(MoneyBookKind kind, String code) {
+    if (!canChangeCurrency(kind)) throw StateError('money-currency-locked');
+    return setMeta(kind, {'currency': MoneyCurrency.of(code).code});
   }
 
   /// Spent / earned per month for the last [n] months (oldest first). A
