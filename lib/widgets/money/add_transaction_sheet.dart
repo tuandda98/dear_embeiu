@@ -21,6 +21,7 @@ import '../../utils/money_currency.dart';
 import '../../utils/money_input.dart';
 import '../../utils/money_math.dart';
 import '../segmented_pill.dart';
+import '../../screens/money/money_wallets_screen.dart';
 import 'money_ui.dart';
 
 /// The amount typed on the sheet's own keypad (design §3.3, §15): keys go
@@ -267,7 +268,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   String? _toId;
   _Payer _payer = _Payer.me;
   MoneySplitMode _split = MoneySplitMode.equal;
-  String? _deductId; // shared, I paid: own wallet ('' = Không trừ)
+  String? _deductId; // shared, I paid: own wallet ('' = none yet)
   String? _sharedWalletId; // shared: paid from / into a shared wallet
   late String _date;
   final TextEditingController _note = TextEditingController();
@@ -415,8 +416,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               _wallets(_book, goals: true).firstOrNull?.id ??
               money.defaultWalletId(MoneyBookKind.shared);
           if (_sharedExpense) {
-            _deductId ??=
-                money.defaultWallet(MoneyBookKind.own, _categoryId) ?? '';
+            _deductId ??= _ownDeductFor(_categoryId);
           }
         } else {
           _walletId ??= money.defaultWallet(_book, _categoryId, type: _type);
@@ -453,7 +453,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       // The wallet follows the category ("cà phê → Tiền mặt").
       if (_shared) {
         if (_sharedExpense) {
-          _deductId = _money.defaultWallet(MoneyBookKind.own, id) ?? '';
+          _deductId = _ownDeductFor(id);
         }
       } else {
         _walletId = _money.defaultWallet(_book, id, type: _type);
@@ -483,10 +483,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         final mine = t.linkId == null
             ? null
             : _money.own?.txs.where((o) => o.linkId == t.linkId).firstOrNull;
-        _deductId =
-            mine?.outWalletId ??
-            _money.defaultWallet(MoneyBookKind.own, t.categoryId) ??
-            '';
+        _deductId = mine?.outWalletId ?? _ownDeductFor(t.categoryId);
       } else {
         _walletId = t.outWalletId.isEmpty ? _walletId : t.outWalletId;
       }
@@ -603,6 +600,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     }
     return tx.isWellFormed ? tx : null;
   }
+
+  /// The own wallet a shared expense I paid comes out of: the usual one
+  /// for [categoryId], else the first; '' only while I have none.
+  String _ownDeductFor(String categoryId) =>
+      _money.defaultWallet(MoneyBookKind.own, categoryId) ??
+      _wallets(MoneyBookKind.own).firstOrNull?.id ??
+      '';
 
   String? get _ownDeduct =>
       _sharedExpense &&
@@ -1354,7 +1358,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     List<MoneyWallet> wallets,
     String? selected,
     ValueChanged<String> onPick, {
-    bool withNone = false,
     MoneyBookKind? addTo,
   }) {
     final l10n = context.l10n;
@@ -1369,14 +1372,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             selected: w.id == selected,
             onTap: locked ? null : () => onPick(w.id),
           ),
-        if (withNone)
-          MoneyChip(
-            radio: true,
-            label: l10n.moneyNoDeduct,
-            selected: (selected ?? '').isEmpty,
-            onTap: locked ? null : () => onPick(''),
-          ),
-        // Card / bank transfer / e-wallet without leaving the sheet (D32).
         if (addTo != null && !locked)
           MoneyChip(
             icon: IconsaxPlusLinear.add,
@@ -1387,107 +1382,24 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     );
   }
 
-  /// "+ Nguồn tiền": bank account (transfers), credit card or e-wallet. A
-  /// wallet of that kind already there is just picked; otherwise one is
-  /// made with balance 0 (edit it later in Ví) and picked.
+  /// "+ Thêm nguồn": the user names a new wallet (Ví's own sheet, no
+  /// goal type) and it is picked right away.
   Future<void> _addSource(
     MoneyBookKind kind,
     ValueChanged<String> onPick,
   ) async {
-    final l10n = context.l10n;
-    final type = await showMoneySheet<MoneyWalletType>(
+    String? created;
+    await showMoneySheet<String>(
       context,
       name: 'MoneyAddSourceSheet',
-      builder: (sheet) => Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: Text(
-                l10n.moneyAddSourceTitle,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ),
-            for (final (t, emoji, title, sub) in [
-              (
-                MoneyWalletType.bank,
-                '🏦',
-                l10n.moneyWalletBank,
-                l10n.moneyAddSourceBankSub,
-              ),
-              (
-                MoneyWalletType.credit,
-                '💳',
-                l10n.moneyWalletCredit,
-                l10n.moneyAddSourceCardSub,
-              ),
-              (
-                MoneyWalletType.ewallet,
-                '📱',
-                l10n.moneyWalletEwallet,
-                l10n.moneyAddSourceEwalletSub,
-              ),
-              (
-                MoneyWalletType.cash,
-                '💵',
-                l10n.moneyWalletCash,
-                l10n.moneyAddSourceCashSub,
-              ),
-            ])
-              ListTile(
-                leading: ExcludeSemantics(
-                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
-                ),
-                title: Text(title),
-                subtitle: Text(sub),
-                minTileHeight: 56,
-                onTap: () => Navigator.of(sheet).pop(t),
-              ),
-          ],
-        ),
+      builder: (_) => MoneyWalletSheet(
+        book: kind,
+        allowGoal: false,
+        onCreated: (id) => created = id,
       ),
     );
-    if (type == null || !mounted) return;
-    final money = _money;
-    final book = money.book(kind);
-    if (book == null) return;
-    final have = book.wallets
-        .where((w) => w.type == type && !w.archived)
-        .firstOrNull;
-    if (have != null) {
-      setState(() => onPick(have.id));
-      return;
-    }
-    final id = book.service.newWalletId();
-    final w = MoneyWallet(
-      id: id,
-      name: moneyWalletTypeLabel(l10n, type),
-      type: type,
-      emoji: switch (type) {
-        MoneyWalletType.bank => '🏦',
-        MoneyWalletType.credit => '💳',
-        MoneyWalletType.ewallet => '📱',
-        _ => '💵',
-      },
-      openingBalance: 0,
-      order: book.wallets.length + 1,
-    );
-    try {
-      final outcome = money.createWallet(kind, w);
-      // Picked right away: the write is queued even offline.
-      if (mounted) setState(() => onPick(id));
-      await outcome;
-    } catch (e) {
-      debugPrint('money: add source failed: $e');
-      if (mounted) showMoneySnack(context, message: l10n.moneyWriteFailed);
-    }
+    final id = created;
+    if (id != null && mounted) setState(() => onPick(id));
   }
 
   List<Widget> _walletRows(AppLocalizations l10n, MoneyProvider money) {
@@ -1524,7 +1436,6 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             _wallets(MoneyBookKind.own),
             _deductId,
             (id) => setState(() => _deductId = id),
-            withNone: true,
             addTo: MoneyBookKind.own,
           ),
         ];
@@ -1670,8 +1581,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
             onChanged: (p) => setState(() {
               _payer = p;
               if (p == _Payer.me) {
-                _deductId ??=
-                    _money.defaultWallet(MoneyBookKind.own, _categoryId) ?? '';
+                _deductId ??= _ownDeductFor(_categoryId);
               }
             }),
           ),

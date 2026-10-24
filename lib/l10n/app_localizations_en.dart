@@ -7069,13 +7069,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyKeyBillion => 'billion';
 
   @override
-  String moneyAmountHintOther(String a, String b, String c) {
-    return '$a, $b or $c all work';
-  }
-
-  @override
   String moneyAmountTooBigFor(String max) {
-    return '$max max per entry. Check the zeros.';
+    return '$max max per entry.';
   }
 
   @override
@@ -7087,30 +7082,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyAddSource => 'Add source';
 
   @override
-  String get moneyAddSourceTitle => 'Add a money source';
-
-  @override
-  String get moneyAddSourceBankSub => 'Bank transfers, debit card';
-
-  @override
-  String get moneyAddSourceCardSub => 'Swipe now, pay the bank later';
-
-  @override
-  String get moneyAddSourceEwalletSub => 'MoMo, ZaloPay, PayPal…';
-
-  @override
-  String get moneyAddSourceCashSub => 'Notes and coins you carry';
-
-  @override
   String get moneyCurrencyTitle => 'Currency';
-
-  @override
-  String get moneyCurrencyBody =>
-      'Every amount in this book uses the currency you pick.';
-
-  @override
-  String get moneyCurrencyLocked =>
-      'This book already has entries, so its currency can\'t change. The app doesn\'t convert between currencies.';
 
   @override
   String get moneyKeyThousand => 'thousand';

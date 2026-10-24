@@ -8241,11 +8241,7 @@
     "description": "Sổ tiền (feature expenses)"
   },
   "moneyKeyBillion": "billion",
-  "moneyAmountHintOther": "{a}, {b} or {c} all work",
-  "@moneyAmountHintOther": {
-    "placeholders": {"a": {"type": "String"}, "b": {"type": "String"}, "c": {"type": "String"}}
-  },
-  "moneyAmountTooBigFor": "{max} max per entry. Check the zeros.",
+  "moneyAmountTooBigFor": "{max} max per entry.",
   "@moneyAmountTooBigFor": {
     "placeholders": {"max": {"type": "String"}}
   },
@@ -8254,14 +8250,7 @@
     "placeholders": {"max": {"type": "String"}}
   },
   "moneyAddSource": "Add source",
-  "moneyAddSourceTitle": "Add a money source",
-  "moneyAddSourceBankSub": "Bank transfers, debit card",
-  "moneyAddSourceCardSub": "Swipe now, pay the bank later",
-  "moneyAddSourceEwalletSub": "MoMo, ZaloPay, PayPal…",
-  "moneyAddSourceCashSub": "Notes and coins you carry",
   "moneyCurrencyTitle": "Currency",
-  "moneyCurrencyBody": "Every amount in this book uses the currency you pick.",
-  "moneyCurrencyLocked": "This book already has entries, so its currency can't change. The app doesn't convert between currencies.",
   "moneyKeyThousand": "thousand",
   "@moneyKeyThousand": {
     "description": "Sổ tiền (feature expenses)"

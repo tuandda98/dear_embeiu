@@ -15,7 +15,7 @@ appId: com.tony.dearembeiu.dev
     timeout: 8000
 - tapOn: '1'
 - tapOn: 'củ'
-# Ai trả = Mình thì form hiện hàng "Trừ vào ví của mình": chọn "Không trừ" để khỏi sinh khoản liên kết.
+# Ai trả = Mình: khoản trừ luôn vào ví riêng chọn sẵn (không còn "Không trừ" từ 2026-10-25).
 - runFlow:
     file: _shared_detail_save.yaml
     env:

@@ -730,18 +730,6 @@ void main() {
       },
     );
 
-    testWidgets('SPL-10: "Không trừ" → only the shared entry (no own half)', (
-      t,
-    ) async {
-      final money = _pair();
-      await _open(t, money, book: MoneyBookKind.shared);
-      await _keys(t, ['1', '0', '0', 'k']);
-      await _tap(t, find.text('Không trừ'));
-      await t.tap(find.byType(MoneyPrimaryButton));
-      await t.pumpAndSettle();
-      expect(money.added.single.own, isNull);
-    });
-
     testWidgets('SPL-10: with a wallet chosen the own half is written', (
       t,
     ) async {

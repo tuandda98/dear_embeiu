@@ -9,11 +9,6 @@ appId: com.tony.dearembeiu.dev
     timeout: 5000
 - tapOn: '${PAYER}'
 - tapOn: '${SPLIT}'
-- runFlow:
-    when:
-      visible: '(?s).*Không trừ.*'
-    commands:
-      - tapOn: 'Không trừ'
 - tapOn: 'Ghi chú.*'
 - inputText: ${NOTE}
 - tapOn: 'Lưu ${AMOUNT_TEXT}.*'

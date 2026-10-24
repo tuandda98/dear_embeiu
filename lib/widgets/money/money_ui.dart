@@ -83,17 +83,9 @@ String moneyTooBigText(BuildContext context, int max, {MoneyBookKind? book}) {
       : l10n.moneyAmountTooBigFor(cap);
 }
 
-/// The grey line under an empty amount: how to type money in this book.
-String moneyAmountHintText(BuildContext context, {MoneyBookKind? book}) {
-  final l10n = context.l10n;
-  final c = moneyCurrency(context, book: book);
-  if (c.isVnd) return l10n.moneyAmountHint;
-  final vi = moneyLang(context) == 'vi';
-  final mark = vi ? ',' : '.';
-  return c.decimals > 0
-      ? l10n.moneyAmountHintOther('12${mark}50', '1${mark}5K', '2M')
-      : l10n.moneyAmountHintOther('500', '1${mark}5K', '2M');
-}
+/// The grey line under an empty amount (VND only: "Gõ 50k, 1tr2…").
+String moneyAmountHintText(BuildContext context, {MoneyBookKind? book}) =>
+    moneyCurrency(context, book: book).isVnd ? context.l10n.moneyAmountHint : '';
 
 /// What a screen reader says for an amount ("120.000 đồng", "12.5 US
 /// dollars"), never "₫" / "$".

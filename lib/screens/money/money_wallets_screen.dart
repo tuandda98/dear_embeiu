@@ -579,10 +579,20 @@ class _AddFab extends StatelessWidget {
 /// now (or target + deadline for a goal), "Tính vào tổng". Edit can't change
 /// the type; wallets are archived, never deleted.
 class MoneyWalletSheet extends StatefulWidget {
-  const MoneyWalletSheet({super.key, required this.book, this.editing});
+  const MoneyWalletSheet({
+    super.key,
+    required this.book,
+    this.editing,
+    this.onCreated,
+    this.allowGoal = true,
+  });
 
   final MoneyBookKind book;
   final MoneyWallet? editing;
+
+  /// Gets the new wallet's id (the add sheet's "+ Thêm nguồn" selects it).
+  final ValueChanged<String>? onCreated;
+  final bool allowGoal;
 
   static Future<void> show(
     BuildContext context, {
@@ -681,10 +691,11 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
       final e = widget.editing;
       if (e == null) {
         final book = money.book(widget.book);
+        final id = book?.service.newWalletId() ?? '';
         await money.createWallet(
           widget.book,
           MoneyWallet(
-            id: '',
+            id: id,
             name: name,
             type: _type,
             emoji: _emoji.isEmpty ? _defaultEmoji[_type]! : _emoji,
@@ -704,6 +715,7 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
         } else {
           AnalyticsService.instance.logMoneyWalletAdd(widget.book, _type);
         }
+        if (id.isNotEmpty) widget.onCreated?.call(id);
         if (mounted) Navigator.of(context).pop(l10n.moneyWalletCreated(name));
       } else {
         await money.updateWallet(widget.book, e.id, {
@@ -787,55 +799,56 @@ class _MoneyWalletSheetState extends State<MoneyWalletSheet> {
           if (!_isEdit) ...[
             const SizedBox(height: 4),
             for (final t in MoneyWalletType.values)
-              Semantics(
-                selected: t == _type,
-                inMutuallyExclusiveGroup: true,
-                button: true,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => setState(() {
-                    _type = t;
-                    _amount.clear();
-                  }),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 52),
-                    child: Row(
-                      children: [
-                        Icon(
-                          t == _type
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_off,
-                          size: 20,
-                          color: AppColors.textPrimary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                moneyWalletTypeLabel(l10n, t),
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                hints[t]!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
+              if (widget.allowGoal || t != MoneyWalletType.goal)
+                Semantics(
+                  selected: t == _type,
+                  inMutuallyExclusiveGroup: true,
+                  button: true,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => setState(() {
+                      _type = t;
+                      _amount.clear();
+                    }),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 52),
+                      child: Row(
+                        children: [
+                          Icon(
+                            t == _type
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            size: 20,
+                            color: AppColors.textPrimary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  moneyWalletTypeLabel(l10n, t),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  hints[t]!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
           ],
           const SizedBox(height: 12),
           Row(

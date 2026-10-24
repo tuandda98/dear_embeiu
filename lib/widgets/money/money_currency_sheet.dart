@@ -75,17 +75,7 @@ class _CurrencySheetState extends State<_CurrencySheet> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-            child: Text(
-              canChange ? l10n.moneyCurrencyBody : l10n.moneyCurrencyLocked,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
+          const SizedBox(height: 8),
           Flexible(
             child: ListView(
               shrinkWrap: true,

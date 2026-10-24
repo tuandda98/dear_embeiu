@@ -11344,16 +11344,10 @@ abstract class AppLocalizations {
   /// **'billion'**
   String get moneyKeyBillion;
 
-  /// No description provided for @moneyAmountHintOther.
-  ///
-  /// In en, this message translates to:
-  /// **'{a}, {b} or {c} all work'**
-  String moneyAmountHintOther(String a, String b, String c);
-
   /// No description provided for @moneyAmountTooBigFor.
   ///
   /// In en, this message translates to:
-  /// **'{max} max per entry. Check the zeros.'**
+  /// **'{max} max per entry.'**
   String moneyAmountTooBigFor(String max);
 
   /// No description provided for @moneyWalletTooBigFor.
@@ -11368,53 +11362,11 @@ abstract class AppLocalizations {
   /// **'Add source'**
   String get moneyAddSource;
 
-  /// No description provided for @moneyAddSourceTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a money source'**
-  String get moneyAddSourceTitle;
-
-  /// No description provided for @moneyAddSourceBankSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Bank transfers, debit card'**
-  String get moneyAddSourceBankSub;
-
-  /// No description provided for @moneyAddSourceCardSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Swipe now, pay the bank later'**
-  String get moneyAddSourceCardSub;
-
-  /// No description provided for @moneyAddSourceEwalletSub.
-  ///
-  /// In en, this message translates to:
-  /// **'MoMo, ZaloPay, PayPal…'**
-  String get moneyAddSourceEwalletSub;
-
-  /// No description provided for @moneyAddSourceCashSub.
-  ///
-  /// In en, this message translates to:
-  /// **'Notes and coins you carry'**
-  String get moneyAddSourceCashSub;
-
   /// No description provided for @moneyCurrencyTitle.
   ///
   /// In en, this message translates to:
   /// **'Currency'**
   String get moneyCurrencyTitle;
-
-  /// No description provided for @moneyCurrencyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Every amount in this book uses the currency you pick.'**
-  String get moneyCurrencyBody;
-
-  /// No description provided for @moneyCurrencyLocked.
-  ///
-  /// In en, this message translates to:
-  /// **'This book already has entries, so its currency can\'t change. The app doesn\'t convert between currencies.'**
-  String get moneyCurrencyLocked;
 
   /// Sổ tiền (feature expenses)
   ///
