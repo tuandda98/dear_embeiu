@@ -6304,10 +6304,6 @@
   "@moneyWallets": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyWalletsShared": "Ví chung & quỹ",
-  "@moneyWalletsShared": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyTotalAssets": "Tổng tiền đang có",
   "@moneyTotalAssets": {
     "description": "Sổ tiền (feature expenses)"

@@ -397,7 +397,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         _fromId ??= money.defaultWallet(_book, '');
         _toId ??= _goals(_book).firstOrNull?.id;
       case MoneyTxType.contribution:
-        _sharedWalletId ??= _wallets(_book, goals: true).firstOrNull?.id;
+        // A goal first ("Đi Đà Lạt"), else the shared wallet.
+        _sharedWalletId ??=
+            _goals(_book).firstOrNull?.id ??
+            _wallets(_book, goals: true).firstOrNull?.id;
         _deductId ??= _ownDeductFor('');
       default:
         if (_shared) {
@@ -956,7 +959,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                     _amountBlock(l10n, overCap),
                     if (!_locked) ...[const SizedBox(height: 4), _chips()],
                     ..._quickRow(l10n, money),
-                    if (_type != MoneyTxType.transfer && !_simpleEdit)
+                    if (_type == MoneyTxType.expense && !_simpleEdit)
                       ..._categoryRow(l10n, money),
                     if (!_simpleEdit) ..._walletRows(l10n, money),
                     const SizedBox(height: 8),

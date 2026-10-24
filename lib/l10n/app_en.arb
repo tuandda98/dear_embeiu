@@ -7466,10 +7466,6 @@
   "@moneyWallets": {
     "description": "Sổ tiền (feature expenses)"
   },
-  "moneyWalletsShared": "Shared wallets & funds",
-  "@moneyWalletsShared": {
-    "description": "Sổ tiền (feature expenses)"
-  },
   "moneyTotalAssets": "Total money",
   "@moneyTotalAssets": {
     "description": "Sổ tiền (feature expenses)"

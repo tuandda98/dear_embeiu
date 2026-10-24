@@ -6336,9 +6336,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get moneyWallets => 'Ví';
 
   @override
-  String get moneyWalletsShared => 'Ví chung & quỹ';
-
-  @override
   String get moneyTotalAssets => 'Tổng tiền đang có';
 
   @override

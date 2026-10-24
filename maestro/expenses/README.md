@@ -29,10 +29,8 @@ Flow KHÔNG `clearState`, bắt đầu bằng `launchApp` (khởi động lại 
 | `02_amount_keypad_android` | bàn phím k/triệu/củ/000/dấu phẩy, gợi ý "Bạn gõ", quá 10 tỷ, bỏ khoản đang ghi |
 | `03_expense_own_android` | chi 50k sổ Của mình |
 | `04_edit_delete_own_android` | sửa số tiền, xoá + Hoàn tác, xoá thật |
-| `05_income_own_android` | thu 2tr (dấu +) |
 | `06_quick_repeat_android` | "Ghi lại khoản quen" 2 chạm |
 | `07_wallet_create_android` | tạo ví MTW (chỉ khi chưa có), sửa số dư |
-| `08_transfer_android` | chuyển ví |
 | `09_budget_android` | đặt ngân sách cả sổ |
 | `10_report_android` | báo cáo tháng, 6/12 tháng |
 | `11_search_android` | tìm khoản, không phân biệt hoa thường, trống |
@@ -42,20 +40,18 @@ Flow KHÔNG `clearState`, bắt đầu bằng `launchApp` (khởi động lại 
 
 ## Cặp 2 máy: chạy ĐÚNG thứ tự, cùng một mã
 
+> 2026-10-25 (D34): đã gỡ flow thu (05), chuyển (08), thanh toán (22, 23), trả hộ (31, 32); 20/21 sửa theo mô hình mới nhưng CHƯA chạy lại cả bộ 2 máy.
+
 ```
 RUN=$(date +%H%M%S)
 A="maestro --device emulator-5554 test -e RUN=$RUN"
 I="maestro --device 23B763A6-DF45-4E75-9112-F9636CCB983B test -e RUN=$RUN"
 $A maestro/expenses/03_expense_own_android.yaml        # 1. Tuấn ghi 1 khoản RIÊNG (để bước 6 kiểm riêng tư)
-$A maestro/expenses/20_shared_add_android.yaml         # 2. Tuấn trả 1 củ chia đôi
-$I maestro/expenses/21_shared_see_ios.yaml             # 3. Thảo thấy khoản + "đang ứng nhiều hơn" + nút Thanh toán
-$I maestro/expenses/22_shared_settle_ios.yaml          # 4. Thảo thanh toán -> ngang nhau
-$A maestro/expenses/23_shared_settled_android.yaml     # 5. Tuấn thấy ngang nhau + dòng Thanh toán
+$A maestro/expenses/20_shared_add_android.yaml         # 2. Tuấn chi 1 củ bằng tiền riêng
+$I maestro/expenses/21_shared_see_ios.yaml             # 3. Thảo thấy khoản
 $I maestro/expenses/24_privacy_ios.yaml                # 6. sổ riêng của Tuấn không lộ sang Thảo
 $A maestro/expenses/25_shared_offline_android.yaml     # 7. Tuấn mất mạng ghi 20k, có mạng lại
 $I maestro/expenses/26_shared_offline_seen_ios.yaml    # 8. Thảo thấy khoản đó
-$I maestro/expenses/31_shared_forpartner_ios.yaml      # 9. Thảo trả 70k "Trả hộ"
-$A maestro/expenses/32_shared_forpartner_seen_android.yaml  # 10. Tuấn thấy, thanh toán về 0
 ```
 
 Chạy xong 22 và 32 cân bằng về 0, nên chạy lại cả chuỗi không để dư nợ.

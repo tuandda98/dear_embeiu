@@ -10556,12 +10556,6 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses)
   ///
   /// In en, this message translates to:
-  /// **'Shared wallets & funds'**
-  String get moneyWalletsShared;
-
-  /// Sổ tiền (feature expenses)
-  ///
-  /// In en, this message translates to:
   /// **'Total money'**
   String get moneyTotalAssets;
 

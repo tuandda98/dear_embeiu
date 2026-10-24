@@ -3,6 +3,8 @@
 > Tester sở hữu. Soạn 2026-10-23 trên `feature/daily-open-2` (HEAD `727a349`, đã gồm `b7e0e88`: tên danh mục và ví mặc định dịch lại khi đổi ngôn ngữ). Chỉ liệt kê và đối chiếu, không sửa code.
 > Nguồn: `overview.md` (D1–D30, acceptance §6), `design.md`, `dev.md`, `test.md`, code `lib/screens/money/`, `lib/widgets/money/`, `lib/providers/money_provider.dart`, `lib/services/money_*.dart`, `lib/models/money.dart`, `lib/utils/money_*.dart`, khối money trong `functions/index.js` và `firestore.rules`.
 
+> ⚠️ **[2026-10-25] D34 làm lỗi thời** các case về Thu, Thanh toán / cân bằng (BAL-*), chia tiền (SPL-* trừ SPL-10 mới), tab Chuyển (WAL-08), "Mỗi người góp", "Theo người" ở Báo cáo. Unit test tương ứng đã xoá; flow maestro dùng các màn này (vd thanh toán) cần viết lại. Case mới: `test/money_challenge_recap_test.dart` (thử thách + tổng kết tháng), `test/money_currency_test.dart`.
+
 ## Cách đọc
 
 - Cột **Cách kiểm** là một trong bốn dạng (một case có thể ghép nhiều dạng, cách nhau bằng dấu chấm phẩy):

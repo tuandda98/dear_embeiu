@@ -6581,9 +6581,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyWallets => 'Wallets';
 
   @override
-  String get moneyWalletsShared => 'Shared wallets & funds';
-
-  @override
   String get moneyTotalAssets => 'Total money';
 
   @override

@@ -1191,7 +1191,7 @@ class _WalletsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           MoneyCardHeader(
-            title: shared ? l10n.moneyWalletsShared : l10n.moneyWallets,
+            title: l10n.moneyWallets,
             trailing: shared || !ready
                 ? null
                 : Text(

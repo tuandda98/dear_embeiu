@@ -1,4 +1,4 @@
-# Báo cáo sổ Của mình: Thu | Chi | Còn lại, cơ cấu theo danh mục, xu hướng 6/12 tháng.
+# Báo cáo sổ Của mình: tổng chi, cơ cấu theo danh mục, xu hướng 6/12 tháng.
 appId: com.tony.dearembeiu.dev
 ---
 - launchApp
@@ -12,7 +12,6 @@ appId: com.tony.dearembeiu.dev
 - extendedWaitUntil:
     visible: '(?s).*BÁO CÁO.*'
     timeout: 8000
-- assertVisible: '(?s).*Còn lại.*'
 - scrollUntilVisible:
     element:
       text: '(?s).*Chi theo danh mục.*'
