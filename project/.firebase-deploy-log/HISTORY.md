@@ -188,3 +188,4 @@ open(p,'w').write(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
 print(len(d['indexes']),'indexes')
 EOF
 git diff --stat firestore.indexes.json | tail -1; NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only firestore:indexes --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error" | tail -3` · snapshot `20261020T152940Z/`
+- [20261024T045143Z] head=c11b0f8 dirty=4 exit=? · `cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:caroAction --project tonyembeiu-dev 2>&1 | tail -4` · snapshot `20261024T045143Z/`
