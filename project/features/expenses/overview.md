@@ -245,6 +245,8 @@ users/{uid}/moneyDebts/{autoId}   // CHỈ sổ riêng (D14)
 
 - **D33 — Bàn phím nhập tiền theo ngôn ngữ (bug user báo 2026-10-25: "tiếng Anh lại có củ, tr, k").** Tiếng Việt + VND giữ `k · tr · củ` và phím `,`; mọi trường hợp khác `K · M · B` và phím thập phân theo ngôn ngữ (`.` en, `,` vi). Loại tiền có cent: phím `00` thay `000`, tối đa 2 số sau dấu. Chip số nhanh theo loại tiền (`50k` · `$5`/`5 $` · `¥500`), dòng gợi ý và lỗi quá trần nói theo loại tiền. Bộ đọc số hiểu cả `k/m/b` hoa lẫn thường nên không đổi gì ở phần đọc.
 
+- **D34 — Đổi hướng sang tiết kiệm và kiểm soát chi tiêu (user 2026-10-25).** Bỏ Thu, Thanh toán, chia tiền, cân bằng giữa hai người, tab Chuyển; thêm thử thách tiết kiệm và tổng kết tháng tích cực; hạn mức + mục tiêu lên đầu màn. Thay D7, D12, phần cân bằng/thanh toán của D11 và "Thu" của D2. Spec đầy đủ: [`redesign-2026-10-25.md`](redesign-2026-10-25.md).
+
 ## 5. Rules (chỉ ADDITIVE) + Cloud Functions
 
 **Rules — match mới, không đụng match cũ:**
