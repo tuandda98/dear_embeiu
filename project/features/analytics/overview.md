@@ -106,7 +106,7 @@ Không làm có chủ ý: `profile_updated` (app không có màn sửa tên/avat
 
 **Screen view (2026-10-25):** observer có `routeFilter` = route có tên → bottom sheet/dialog nội dung đặt `routeSettings` cũng thành `screen_view`: StreakSheet, StreakMilestoneSheet, RecordsSheet, MemoriesSheet, MomentSheet, InviteQrSheet, MoodSheet, WeatherDetailSheet, WeatherCareSheet, CaroNewGameSheet, CaroRuleSheet, DecisionResultSheet, DecisionManualSheet, PlayTogetherSheet, TodayRitualSheet, FeatureTourSheet, CatchupGate, ArrivalPickSheet, InviteClipboardSheet, InviteCodeDialog, SleepSetupSheet, SleepEditSheet, SleepHowItWorksSheet, MoneySheet (mặc định), AddTransactionSheet, SettleSheet. Route trang đặt tên mới: PhotoViewer, CreatePost, SetupScreen (từ Journal), MoneyWallets/MoneyCategories/MoneyBudgets/MoneyReport/MoneySearch, MoneyGoal/MoneyWallet. Map thêm: ForgotPassword, VerifyEmail, ForceUpdate. Dialog xác nhận / time picker không tên → bỏ qua.
 
-GA4 custom dimension (Event scope, tạo 2026-10-15): `reason` ("Auth fail reason") · `result` ("Result").
+GA4 custom dimension (Event scope, tạo 2026-10-15): `reason` ("Auth fail reason") · `result` ("Result"). Thêm 2026-10-25: `field` ("Field") · `action` ("Action") · `cleared` ("Cleared") · `count` ("Count") · `notify_partner` ("Notify partner").
 
 **User properties:** `couple_status` (single\|waiting_partner\|in_couple) · `has_posted_photo` (bool) · `app_locale` (en\|vi\|system) · `is_guest` (bool).
 **Screen view:** auto qua `FirebaseAnalyticsObserver` cho home/gallery/profile/setup/guest/settings.
