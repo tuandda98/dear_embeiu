@@ -1,0 +1,9 @@
+node_modules/
+out/
+# captures from the simulator/emulator (re-make with scripts/film-shots.sh / scripts/film-record.sh)
+ref/ios/
+ref/android/
+ref/rec/
+# derived from the committed mp3s by scripts/vo.sh
+public/vo/**/*.wav
+public/vo/**/lines.json

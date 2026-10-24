@@ -550,7 +550,15 @@ class PushNotificationService {
     _activeUserId = null;
   }
 
+  /// Robot quay video quảng cáo (`--dart-define=PROMO_ROBOT=true`, chỉ
+  /// integration_test/promo_robot_test.dart): không mở hộp xin quyền của iOS
+  /// vì test không bấm được UI hệ thống. Build thường: hằng false, không đổi gì.
+  static const bool _promoRobot = bool.fromEnvironment('PROMO_ROBOT');
+
   Future<NotificationSettings> _requestPermissionStatus() async {
+    if (_promoRobot) {
+      return FirebaseMessaging.instance.getNotificationSettings();
+    }
     try {
       return await FirebaseMessaging.instance.requestPermission(
         alert: true,

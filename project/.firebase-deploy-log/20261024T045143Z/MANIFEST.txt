@@ -1,0 +1,7 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:caroAction --project tonyembeiu-dev 2>&1 | tail -4
+time_utc: 20261024T045143Z
+git_head: c11b0f8 (feature/launch-film)
+dirty   : 4 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout c11b0f8)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout c11b0f8 -- functions` rồi redeploy

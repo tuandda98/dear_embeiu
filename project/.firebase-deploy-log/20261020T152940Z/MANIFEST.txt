@@ -1,0 +1,19 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && python3 - <<'EOF'
+import json
+p='firestore.indexes.json'
+d=json.load(open(p))
+new=[["memberUids","payer","type","amount","payerShare"],["inWalletId","memberUids","amount"],["memberUids","outWalletId","amount"],["memberUids","type","date","amount"],["inWalletId","amount"],["outWalletId","amount"],["type","date","amount"]]
+have={tuple(f['fieldPath'] for f in i['fields']) for i in d['indexes'] if i['collectionGroup']=='moneyTx'}
+for fields in new:
+    if tuple(fields) in have: continue
+    d['indexes'].append({"collectionGroup":"moneyTx","queryScope":"COLLECTION","fields":[{"fieldPath":x,"order":"ASCENDING"} for x in fields]})
+open(p,'w').write(json.dumps(d,indent=2,ensure_ascii=False)+'\n')
+print(len(d['indexes']),'indexes')
+EOF
+git diff --stat firestore.indexes.json | tail -1; NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only firestore:indexes --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error" | tail -3
+time_utc: 20261020T152940Z
+git_head: f45f423 (feature/launch-film)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f45f423)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f45f423 -- functions` rồi redeploy

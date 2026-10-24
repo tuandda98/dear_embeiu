@@ -1,0 +1,16 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && git commit -q -m "merge: widget-today + decision-wheel vào feature/daily-open; nối kết quả quay lên widget
+
+- home_screen: lắng nghe DecisionProvider cho dòng trạng thái widget, chọn quyết định mới nhất hôm nay (ăn/đi/tự nhập), tên hiển thị như thẻ.
+- Khoá focus widget 'meal' -> 'decision' khớp NotificationTapRouter.focusDecision.
+- Kết quả hoạt động tiếng Anh lưu thường ('play pool') được viết hoa chữ đầu trên widget.
+- Handler nền: cập nhật widget + huỷ nhắc 1200 chạy cả hai.
+analyze 0 · flutter test 627 pass · rules 390 passing.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_012X1VMGRJpoHqhF9Ad89y6g" && git push -q origin feature/daily-open && git log --oneline -1 && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only functions:notifyDecision 2>&1 | tail -3
+time_utc: 20261019T163605Z
+git_head: f45f423 (feature/launch-film)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f45f423)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f45f423 -- functions` rồi redeploy

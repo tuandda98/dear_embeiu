@@ -1,0 +1,79 @@
+{
+ "home-scroll": {
+  "file": "clips/home-scroll.mp4",
+  "duration": 9.2,
+  "marks": {
+   "home-top": 2.3,
+   "home-today": 4.533,
+   "home-mood": 6.768,
+   "home-sleep": 9.0
+  }
+ },
+ "question": {
+  "file": "clips/question.mp4",
+  "duration": 14.831,
+  "marks": {
+   "dq-sheet": 1.3,
+   "dq-sheet-typed": 6.764,
+   "dq-revealed-1": 9.6,
+   "dq-revealed-2": 13.431
+  }
+ },
+ "mood": {
+  "file": "clips/mood.mp4",
+  "duration": 9.517,
+  "marks": {
+   "mood-sheet": 1.2,
+   "mood-sheet-picked": 3.7,
+   "mood-matched": 8.117
+  }
+ },
+ "sleep": {
+  "file": "clips/sleep.mp4",
+  "duration": 9.031,
+  "marks": {
+   "sleep-top": 1.2,
+   "sleep-detail": 4.415,
+   "sleep-month": 7.631
+  }
+ },
+ "gallery": {
+  "file": "clips/gallery.mp4",
+  "duration": 5.449,
+  "marks": {
+   "gallery-top": 1.0,
+   "gallery-scroll": 3.949
+  }
+ },
+ "chat": {
+  "file": "clips/chat.mp4",
+  "duration": 3.2,
+  "marks": {
+   "chat": 0.6
+  }
+ },
+ "care": {
+  "file": "clips/care.mp4",
+  "duration": 5.466,
+  "marks": {
+   "care-screen": 0.9,
+   "care-screen-scroll": 3.866
+  }
+ },
+ "love-tree": {
+  "file": "clips/love-tree.mp4",
+  "duration": 8.517,
+  "marks": {
+   "love-tree-top": 1.1,
+   "love-tree-flowers": 4.048,
+   "love-tree-tasks": 7.017
+  }
+ },
+ "notifications": {
+  "file": "clips/notifications.mp4",
+  "duration": 3.2,
+  "marks": {
+   "notifications": 0.6
+  }
+ }
+}
