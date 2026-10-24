@@ -14,7 +14,7 @@ class CaroTiming {
   static const Duration presenceFresh = Duration(seconds: 45);
 
   /// "Nhắc người ấy" cooldown from the later of my move / the last nudge.
-  static const Duration nudgeCooldown = Duration(minutes: 30);
+  static const Duration nudgeCooldown = Duration(minutes: 1);
 
   /// No move for this long → either player may end the game (`expire`).
   static const Duration staleAfter = Duration(days: 7);

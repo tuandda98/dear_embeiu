@@ -49,7 +49,7 @@
   - Rủ ván = đi luôn nước đầu. Người kia đi tiếp hoặc từ chối.
   - Đi theo lượt, không giới hạn thời gian mỗi nước. Chơi realtime khi cả hai cùng mở; chơi rải rác cả ngày khi không.
   - Push "đến lượt bạn", bỏ qua khi người ấy đang xem ván, gộp 1 thông báo/ván trên khay.
-  - Nhắc người ấy (cooldown 30 phút), xin thua, huỷ ván chưa ai đáp, kết thúc ván treo 7 ngày.
+  - Nhắc người ấy (cooldown 1 phút — đổi từ 30' ngày 2026-10-24), xin thua, huỷ ván chưa ai đáp, kết thúc ván treo 7 ngày.
   - Tỉ số tổng "Tuấn 12 – 9 Thảo" + lịch sử ván + xem bàn cuối của ván cũ.
   - Trạng thái `caro_turn` trên widget-today.
   - 1 callable `caroAction`, rules additive (presence + đọc `caroState`), option `collapseId` cho `sendToRecipientDevices`. vi + en.
@@ -91,7 +91,7 @@
 
 - **D9 — `wakeClients` chỉ cho `caro_invite` + `caro_turn`, tối đa 1 lần/30 phút/người nhận/ván.** CF ghi `lastWakeAt.{uid}` trong transaction; trong 30 phút đã đánh thức thì vẫn gửi push thường, chỉ bỏ cờ đánh thức. *Lý do:* để widget hiện "Thảo đã đi caro, đến lượt mình" khi app tắt. Ước lượng: ván 30 nước, mỗi người nhận ≤15 push/ván. Push chỉ đi khi người nhận rời màn, và người nhận phải mở app mới đi được nước tiếp, nên tự nhiên không có 2 push `caro_turn` liên tiếp tới cùng một người mà họ chưa mở app. Ngưỡng 30 phút giữ số lần đánh thức ≤2/giờ, ≤~10/ngày kể cả khi hai người đi nhanh mà cứ thoát màn. Cộng với các loại khác của đợt (chat, mood, poke, arrival…) vẫn nằm trong mức iOS cho phép "vài lần/giờ"; Lead cộng tổng khi gộp đợt.
 
-- **D10 — Nhắc người ấy: cooldown 30 phút, tính từ mốc sau cùng giữa nước mình vừa đi và lần nhắc trước.** Chỉ người **không** tới lượt mới nhắc được. *Lý do:* push `caro_turn` đã đi ngay khi mình đi nước; nhắc sau 60 giây như rps là giục. Trong 30 phút nút hiện giờ còn lại ("Nhắc được sau 12 phút").
+- **D10 — Nhắc người ấy: cooldown 1 phút (user chốt 2026-10-24, bằng oẳn tù tì; trước là 30 phút), tính từ mốc sau cùng giữa nước mình vừa đi và lần nhắc trước.** Chỉ người **không** tới lượt mới nhắc được. *Lý do:* push `caro_turn` đã đi ngay khi mình đi nước; nhắc sau 60 giây như rps là giục. Trong 30 phút nút hiện giờ còn lại ("Nhắc được sau 12 phút").
 
 - **D11 — Presence: heartbeat 20 giây, xoá khi rời màn hoặc app xuống nền; coi là "đang xem" khi < 45 giây.** Ghi vào `presence.{uid}` của doc ván, dùng lại hàm `rpsPresenceTouchesOnlyOwnKey()`. *Lý do:* cùng nhịp với chat (`chatActiveAt` 20 s / 45 s). Nhịp 3 giây của rps phục vụ đếm ngược 5 giây; caro không cần, 20 giây giảm ~85% số lần ghi.
 
@@ -213,7 +213,7 @@ Inbox `caro_invite`: `{type, coupleId, gameId, actorUserId, actorName?}`; dòng 
 ## 7. Client (tóm tắt cho Dev, Designer chốt hình)
 
 - Model `CaroGame` (+ `CaroResult`), hàm thuần `CaroBoard` dựng bàn từ `cells` (dùng chung cho màn chơi + xem lại; có test). Service `caro_game_service.dart` (watch `caroState/main`, watch ván, heartbeat/clear presence, gọi `caroAction`, trang lịch sử). Provider `caro_game_provider.dart`, wire watch ở `session_resolver` khi couple active (nhớ thêm **cả** named-param của `_resolve` lẫn call site), clear khi đăng xuất / không còn couple.
-- Màn `CaroGameScreen(gameId?)` các trạng thái: chưa có ván (bàn trống, "Đặt quân đầu tiên để rủ người ấy") · đến lượt mình · chờ người ấy (+ "Thảo đang xem ván" khi presence tươi, + nút Nhắc khi đủ 30') · đang gửi nước (quân mờ) · lỗi/mất mạng ("Chưa đi được, thử lại", giữ ô đã chọn) · đã kết thúc (kết quả, đường thắng, "Ván mới", "Lịch sử") · ván treo ≥7 ngày ("Kết thúc ván") · người ấy dùng app cũ (sau 24 giờ người được rủ chưa đi: dòng gợi ý nhỏ "Nếu người ấy chưa thấy ván, có thể app cần cập nhật"). Menu: Xin thua (hỏi lại 1 lần) · Để sau/Huỷ (chỉ khi ≤1 quân).
+- Màn `CaroGameScreen(gameId?)` các trạng thái: chưa có ván (bàn trống, "Đặt quân đầu tiên để rủ người ấy") · đến lượt mình · chờ người ấy (+ "Thảo đang xem ván" khi presence tươi, + nút Nhắc khi đủ 1') · đang gửi nước (quân mờ) · lỗi/mất mạng ("Chưa đi được, thử lại", giữ ô đã chọn) · đã kết thúc (kết quả, đường thắng, "Ván mới", "Lịch sử") · ván treo ≥7 ngày ("Kết thúc ván") · người ấy dùng app cũ (sau 24 giờ người được rủ chưa đi: dòng gợi ý nhỏ "Nếu người ấy chưa thấy ván, có thể app cần cập nhật"). Menu: Xin thua (hỏi lại 1 lần) · Để sau/Huỷ (chỉ khi ≤1 quân).
 - Màn `CaroHistoryScreen`: tỉ số + danh sách 30/trang + empty state ("Chưa có ván nào xong. Ván đầu tiên đang chờ đó.") + chạm xem bàn cuối.
 - Push tap + Notification Center tap (**sửa đủ 2 chỗ** như rps): `caro_invite`/`caro_turn`/`caro_nudge` → mở ván (`NotificationTapRouter` thêm `focusCaroGame` + `pendingCaroGameId`); `caro_result` → mở ván đó ở trạng thái kết thúc. Push tới khi đang mở đúng ván đó → không hiện banner trong app.
 - Feature tour: thêm 1 mục `sinceBuild` của bản phát hành.

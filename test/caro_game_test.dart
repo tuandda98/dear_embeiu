@@ -223,13 +223,13 @@ void main() {
       expect(game().isMyTurn('alice'), isFalse);
     });
 
-    test('nudge: only the waiting player, 30 min after the later stamp', () {
+    test('nudge: only the waiting player, 1 min after the later stamp', () {
       final g = game(
-        lastMoveAt: now.subtract(const Duration(minutes: 10)),
+        lastMoveAt: now.subtract(const Duration(seconds: 20)),
         lastNudgeAt: now.subtract(const Duration(minutes: 50)),
       );
       expect(g.nudgeWait('bob', now: now), isNull); // bob's turn
-      expect(g.nudgeWait('alice', now: now), const Duration(minutes: 20));
+      expect(g.nudgeWait('alice', now: now), const Duration(seconds: 40));
       final later = game(lastMoveAt: now.subtract(const Duration(hours: 2)));
       expect(later.nudgeWait('alice', now: now), Duration.zero);
     });

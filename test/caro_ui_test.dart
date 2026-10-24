@@ -1062,7 +1062,7 @@ void main() {
     expect(en.caroSpanHours(1), '1 hour');
     expect(en.caroSpanHours(3), '3 hours');
     expect(en.caroSpanMinutes(1), '1 minute');
-    expect(en.caroNudgeIn(1), 'You can nudge in 1 minute');
+    expect(en.caroNudgeIn(1), 'Nudge in 1 min');
     expect(en.caroWaitedMin('4', '10:00', 2), contains('2 minutes ago'));
     expect(vi.caroSpanHours(1), '1 giờ');
   });

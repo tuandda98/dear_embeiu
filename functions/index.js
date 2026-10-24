@@ -2859,8 +2859,8 @@ const CARO_OPS = ["start", "move", "resign", "cancel", "expire", "nudge"];
 // The other player "is looking at the board" (client beats every 20s, D11):
 // no push, they see the move live.
 const CARO_PRESENCE_FRESH_MS = 45 * 1000;
-// D10: "Nhắc" only 30' after the later of my last move and the last nudge.
-const CARO_NUDGE_COOLDOWN_MS = 30 * 60 * 1000;
+// D10: "Nhắc" only 1' (user 2026-10-24, was 30') after the later of my last move and the last nudge.
+const CARO_NUDGE_COOLDOWN_MS = 60 * 1000;
 // D9: at most one background wake per recipient per game per 30'.
 const CARO_WAKE_EVERY_MS = 30 * 60 * 1000;
 // D7: nobody moved for 7 days → either player may end the game.
