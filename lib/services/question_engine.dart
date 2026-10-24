@@ -274,8 +274,7 @@ class QuestionEngine {
           revisitDate: candidate.refDate,
           // Bank fully cycled → start a fresh no-repeat cycle from this pick
           // instead of leaving `askedBankIds` saturated forever.
-          resetAskedBankIds:
-              candidate.source == 'bank' &&
+          resetAskedBankIds: candidate.source == 'bank' &&
               BankQuestionSource.isExhausted(ctx.askedBankIds),
         ),
       );

@@ -85,8 +85,8 @@ class PartnerReminder {
     final clamped = rawMinute < 0
         ? 0
         : rawMinute > 1439
-        ? 1439
-        : rawMinute;
+            ? 1439
+            : rawMinute;
     final millis = (map['dateMillis'] as num?)?.toInt();
     return PartnerReminder(
       id: id,

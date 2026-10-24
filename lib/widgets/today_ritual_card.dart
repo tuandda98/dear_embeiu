@@ -328,7 +328,11 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       return [
         _answerBlock(l10n.dailyQuestionYourAnswerLabel, mine, mine: true),
         if (canReact)
-          AnswerReactionRow(date: date, answerAuthorUid: myUid, myUid: myUid),
+          AnswerReactionRow(
+            date: date,
+            answerAuthorUid: myUid,
+            myUid: myUid,
+          ),
         const SizedBox(height: 10),
         _answerBlock(
           l10n.dailyQuestionPartnerAnswerLabel(partnerName),
@@ -419,9 +423,9 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
       // The engine (AI source can take a few seconds) may still swap the
       // placeholder question; answering now could file the answer under a
       // different question than the one on screen.
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.dailyQuestionPreparing)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.dailyQuestionPreparing)),
+      );
       return;
     }
 

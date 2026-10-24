@@ -23,12 +23,11 @@ class BankQuestionSource implements QuestionSource {
   /// The merged bank. Indices are positions in THIS list; entries may only ever
   /// be appended (see `daily_questions_extra.dart`).
   static List<Map<String, String>> get bank => <Map<String, String>>[
-    ...dailyQuestions,
-    ...dailyQuestionsExtra,
-  ];
+        ...dailyQuestions,
+        ...dailyQuestionsExtra,
+      ];
 
-  static int get bankLength =>
-      dailyQuestions.length + dailyQuestionsExtra.length;
+  static int get bankLength => dailyQuestions.length + dailyQuestionsExtra.length;
 
   /// The bank entry at [index], or null when out of range.
   static Map<String, String>? entryAt(int index) {

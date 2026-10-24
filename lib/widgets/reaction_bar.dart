@@ -85,18 +85,15 @@ class _ReactionBarState extends State<ReactionBar> {
   void _openPicker() {
     _removePicker();
     final box = _heartKey.currentContext?.findRenderObject() as RenderBox?;
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
     if (box == null || overlay == null) {
       return;
     }
 
     final heartTopLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
     final heartSize = box.size;
-    final selected = context.read<ReactionProvider>().myReaction(
-      widget.photo.id,
-      widget.myUid,
-    );
+    final selected =
+        context.read<ReactionProvider>().myReaction(widget.photo.id, widget.myUid);
 
     _pickerEntry = OverlayEntry(
       builder: (overlayContext) {
@@ -273,8 +270,7 @@ class _ReactionBarState extends State<ReactionBar> {
   /// Inserts a transient, self-removing 💞 burst anchored on the heart button.
   /// No-op under Reduce Motion or when the render geometry isn't available.
   void _playMatchBurst() {
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (reduceMotion) {
       return;
     }
@@ -284,10 +280,8 @@ class _ReactionBarState extends State<ReactionBar> {
     if (box == null || overlayState == null || overlay == null) {
       return;
     }
-    final center = box.localToGlobal(
-      box.size.center(Offset.zero),
-      ancestor: overlay,
-    );
+    final center =
+        box.localToGlobal(box.size.center(Offset.zero), ancestor: overlay);
     _burstEntry?.remove();
     final entry = OverlayEntry(
       builder: (_) => _MatchBurst(
@@ -350,7 +344,9 @@ class _HeartButtonState extends State<_HeartButton>
     _pop = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 50),
       TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(parent: _popController, curve: AppMotion.curve));
+    ]).animate(
+      CurvedAnimation(parent: _popController, curve: AppMotion.curve),
+    );
 
     // Slow breathing pulse, driven only while [invite] is active (see _syncPulse).
     _pulseController = AnimationController(
@@ -397,8 +393,7 @@ class _HeartButtonState extends State<_HeartButton>
     final isHeart = emoji == kDefaultReactionEmoji;
     final isOtherEmoji = emoji != null && !isHeart;
 
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     _syncPulse(widget.invite && !reduceMotion);
 
     final Color bg;
@@ -426,11 +421,7 @@ class _HeartButtonState extends State<_HeartButton>
             ),
           ],
         ),
-        child: const Icon(
-          IconsaxPlusBold.heart,
-          size: 22,
-          color: AppColors.accentLove,
-        ),
+        child: const Icon(IconsaxPlusBold.heart, size: 22, color: AppColors.accentLove),
       );
     } else {
       // No reaction from me yet. Keep the OUTLINE heart so it never reads as
@@ -442,9 +433,8 @@ class _HeartButtonState extends State<_HeartButton>
         size: 22,
         color: widget.onDark
             ? AppColors.white.withValues(alpha: widget.invite ? 1.0 : 0.85)
-            : AppColors.accentRose.withValues(
-                alpha: widget.invite ? 0.95 : 0.85,
-              ),
+            : AppColors.accentRose
+                .withValues(alpha: widget.invite ? 0.95 : 0.85),
       );
     }
 
@@ -595,8 +585,7 @@ class _BothReactedPillState extends State<_BothReactedPill>
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (reduceMotion) {
       if (!_controller.isCompleted) {
         _controller.value = 1.0;
@@ -679,28 +668,29 @@ class _BothReactedPillState extends State<_BothReactedPill>
 
   /// Two layered white hearts — an iconified 💞 for "both loved this".
   Widget _doubleHeart() => SizedBox(
-    width: 20,
-    height: 16,
-    child: Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 0,
-          bottom: 0,
-          child: Icon(
-            IconsaxPlusBold.heart,
-            size: 11,
-            color: AppColors.white.withValues(alpha: 0.55),
-          ),
+        width: 20,
+        height: 16,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: Icon(
+                IconsaxPlusBold.heart,
+                size: 11,
+                color: AppColors.white.withValues(alpha: 0.55),
+              ),
+            ),
+            const Positioned(
+              right: 0,
+              top: 0,
+              child: Icon(IconsaxPlusBold.heart,
+                  size: 13, color: AppColors.white),
+            ),
+          ],
         ),
-        const Positioned(
-          right: 0,
-          top: 0,
-          child: Icon(IconsaxPlusBold.heart, size: 13, color: AppColors.white),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 /// A small, self-removing burst of 💞 that rises from the heart button the moment
@@ -730,16 +720,14 @@ class _MatchBurstState extends State<_MatchBurst>
       vsync: this,
       duration: const Duration(milliseconds: 750),
     );
-    _particles.addAll(
-      List.generate(6, (_) {
-        return _Particle(
-          dx: (_random.nextDouble() - 0.5) * 70,
-          rise: 46 + _random.nextDouble() * 40,
-          size: 14 + _random.nextDouble() * 8,
-          delay: _random.nextDouble() * 0.18,
-        );
-      }),
-    );
+    _particles.addAll(List.generate(6, (_) {
+      return _Particle(
+        dx: (_random.nextDouble() - 0.5) * 70,
+        rise: 46 + _random.nextDouble() * 40,
+        size: 14 + _random.nextDouble() * 8,
+        delay: _random.nextDouble() * 0.18,
+      );
+    }));
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         widget.onDone();
@@ -763,7 +751,9 @@ class _MatchBurstState extends State<_MatchBurst>
           final t = _controller.value;
           return Stack(
             clipBehavior: Clip.none,
-            children: [for (final p in _particles) _buildParticle(p, t)],
+            children: [
+              for (final p in _particles) _buildParticle(p, t),
+            ],
           );
         },
       ),
@@ -824,12 +814,12 @@ class _ReactionPickerPillState extends State<_ReactionPickerPill>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: AppMotion.fast)
-      ..forward();
-    _scale = Tween<double>(
-      begin: 0.85,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: AppMotion.curve));
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppMotion.fast,
+    )..forward();
+    _scale = Tween<double>(begin: 0.85, end: 1.0)
+        .animate(CurvedAnimation(parent: _controller, curve: AppMotion.curve));
     _fade = CurvedAnimation(parent: _controller, curve: AppMotion.curve);
   }
 
@@ -842,18 +832,13 @@ class _ReactionPickerPillState extends State<_ReactionPickerPill>
   @override
   Widget build(BuildContext context) {
     final pillWidth =
-        kReactionEmojis.length * _hitTarget +
-        (_padH * 2) -
-        (_hitTarget - _emojiSize);
+        kReactionEmojis.length * _hitTarget + (_padH * 2) - (_hitTarget - _emojiSize);
     final pillHeight = _hitTarget + (_padV * 2);
 
     // Anchor the pill bottom-center to the heart's top-center, clamped on-screen.
     final anchorCenterX = widget.anchorTopLeft.dx + widget.anchorSize.width / 2;
     double left = anchorCenterX - pillWidth / 2;
-    left = left.clamp(
-      8.0,
-      math.max(8.0, widget.overlaySize.width - pillWidth - 8),
-    );
+    left = left.clamp(8.0, math.max(8.0, widget.overlaySize.width - pillWidth - 8));
     final top = widget.anchorTopLeft.dy - pillHeight - 8;
 
     return Stack(
@@ -867,9 +852,7 @@ class _ReactionPickerPillState extends State<_ReactionPickerPill>
         ),
         Positioned(
           left: left,
-          top: top < 8
-              ? widget.anchorTopLeft.dy + widget.anchorSize.height + 8
-              : top,
+          top: top < 8 ? widget.anchorTopLeft.dy + widget.anchorSize.height + 8 : top,
           child: FadeTransition(
             opacity: _fade,
             child: ScaleTransition(
@@ -1005,16 +988,14 @@ class _HeartBurstOverlayState extends State<HeartBurstOverlay>
   void _fire() {
     _particles
       ..clear()
-      ..addAll(
-        List.generate(6, (_) {
-          return _Particle(
-            dx: (_random.nextDouble() - 0.5) * 120,
-            rise: 80 + _random.nextDouble() * 70,
-            size: 14 + _random.nextDouble() * 8,
-            delay: _random.nextDouble() * 0.2,
-          );
-        }),
-      );
+      ..addAll(List.generate(6, (_) {
+        return _Particle(
+          dx: (_random.nextDouble() - 0.5) * 120,
+          rise: 80 + _random.nextDouble() * 70,
+          size: 14 + _random.nextDouble() * 8,
+          delay: _random.nextDouble() * 0.2,
+        );
+      }));
     _controller.forward(from: 0);
   }
 
@@ -1037,9 +1018,7 @@ class _HeartBurstOverlayState extends State<HeartBurstOverlay>
 
           // Big central heart: scale 0 → 1.15 → 1, fade out near the end.
           final bigScale = t < 0.4 ? (t / 0.4) * 1.15 : 1.15 - (t - 0.4) * 0.25;
-          final bigOpacity = t < 0.7
-              ? 1.0
-              : (1 - (t - 0.7) / 0.3).clamp(0.0, 1.0);
+          final bigOpacity = t < 0.7 ? 1.0 : (1 - (t - 0.7) / 0.3).clamp(0.0, 1.0);
 
           return Center(
             child: Stack(
@@ -1087,11 +1066,7 @@ class _HeartBurstOverlayState extends State<HeartBurstOverlay>
       offset: Offset(p.dx * localT, -p.rise * localT),
       child: Opacity(
         opacity: opacity,
-        child: Icon(
-          IconsaxPlusBold.heart,
-          size: p.size,
-          color: AppColors.accentLove,
-        ),
+        child: Icon(IconsaxPlusBold.heart, size: p.size, color: AppColors.accentLove),
       ),
     );
   }
@@ -1146,15 +1121,9 @@ class ReactionCountBadge extends StatelessWidget {
           // Love reaction → app heart icon (consistent with ReactionChip / the
           // react button); other emoji stay as-is.
           heart.emoji == kDefaultReactionEmoji
-              ? const Icon(
-                  IconsaxPlusBold.heart,
-                  size: 12,
-                  color: AppColors.white,
-                )
-              : Text(
-                  heart.emoji,
-                  style: const TextStyle(fontSize: 12, height: 1),
-                ),
+              ? const Icon(IconsaxPlusBold.heart,
+                  size: 12, color: AppColors.white)
+              : Text(heart.emoji, style: const TextStyle(fontSize: 12, height: 1)),
           if (count >= 2) ...[
             const SizedBox(width: 3),
             const Text(

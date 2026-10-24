@@ -127,9 +127,7 @@ class _Station extends StatelessWidget {
             style: TextStyle(
               color: labelColor,
               fontSize: 12,
-              fontWeight: (reached || isNext)
-                  ? FontWeight.w800
-                  : FontWeight.w600,
+              fontWeight: (reached || isNext) ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
         ],
@@ -153,11 +151,7 @@ class _Station extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(
-          Icons.check_rounded,
-          size: 18,
-          color: AppColors.white,
-        ),
+        child: const Icon(Icons.check_rounded, size: 18, color: AppColors.white),
       );
     }
     if (isNext) {
@@ -171,11 +165,7 @@ class _Station extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.accentLove, width: 3),
         ),
-        child: const Icon(
-          IconsaxPlusBold.flag,
-          size: 15,
-          color: AppColors.accentLove,
-        ),
+        child: const Icon(IconsaxPlusBold.flag, size: 15, color: AppColors.accentLove),
       );
     }
     return Container(
@@ -237,11 +227,7 @@ class _NextCaption extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(
-              IconsaxPlusBold.flag,
-              size: 14,
-              color: AppColors.accentLove,
-            ),
+            const Icon(IconsaxPlusBold.flag, size: 14, color: AppColors.accentLove),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -262,9 +248,7 @@ class _NextCaption extends StatelessWidget {
             value: progress,
             minHeight: 6,
             backgroundColor: AppColors.textTertiary.withValues(alpha: 0.18),
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              AppColors.accentLove,
-            ),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentLove),
           ),
         ),
       ],
@@ -281,11 +265,7 @@ class _AllDoneCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
-          IconsaxPlusLinear.magic_star,
-          size: 14,
-          color: AppColors.accentLove,
-        ),
+        const Icon(IconsaxPlusLinear.magic_star, size: 14, color: AppColors.accentLove),
         const SizedBox(width: 6),
         Expanded(
           child: Text(

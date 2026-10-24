@@ -91,20 +91,18 @@ class MoodProvider extends ChangeNotifier {
     notifyListeners();
 
     _subscription?.cancel();
-    _subscription = _service
-        .watchMoods(coupleId)
-        .listen(
-          (moods) {
-            _moods = moods;
-            _isLoading = false;
-            notifyListeners();
-          },
-          onError: (_) {
-            // Keep last good data; nothing global to surface.
-            _isLoading = false;
-            notifyListeners();
-          },
-        );
+    _subscription = _service.watchMoods(coupleId).listen(
+      (moods) {
+        _moods = moods;
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (_) {
+        // Keep last good data; nothing global to surface.
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
   /// Sets my mood for today (create or change). [note] is optional.

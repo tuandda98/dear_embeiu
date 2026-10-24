@@ -55,9 +55,10 @@ class HomePrefsService {
       return;
     }
     try {
-      await _doc(coupleId).set(<String, Object?>{
-        'counterBgPhotoId': photoId,
-      }, SetOptions(merge: true));
+      await _doc(coupleId).set(
+        <String, Object?>{'counterBgPhotoId': photoId},
+        SetOptions(merge: true),
+      );
     } catch (_) {
       // Fail-soft — sync catches up on the next successful write.
     }
@@ -70,15 +71,12 @@ class HomePrefsService {
     if (coupleId.trim().isEmpty || !isUsingFirebase) {
       return const Stream<List<String>>.empty();
     }
-    return _doc(coupleId)
-        .snapshots()
-        .map((snapshot) {
-          final raw = snapshot.data()?['counterBgPhotoIds'];
-          return raw is List
-              ? raw.whereType<String>().toList(growable: false)
-              : const <String>[];
-        })
-        .handleError((_) {});
+    return _doc(coupleId).snapshots().map((snapshot) {
+      final raw = snapshot.data()?['counterBgPhotoIds'];
+      return raw is List
+          ? raw.whereType<String>().toList(growable: false)
+          : const <String>[];
+    }).handleError((_) {});
   }
 
   /// Publishes the background whitelist (merge, fail-soft). An empty list
@@ -88,9 +86,10 @@ class HomePrefsService {
       return;
     }
     try {
-      await _doc(coupleId).set(<String, Object?>{
-        'counterBgPhotoIds': photoIds,
-      }, SetOptions(merge: true));
+      await _doc(coupleId).set(
+        <String, Object?>{'counterBgPhotoIds': photoIds},
+        SetOptions(merge: true),
+      );
     } catch (_) {
       // Fail-soft — sync catches up on the next successful write.
     }
@@ -103,13 +102,10 @@ class HomePrefsService {
     if (coupleId.trim().isEmpty || !isUsingFirebase) {
       return const Stream<String?>.empty();
     }
-    return _doc(coupleId)
-        .snapshots()
-        .map((snapshot) {
-          final raw = snapshot.data()?['chatBgPhotoId'];
-          return raw is String && raw.isNotEmpty ? raw : null;
-        })
-        .handleError((_) {});
+    return _doc(coupleId).snapshots().map((snapshot) {
+      final raw = snapshot.data()?['chatBgPhotoId'];
+      return raw is String && raw.isNotEmpty ? raw : null;
+    }).handleError((_) {});
   }
 
   /// Publishes the chosen Chat background so the partner's chat follows along.
@@ -120,9 +116,10 @@ class HomePrefsService {
       return;
     }
     try {
-      await _doc(coupleId).set(<String, Object?>{
-        'chatBgPhotoId': photoId,
-      }, SetOptions(merge: true));
+      await _doc(coupleId).set(
+        <String, Object?>{'chatBgPhotoId': photoId},
+        SetOptions(merge: true),
+      );
     } catch (_) {
       // Fail-soft — sync catches up on the next successful write.
     }
@@ -135,18 +132,18 @@ class HomePrefsService {
     if (coupleId.trim().isEmpty || !isUsingFirebase) {
       return const Stream<ReminderPrefs>.empty();
     }
-    return _doc(coupleId)
-        .snapshots()
-        .map((snapshot) {
-          final data = snapshot.data();
-          final enabled = data?['dqReminderEnabled'];
-          final rawTimes = data?['dqReminderTimes'];
-          final times = rawTimes is List
-              ? rawTimes.whereType<num>().map((n) => n.toInt()).toList()
-              : null;
-          return (enabled: enabled is bool ? enabled : null, times: times);
-        })
-        .handleError((_) {});
+    return _doc(coupleId).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      final enabled = data?['dqReminderEnabled'];
+      final rawTimes = data?['dqReminderTimes'];
+      final times = rawTimes is List
+          ? rawTimes.whereType<num>().map((n) => n.toInt()).toList()
+          : null;
+      return (
+        enabled: enabled is bool ? enabled : null,
+        times: times,
+      );
+    }).handleError((_) {});
   }
 
   /// Streams the couple-shared opt-in for AI-personalised daily questions
@@ -156,13 +153,10 @@ class HomePrefsService {
     if (coupleId.trim().isEmpty || !isUsingFirebase) {
       return const Stream<bool>.empty();
     }
-    return _doc(coupleId)
-        .snapshots()
-        .map((snapshot) {
-          final raw = snapshot.data()?['aiQuestionsEnabled'];
-          return raw is bool && raw;
-        })
-        .handleError((_) {});
+    return _doc(coupleId).snapshots().map((snapshot) {
+      final raw = snapshot.data()?['aiQuestionsEnabled'];
+      return raw is bool && raw;
+    }).handleError((_) {});
   }
 
   /// Publishes the AI-questions opt-in for BOTH partners (merge, fail-soft) —
@@ -176,9 +170,10 @@ class HomePrefsService {
     }
     try {
       await _doc(coupleId)
-          .set(<String, Object?>{
-            'aiQuestionsEnabled': enabled,
-          }, SetOptions(merge: true))
+          .set(
+            <String, Object?>{'aiQuestionsEnabled': enabled},
+            SetOptions(merge: true),
+          )
           .timeout(const Duration(seconds: 10));
       return true;
     } catch (_) {

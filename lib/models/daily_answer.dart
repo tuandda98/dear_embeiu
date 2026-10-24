@@ -18,16 +18,16 @@ class DailyAnswer {
   bool get hasText => text.trim().isNotEmpty;
 
   Map<String, dynamic> toJson() => {
-    'authorUserId': authorUserId,
-    'text': text,
-    'answeredAt': answeredAt?.toIso8601String(),
-  };
+        'authorUserId': authorUserId,
+        'text': text,
+        'answeredAt': answeredAt?.toIso8601String(),
+      };
 
   factory DailyAnswer.fromJson(Map<String, dynamic> json) => DailyAnswer(
-    authorUserId: json['authorUserId'] as String? ?? '',
-    text: json['text'] as String? ?? '',
-    answeredAt: _parseDateTime(json['answeredAt']),
-  );
+        authorUserId: json['authorUserId'] as String? ?? '',
+        text: json['text'] as String? ?? '',
+        answeredAt: _parseDateTime(json['answeredAt']),
+      );
 
   /// Builds an answer from a Firestore document. [id] is the document id, which
   /// by convention equals the author's uid; used as a fallback when the stored
@@ -36,8 +36,8 @@ class DailyAnswer {
       DailyAnswer(
         authorUserId:
             (data['authorUserId'] as String?)?.trim().isNotEmpty == true
-            ? data['authorUserId'] as String
-            : id,
+                ? data['authorUserId'] as String
+                : id,
         text: data['text'] as String? ?? '',
         answeredAt: _parseDateTime(data['answeredAt']),
       );

@@ -1240,7 +1240,10 @@ class _CaroGameScreenState extends State<CaroGameScreen>
           if (primary != null) ...[
             if (showZoom) const SizedBox(width: 12),
             Expanded(child: primary),
-            if (sideAction != null) ...[const SizedBox(width: 12), sideAction],
+            if (sideAction != null) ...[
+              const SizedBox(width: 12),
+              sideAction,
+            ],
           ] else if (sideAction != null) ...[
             const SizedBox(width: 12),
             Expanded(

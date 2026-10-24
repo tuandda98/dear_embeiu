@@ -64,7 +64,6 @@ abstract final class HomeWidgetBridge {
       if (couples.couple == null && couples.errorMessage != null) return;
       _afterFrame(() => push(couples.couple));
     }
-
     couples.addListener(onChange);
     locales.addListener(onChange);
   }
@@ -94,10 +93,7 @@ abstract final class HomeWidgetBridge {
     try {
       // build() formats dates with intl — main.dart ran initializeDateFormatting()
       // before runApp, and a widget refresh must never take the app down anyway.
-      snapshot = HomeWidgetSnapshot.build(
-        couple: couple,
-        l10n: AppL10n.strings,
-      );
+      snapshot = HomeWidgetSnapshot.build(couple: couple, l10n: AppL10n.strings);
       if (mapEquals(snapshot, _lastSent)) return;
       await _channel.invokeMethod<void>('update', snapshot);
       _lastSent = snapshot; // only a delivered snapshot counts as sent
@@ -283,7 +279,6 @@ class WidgetLaunch {
   final String kind;
 
   @override
-  String toString() =>
-      '$family → ${target.isEmpty ? '-' : target}'
+  String toString() => '$family → ${target.isEmpty ? '-' : target}'
       '${focus.isEmpty ? '' : '/$focus'}';
 }

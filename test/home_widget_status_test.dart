@@ -26,15 +26,16 @@ void main() {
     Mood? theirMood,
     List<ChatMessage> messages = const [],
     String questionDay = '2026-10-19',
-  }) => TodayConstellation.from(
-    myUid: 'me',
-    now: now,
-    questionDay: questionDay,
-    myAnswer: mine,
-    partnerAnswer: theirs,
-    partnerMood: theirMood,
-    messages: messages,
-  );
+  }) =>
+      TodayConstellation.from(
+        myUid: 'me',
+        now: now,
+        questionDay: questionDay,
+        myAnswer: mine,
+        partnerAnswer: theirs,
+        partnerMood: theirMood,
+        messages: messages,
+      );
 
   Map<String, String> build(
     TodayConstellation t, {
@@ -44,27 +45,21 @@ void main() {
     String partnerName = 'Thảo',
     DateTime? photoAt,
     WidgetDecision? decision,
-  }) => HomeWidgetStatus.build(
-    today: t,
-    l10n: l10n ?? vi,
-    now: now,
-    active: active,
-    partnerName: partnerName,
-    questionReady: questionReady,
-    partnerPhotoAt: photoAt,
-    decision: decision,
-  );
+  }) =>
+      HomeWidgetStatus.build(
+        today: t,
+        l10n: l10n ?? vi,
+        now: now,
+        active: active,
+        partnerName: partnerName,
+        questionReady: questionReady,
+        partnerPhotoAt: photoAt,
+        decision: decision,
+      );
 
-  final theirAnswer = DailyAnswer(
-    authorUserId: 'other',
-    text: 'a',
-    answeredAt: at(9),
-  );
-  final myAnswer = DailyAnswer(
-    authorUserId: 'me',
-    text: 'b',
-    answeredAt: at(10),
-  );
+  final theirAnswer =
+      DailyAnswer(authorUserId: 'other', text: 'a', answeredAt: at(9));
+  final myAnswer = DailyAnswer(authorUserId: 'me', text: 'b', answeredAt: at(10));
 
   group('build (app open)', () {
     test('nothing yet, question loaded → "đang chờ mình"', () {
@@ -81,10 +76,8 @@ void main() {
       expect(build(today(), questionReady: false)['statusKind'], '');
       // Yesterday's answers in the provider light nothing today.
       expect(
-        build(
-          today(theirs: theirAnswer, questionDay: '2026-10-18'),
-          questionReady: false,
-        )['statusKind'],
+        build(today(theirs: theirAnswer, questionDay: '2026-10-18'),
+                questionReady: false)['statusKind'],
         '',
       );
     });
@@ -112,30 +105,24 @@ void main() {
       final t = today(
         theirs: theirAnswer, // 9:00
         theirMood: Mood(
-          authorUserId: 'other',
-          mood: 'stressed',
-          note: '',
-          date: '2026-10-19',
-          updatedAt: at(11),
-        ),
+            authorUserId: 'other',
+            mood: 'stressed',
+            note: '',
+            date: '2026-10-19',
+            updatedAt: at(11)),
         messages: [
           ChatMessage(authorUserId: 'other', text: 'hi', createdAt: at(12)),
           ChatMessage(authorUserId: 'me', text: 'yo', createdAt: at(14)),
         ],
       );
-      expect(
-        build(t)['statusKind'],
-        'message',
-      ); // 12:00; my 14:00 msg is not about them
+      expect(build(t)['statusKind'], 'message'); // 12:00; my 14:00 msg is not about them
       final s = build(t, photoAt: at(13));
       expect(s['statusKind'], 'photo');
       expect(s['statusText'], 'Thảo vừa đăng ảnh mới');
       expect(s['statusTarget'], 'gallery');
-      final d = build(
-        t,
-        photoAt: at(13),
-        decision: WidgetDecision(kind: 'eat', result: 'Bún chả', at: at(14)),
-      );
+      final d = build(t,
+          photoAt: at(13),
+          decision: WidgetDecision(kind: 'eat', result: 'Bún chả', at: at(14)));
       expect(d['statusKind'], 'decision_eat');
       expect(d['statusText'], 'Hôm nay ăn: Bún chả');
       expect(d['statusTextShort'], 'Ăn: Bún chả');
@@ -145,12 +132,11 @@ void main() {
     test('mood line: lower-case label, both languages, focus mood', () {
       final t = today(
         theirMood: Mood(
-          authorUserId: 'other',
-          mood: 'stressed',
-          note: '',
-          date: '2026-10-19',
-          updatedAt: at(11),
-        ),
+            authorUserId: 'other',
+            mood: 'stressed',
+            note: '',
+            date: '2026-10-19',
+            updatedAt: at(11)),
       );
       final s = build(t);
       expect(s['statusText'], 'Thảo hôm nay: căng thẳng');
@@ -160,29 +146,18 @@ void main() {
     });
 
     test('a real event beats "đang chờ mình" — message → Chat', () {
-      final s = build(
-        today(
-          messages: [
-            ChatMessage(authorUserId: 'other', text: 'hi', createdAt: at(8)),
-          ],
-        ),
-      );
+      final s = build(today(messages: [
+        ChatMessage(authorUserId: 'other', text: 'hi', createdAt: at(8)),
+      ]));
       expect(s['statusKind'], 'message');
       expect(s['statusText'], 'Thảo vừa nhắn cho mình');
       expect(s['statusTarget'], 'chat');
     });
 
     test('waiting for the partner → no line; empty name → fallback', () {
+      expect(build(today(theirs: theirAnswer), active: false)['statusKind'], '');
       expect(
-        build(today(theirs: theirAnswer), active: false)['statusKind'],
-        '',
-      );
-      expect(
-        build(
-          today(theirs: theirAnswer),
-          partnerName: ' ',
-          l10n: en,
-        )['statusText'],
+        build(today(theirs: theirAnswer), partnerName: ' ', l10n: en)['statusText'],
         'Your partner answered — your turn',
       );
     });
@@ -191,105 +166,41 @@ void main() {
       final photos = [
         Photo(id: '1', path: '', authorUserId: 'me', uploadDate: at(14)),
         Photo(
-          id: '2',
-          path: '',
-          authorUserId: 'other',
-          uploadDate: DateTime(2026, 10, 18, 23),
-        ),
+            id: '2',
+            path: '',
+            authorUserId: 'other',
+            uploadDate: DateTime(2026, 10, 18, 23)),
       ];
       expect(HomeWidgetStatus.latestPartnerPhotoAt(photos, 'me', now), isNull);
-      photos.add(
-        Photo(id: '3', path: '', authorUserId: 'other', uploadDate: at(7)),
-      );
+      photos.add(Photo(id: '3', path: '', authorUserId: 'other', uploadDate: at(7)));
       expect(HomeWidgetStatus.latestPartnerPhotoAt(photos, 'me', now), at(7));
     });
   });
 
   group('fromPush (app in the background)', () {
-    Map<String, String>? push(
-      Map<String, dynamic> data, {
-      AppLocalizations? l10n,
-      DateTime? sentAt,
-    }) => HomeWidgetStatus.fromPush(
-      data,
-      l10n: l10n ?? vi,
-      now: now,
-      sentAt: sentAt ?? at(14, 59),
-    );
+    Map<String, String>? push(Map<String, dynamic> data,
+            {AppLocalizations? l10n, DateTime? sentAt}) =>
+        HomeWidgetStatus.fromPush(data,
+            l10n: l10n ?? vi, now: now, sentAt: sentAt ?? at(14, 59));
 
     test('the 9 kinds map to the D2 copy', () {
       final cases = <Map<String, dynamic>, (String, String, String)>{
-        {
-          'type': 'daily_question',
-          'bothAnswered': 'false',
-          'actorName': 'Thảo',
-          'date': '2026-10-19',
-        }: (
-          'question_partner',
-          'Thảo đã trả lời, đến lượt mình',
-          'Thảo đã trả lời',
-        ),
-        {
-          'type': 'daily_question',
-          'bothAnswered': 'true',
-          'actorName': 'Thảo',
-          'date': '2026-10-19',
-        }: (
-          'question_both',
-          'Cả hai đã trả lời hôm nay',
-          'Cả hai đã trả lời',
-        ),
-        {
-          'type': 'partner_mood',
-          'mood': 'happy',
-          'actorName': 'Thảo',
-          'date': '2026-10-19',
-        }: (
-          'mood',
-          'Thảo hôm nay: vui',
-          'Thảo: vui',
-        ),
-        {'type': 'chat_message', 'actorName': 'Thảo'}: (
-          'message',
-          'Thảo vừa nhắn cho mình',
-          'Thảo vừa nhắn',
-        ),
-        {'type': 'photo_posted', 'actorName': 'Thảo', 'photoId': 'p'}: (
-          'photo',
-          'Thảo vừa đăng ảnh mới',
-          'Thảo đăng ảnh mới',
-        ),
-        {
-          'type': 'decision',
-          'kind': 'eat',
-          'result': 'Phở',
-          'date': '2026-10-19',
-        }: (
-          'decision_eat',
-          'Hôm nay ăn: Phở',
-          'Ăn: Phở',
-        ),
-        {
-          'type': 'decision',
-          'kind': 'go',
-          'result': 'Đi cà phê',
-          'date': '2026-10-19',
-        }: (
-          'decision_go',
-          'Hôm nay: Đi cà phê',
-          'Đi cà phê',
-        ),
-        {
-          'type': 'decision',
-          'kind': 'custom',
-          'question': 'Ai rửa bát?',
-          'result': 'Anh',
-          'date': '2026-10-19',
-        }: (
-          'decision_custom',
-          'Ai rửa bát?: Anh',
-          'Quay ra: Anh',
-        ),
+        {'type': 'daily_question', 'bothAnswered': 'false', 'actorName': 'Thảo', 'date': '2026-10-19'}:
+            ('question_partner', 'Thảo đã trả lời, đến lượt mình', 'Thảo đã trả lời'),
+        {'type': 'daily_question', 'bothAnswered': 'true', 'actorName': 'Thảo', 'date': '2026-10-19'}:
+            ('question_both', 'Cả hai đã trả lời hôm nay', 'Cả hai đã trả lời'),
+        {'type': 'partner_mood', 'mood': 'happy', 'actorName': 'Thảo', 'date': '2026-10-19'}:
+            ('mood', 'Thảo hôm nay: vui', 'Thảo: vui'),
+        {'type': 'chat_message', 'actorName': 'Thảo'}:
+            ('message', 'Thảo vừa nhắn cho mình', 'Thảo vừa nhắn'),
+        {'type': 'photo_posted', 'actorName': 'Thảo', 'photoId': 'p'}:
+            ('photo', 'Thảo vừa đăng ảnh mới', 'Thảo đăng ảnh mới'),
+        {'type': 'decision', 'kind': 'eat', 'result': 'Phở', 'date': '2026-10-19'}:
+            ('decision_eat', 'Hôm nay ăn: Phở', 'Ăn: Phở'),
+        {'type': 'decision', 'kind': 'go', 'result': 'Đi cà phê', 'date': '2026-10-19'}:
+            ('decision_go', 'Hôm nay: Đi cà phê', 'Đi cà phê'),
+        {'type': 'decision', 'kind': 'custom', 'question': 'Ai rửa bát?', 'result': 'Anh', 'date': '2026-10-19'}:
+            ('decision_custom', 'Ai rửa bát?: Anh', 'Quay ra: Anh'),
       };
       for (final e in cases.entries) {
         final s = push(e.key)!;
@@ -303,160 +214,77 @@ void main() {
     });
 
     test('a push about another day is ignored (D9)', () {
-      expect(
-        push({
-          'type': 'daily_question',
-          'bothAnswered': 'true',
-          'date': '2026-10-18',
-        }),
-        isNull,
-      );
-      expect(
-        push({'type': 'partner_mood', 'mood': 'sad', 'date': '2026-10-18'}),
-        isNull,
-      );
+      expect(push({'type': 'daily_question', 'bothAnswered': 'true', 'date': '2026-10-18'}), isNull);
+      expect(push({'type': 'partner_mood', 'mood': 'sad', 'date': '2026-10-18'}), isNull);
       // No date key (chat/photo): sent yesterday, delivered today.
-      expect(
-        push({'type': 'chat_message'}, sentAt: DateTime(2026, 10, 18, 23, 50)),
-        isNull,
-      );
+      expect(push({'type': 'chat_message'}, sentAt: DateTime(2026, 10, 18, 23, 50)), isNull);
     });
 
     test('other types, unknown mood, empty decision → null', () {
       expect(push({'type': 'care_message'}), isNull);
       expect(push({'type': 'partner_joined'}), isNull);
-      expect(
-        push({'type': 'partner_mood', 'mood': 'weird', 'date': '2026-10-19'}),
-        isNull,
-      );
-      expect(
-        push({
-          'type': 'decision',
-          'kind': 'eat',
-          'result': ' ',
-          'date': '2026-10-19',
-        }),
-        isNull,
-      );
-      expect(
-        push({
-          'type': 'decision',
-          'kind': 'fly',
-          'result': 'x',
-          'date': '2026-10-19',
-        }),
-        isNull,
-      );
+      expect(push({'type': 'partner_mood', 'mood': 'weird', 'date': '2026-10-19'}), isNull);
+      expect(push({'type': 'decision', 'kind': 'eat', 'result': ' ', 'date': '2026-10-19'}), isNull);
+      expect(push({'type': 'decision', 'kind': 'fly', 'result': 'x', 'date': '2026-10-19'}), isNull);
     });
 
-    test(
-      'data.sentAt (CF) wins over sentTime; no date + no send time → null (B2)',
-      () {
-        Map<String, String>? raw(
-          Map<String, dynamic> data, {
-          DateTime? sentAt,
-        }) =>
-            HomeWidgetStatus.fromPush(data, l10n: vi, now: now, sentAt: sentAt);
-        final yesterday = DateTime(2026, 10, 18, 23, 50).millisecondsSinceEpoch;
-        // iOS: no RemoteMessage.sentTime, CF says it was sent yesterday.
-        expect(raw({'type': 'chat_message', 'sentAt': '$yesterday'}), isNull);
-        // data.sentAt beats a "today" sentTime.
-        expect(
-          raw({'type': 'photo_posted', 'sentAt': '$yesterday'}, sentAt: at(14)),
-          isNull,
-        );
-        // Neither a date nor any send time: can't prove it's today.
-        expect(raw({'type': 'chat_message'}), isNull);
-        final s = raw({
-          'type': 'chat_message',
-          'sentAt': '${at(13, 5).millisecondsSinceEpoch}',
-        })!;
-        expect(s['statusKind'], 'message');
-        expect(s['statusAt'], '${at(13, 5).millisecondsSinceEpoch}');
-        // Old CF without sentAt: Android sentTime still works.
-        expect(
-          raw({'type': 'chat_message'}, sentAt: at(14))!['statusKind'],
-          'message',
-        );
-      },
-    );
+    test('data.sentAt (CF) wins over sentTime; no date + no send time → null (B2)', () {
+      Map<String, String>? raw(Map<String, dynamic> data, {DateTime? sentAt}) =>
+          HomeWidgetStatus.fromPush(data, l10n: vi, now: now, sentAt: sentAt);
+      final yesterday = DateTime(2026, 10, 18, 23, 50).millisecondsSinceEpoch;
+      // iOS: no RemoteMessage.sentTime, CF says it was sent yesterday.
+      expect(raw({'type': 'chat_message', 'sentAt': '$yesterday'}), isNull);
+      // data.sentAt beats a "today" sentTime.
+      expect(raw({'type': 'photo_posted', 'sentAt': '$yesterday'}, sentAt: at(14)), isNull);
+      // Neither a date nor any send time: can't prove it's today.
+      expect(raw({'type': 'chat_message'}), isNull);
+      final s = raw({'type': 'chat_message', 'sentAt': '${at(13, 5).millisecondsSinceEpoch}'})!;
+      expect(s['statusKind'], 'message');
+      expect(s['statusAt'], '${at(13, 5).millisecondsSinceEpoch}');
+      // Old CF without sentAt: Android sentTime still works.
+      expect(raw({'type': 'chat_message'}, sentAt: at(14))!['statusKind'], 'message');
+    });
 
     test('decision with resultId reads in the receiver\'s language (B3)', () {
       // Spun in English, received on a Vietnamese phone.
-      final eat = {
-        'type': 'decision',
-        'kind': 'eat',
-        'result': 'Braised pork belly with eggs',
-        'resultId': 'thit_kho_tau',
-        'date': '2026-10-19',
-      };
+      final eat = {'type': 'decision', 'kind': 'eat', 'result': 'Braised pork belly with eggs',
+          'resultId': 'thit_kho_tau', 'date': '2026-10-19'};
       expect(push(eat)!['statusText'], 'Hôm nay ăn: Thịt kho tàu trứng');
       // Spun in Vietnamese, received in English (capitalised like the card).
-      final go = {
-        'type': 'decision',
-        'kind': 'go',
-        'result': 'Đi cà phê',
-        'resultId': 'ca_phe',
-        'date': '2026-10-19',
-      };
+      final go = {'type': 'decision', 'kind': 'go', 'result': 'Đi cà phê',
+          'resultId': 'ca_phe', 'date': '2026-10-19'};
       expect(push(go, l10n: en)!['statusTextShort'], 'Grab coffee');
       // Typed-in pick (no bank id): as written.
-      expect(
-        push({...go, 'resultId': '', 'result': 'Đi bơi'})!['statusText'],
-        'Hôm nay: Đi bơi',
-      );
+      expect(push({...go, 'resultId': '', 'result': 'Đi bơi'})!['statusText'], 'Hôm nay: Đi bơi');
     });
 
-    test(
-      'partner_left: empty line stamped with the leave time, clearIfOlder (B5, WT-R2-1)',
-      () {
-        Map<String, String>? raw(
-          Map<String, dynamic> data, {
-          DateTime? sentAt,
-        }) =>
-            HomeWidgetStatus.fromPush(data, l10n: vi, now: now, sentAt: sentAt);
-        final left = at(13, 5).millisecondsSinceEpoch;
-        // CF sentAt wins over FCM sentTime.
-        final s = raw({
-          'type': 'partner_left',
-          'coupleId': 'c',
-          'sentAt': '$left',
-        }, sentAt: at(14))!;
-        expect(s, {
-          ...HomeWidgetStatus.none(now),
-          'statusAt': '$left',
-          'clearIfOlder': '1',
-        });
-        expect(s['statusText'], '');
-        expect(s.containsKey('onlyIfNewer'), isFalse);
-        expect(s.containsKey('state'), isFalse); // the day count stays
-        // Old CF (no sentAt): FCM sentTime is the mark.
-        expect(
-          raw({'type': 'partner_left'}, sentAt: at(14))!['statusAt'],
-          '${at(14).millisecondsSinceEpoch}',
-        );
-        // No time at all (old CF on iOS): clear unconditionally, as before.
-        expect(
-          raw({'type': 'partner_left', 'sentAt': 'x'}),
-          HomeWidgetStatus.none(now),
-        );
-      },
-    );
+    test('partner_left: empty line stamped with the leave time, clearIfOlder (B5, WT-R2-1)', () {
+      Map<String, String>? raw(Map<String, dynamic> data, {DateTime? sentAt}) =>
+          HomeWidgetStatus.fromPush(data, l10n: vi, now: now, sentAt: sentAt);
+      final left = at(13, 5).millisecondsSinceEpoch;
+      // CF sentAt wins over FCM sentTime.
+      final s = raw({'type': 'partner_left', 'coupleId': 'c', 'sentAt': '$left'},
+          sentAt: at(14))!;
+      expect(s, {...HomeWidgetStatus.none(now), 'statusAt': '$left', 'clearIfOlder': '1'});
+      expect(s['statusText'], '');
+      expect(s.containsKey('onlyIfNewer'), isFalse);
+      expect(s.containsKey('state'), isFalse); // the day count stays
+      // Old CF (no sentAt): FCM sentTime is the mark.
+      expect(raw({'type': 'partner_left'}, sentAt: at(14))!['statusAt'],
+          '${at(14).millisecondsSinceEpoch}');
+      // No time at all (old CF on iOS): clear unconditionally, as before.
+      expect(raw({'type': 'partner_left', 'sentAt': 'x'}), HomeWidgetStatus.none(now));
+    });
 
     test('name fallback + language from data.lang, else the phone', () {
       final data = {'type': 'chat_message', 'actorName': '', 'lang': 'en'};
       final lang = HomeWidgetStatus.pushLang(data, 'vi_VN');
       expect(lang, 'en');
-      expect(
-        push(data, l10n: lookupAppLocalizations(Locale(lang)))!['statusText'],
-        'Your partner just messaged you',
-      );
+      expect(push(data, l10n: lookupAppLocalizations(Locale(lang)))!['statusText'],
+          'Your partner just messaged you');
       expect(HomeWidgetStatus.pushLang({}, 'vi_VN'), 'vi');
       expect(HomeWidgetStatus.pushLang({'lang': 'fr'}, 'en_US'), 'en');
-      expect(
-        push({'type': 'chat_message'})!['statusText'],
-        'Người ấy vừa nhắn cho mình',
-      );
+      expect(push({'type': 'chat_message'})!['statusText'], 'Người ấy vừa nhắn cho mình');
     });
   });
 
@@ -464,30 +292,15 @@ void main() {
     test('parseLaunch whitelists every value', () {
       expect(HomeWidgetBridge.parseLaunch(null), isNull);
       expect(HomeWidgetBridge.parseLaunch({'family': 'huge'}), isNull);
-      expect(
-        HomeWidgetBridge.parseLaunch('small')!.family,
-        'small',
-      ); // 1.9.x native
-      final l = HomeWidgetBridge.parseLaunch({
-        'family': 'medium',
-        'target': 'home',
-        'focus': 'mood',
-        'kind': 'mood',
-      })!;
+      expect(HomeWidgetBridge.parseLaunch('small')!.family, 'small'); // 1.9.x native
+      final l = HomeWidgetBridge.parseLaunch(
+          {'family': 'medium', 'target': 'home', 'focus': 'mood', 'kind': 'mood'})!;
       expect((l.target, l.focus, l.kind), ('home', 'mood', 'mood'));
-      final bad = HomeWidgetBridge.parseLaunch({
-        'family': 'small',
-        'target': 'settings',
-        'focus': 'x',
-        'kind': 'y',
-      })!;
+      final bad = HomeWidgetBridge.parseLaunch(
+          {'family': 'small', 'target': 'settings', 'focus': 'x', 'kind': 'y'})!;
       expect((bad.target, bad.focus, bad.kind), ('', '', ''));
-      final odd = HomeWidgetBridge.parseLaunch({
-        'family': 'small',
-        'target': 'chat',
-        'focus': '../x',
-        'kind': 'hack',
-      })!;
+      final odd = HomeWidgetBridge.parseLaunch(
+          {'family': 'small', 'target': 'chat', 'focus': '../x', 'kind': 'hack'})!;
       expect((odd.target, odd.focus, odd.kind), ('chat', '', ''));
     });
 
@@ -495,30 +308,18 @@ void main() {
       const channel = MethodChannel('dear_embeiu/widget');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
-            if (call.method == 'consumeLaunch') {
-              return {
-                'family': 'small',
-                'target': 'chat',
-                'focus': '',
-                'kind': 'message',
-              };
-            }
-            return null;
-          });
+        if (call.method == 'consumeLaunch') {
+          return {'family': 'small', 'target': 'chat', 'focus': '', 'kind': 'message'};
+        }
+        return null;
+      });
       NotificationTapRouter.consumeHomeTabRequest();
       await HomeWidgetBridge.consumeLaunch();
       expect(NotificationTapRouter.pendingHomeTab.value, 1);
       NotificationTapRouter.consumeHomeTabRequest();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-            channel,
-            (call) async => {
-              'family': 'medium',
-              'target': 'home',
-              'focus': 'daily_question',
-              'kind': 'question_partner',
-            },
-          );
+          .setMockMethodCallHandler(channel, (call) async =>
+              {'family': 'medium', 'target': 'home', 'focus': 'daily_question', 'kind': 'question_partner'});
       await HomeWidgetBridge.consumeLaunch();
       expect(NotificationTapRouter.pendingHomeTab.value, 0);
       expect(NotificationTapRouter.pendingHomeFocus.value, 'daily_question');
@@ -527,18 +328,17 @@ void main() {
     });
   });
 
-  testWidgets('pushStatus: last of a burst, an unchanged line is not re-sent', (
-    tester,
-  ) async {
+  testWidgets('pushStatus: last of a burst, an unchanged line is not re-sent',
+      (tester) async {
     const channel = MethodChannel('dear_embeiu/widget');
     final sent = <Map<String, String>>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-          if (call.method == 'updateStatus') {
-            sent.add(Map<String, String>.from(call.arguments as Map));
-          }
-          return null;
-        });
+      if (call.method == 'updateStatus') {
+        sent.add(Map<String, String>.from(call.arguments as Map));
+      }
+      return null;
+    });
     HomeWidgetBridge.resetForTest();
     final a = HomeWidgetStatus.none(now);
     final b = {...a, 'statusKind': 'message', 'statusText': 'x'};

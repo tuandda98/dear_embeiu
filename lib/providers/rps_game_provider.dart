@@ -1108,11 +1108,8 @@ class RpsGameProvider extends ChangeNotifier {
     }
     _setBusy(true);
     try {
-      final ok = await _service.cancel(
-        coupleId: coupleId,
-        gameId: gameId,
-        uid: me,
-      );
+      final ok =
+          await _service.cancel(coupleId: coupleId, gameId: gameId, uid: me);
       if (ok) {
         AnalyticsService.instance.logRpsCancelled();
       }

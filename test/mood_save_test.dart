@@ -47,24 +47,24 @@ MoodProvider _provider(_Service service) =>
 
 Widget _app(MoodProvider mood, {TargetPlatform? platform}) =>
     ChangeNotifierProvider<MoodProvider>.value(
-      value: mood,
-      child: MaterialApp(
-        theme: AppTheme.lightTheme.copyWith(platform: platform),
-        locale: const Locale('vi'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Builder(
-            builder: (c) => Center(
-              child: TextButton(
-                onPressed: () => showMoodPicker(c),
-                child: const Text('open'),
-              ),
-            ),
+  value: mood,
+  child: MaterialApp(
+    theme: AppTheme.lightTheme.copyWith(platform: platform),
+    locale: const Locale('vi'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Builder(
+        builder: (c) => Center(
+          child: TextButton(
+            onPressed: () => showMoodPicker(c),
+            child: const Text('open'),
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
 
 Future<void> _pickAndSave(WidgetTester tester, {bool twice = false}) async {
   await tester.tap(find.text('open'));
@@ -191,8 +191,10 @@ void main() {
           );
 
       /// [note] with [insert] typed / pasted at [cursor].
-      TextEditingValue insert(String note, int cursor, String insert) =>
-          at(note.replaceRange(cursor, cursor, insert), cursor + insert.length);
+      TextEditingValue insert(String note, int cursor, String insert) => at(
+        note.replaceRange(cursor, cursor, insert),
+        cursor + insert.length,
+      );
 
       testWidgets('$platform: a full note refuses text at the start, in the '
           'middle and at the end', (tester) async {

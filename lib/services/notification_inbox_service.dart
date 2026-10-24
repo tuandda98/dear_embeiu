@@ -17,7 +17,7 @@ import 'firebase_bootstrap_service.dart';
 /// network.
 class NotificationInboxService {
   NotificationInboxService({FirebaseFirestore? firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore? _firestore;
 

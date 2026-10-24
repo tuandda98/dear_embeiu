@@ -1506,16 +1506,12 @@ class _ManualSheetState extends State<_ManualSheet> {
                 DecisionLengthFormatter(kDecisionResultMax),
               ],
               buildCounter:
-                  (
-                    _, {
-                    required currentLength,
-                    required isFocused,
-                    maxLength,
-                  }) => decisionLengthCounter(
-                    _text.text,
-                    kDecisionResultMax,
-                    left: kDecisionResultMax,
-                  ),
+                  (_, {required currentLength, required isFocused, maxLength}) =>
+                      decisionLengthCounter(
+                        _text.text,
+                        kDecisionResultMax,
+                        left: kDecisionResultMax,
+                      ),
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.done,
               onChanged: (_) => setState(() {}),

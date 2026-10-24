@@ -9,8 +9,7 @@ import 'package:dear_embeiu/services/push_notification_service.dart';
 import 'package:dear_embeiu/services/reminder_service.dart';
 import 'package:dear_embeiu/services/weather_service.dart';
 import 'package:dear_embeiu/utils/weather_logic.dart';
-import 'package:dear_embeiu/widgets/weather/weather_card.dart'
-    show weatherPlaceFailed;
+import 'package:dear_embeiu/widgets/weather/weather_card.dart' show weatherPlaceFailed;
 import 'package:flutter/material.dart';
 
 import 'weather_fakes.dart';
@@ -146,45 +145,37 @@ void main() {
 
   // ── CH-22 ────────────────────────────────────────────────────────────────
 
-  test(
-    'CH-22: a refused write returns false (the picker then logs nothing)',
-    () async {
-      p.watchForCouple('c1', 'me', 'her');
-      svc.choices.add({});
-      await settle();
-      svc.refuseWrites = true;
-      expect(await p.setMyCity('vn-hue'), isFalse);
-      expect(await p.setPartnerCity('vn-hue'), isFalse);
-      expect(svc.writes, isEmpty);
-    },
-  );
+  test('CH-22: a refused write returns false (the picker then logs nothing)', () async {
+    p.watchForCouple('c1', 'me', 'her');
+    svc.choices.add({});
+    await settle();
+    svc.refuseWrites = true;
+    expect(await p.setMyCity('vn-hue'), isFalse);
+    expect(await p.setPartnerCity('vn-hue'), isFalse);
+    expect(svc.writes, isEmpty);
+  });
 
   // ── FE-06 ────────────────────────────────────────────────────────────────
 
-  test(
-    'FE-06: a callable that fails (timeout included) ends in the error state',
-    () async {
-      final failing = _ThrowingService(TimeoutException('15 s'));
-      p.dispose();
-      p = make(failing);
-      p.watchForCouple('c1', 'me', '');
-      failing.choices.add({'me': choice('me', 'vn-ha-noi')});
-      await settle();
-      await settle();
-      expect(p.isRefreshing, isFalse);
-      expect(p.lastRefreshFailed, isTrue);
-      expect(weatherPlaceFailed(p.myPlace!), isTrue);
-      // No hammering: next automatic call waits retryAfterError (3 min).
-      now = t0.add(const Duration(minutes: 1));
-      await p.refresh();
-      expect(failing.calls.length, 1);
-      now = t0.add(
-        WeatherProvider.retryAfterError + const Duration(seconds: 1),
-      );
-      await p.refresh();
-      expect(failing.calls.length, 2);
-    },
-  );
+  test('FE-06: a callable that fails (timeout included) ends in the error state', () async {
+    final failing = _ThrowingService(TimeoutException('15 s'));
+    p.dispose();
+    p = make(failing);
+    p.watchForCouple('c1', 'me', '');
+    failing.choices.add({'me': choice('me', 'vn-ha-noi')});
+    await settle();
+    await settle();
+    expect(p.isRefreshing, isFalse);
+    expect(p.lastRefreshFailed, isTrue);
+    expect(weatherPlaceFailed(p.myPlace!), isTrue);
+    // No hammering: next automatic call waits retryAfterError (3 min).
+    now = t0.add(const Duration(minutes: 1));
+    await p.refresh();
+    expect(failing.calls.length, 1);
+    now = t0.add(WeatherProvider.retryAfterError + const Duration(seconds: 1));
+    await p.refresh();
+    expect(failing.calls.length, 2);
+  });
 
   // ── FE-07 ────────────────────────────────────────────────────────────────
 
@@ -229,25 +220,22 @@ void main() {
 
   // ── FE-08 ────────────────────────────────────────────────────────────────
 
-  test(
-    'FE-08: onResume refreshes only once the copy is 30 minutes old',
-    () async {
-      svc.server = {'vn-ha-noi': forecast(t0)};
-      p.watchForCouple('c1', 'me', '');
-      svc.choices.add({'me': choice('me', 'vn-ha-noi')});
-      await settle();
-      await settle();
-      expect(svc.calls.length, 1);
+  test('FE-08: onResume refreshes only once the copy is 30 minutes old', () async {
+    svc.server = {'vn-ha-noi': forecast(t0)};
+    p.watchForCouple('c1', 'me', '');
+    svc.choices.add({'me': choice('me', 'vn-ha-noi')});
+    await settle();
+    await settle();
+    expect(svc.calls.length, 1);
 
-      now = t0.add(const Duration(minutes: 29));
-      await p.onResume();
-      expect(svc.calls.length, 1, reason: 'back from a short break');
+    now = t0.add(const Duration(minutes: 29));
+    await p.onResume();
+    expect(svc.calls.length, 1, reason: 'back from a short break');
 
-      now = t0.add(const Duration(minutes: 31));
-      await p.onResume();
-      expect(svc.calls.length, 2, reason: 'app was in the background > 30 min');
-    },
-  );
+    now = t0.add(const Duration(minutes: 31));
+    await p.onResume();
+    expect(svc.calls.length, 2, reason: 'app was in the background > 30 min');
+  });
 
   // ── NT-17 / LV-03 ────────────────────────────────────────────────────────
 
@@ -286,62 +274,53 @@ void main() {
     expect(armed, hasLength(1));
   }
 
-  test(
-    'NT-17: the partner leaves while the app runs → 1160 cancelled, lane gone',
-    () async {
-      await armedPair();
-      final before = cancels;
-      p.watchForCouple('c1', 'me', ''); // memberIds shrank to me
-      await settle();
-      await settle();
-      expect(cancels, greaterThan(before));
-      expect(armed, hasLength(1), reason: 'nothing new armed');
-      expect(p.isPaired, isFalse);
-    },
-  );
+  test('NT-17: the partner leaves while the app runs → 1160 cancelled, lane gone', () async {
+    await armedPair();
+    final before = cancels;
+    p.watchForCouple('c1', 'me', ''); // memberIds shrank to me
+    await settle();
+    await settle();
+    expect(cancels, greaterThan(before));
+    expect(armed, hasLength(1), reason: 'nothing new armed');
+    expect(p.isPaired, isFalse);
+  });
 
-  test(
-    'NT-17: clear() (no couple any more) cancels 1160 without wiping the cache',
-    () async {
-      await armedPair();
-      final before = cancels;
-      p.clear(); // left / no couple, not a sign-out
-      await settle();
-      expect(cancels, greaterThan(before));
-      expect(svc.cacheCleared, isFalse);
-    },
-  );
+  test('NT-17: clear() (no couple any more) cancels 1160 without wiping the cache', () async {
+    await armedPair();
+    final before = cancels;
+    p.clear(); // left / no couple, not a sign-out
+    await settle();
+    expect(cancels, greaterThan(before));
+    expect(svc.cacheCleared, isFalse);
+  });
 
-  test(
-    'LV-03: after the partner left the card is the waiting one (my lane only)',
-    () async {
-      now = t0;
-      svc.server = {
-        'vn-ha-noi': forecast(t0),
-        'vn-tp-hcm': forecast(t0, symbol: 'rain'),
-      };
-      p.watchForCouple('c1', 'me', 'her');
-      svc.choices.add({
-        'me': choice('me', 'vn-ha-noi'),
-        'her': choice('her', 'vn-tp-hcm'),
-      });
-      await settle();
-      await settle();
-      expect(p.isPaired, isTrue);
-      expect(p.partnerPlace, isNotNull);
+  test('LV-03: after the partner left the card is the waiting one (my lane only)', () async {
+    now = t0;
+    svc.server = {
+      'vn-ha-noi': forecast(t0),
+      'vn-tp-hcm': forecast(t0, symbol: 'rain'),
+    };
+    p.watchForCouple('c1', 'me', 'her');
+    svc.choices.add({
+      'me': choice('me', 'vn-ha-noi'),
+      'her': choice('her', 'vn-tp-hcm'),
+    });
+    await settle();
+    await settle();
+    expect(p.isPaired, isTrue);
+    expect(p.partnerPlace, isNotNull);
 
-      p.watchForCouple('c1', 'me', '');
-      svc.choices.add({'me': choice('me', 'vn-ha-noi')}); // CF deleted her doc
-      await settle();
-      expect(p.isPaired, isFalse);
-      expect(p.partnerChoice, isNull);
-      expect(p.partnerCity, isNull);
-      expect(p.partnerPlace, isNull);
-      expect(p.sharedRow, WeatherSharedRow.none);
-      expect(p.myPlace, isNotNull, reason: 'my own lane stays');
-      expect(p.canPickForPartner, isFalse);
-    },
-  );
+    p.watchForCouple('c1', 'me', '');
+    svc.choices.add({'me': choice('me', 'vn-ha-noi')}); // CF deleted her doc
+    await settle();
+    expect(p.isPaired, isFalse);
+    expect(p.partnerChoice, isNull);
+    expect(p.partnerCity, isNull);
+    expect(p.partnerPlace, isNull);
+    expect(p.sharedRow, WeatherSharedRow.none);
+    expect(p.myPlace, isNotNull, reason: 'my own lane stays');
+    expect(p.canPickForPartner, isFalse);
+  });
 
   // ── LG-02 ────────────────────────────────────────────────────────────────
 
@@ -368,10 +347,7 @@ void main() {
     NotificationTapRouter.pendingHomeTab.value = -1;
     ReminderService.pendingWeatherTap.value = null;
     expect(ReminderService.routeWeatherTap(null), isFalse);
-    expect(
-      ReminderService.routeWeatherTap('{"type":"daily_question"}'),
-      isFalse,
-    );
+    expect(ReminderService.routeWeatherTap('{"type":"daily_question"}'), isFalse);
     expect(ReminderService.pendingWeatherTap.value, isNull);
 
     const broken = '{"type":"weather_morning","city":"nowhere"';

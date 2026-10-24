@@ -21,9 +21,11 @@ class ShimmerSkeleton extends StatelessWidget {
   /// Handy as an image-loading placeholder inside a clipped box
   /// ([ClipRRect] / [ClipOval] / [AspectRatio]) where the parent already
   /// enforces the shape, so the corner radius can stay flat.
-  const ShimmerSkeleton.fill({super.key, this.borderRadius = 0})
-    : width = null,
-      height = null;
+  const ShimmerSkeleton.fill({
+    super.key,
+    this.borderRadius = 0,
+  })  : width = null,
+        height = null;
 
   /// Box width. Null lets it expand to the parent's constraints.
   final double? width;

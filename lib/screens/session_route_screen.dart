@@ -120,7 +120,11 @@ class _SessionRouteScreenState extends State<SessionRouteScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.favorite, size: 80, color: AppColors.white),
+        const Icon(
+          Icons.favorite,
+          size: 80,
+          color: AppColors.white,
+        ),
         const SizedBox(height: 20),
         Text(
           l10n.splashTagline,
@@ -140,7 +144,9 @@ class _SessionRouteScreenState extends State<SessionRouteScreen> {
           ),
         ),
         const SizedBox(height: 40),
-        const CircularProgressIndicator(color: AppColors.white),
+        const CircularProgressIndicator(
+          color: AppColors.white,
+        ),
       ],
     );
   }

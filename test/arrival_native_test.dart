@@ -78,92 +78,79 @@ void main() {
       return s;
     }
 
-    test(
-      'reports through the edge filter, battery clamped, at = OS time',
-      () async {
-        final s = await ready();
-        final g = _Geofence();
-        final at = DateTime(2026, 10, 20, 22, 58);
-        await handleArrivalGeofenceEvent(
-          slots: ['home', 'p9'],
-          type: ArrivalEventType.enter,
-          at: at,
-          service: s,
-          battery: _Battery(),
-          geofence: g,
-        );
-        expect(s.events.single.source, ArrivalEventSource.auto);
-        expect(s.events.single.at, at);
-        expect(s.events.single.battery, 100);
-        // iOS fires the first event twice after a reboot: dropped (D6).
-        await handleArrivalGeofenceEvent(
-          slots: ['home'],
-          type: ArrivalEventType.enter,
-          at: at,
-          service: s,
-          battery: _Battery(),
-          geofence: g,
-        );
-        expect(s.events, hasLength(1));
-        expect(g.stops, 0);
-      },
-    );
+    test('reports through the edge filter, battery clamped, at = OS time', () async {
+      final s = await ready();
+      final g = _Geofence();
+      final at = DateTime(2026, 10, 20, 22, 58);
+      await handleArrivalGeofenceEvent(
+        slots: ['home', 'p9'],
+        type: ArrivalEventType.enter,
+        at: at,
+        service: s,
+        battery: _Battery(),
+        geofence: g,
+      );
+      expect(s.events.single.source, ArrivalEventSource.auto);
+      expect(s.events.single.at, at);
+      expect(s.events.single.battery, 100);
+      // iOS fires the first event twice after a reboot: dropped (D6).
+      await handleArrivalGeofenceEvent(
+        slots: ['home'],
+        type: ArrivalEventType.enter,
+        at: at,
+        service: s,
+        battery: _Battery(),
+        geofence: g,
+      );
+      expect(s.events, hasLength(1));
+      expect(g.stops, 0);
+    });
 
-    test(
-      'no session / auto off / permission-denied → every region stops',
-      () async {
-        final g = _Geofence();
-        Future<void> fire(ArrivalService s) => handleArrivalGeofenceEvent(
-          slots: ['home'],
-          type: ArrivalEventType.enter,
-          at: DateTime.now(),
-          service: s,
-          battery: _Battery(),
-          geofence: g,
-        );
-        await fire(_Service());
-        expect(g.stops, 1);
-        await fire(await ready(wantsAuto: false));
-        expect(g.stops, 2);
-        final denied = await ready();
-        denied.error = FirebaseException(
-          plugin: 'cloud_firestore',
-          code: 'permission-denied',
-        );
-        await fire(denied);
-        expect(g.stops, 3);
-        expect(await denied.loadWantsAuto('u'), isFalse);
-      },
-    );
+    test('no session / auto off / permission-denied → every region stops', () async {
+      final g = _Geofence();
+      Future<void> fire(ArrivalService s) => handleArrivalGeofenceEvent(
+        slots: ['home'],
+        type: ArrivalEventType.enter,
+        at: DateTime.now(),
+        service: s,
+        battery: _Battery(),
+        geofence: g,
+      );
+      await fire(_Service());
+      expect(g.stops, 1);
+      await fire(await ready(wantsAuto: false));
+      expect(g.stops, 2);
+      final denied = await ready();
+      denied.error = FirebaseException(
+        plugin: 'cloud_firestore',
+        code: 'permission-denied',
+      );
+      await fire(denied);
+      expect(g.stops, 3);
+      expect(await denied.loadWantsAuto('u'), isFalse);
+    });
 
-    test(
-      'doc gone (partner changed, D10) → stop + "Tự báo" forgotten',
-      () async {
-        final s = await ready();
-        s.error = FirebaseException(
-          plugin: 'cloud_firestore',
-          code: 'not-found',
-        );
-        final g = _Geofence();
-        await handleArrivalGeofenceEvent(
-          slots: ['home'],
-          type: ArrivalEventType.enter,
-          at: DateTime.now(),
-          service: s,
-          battery: _Battery(),
-          geofence: g,
-        );
-        expect(s.events.single.source, ArrivalEventSource.auto); // tried once
-        expect(g.stops, 1);
-        expect(await s.loadWantsAuto('u'), isFalse);
-        // A failed write leaves the in/out state alone (no "already inside").
-        expect((await s.loadEdge('u', 'home')).inside, isNull);
-      },
-    );
+    test('doc gone (partner changed, D10) → stop + "Tự báo" forgotten', () async {
+      final s = await ready();
+      s.error = FirebaseException(plugin: 'cloud_firestore', code: 'not-found');
+      final g = _Geofence();
+      await handleArrivalGeofenceEvent(
+        slots: ['home'],
+        type: ArrivalEventType.enter,
+        at: DateTime.now(),
+        service: s,
+        battery: _Battery(),
+        geofence: g,
+      );
+      expect(s.events.single.source, ArrivalEventSource.auto); // tried once
+      expect(g.stops, 1);
+      expect(await s.loadWantsAuto('u'), isFalse);
+      // A failed write leaves the in/out state alone (no "already inside").
+      expect((await s.loadEdge('u', 'home')).inside, isNull);
+    });
 
     test('remote switch off (D13) → stop, nothing sent', () async {
-      final s = await ready()
-        ..remoteAuto = false;
+      final s = await ready()..remoteAuto = false;
       final g = _Geofence();
       await handleArrivalGeofenceEvent(
         slots: ['home'],
@@ -233,11 +220,7 @@ void main() {
 
     test('no app isolate → the background isolate handles it', () async {
       expect(
-        await ArrivalBackgroundBridge.forward(
-          ['home'],
-          ArrivalEventType.enter,
-          DateTime.now(),
-        ),
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.enter, DateTime.now()),
         isFalse,
       );
     });
@@ -245,11 +228,7 @@ void main() {
     test('live app isolate takes it, exactly once', () async {
       ArrivalBackgroundBridge.listen(_Geofence());
       expect(
-        await ArrivalBackgroundBridge.forward(
-          ['home'],
-          ArrivalEventType.enter,
-          DateTime.now(),
-        ),
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.enter, DateTime.now()),
         isTrue,
       );
       expect(handled, ['home enter']);
@@ -260,9 +239,7 @@ void main() {
       final reply = ReceivePort();
       final got = <Object?>[];
       reply.listen(got.add);
-      IsolateNameServer.lookupPortByName(
-        ArrivalBackgroundBridge.portName,
-      )!.send([
+      IsolateNameServer.lookupPortByName(ArrivalBackgroundBridge.portName)!.send([
         ['home'],
         'enter',
         DateTime.now().millisecondsSinceEpoch,
@@ -275,55 +252,30 @@ void main() {
       reply.close();
     });
 
-    test(
-      'stale name: falls back after 2 s, keeps the name; resume re-claims it',
-      () async {
-        final dead = ReceivePort()..close();
-        IsolateNameServer.registerPortWithName(
-          dead.sendPort,
-          ArrivalBackgroundBridge.portName,
-        );
-        expect(
-          await ArrivalBackgroundBridge.forward(
-            ['home'],
-            ArrivalEventType.exit,
-            DateTime.now(),
-          ),
-          isFalse,
-        );
-        expect(
-          IsolateNameServer.lookupPortByName(ArrivalBackgroundBridge.portName),
-          dead.sendPort,
-        );
-        ArrivalBackgroundBridge.listen(_Geofence());
-        expect(
-          await ArrivalBackgroundBridge.forward(
-            ['home'],
-            ArrivalEventType.exit,
-            DateTime.now(),
-          ),
-          isTrue,
-        );
-        expect(handled, ['home exit']);
-      },
-    );
+    test('stale name: falls back after 2 s, keeps the name; resume re-claims it', () async {
+      final dead = ReceivePort()..close();
+      IsolateNameServer.registerPortWithName(dead.sendPort, ArrivalBackgroundBridge.portName);
+      expect(
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.exit, DateTime.now()),
+        isFalse,
+      );
+      expect(IsolateNameServer.lookupPortByName(ArrivalBackgroundBridge.portName), dead.sendPort);
+      ArrivalBackgroundBridge.listen(_Geofence());
+      expect(
+        await ArrivalBackgroundBridge.forward(['home'], ArrivalEventType.exit, DateTime.now()),
+        isTrue,
+      );
+      expect(handled, ['home exit']);
+    });
   });
 
   test('Android backups skip the plugin\'s region cache (lat/lng, D2)', () {
-    final backup = File(
-      'android/app/src/main/res/xml/backup_rules.xml',
-    ).readAsStringSync();
-    final extraction = File(
-      'android/app/src/main/res/xml/data_extraction_rules.xml',
-    ).readAsStringSync();
-    const rule =
-        '<exclude domain="sharedpref" path="native_geofence_plugin_cache.xml" />';
+    final backup = File('android/app/src/main/res/xml/backup_rules.xml').readAsStringSync();
+    final extraction = File('android/app/src/main/res/xml/data_extraction_rules.xml').readAsStringSync();
+    const rule = '<exclude domain="sharedpref" path="native_geofence_plugin_cache.xml" />';
     expect(RegExp(RegExp.escape(rule)).allMatches(backup), hasLength(1));
     for (final block in ['cloud-backup', 'device-transfer']) {
-      final body = RegExp(
-        '<$block>(.*?)</$block>',
-        dotAll: true,
-      ).firstMatch(extraction)![1]!;
+      final body = RegExp('<$block>(.*?)</$block>', dotAll: true).firstMatch(extraction)![1]!;
       expect(body, contains(rule), reason: block);
       expect(body, contains('app_flutter/arrival_nobackup/'), reason: block);
     }

@@ -13,30 +13,29 @@ void main() {
     required DateTime anchor,
     DateTime? now,
     bool shared = false,
-  }) => ReminderService.inviteFollowUpSlots(
-    anchor: anchor,
-    now: now ?? anchor,
-    shared: shared,
-  ).map((s) => s.when).toList();
+  }) =>
+      ReminderService.inviteFollowUpSlots(
+        anchor: anchor,
+        now: now ?? anchor,
+        shared: shared,
+      ).map((s) => s.when).toList();
 
-  test(
-    'created 14:00 Monday, code not sent → 16:00 Mon, 10:00 Tue, 14:00 Thu',
-    () {
-      expect(monday14.weekday, DateTime.monday);
-      final slots = ReminderService.inviteFollowUpSlots(
-        anchor: monday14,
-        now: monday14,
-        shared: false,
-      );
-      expect(slots.map((s) => s.when).toList(), [
-        DateTime(2026, 10, 12, 16),
-        DateTime(2026, 10, 13, 10),
-        DateTime(2026, 10, 15, 14),
-      ]);
-      // Fixed ids: markInviteShared cancels exactly the +2h one (1180).
-      expect(slots.map((s) => s.kind.id).toList(), [1180, 1181, 1182]);
-    },
-  );
+  test('created 14:00 Monday, code not sent → 16:00 Mon, 10:00 Tue, 14:00 Thu',
+      () {
+    expect(monday14.weekday, DateTime.monday);
+    final slots = ReminderService.inviteFollowUpSlots(
+      anchor: monday14,
+      now: monday14,
+      shared: false,
+    );
+    expect(slots.map((s) => s.when).toList(), [
+      DateTime(2026, 10, 12, 16),
+      DateTime(2026, 10, 13, 10),
+      DateTime(2026, 10, 15, 14),
+    ]);
+    // Fixed ids: markInviteShared cancels exactly the +2h one (1180).
+    expect(slots.map((s) => s.kind.id).toList(), [1180, 1181, 1182]);
+  });
 
   test('code already sent → no 16:00 nudge', () {
     expect(times(anchor: monday14, shared: true), [
@@ -46,15 +45,18 @@ void main() {
   });
 
   test('slots already in the past are dropped', () {
-    expect(times(anchor: monday14, now: DateTime(2026, 10, 12, 17)), [
-      DateTime(2026, 10, 13, 10),
-      DateTime(2026, 10, 15, 14),
-    ]);
+    expect(
+      times(anchor: monday14, now: DateTime(2026, 10, 12, 17)),
+      [DateTime(2026, 10, 13, 10), DateTime(2026, 10, 15, 14)],
+    );
   });
 
   test('couple created 8 days ago → nothing, no catch-up ping', () {
     expect(
-      times(anchor: monday14.subtract(const Duration(days: 8)), now: monday14),
+      times(
+        anchor: monday14.subtract(const Duration(days: 8)),
+        now: monday14,
+      ),
       isEmpty,
     );
   });
@@ -67,16 +69,14 @@ void main() {
     ]);
   });
 
-  test(
-    'created 01:00 → the +2h slot (03:00) moves to 08:30 the same morning',
-    () {
-      expect(times(anchor: DateTime(2026, 10, 12, 1)), [
-        DateTime(2026, 10, 12, 8, 30),
-        DateTime(2026, 10, 12, 21),
-        DateTime(2026, 10, 15, 8, 30),
-      ]);
-    },
-  );
+  test('created 01:00 → the +2h slot (03:00) moves to 08:30 the same morning',
+      () {
+    expect(times(anchor: DateTime(2026, 10, 12, 1)), [
+      DateTime(2026, 10, 12, 8, 30),
+      DateTime(2026, 10, 12, 21),
+      DateTime(2026, 10, 15, 8, 30),
+    ]);
+  });
 
   test('a night slot still pending after its raw time keeps its 08:30', () {
     // +2h was 23:00; opened at 23:30 → it now fires at 08:30, not dropped.

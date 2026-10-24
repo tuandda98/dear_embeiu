@@ -79,13 +79,11 @@ class InviteActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final iconColor = onDark
-        ? AppColors.white.withValues(alpha: 0.90)
-        : AppColors.accentRose;
+    final iconColor =
+        onDark ? AppColors.white.withValues(alpha: 0.90) : AppColors.accentRose;
     // Navy label on the light variant: rose on rose .12 was only 2.8:1.
-    final labelColor = onDark
-        ? AppColors.white.withValues(alpha: 0.90)
-        : AppColors.textPrimary;
+    final labelColor =
+        onDark ? AppColors.white.withValues(alpha: 0.90) : AppColors.textPrimary;
     final pillColor = onDark
         ? AppColors.white.withValues(alpha: 0.18)
         : AppColors.accentRose.withValues(alpha: 0.12);
@@ -94,16 +92,16 @@ class InviteActionButtons extends StatelessWidget {
         : AppColors.accentRose.withValues(alpha: 0.08);
 
     Widget pill(IconData icon, String label, VoidCallback onTap) => _Pill(
-      icon: icon,
-      label: label,
-      iconOnly: iconOnly,
-      iconColor: iconColor,
-      labelColor: labelColor,
-      pillColor: pillColor,
-      rippleColor: rippleColor,
-      fontWeight: onDark ? FontWeight.w600 : FontWeight.w700,
-      onTap: onTap,
-    );
+          icon: icon,
+          label: label,
+          iconOnly: iconOnly,
+          iconColor: iconColor,
+          labelColor: labelColor,
+          pillColor: pillColor,
+          rippleColor: rippleColor,
+          fontWeight: onDark ? FontWeight.w600 : FontWeight.w700,
+          onTap: onTap,
+        );
 
     return Wrap(
       spacing: 8,

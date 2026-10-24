@@ -39,12 +39,9 @@ void main() {
     'HP': 'hai phong',
   };
 
-  List<List<String>> rows(String file) =>
-      File('project/features/arrival/spike-data/$file')
-          .readAsLinesSync()
-          .where((l) => l.trim().isNotEmpty)
-          .map((l) => l.split('\t'))
-          .toList();
+  List<List<String>> rows(String file) => File(
+    'project/features/arrival/spike-data/$file',
+  ).readAsLinesSync().where((l) => l.trim().isNotEmpty).map((l) => l.split('\t')).toList();
 
   group('shortenArrivalPlaceQuery — spike table', () {
     for (final r in rows('addrs.tsv')) {
@@ -58,8 +55,7 @@ void main() {
     }
     test('alley probes send the alley mouth, flagged approximate', () {
       final out = {
-        for (final r in rows('probes.tsv'))
-          r[0]: shortenArrivalPlaceQuery(r[3]),
+        for (final r in rows('probes.tsv')) r[0]: shortenArrivalPlaceQuery(r[3]),
       };
       expect(out['P1']!.text, '45 Lê Văn Sỹ, TP.HCM');
       expect(out['P2']!.text, '45 Lê Văn Sỹ, TP.HCM');
@@ -77,32 +73,16 @@ void main() {
     });
     test('trailing country, prefixes, short forms', () {
       expect(
-        shortenArrivalPlaceQuery(
-          '1 Đại Cồ Việt, Phường Bạch Mai, Thành phố Hà Nội, Việt Nam',
-        ).text,
+        shortenArrivalPlaceQuery('1 Đại Cồ Việt, Phường Bạch Mai, Thành phố Hà Nội, Việt Nam').text,
         '1 Đại Cồ Việt, Thành phố Hà Nội',
       );
-      expect(
-        shortenArrivalPlaceQuery('5 Lê Lợi, Q.1, TPHCM').province,
-        'ho chi minh',
-      );
-      expect(
-        shortenArrivalPlaceQuery('5 Lê Lợi, Q1, Sài Gòn').text,
-        '5 Lê Lợi, Sài Gòn',
-      );
-      expect(
-        shortenArrivalPlaceQuery('Chung cư A, 12 Nguyễn Trãi, Hà Nội').text,
-        '12 Nguyễn Trãi, Hà Nội',
-      );
-      expect(
-        shortenArrivalPlaceQuery('Hẻm 45/12/3 Lê Văn Sỹ, TP.HCM').text,
-        '45 Lê Văn Sỹ, TP.HCM',
-      );
+      expect(shortenArrivalPlaceQuery('5 Lê Lợi, Q.1, TPHCM').province, 'ho chi minh');
+      expect(shortenArrivalPlaceQuery('5 Lê Lợi, Q1, Sài Gòn').text, '5 Lê Lợi, Sài Gòn');
+      expect(shortenArrivalPlaceQuery('Chung cư A, 12 Nguyễn Trãi, Hà Nội').text,
+          '12 Nguyễn Trãi, Hà Nội');
+      expect(shortenArrivalPlaceQuery('Hẻm 45/12/3 Lê Văn Sỹ, TP.HCM').text, '45 Lê Văn Sỹ, TP.HCM');
       expect(shortenArrivalPlaceQuery('  ').text, '');
-      expect(
-        shortenArrivalPlaceQuery('Tây Ninh').province,
-        isNull,
-      ); // one part = the text
+      expect(shortenArrivalPlaceQuery('Tây Ninh').province, isNull); // one part = the text
       expect(arrivalProvinceOf('Tây Ninh'), 'tay ninh');
       expect(arrivalProvinceOf('Bình Dương'), 'ho chi minh'); // merged 2025
     });
@@ -111,44 +91,17 @@ void main() {
   group('arrivalResultInProvince', () {
     test('wrong province dropped, merged / unnamed / street-named kept', () {
       // Spike #1 full query went to Ninh Bình.
+      expect(arrivalResultInProvince('78 Giải Phóng, P. Đông A, Ninh Bình, Việt Nam', 'ha noi'), isFalse);
       expect(
-        arrivalResultInProvince(
-          '78 Giải Phóng, P. Đông A, Ninh Bình, Việt Nam',
-          'ha noi',
-        ),
-        isFalse,
-      );
-      expect(
-        arrivalResultInProvince(
-          '78 Ngõ 75 Giải Phóng, P. Bạch Mai, Thành Phố Hà Nội, Việt Nam',
-          'ha noi',
-        ),
+        arrivalResultInProvince('78 Ngõ 75 Giải Phóng, P. Bạch Mai, Thành Phố Hà Nội, Việt Nam', 'ha noi'),
         isTrue,
       );
-      expect(
-        arrivalResultInProvince(
-          '124 Hải Phòng, P. Hải Châu, Đà Nẵng',
-          'da nang',
-        ),
-        isTrue,
-      );
-      expect(
-        arrivalResultInProvince('Dĩ An, Bình Dương', 'ho chi minh'),
-        isTrue,
-      );
-      expect(
-        arrivalResultInProvince(
-          '135 Nam Kỳ Khởi Nghĩa, Vũng Tàu',
-          'ho chi minh',
-        ),
-        isTrue,
-      );
+      expect(arrivalResultInProvince('124 Hải Phòng, P. Hải Châu, Đà Nẵng', 'da nang'), isTrue);
+      expect(arrivalResultInProvince('Dĩ An, Bình Dương', 'ho chi minh'), isTrue);
+      expect(arrivalResultInProvince('135 Nam Kỳ Khởi Nghĩa, Vũng Tàu', 'ho chi minh'), isTrue);
       expect(arrivalResultInProvince('12 Lê Lợi', 'hue'), isTrue);
       expect(arrivalResultInProvince('Anywhere, Hà Nội', null), isTrue);
-      expect(
-        arrivalResultInProvince('1 Main St, Hanoi, Vietnam', 'ha noi'),
-        isTrue,
-      );
+      expect(arrivalResultInProvince('1 Main St, Hanoi, Vietnam', 'ha noi'), isTrue);
     });
     test('foldVi', () {
       expect(foldVi('Thành Phố Hồ Chí Minh'), 'thanh pho ho chi minh');

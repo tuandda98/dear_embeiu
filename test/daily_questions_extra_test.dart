@@ -96,15 +96,13 @@ void main() {
       }
     });
 
-    test(
-      'merged bank keeps the original entries at their original indices',
-      () {
-        final merged = [...dailyQuestions, ...dailyQuestionsExtra];
-        expect(merged.length, dailyQuestions.length + 150);
-        for (var i = 0; i < dailyQuestions.length; i++) {
-          expect(merged[i], same(dailyQuestions[i]));
-        }
-      },
-    );
+    test('merged bank keeps the original entries at their original indices',
+        () {
+      final merged = [...dailyQuestions, ...dailyQuestionsExtra];
+      expect(merged.length, dailyQuestions.length + 150);
+      for (var i = 0; i < dailyQuestions.length; i++) {
+        expect(merged[i], same(dailyQuestions[i]));
+      }
+    });
   });
 }

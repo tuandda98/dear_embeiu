@@ -76,7 +76,8 @@ class AppTheme {
         borderRadius: BorderRadius.circular(20),
         borderSide: const BorderSide(color: AppColors.accentLove, width: 1.4),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -132,7 +133,9 @@ class AppTheme {
         color: AppColors.white,
       ),
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
     ),
   );
 
@@ -360,7 +363,10 @@ class AppTheme {
       height: 1,
       letterSpacing: -1.6,
       shadows: [
-        Shadow(color: Colors.white.withValues(alpha: 0.45), blurRadius: 28),
+        Shadow(
+          color: Colors.white.withValues(alpha: 0.45),
+          blurRadius: 28,
+        ),
       ],
     );
   }

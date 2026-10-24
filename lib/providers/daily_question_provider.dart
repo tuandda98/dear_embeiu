@@ -14,8 +14,8 @@ import '../services/question_engine.dart';
 /// UI can simply read [hasRevealed]).
 class DailyQuestionProvider extends ChangeNotifier {
   DailyQuestionProvider({DailyQuestionService? service, QuestionEngine? engine})
-    : _service = service ?? DailyQuestionService(),
-      _engine = engine ?? QuestionEngine.withDefaults();
+      : _service = service ?? DailyQuestionService(),
+        _engine = engine ?? QuestionEngine.withDefaults();
 
   final DailyQuestionService _service;
   final QuestionEngine _engine;
@@ -48,7 +48,6 @@ class DailyQuestionProvider extends ChangeNotifier {
   String _languageCode = 'vi';
   DateTime? _anniversaryDate;
   int _currentStreak = 0;
-
   /// -1 = unknown (photo list not loaded yet) so the "no photos this week"
   /// template can never fire on a guess; Home passes a real count later.
   int _photosThisWeek = -1;
@@ -310,36 +309,31 @@ class DailyQuestionProvider extends ChangeNotifier {
     _revealLogged = false;
     _markerEnsured = false;
     _subscription?.cancel();
-    _subscription = _service
-        .watchResponses(coupleId, _dateKey)
-        .listen(
-          (answers) {
-            _answers = answers;
-            _isLoading = false;
-            // Analytics — fire `daily_question_revealed` exactly once, the first
-            // time both partners have answered today (no answer content logged).
-            if (!_revealLogged && hasRevealed) {
-              _revealLogged = true;
-              AnalyticsService.instance.logDailyQuestionRevealed();
-            }
-            // Today is revealed → make sure the streak marker says so too.
-            // Fire-and-forget, no-ops when the flag is already there.
-            if (!_markerEnsured && hasRevealed) {
-              _markerEnsured = true;
-              unawaited(
-                _service.ensureRevealMarker(
-                  coupleId: coupleId,
-                  dateKey: _dateKey,
-                ),
-              );
-            }
-            notifyListeners();
-          },
-          onError: (_) {
-            _isLoading = false;
-            notifyListeners();
-          },
-        );
+    _subscription = _service.watchResponses(coupleId, _dateKey).listen(
+      (answers) {
+        _answers = answers;
+        _isLoading = false;
+        // Analytics — fire `daily_question_revealed` exactly once, the first
+        // time both partners have answered today (no answer content logged).
+        if (!_revealLogged && hasRevealed) {
+          _revealLogged = true;
+          AnalyticsService.instance.logDailyQuestionRevealed();
+        }
+        // Today is revealed → make sure the streak marker says so too.
+        // Fire-and-forget, no-ops when the flag is already there.
+        if (!_markerEnsured && hasRevealed) {
+          _markerEnsured = true;
+          unawaited(
+            _service.ensureRevealMarker(coupleId: coupleId, dateKey: _dateKey),
+          );
+        }
+        notifyListeners();
+      },
+      onError: (_) {
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
   /// Submits the current user's answer for today. Returns false when there is

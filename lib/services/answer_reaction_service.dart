@@ -15,8 +15,7 @@ import 'firebase_bootstrap_service.dart';
 /// so on the local fallback / guest path every method is a safe no-op and the
 /// watch stream emits an empty map. The UI hides the surface entirely then.
 class AnswerReactionService {
-  AnswerReactionService({FirebaseFirestore? firestore})
-    : _firestore = firestore;
+  AnswerReactionService({FirebaseFirestore? firestore}) : _firestore = firestore;
 
   final FirebaseFirestore? _firestore;
 
@@ -29,14 +28,15 @@ class AnswerReactionService {
     required String coupleId,
     required String date,
     required String answerAuthorUid,
-  }) => _db
-      .collection('couples')
-      .doc(coupleId)
-      .collection('dailyAnswers')
-      .doc(date)
-      .collection('responses')
-      .doc(answerAuthorUid)
-      .collection('answerReactions');
+  }) =>
+      _db
+          .collection('couples')
+          .doc(coupleId)
+          .collection('dailyAnswers')
+          .doc(date)
+          .collection('responses')
+          .doc(answerAuthorUid)
+          .collection('answerReactions');
 
   /// Streams every answer reaction of the couple at once, keyed by
   /// `AnswerReaction.keyFor(date, answerAuthorUid)`.
@@ -61,33 +61,33 @@ class AnswerReactionService {
         .where('coupleId', isEqualTo: coupleId)
         .snapshots()
         .map((snapshot) {
-          final byAnswer = <String, List<AnswerReaction>>{};
-          for (final doc in snapshot.docs) {
-            // answerReactions/{reactorUid}
-            //   → parent doc responses/{answerAuthorUid}
-            //     → parent doc dailyAnswers/{date}
-            final answerDoc = doc.reference.parent.parent;
-            final answerAuthorUid = answerDoc?.id;
-            final date = answerDoc?.parent.parent?.id;
-            if (answerAuthorUid == null ||
-                answerAuthorUid.isEmpty ||
-                date == null ||
-                date.isEmpty) {
-              continue;
-            }
-            final reaction = AnswerReaction.fromDoc(
-              doc.id,
-              doc.data(),
-              answerAuthorUserId: answerAuthorUid,
-              date: date,
-            );
-            if (!reaction.isValid) {
-              continue;
-            }
-            (byAnswer[reaction.key] ??= <AnswerReaction>[]).add(reaction);
-          }
-          return byAnswer;
-        });
+      final byAnswer = <String, List<AnswerReaction>>{};
+      for (final doc in snapshot.docs) {
+        // answerReactions/{reactorUid}
+        //   → parent doc responses/{answerAuthorUid}
+        //     → parent doc dailyAnswers/{date}
+        final answerDoc = doc.reference.parent.parent;
+        final answerAuthorUid = answerDoc?.id;
+        final date = answerDoc?.parent.parent?.id;
+        if (answerAuthorUid == null ||
+            answerAuthorUid.isEmpty ||
+            date == null ||
+            date.isEmpty) {
+          continue;
+        }
+        final reaction = AnswerReaction.fromDoc(
+          doc.id,
+          doc.data(),
+          answerAuthorUserId: answerAuthorUid,
+          date: date,
+        );
+        if (!reaction.isValid) {
+          continue;
+        }
+        (byAnswer[reaction.key] ??= <AnswerReaction>[]).add(reaction);
+      }
+      return byAnswer;
+    });
   }
 
   /// Creates or overwrites [uid]'s reaction on one answer (doc id == [uid]).
@@ -113,13 +113,16 @@ class AnswerReactionService {
       coupleId: coupleId,
       date: date,
       answerAuthorUid: answerAuthorUid,
-    ).doc(uid).set({
-      'reactorUserId': uid,
-      'emoji': emoji,
-      'coupleId': coupleId,
-      'date': date,
-      'reactedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    ).doc(uid).set(
+      {
+        'reactorUserId': uid,
+        'emoji': emoji,
+        'coupleId': coupleId,
+        'date': date,
+        'reactedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
   }
 
   /// Removes (deletes) [uid]'s reaction on one answer. No-ops on the local

@@ -284,38 +284,35 @@ void main() {
       expect(s.calls.length, 4);
     });
 
-    test(
-      'a failed / denied auto event leaves the in/out state alone',
-      () async {
-        final s = FakeArrivalService();
-        await s.savePlaces('u', [ArrivalPlace.home(location: _loc())]);
-        Future<ArrivalSendResult> enter() => s.reportEvent(
-          uid: 'u',
-          coupleId: 'c',
-          slot: 'home',
-          type: ArrivalEventType.enter,
-          source: ArrivalEventSource.auto,
-          auto: true,
-        );
-        s.writeError = StateError('offline-ish');
-        expect(await enter(), ArrivalSendResult.failed);
-        expect((await s.loadEdge('u', 'home')).inside, isNull);
-        s.writeError = FirebaseException(
-          plugin: 'cloud_firestore',
-          code: 'permission-denied',
-        );
-        expect(await enter(), ArrivalSendResult.denied);
-        expect((await s.loadEdge('u', 'home')).inside, isNull);
-        s.writeError = null;
-        expect(await enter(), ArrivalSendResult.sent);
-        expect((await s.loadEdge('u', 'home')).inside, isTrue);
-        s.holdWrite = Completer<void>();
-        await s.saveEdge('u', 'home', const ArrivalEdgeState(inside: false));
-        expect(await enter(), ArrivalSendResult.queued);
-        expect((await s.loadEdge('u', 'home')).inside, isTrue);
-        s.holdWrite!.complete();
-      },
-    );
+    test('a failed / denied auto event leaves the in/out state alone', () async {
+      final s = FakeArrivalService();
+      await s.savePlaces('u', [ArrivalPlace.home(location: _loc())]);
+      Future<ArrivalSendResult> enter() => s.reportEvent(
+        uid: 'u',
+        coupleId: 'c',
+        slot: 'home',
+        type: ArrivalEventType.enter,
+        source: ArrivalEventSource.auto,
+        auto: true,
+      );
+      s.writeError = StateError('offline-ish');
+      expect(await enter(), ArrivalSendResult.failed);
+      expect((await s.loadEdge('u', 'home')).inside, isNull);
+      s.writeError = FirebaseException(
+        plugin: 'cloud_firestore',
+        code: 'permission-denied',
+      );
+      expect(await enter(), ArrivalSendResult.denied);
+      expect((await s.loadEdge('u', 'home')).inside, isNull);
+      s.writeError = null;
+      expect(await enter(), ArrivalSendResult.sent);
+      expect((await s.loadEdge('u', 'home')).inside, isTrue);
+      s.holdWrite = Completer<void>();
+      await s.saveEdge('u', 'home', const ArrivalEdgeState(inside: false));
+      expect(await enter(), ArrivalSendResult.queued);
+      expect((await s.loadEdge('u', 'home')).inside, isTrue);
+      s.holdWrite!.complete();
+    });
 
     test('an unknown slot writes nothing', () async {
       final s = FakeArrivalService();

@@ -86,7 +86,10 @@ class AppUpdateService {
 
       // 2) Auto store check (iOS): ask the App Store for the live version.
       if (config['autoStoreForce'] == true) {
-        return await _iosStoreHasNewerVersion(info.version, info.packageName);
+        return await _iosStoreHasNewerVersion(
+          info.version,
+          info.packageName,
+        );
       }
       return false;
     } catch (_) {
@@ -193,10 +196,8 @@ class AppUpdateService {
       if (response.statusCode != 200) {
         return false;
       }
-      final body = await response
-          .transform(utf8.decoder)
-          .join()
-          .timeout(_timeout);
+      final body =
+          await response.transform(utf8.decoder).join().timeout(_timeout);
       final data = jsonDecode(body) as Map<String, dynamic>;
       final results = data['results'] as List?;
       if (results == null || results.isEmpty) {
@@ -218,10 +219,8 @@ class AppUpdateService {
   /// Non-numeric segments are treated as 0 so a malformed version can't force.
   bool _isNewerVersion(String store, String current) {
     final s = store.split('.').map((e) => int.tryParse(e.trim()) ?? 0).toList();
-    final c = current
-        .split('.')
-        .map((e) => int.tryParse(e.trim()) ?? 0)
-        .toList();
+    final c =
+        current.split('.').map((e) => int.tryParse(e.trim()) ?? 0).toList();
     final n = s.length > c.length ? s.length : c.length;
     for (var i = 0; i < n; i++) {
       final sv = i < s.length ? s[i] : 0;

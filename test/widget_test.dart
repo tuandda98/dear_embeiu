@@ -13,7 +13,9 @@ void main() {
     await AuthService().clearLocalAuthData();
   });
 
-  testWidgets('renders login screen scaffold', (WidgetTester tester) async {
+  testWidgets('renders login screen scaffold', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         // Wire the real localization layer + pin to Vietnamese so the screen's

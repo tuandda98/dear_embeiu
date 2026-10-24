@@ -101,10 +101,10 @@ class QuestionCandidate {
 
   /// Extra marker fields to persist alongside `questionVi/En` + `source`.
   Map<String, Object> get markerExtras => <String, Object>{
-    'questionId': ?questionId,
-    'templateKey': ?templateKey,
-    'refDate': ?refDate,
-  };
+        'questionId': ?questionId,
+        'templateKey': ?templateKey,
+        'refDate': ?refDate,
+      };
 }
 
 /// A pluggable proposer. Register instances on the engine in priority order.

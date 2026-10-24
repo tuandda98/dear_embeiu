@@ -50,9 +50,7 @@ class _SessionEndsMidDeleteAuth extends _UnpairedAuth {
     }
     // What the shell does on sessionRevoked.
     navigator.currentState!.pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) => const Scaffold(body: Text('gate')),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('gate'))),
       (_) => false,
     );
     await release.future;

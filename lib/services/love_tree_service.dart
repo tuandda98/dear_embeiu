@@ -47,16 +47,7 @@ class LoveTreeService {
   const LoveTreeService._();
 
   // Milestone thresholds per source (PO scope §2). Ascending — keep sorted.
-  static const List<int> dayMilestones = [
-    30,
-    100,
-    200,
-    365,
-    520,
-    730,
-    1000,
-    1314,
-  ];
+  static const List<int> dayMilestones = [30, 100, 200, 365, 520, 730, 1000, 1314];
   static const List<int> streakMilestones = [3, 7, 30, 100, 365];
   static const List<int> photoMilestones = [1, 10, 25, 50, 100];
 
@@ -96,14 +87,12 @@ class LoveTreeService {
     var i = 0;
     void add(FlowerKind kind, List<int> thresholds, int progress) {
       for (final v in thresholds) {
-        list.add(
-          LoveTreeMilestone(
-            kind: kind,
-            value: v,
-            index: i++,
-            reached: progress >= v,
-          ),
-        );
+        list.add(LoveTreeMilestone(
+          kind: kind,
+          value: v,
+          index: i++,
+          reached: progress >= v,
+        ));
       }
     }
 

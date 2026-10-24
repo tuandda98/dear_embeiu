@@ -32,25 +32,26 @@ class ChatMessage {
     String id,
     Map<String, dynamic> data, {
     bool isPending = false,
-  }) => ChatMessage(
-    id: id,
-    authorUserId: data['authorUserId'] as String? ?? '',
-    text: data['text'] as String? ?? '',
-    createdAt: _parseDateTime(data['createdAt']),
-    isPending: isPending,
-  );
+  }) =>
+      ChatMessage(
+        id: id,
+        authorUserId: data['authorUserId'] as String? ?? '',
+        text: data['text'] as String? ?? '',
+        createdAt: _parseDateTime(data['createdAt']),
+        isPending: isPending,
+      );
 
   Map<String, dynamic> toJson() => {
-    'authorUserId': authorUserId,
-    'text': text,
-    'createdAt': createdAt?.toIso8601String(),
-  };
+        'authorUserId': authorUserId,
+        'text': text,
+        'createdAt': createdAt?.toIso8601String(),
+      };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
-    authorUserId: json['authorUserId'] as String? ?? '',
-    text: json['text'] as String? ?? '',
-    createdAt: _parseDateTime(json['createdAt']),
-  );
+        authorUserId: json['authorUserId'] as String? ?? '',
+        text: json['text'] as String? ?? '',
+        createdAt: _parseDateTime(json['createdAt']),
+      );
 
   /// Public timestamp parser (Firestore `Timestamp` / ISO string / DateTime →
   /// DateTime?) — reused for chat receipt timestamps in ChatService.

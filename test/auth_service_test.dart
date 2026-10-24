@@ -60,37 +60,33 @@ void main() {
     expect(cleared.inviteCode, 'ABC123');
   });
 
-  test(
-    'InstallStateService only triggers fresh-install cleanup once',
-    () async {
-      final markerDir = await Directory.systemTemp.createTemp(
-        'install_state_test',
-      );
-      addTearDown(() async {
-        if (await markerDir.exists()) {
-          await markerDir.delete(recursive: true);
-        }
-      });
+  test('InstallStateService only triggers fresh-install cleanup once', () async {
+    final markerDir = await Directory.systemTemp.createTemp('install_state_test');
+    addTearDown(() async {
+      if (await markerDir.exists()) {
+        await markerDir.delete(recursive: true);
+      }
+    });
 
-      final service = InstallStateService(
-        markerDirectoryProvider: () async => markerDir,
-      );
+    final service = InstallStateService(
+      markerDirectoryProvider: () async => markerDir,
+    );
 
-      var freshInstallCount = 0;
-      final firstLaunch = await service.handleFreshInstall(
-        onFreshInstall: () async {
-          freshInstallCount++;
-        },
-      );
-      final secondLaunch = await service.handleFreshInstall(
-        onFreshInstall: () async {
-          freshInstallCount++;
-        },
-      );
+    var freshInstallCount = 0;
+    final firstLaunch = await service.handleFreshInstall(
+      onFreshInstall: () async {
+        freshInstallCount++;
+      },
+    );
+    final secondLaunch = await service.handleFreshInstall(
+      onFreshInstall: () async {
+        freshInstallCount++;
+      },
+    );
 
-      expect(firstLaunch, isTrue);
-      expect(secondLaunch, isFalse);
-      expect(freshInstallCount, 1);
-    },
-  );
+    expect(firstLaunch, isTrue);
+    expect(secondLaunch, isFalse);
+    expect(freshInstallCount, 1);
+  });
 }
+

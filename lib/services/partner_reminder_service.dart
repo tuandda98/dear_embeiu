@@ -15,7 +15,7 @@ import 'firebase_bootstrap_service.dart';
 /// emits nothing and writes are dropped.
 class PartnerReminderService {
   PartnerReminderService({FirebaseFirestore? firestore})
-    : _firestore = firestore;
+      : _firestore = firestore;
 
   final FirebaseFirestore? _firestore;
 
@@ -39,11 +39,9 @@ class PartnerReminderService {
     return _reminders(coupleId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => PartnerReminder.fromMap(doc.id, doc.data()))
-              .toList(growable: false),
-        )
+        .map((snapshot) => snapshot.docs
+            .map((doc) => PartnerReminder.fromMap(doc.id, doc.data()))
+            .toList(growable: false))
         .handleError((_) {});
   }
 
@@ -70,14 +68,17 @@ class PartnerReminderService {
   /// Update an existing partner reminder (author only — enforced by rules).
   /// MERGE so `createdAt` survives; `authorUserId` is re-sent unchanged so the
   /// rule's author-immutability check passes.
-  Future<void> updateReminder(String coupleId, PartnerReminder reminder) async {
+  Future<void> updateReminder(
+    String coupleId,
+    PartnerReminder reminder,
+  ) async {
     if (coupleId.trim().isEmpty || reminder.id.isEmpty || !isUsingFirebase) {
       return;
     }
     try {
-      await _reminders(
-        coupleId,
-      ).doc(reminder.id).set(reminder.toFirestore(), SetOptions(merge: true));
+      await _reminders(coupleId)
+          .doc(reminder.id)
+          .set(reminder.toFirestore(), SetOptions(merge: true));
     } catch (_) {
       // Fail-soft — the watcher reflects the last successful write.
     }

@@ -56,10 +56,8 @@ class MemoriesSheet extends StatelessWidget {
     final nf = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     );
-    final nextMilestone = milestones.cast<int?>().firstWhere(
-      (m) => m! > photoCount,
-      orElse: () => null,
-    );
+    final nextMilestone =
+        milestones.cast<int?>().firstWhere((m) => m! > photoCount, orElse: () => null);
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -94,11 +92,8 @@ class MemoriesSheet extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: AppColors.accentCoral.withValues(alpha: 0.14),
                   ),
-                  child: const Icon(
-                    IconsaxPlusBold.gallery,
-                    size: 32,
-                    color: AppColors.accentCoral,
-                  ),
+                  child: const Icon(IconsaxPlusBold.gallery,
+                      size: 32, color: AppColors.accentCoral),
                 ),
               ),
               const SizedBox(height: 14),
@@ -227,20 +222,16 @@ class MemoriesSheet extends StatelessWidget {
     return Container(
       color: AppColors.surfaceLight,
       alignment: Alignment.center,
-      child: const Icon(
-        IconsaxPlusBold.gallery,
-        size: 22,
-        color: AppColors.textTertiary,
-      ),
+      child: const Icon(IconsaxPlusBold.gallery,
+          size: 22, color: AppColors.textTertiary),
     );
   }
 
   Widget _buildMilestones(BuildContext context, NumberFormat nf) {
     // Show the milestone band around the couple's current count: the highest
     // reached plus the next two upcoming, so the strip always has near-term goals.
-    final reachedTop = milestones
-        .where((m) => m <= photoCount)
-        .fold<int>(0, (a, b) => b);
+    final reachedTop =
+        milestones.where((m) => m <= photoCount).fold<int>(0, (a, b) => b);
     final visible = <int>[];
     for (final m in milestones) {
       if (m <= reachedTop || visible.length < 4) {
@@ -251,17 +242,14 @@ class MemoriesSheet extends StatelessWidget {
       }
     }
     // Cap to the last 4 so the row never overflows.
-    final chips = visible.length > 4
-        ? visible.sublist(visible.length - 4)
-        : visible;
+    final chips = visible.length > 4 ? visible.sublist(visible.length - 4) : visible;
 
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (final m in chips)
-          _MilestoneChip(value: nf.format(m), reached: m <= photoCount),
+        for (final m in chips) _MilestoneChip(value: nf.format(m), reached: m <= photoCount),
       ],
     );
   }
@@ -278,9 +266,8 @@ class _MilestoneChip extends StatelessWidget {
     final Color bg = reached
         ? AppColors.accentCoral.withValues(alpha: 0.14)
         : AppColors.surfaceLight;
-    final Color fg = reached
-        ? AppColors.accentLoveDeep
-        : AppColors.textTertiary;
+    final Color fg =
+        reached ? AppColors.accentLoveDeep : AppColors.textTertiary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
@@ -291,11 +278,8 @@ class _MilestoneChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (reached) ...[
-            const Icon(
-              IconsaxPlusBold.tick_circle,
-              size: 14,
-              color: AppColors.accentLoveDeep,
-            ),
+            const Icon(IconsaxPlusBold.tick_circle,
+                size: 14, color: AppColors.accentLoveDeep),
             const SizedBox(width: 5),
           ],
           Text(

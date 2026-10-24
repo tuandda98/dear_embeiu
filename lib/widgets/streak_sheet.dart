@@ -68,9 +68,8 @@ class _StreakSheetBody extends StatefulWidget {
 
 class _StreakSheetBodyState extends State<_StreakSheetBody>
     with TickerProviderStateMixin {
-  late final ConfettiController _confetti = ConfettiController(
-    duration: const Duration(milliseconds: 600),
-  );
+  late final ConfettiController _confetti =
+      ConfettiController(duration: const Duration(milliseconds: 600));
 
   // Count-up controller for the milestone celebration number.
   AnimationController? _countUp;
@@ -89,10 +88,9 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
         vsync: this,
         duration: AppMotion.slow, // 320ms
       );
-      _countUpAnim = Tween<double>(
-        begin: from,
-        end: target.toDouble(),
-      ).animate(CurvedAnimation(parent: _countUp!, curve: Curves.easeOutCubic));
+      _countUpAnim = Tween<double>(begin: from, end: target.toDouble()).animate(
+        CurvedAnimation(parent: _countUp!, curve: Curves.easeOutCubic),
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) {
           return;
@@ -130,7 +128,8 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                 decoration: const BoxDecoration(
                   color: AppColors.cardSurface,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(28)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -199,7 +198,12 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
         shape: BoxShape.circle,
         color: color.withValues(alpha: 0.12),
         boxShadow: provider.currentStreak > 0
-            ? [BoxShadow(color: color.withValues(alpha: 0.30), blurRadius: 20)]
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.30),
+                  blurRadius: 20,
+                ),
+              ]
             : null,
       ),
       child: Icon(IconsaxPlusLinear.flash, size: 36, color: color),
@@ -312,9 +316,15 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
         );
       case StreakState.noStreak:
         if (provider.everHadStreak) {
-          return (l10n.streakSheetRestartTitle, l10n.streakSheetRestartBody);
+          return (
+            l10n.streakSheetRestartTitle,
+            l10n.streakSheetRestartBody,
+          );
         }
-        return (l10n.streakSheetNoStreakTitle, l10n.streakSheetNoStreakBody);
+        return (
+          l10n.streakSheetNoStreakTitle,
+          l10n.streakSheetNoStreakBody,
+        );
       case StreakState.hidden:
         return ('', '');
     }
@@ -339,9 +349,8 @@ class _StreakSheetBodyState extends State<_StreakSheetBody>
               value: progress,
               minHeight: 10,
               backgroundColor: AppColors.surfaceLight,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.accentRose,
-              ),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.accentRose),
             ),
           ),
           const SizedBox(height: 12),

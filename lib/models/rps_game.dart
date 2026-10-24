@@ -100,8 +100,7 @@ enum RpsGameStatus {
 
   /// A game the couple is still "in" (shown as the current game; blocks
   /// creating another one).
-  bool get isOpen =>
-      this == RpsGameStatus.invited || this == RpsGameStatus.playing;
+  bool get isOpen => this == RpsGameStatus.invited || this == RpsGameStatus.playing;
 
   static RpsGameStatus fromKey(dynamic raw) {
     switch ((raw is String ? raw : '').trim()) {
@@ -132,8 +131,8 @@ enum RpsResultReason {
 
   static RpsResultReason fromKey(dynamic raw) =>
       (raw is String && raw.trim() == 'timeout')
-      ? RpsResultReason.timeout
-      : RpsResultReason.normal;
+          ? RpsResultReason.timeout
+          : RpsResultReason.normal;
 }
 
 /// A finished game seen from ONE player's side.
@@ -183,8 +182,7 @@ class RpsResult {
     if (b == RpsChoice.none) {
       return 1;
     }
-    final aWins =
-        (a == RpsChoice.rock && b == RpsChoice.scissors) ||
+    final aWins = (a == RpsChoice.rock && b == RpsChoice.scissors) ||
         (a == RpsChoice.scissors && b == RpsChoice.paper) ||
         (a == RpsChoice.paper && b == RpsChoice.rock);
     return aWins ? 1 : -1;
@@ -211,8 +209,7 @@ class RpsResult {
     return RpsResult(
       winnerUid: winner,
       choices: <String, RpsChoice>{uidA: a, uidB: b},
-      reason:
-          reason ??
+      reason: reason ??
           ((a.isHand && b.isHand)
               ? RpsResultReason.normal
               : RpsResultReason.timeout),
@@ -235,36 +232,39 @@ class RpsResult {
     }
     final winner = raw['winnerUid'];
     return RpsResult(
-      winnerUid: (winner is String && winner.trim().isNotEmpty)
-          ? winner.trim()
-          : null,
+      winnerUid:
+          (winner is String && winner.trim().isNotEmpty) ? winner.trim() : null,
       choices: choices,
       reason: RpsResultReason.fromKey(raw['reason']),
     );
   }
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'winnerUid': winnerUid,
-    'choices': choices.map((uid, c) => MapEntry(uid, c.key)),
-    'reason': reason.key,
-  };
+        'winnerUid': winnerUid,
+        'choices': choices.map((uid, c) => MapEntry(uid, c.key)),
+        'reason': reason.key,
+      };
 }
 
 /// `games/{id}/moves/{uid}` — create-only, one per player. Readable by the
 /// other player ONLY once the parent is `finished` (rules), so a live game
 /// never leaks the partner's hand.
 class RpsMove {
-  const RpsMove({required this.uid, required this.choice, this.createdAt});
+  const RpsMove({
+    required this.uid,
+    required this.choice,
+    this.createdAt,
+  });
 
   final String uid;
   final RpsChoice choice;
   final DateTime? createdAt;
 
   factory RpsMove.fromDoc(String uid, Map<String, dynamic> data) => RpsMove(
-    uid: uid,
-    choice: RpsChoice.fromKey(data['choice']),
-    createdAt: rpsParseTimestamp(data['createdAt']),
-  );
+        uid: uid,
+        choice: RpsChoice.fromKey(data['choice']),
+        createdAt: rpsParseTimestamp(data['createdAt']),
+      );
 }
 
 /// One `games/{gameId}` doc.
@@ -429,10 +429,7 @@ class RpsGame {
   /// open-games stream): the first one that is open and not
   /// [isDeadOpen] (so a `playing` round, however old, always wins over a
   /// newer stale invite). Both phones read the same docs, so they agree on it.
-  static RpsGame? pickOpen(
-    Iterable<RpsGame> candidates, {
-    required DateTime now,
-  }) {
+  static RpsGame? pickOpen(Iterable<RpsGame> candidates, {required DateTime now}) {
     for (final game in candidates) {
       if (game.isOpen && !game.isDeadOpen(now: now)) {
         return game;
@@ -518,21 +515,21 @@ class RpsGame {
   /// the service builds that with `FieldValue.serverTimestamp()` because the
   /// rules require `createdAt == request.time`.
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'type': type,
-    'createdBy': createdBy,
-    'status': status.key,
-    'createdAt': createdAt?.toIso8601String(),
-    'presence': presence.map((uid, t) => MapEntry(uid, t.toIso8601String())),
-    if (startedAt != null) 'startedAt': startedAt!.toIso8601String(),
-    if (rematchOf != null) 'rematchOf': rematchOf,
-    if (finishedAt != null) 'finishedAt': finishedAt!.toIso8601String(),
-    if (result != null) 'result': result!.toMap(),
-    if (cancelledBy != null) 'cancelledBy': cancelledBy,
-    if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
-    if (moved.isNotEmpty)
-      'moved': moved.map((uid, t) => MapEntry(uid, t.toIso8601String())),
-    if (lastNudgeAt != null) 'lastNudgeAt': lastNudgeAt!.toIso8601String(),
-  };
+        'type': type,
+        'createdBy': createdBy,
+        'status': status.key,
+        'createdAt': createdAt?.toIso8601String(),
+        'presence': presence.map((uid, t) => MapEntry(uid, t.toIso8601String())),
+        if (startedAt != null) 'startedAt': startedAt!.toIso8601String(),
+        if (rematchOf != null) 'rematchOf': rematchOf,
+        if (finishedAt != null) 'finishedAt': finishedAt!.toIso8601String(),
+        if (result != null) 'result': result!.toMap(),
+        if (cancelledBy != null) 'cancelledBy': cancelledBy,
+        if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+        if (moved.isNotEmpty)
+          'moved': moved.map((uid, t) => MapEntry(uid, t.toIso8601String())),
+        if (lastNudgeAt != null) 'lastNudgeAt': lastNudgeAt!.toIso8601String(),
+      };
 
   static String? _nullableString(dynamic value) {
     if (value is String) {
@@ -561,9 +558,7 @@ String rpsRematchGameId(String previousGameId) {
   return 'rematch_${match.group(1)}_${round + 1}';
 }
 
-final RegExp _rpsRematchIdPattern = RegExp(
-  r'^rematch_([A-Za-z0-9]+)(?:_(\d+))?$',
-);
+final RegExp _rpsRematchIdPattern = RegExp(r'^rematch_([A-Za-z0-9]+)(?:_(\d+))?$');
 
 /// Win/loss/draw tally from MY side, computed from a list of finished games.
 class RpsScore {

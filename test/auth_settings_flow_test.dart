@@ -109,7 +109,9 @@ Widget _app(_Auth auth, GlobalKey<NavigatorState> navigator) {
       locale: const Locale('vi'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      routes: {AppRoutes.authGate: (_) => const Scaffold(body: Text('gate'))},
+      routes: {
+        AppRoutes.authGate: (_) => const Scaffold(body: Text('gate')),
+      },
       home: Builder(
         builder: (context) => Scaffold(
           body: TextButton(
@@ -152,11 +154,7 @@ void main() {
       expect(find.text(l10n.setPasswordConfirmNote('Apple')), findsOneWidget);
     }
 
-    Future<void> submit(
-      WidgetTester tester,
-      String first,
-      String second,
-    ) async {
+    Future<void> submit(WidgetTester tester, String first, String second) async {
       await tester.enterText(find.byType(TextFormField).at(0), first);
       await tester.enterText(find.byType(TextFormField).at(1), second);
       await tester.tap(find.text(l10n.save));
@@ -258,7 +256,9 @@ void main() {
   });
 
   group('AU2 deleting can not be backed out of', () {
-    testWidgets('system back is ignored while an auth op runs', (tester) async {
+    testWidgets('system back is ignored while an auth op runs', (
+      tester,
+    ) async {
       final auth = _Auth();
       await tester.pumpWidget(_app(auth, GlobalKey<NavigatorState>()));
       await _openSettings(tester);
@@ -308,9 +308,7 @@ void main() {
     for (final sheet in [true, false]) {
       testWidgets('BUG-25 Apple + password, ${sheet ? 'its' : 'another'} '
           'Apple ID on the iPhone: ${sheet ? 'the Apple note' : 'no Apple '
-                    'note, the re-auth asks for the password'}', (
-        tester,
-      ) async {
+          'note, the re-auth asks for the password'}', (tester) async {
         final auth = _Auth()
           ..appleSheet = sheet
           ..onDelete = (() async => 'requires-recent-login');

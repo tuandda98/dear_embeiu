@@ -13,7 +13,7 @@ import 'money_provider.dart';
 
 class CoupleProvider extends ChangeNotifier {
   CoupleProvider({CoupleService? coupleService})
-    : _coupleService = coupleService ?? CoupleService();
+      : _coupleService = coupleService ?? CoupleService();
 
   final CoupleService _coupleService;
   Couple? _couple;
@@ -64,34 +64,31 @@ class CoupleProvider extends ChangeNotifier {
       _couple = await _coupleService.fetchCouple(currentUser.coupleId!);
 
       if (_coupleService.isUsingFirebase) {
-        _coupleSubscription = _coupleService
-            .watchCouple(currentUser.coupleId!)
-            .listen(
-              (couple) {
-                _couple = couple;
-                notifyListeners();
-                // Self-heal: when the partner joins and this couple goes active, the
-                // join transaction only updated the JOINER's user doc — the creator
-                // (this user, A) is still 'waiting_partner'. Flip A's own status to
-                // 'in_couple' so both members are consistent. Fire-and-forget.
-                unawaited(_maybeHealActiveStatus(currentUser, couple));
-              },
-              onError: (error) {
-                // Ignore the permission-denied this stream throws while we're
-                // leaving the couple ourselves — it's expected, not a real sync
-                // failure, and would otherwise surface on Setup after leaving.
-                if (_isLeaving) return;
-                debugPrint('CoupleProvider couple stream error: $error');
-                _errorMessage = AppL10n.strings.coupleSyncError;
-                notifyListeners();
-              },
-            );
+        _coupleSubscription = _coupleService.watchCouple(currentUser.coupleId!).listen(
+          (couple) {
+            _couple = couple;
+            notifyListeners();
+            // Self-heal: when the partner joins and this couple goes active, the
+            // join transaction only updated the JOINER's user doc — the creator
+            // (this user, A) is still 'waiting_partner'. Flip A's own status to
+            // 'in_couple' so both members are consistent. Fire-and-forget.
+            unawaited(_maybeHealActiveStatus(currentUser, couple));
+          },
+          onError: (error) {
+            // Ignore the permission-denied this stream throws while we're
+            // leaving the couple ourselves — it's expected, not a real sync
+            // failure, and would otherwise surface on Setup after leaving.
+            if (_isLeaving) return;
+            debugPrint('CoupleProvider couple stream error: $error');
+            _errorMessage = AppL10n.strings.coupleSyncError;
+            notifyListeners();
+          },
+        );
       }
     } catch (e) {
       _couple = null;
       final msg = '$e'.toLowerCase();
-      if (msg.contains('permission-denied') ||
-          msg.contains('permission_denied')) {
+      if (msg.contains('permission-denied') || msg.contains('permission_denied')) {
         // Stale coupleId — user is no longer a member of that couple (partner
         // left, couple was deleted, or cross-device Hive/session mismatch).
         // Auto-heal: clear the stale ref so the user lands on Setup cleanly
@@ -118,10 +115,7 @@ class CoupleProvider extends ChangeNotifier {
   /// the write. Best-effort: on success the healed user is pushed back into
   /// AuthProvider via [onMemberStatusHealed]; on failure the
   /// `notifyPartnerJoined` CF and the next app launch reconcile it anyway.
-  Future<void> _maybeHealActiveStatus(
-    AppUser currentUser,
-    Couple? couple,
-  ) async {
+  Future<void> _maybeHealActiveStatus(AppUser currentUser, Couple? couple) async {
     if (_statusHealAttempted || couple == null) return;
     if (currentUser.status == 'in_couple') return;
     final isActive = couple.status == 'active' || couple.memberCount >= 2;
@@ -169,7 +163,9 @@ class CoupleProvider extends ChangeNotifier {
     } on CoupleException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
-      AnalyticsService.instance.logCoupleCreateFailed(e.code?.name ?? 'other');
+      AnalyticsService.instance.logCoupleCreateFailed(
+        e.code?.name ?? 'other',
+      );
       rethrow;
     } catch (_) {
       AnalyticsService.instance.logCoupleCreateFailed('unknown');
@@ -293,9 +289,7 @@ class CoupleProvider extends ChangeNotifier {
       // Sổ tiền: shared deletes in their undo window go out while still a
       // member (bounded, best effort).
       await MoneyProvider.flushPendingDeletes(MoneyBookKind.shared);
-      final updatedUser = await _coupleService.leaveCouple(
-        currentUser: currentUser,
-      );
+      final updatedUser = await _coupleService.leaveCouple(currentUser: currentUser);
       await _coupleSubscription?.cancel();
       _coupleSubscription = null;
       _couple = null;
@@ -343,3 +337,4 @@ class CoupleProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+

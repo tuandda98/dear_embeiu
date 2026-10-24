@@ -1,5 +1,4 @@
-import '../data/daily_questions.dart'
-    show stableQuestionHash, deterministicPermutation;
+import '../data/daily_questions.dart' show stableQuestionHash, deterministicPermutation;
 import '../data/question_templates.dart';
 import 'question_source.dart';
 
@@ -61,10 +60,10 @@ class TemplateQuestionSource implements QuestionSource {
   /// Context-driven groups, most specific first. The engine reuses this for its
   /// calendar overrides ([overrideGroupsFor]) so both paths stay in sync.
   static List<String> groupsFor(QuestionContext ctx) => <String>[
-    ...overrideGroupsFor(ctx),
-    weekdayGroupFor(ctx.date) ?? kTplGroupFeeling,
-    kTplGroupFeeling,
-  ];
+        ...overrideGroupsFor(ctx),
+        weekdayGroupFor(ctx.date) ?? kTplGroupFeeling,
+        kTplGroupFeeling,
+      ];
 
   /// Calendar/context hooks that OVERRIDE the plain weekday rotation, ordered
   /// by precedence: fixed holidays → anniversary milestone → month edges →
@@ -107,8 +106,8 @@ class TemplateQuestionSource implements QuestionSource {
       groups.add(kTplGroupStreakMilestone);
     }
 
-    final isWeekend =
-        date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+    final isWeekend = date.weekday == DateTime.saturday ||
+        date.weekday == DateTime.sunday;
     if (isWeekend && ctx.photosThisWeek == 0) {
       groups.add(kTplGroupNoPhotosWeekend);
     }

@@ -51,12 +51,12 @@ class AnswerReaction {
   String get key => keyFor(date, answerAuthorUserId);
 
   Map<String, dynamic> toMap() => {
-    'reactorUserId': reactorUserId,
-    'emoji': emoji,
-    'coupleId': coupleId,
-    'date': date,
-    'reactedAt': reactedAt?.toIso8601String(),
-  };
+        'reactorUserId': reactorUserId,
+        'emoji': emoji,
+        'coupleId': coupleId,
+        'date': date,
+        'reactedAt': reactedAt?.toIso8601String(),
+      };
 
   /// Builds a reaction from a Firestore document. [id] is the document id, which
   /// by convention equals the reactor's uid; it is used as a fallback when the
@@ -67,18 +67,20 @@ class AnswerReaction {
     Map<String, dynamic> data, {
     required String answerAuthorUserId,
     required String date,
-  }) => AnswerReaction(
-    reactorUserId: (data['reactorUserId'] as String?)?.trim().isNotEmpty == true
-        ? data['reactorUserId'] as String
-        : id,
-    answerAuthorUserId: answerAuthorUserId,
-    emoji: data['emoji'] as String? ?? '',
-    coupleId: data['coupleId'] as String? ?? '',
-    date: (data['date'] as String?)?.trim().isNotEmpty == true
-        ? data['date'] as String
-        : date,
-    reactedAt: _parseDateTime(data['reactedAt']),
-  );
+  }) =>
+      AnswerReaction(
+        reactorUserId:
+            (data['reactorUserId'] as String?)?.trim().isNotEmpty == true
+                ? data['reactorUserId'] as String
+                : id,
+        answerAuthorUserId: answerAuthorUserId,
+        emoji: data['emoji'] as String? ?? '',
+        coupleId: data['coupleId'] as String? ?? '',
+        date: (data['date'] as String?)?.trim().isNotEmpty == true
+            ? data['date'] as String
+            : date,
+        reactedAt: _parseDateTime(data['reactedAt']),
+      );
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) {

@@ -45,7 +45,11 @@ enum CoupleErrorCode {
   unknown,
 }
 
-enum CoupleResultCode { updated, joined, localFallbackJoined }
+enum CoupleResultCode {
+  updated,
+  joined,
+  localFallbackJoined,
+}
 
 enum CouplePhotoSyncWarningCode {
   permissionDenied,
@@ -87,9 +91,9 @@ class CoupleService {
     FirebaseFirestore? firestore,
     FirebaseStorage? storage,
     UserService? userService,
-  }) : _firestore = firestore,
-       _storage = storage,
-       _userService = userService ?? UserService();
+  })  : _firestore = firestore,
+        _storage = storage,
+        _userService = userService ?? UserService();
 
   final FirebaseFirestore? _firestore;
   final FirebaseStorage? _storage;
@@ -112,9 +116,7 @@ class CoupleService {
       return Stream<Couple?>.value(null);
     }
 
-    return _couplesCollection.doc(coupleId).snapshots().asyncMap((
-      snapshot,
-    ) async {
+    return _couplesCollection.doc(coupleId).snapshots().asyncMap((snapshot) async {
       if (!snapshot.exists || snapshot.data() == null) {
         return null;
       }
@@ -232,9 +234,7 @@ class CoupleService {
     if (isUsingFirebase) {
       try {
         await _ensureFirebaseSessionReady();
-        await _couplesCollection
-            .doc(baseCouple.id)
-            .set(baseCouple.toFirestore());
+        await _couplesCollection.doc(baseCouple.id).set(baseCouple.toFirestore());
         await _userService.updateCoupleMembership(
           updatedUser,
           withDisplayName: adoptedName != null,
@@ -263,22 +263,24 @@ class CoupleService {
       couplePhotoPath: photoAttempt.result.localPath,
       couplePhotoUrl: photoAttempt.result.remoteUrl,
       couplePhotoStoragePath: photoAttempt.result.storagePath,
-      updatedAt:
-          photoAttempt.warningMessage == null &&
-              photoPath?.trim().isNotEmpty == true
+      updatedAt: photoAttempt.warningMessage == null && photoPath?.trim().isNotEmpty == true
           ? DateTime.now()
           : baseCouple.updatedAt,
     );
 
     if (isUsingFirebase && _hasRemotePhotoChanges(baseCouple, couple)) {
-      await _runCoupleWriteWithRecovery(() async {
-        await _ensureFirebaseSessionReady();
-        // Profile edit (photo only): never re-send structural/immutable
-        // fields — merge keeps the server's, so `isCoupleProfileEdit` passes.
-        await _couplesCollection
-            .doc(couple.id)
-            .set(couple.toPhotoEditPayload(), SetOptions(merge: true));
-      }, coupleId: couple.id);
+      await _runCoupleWriteWithRecovery(
+        () async {
+          await _ensureFirebaseSessionReady();
+          // Profile edit (photo only): never re-send structural/immutable
+          // fields — merge keeps the server's, so `isCoupleProfileEdit` passes.
+          await _couplesCollection.doc(couple.id).set(
+                couple.toPhotoEditPayload(),
+                SetOptions(merge: true),
+              );
+        },
+        coupleId: couple.id,
+      );
     }
 
     await StorageService.saveCouple(couple);
@@ -316,16 +318,20 @@ class CoupleService {
     );
 
     if (isUsingFirebase && updatedCouple.id.isNotEmpty) {
-      await _runCoupleWriteWithRecovery(() async {
-        await _ensureFirebaseSessionReady();
-        // Profile edit: send ONLY the user-editable fields. Omitting
-        // memberIds/memberCount/status/inviteCode/createdByUserId/createdAt
-        // lets merge preserve the server's, so the `isCoupleProfileEdit`
-        // equality checks pass even if the local couple copy is stale.
-        await _couplesCollection
-            .doc(updatedCouple.id)
-            .set(updatedCouple.toProfileEditPayload(), SetOptions(merge: true));
-      }, coupleId: updatedCouple.id);
+      await _runCoupleWriteWithRecovery(
+        () async {
+          await _ensureFirebaseSessionReady();
+          // Profile edit: send ONLY the user-editable fields. Omitting
+          // memberIds/memberCount/status/inviteCode/createdByUserId/createdAt
+          // lets merge preserve the server's, so the `isCoupleProfileEdit`
+          // equality checks pass even if the local couple copy is stale.
+          await _couplesCollection.doc(updatedCouple.id).set(
+                updatedCouple.toProfileEditPayload(),
+                SetOptions(merge: true),
+              );
+        },
+        coupleId: updatedCouple.id,
+      );
     }
 
     await StorageService.saveCouple(updatedCouple);
@@ -399,16 +405,16 @@ class CoupleService {
         AccountInvite? accountInvite;
         late final String targetCoupleId;
 
-        final coupleCodeCoupleId = await _userService.fetchCoupleCodeEntry(
-          normalizedCode,
-        );
+        final coupleCodeCoupleId =
+            await _userService.fetchCoupleCodeEntry(normalizedCode);
         if (coupleCodeCoupleId != null &&
             coupleCodeCoupleId.trim().isNotEmpty) {
           targetCoupleId = coupleCodeCoupleId.trim();
           isNewCoupleCodeFlow = true;
         } else {
           // Backward compat: look up invite_codes (old personal-code couples).
-          accountInvite = await _userService.fetchAccountInvite(normalizedCode);
+          accountInvite =
+              await _userService.fetchAccountInvite(normalizedCode);
           if (accountInvite == null) {
             throw CoupleException(
               AppL10n.strings.coupleInviteCodeInvalid,
@@ -441,9 +447,7 @@ class CoupleService {
         // on each attempt, so re-running is safe and idempotent; the boolean
         // guard caps it at a single retry (no loop / recursion).
         var joinRecovered = false;
-        Future<void> runJoinTransaction() => _db.runTransaction((
-          transaction,
-        ) async {
+        Future<void> runJoinTransaction() => _db.runTransaction((transaction) async {
           coupleRead = false;
           final coupleSnapshot = await transaction.get(docRef);
           coupleRead = true;
@@ -494,10 +498,8 @@ class CoupleService {
           // gives a clear, actionable message instead of a cryptic
           // permission-denied. The joiner can't repair the other account's
           // invite pointer, so we ask them to regenerate the code.
-          final storedMemberIds =
-              (coupleData['memberIds'] as List?) ?? const [];
-          final targetIsJoinable =
-              coupleData['createdAt'] != null &&
+          final storedMemberIds = (coupleData['memberIds'] as List?) ?? const [];
+          final targetIsJoinable = coupleData['createdAt'] != null &&
               (coupleData['memberCount'] as num?)?.toInt() == 1 &&
               storedMemberIds.length == 1 &&
               currentCouple.status == 'waiting_partner' &&
@@ -549,10 +551,14 @@ class CoupleService {
           // updatedAt/lastSeenAt (+ an adopted name) so the immutable
           // email/inviteCode equality checks in canUpdateOwnUser pass via
           // merge. Write to users/{authUid}.
-          transaction.set(_db.collection('users').doc(authUid), {
-            ...updatedUser.toCoupleMembershipPayload(),
-            'displayName': ?adoptedName,
-          }, SetOptions(merge: true));
+          transaction.set(
+            _db.collection('users').doc(authUid),
+            {
+              ...updatedUser.toCoupleMembershipPayload(),
+              'displayName': ?adoptedName,
+            },
+            SetOptions(merge: true),
+          );
         });
 
         try {
@@ -669,8 +675,7 @@ class CoupleService {
     if (!isUsingFirebase || couple == null) return null;
     final isActive = couple.status == 'active' || couple.memberCount >= 2;
     if (!isActive) return null;
-    if (!currentUser.hasCouple || currentUser.coupleId != couple.id)
-      return null;
+    if (!currentUser.hasCouple || currentUser.coupleId != couple.id) return null;
     if (!couple.memberIds.contains(currentUser.id)) return null;
     if (currentUser.status == 'in_couple') return null;
 
@@ -692,75 +697,80 @@ class CoupleService {
       // from memberIds (!(request.auth.uid in request.resource.data.memberIds)).
       // Use the authoritative auth uid (not the possibly-stale local id) when
       // computing remaining members so the write can't be rejected.
-      final authUid = FirebaseAuth.instance.currentUser?.uid ?? currentUser.id;
+      final authUid =
+          FirebaseAuth.instance.currentUser?.uid ?? currentUser.id;
       try {
-        await _runCoupleWriteWithRecovery(() async {
-          await _ensureFirebaseSessionReady();
-          final docRef = _couplesCollection.doc(currentUser.coupleId);
-          // Re-read the authoritative couple before each (re)try so the
-          // leave write is built from fresh server structural fields.
-          final snapshot = await docRef.get();
+        await _runCoupleWriteWithRecovery(
+          () async {
+            await _ensureFirebaseSessionReady();
+            final docRef = _couplesCollection.doc(currentUser.coupleId);
+            // Re-read the authoritative couple before each (re)try so the
+            // leave write is built from fresh server structural fields.
+            final snapshot = await docRef.get();
 
-          if (snapshot.exists && snapshot.data() != null) {
-            final currentCouple = Couple.fromJson({
-              'id': snapshot.id,
-              ...snapshot.data()!,
-            });
-            final remainingMembers = currentCouple.memberIds
-                .where((memberId) => memberId != authUid)
-                .toList();
+            if (snapshot.exists && snapshot.data() != null) {
+              final currentCouple = Couple.fromJson({
+                'id': snapshot.id,
+                ...snapshot.data()!,
+              });
+              final remainingMembers = currentCouple.memberIds
+                  .where((memberId) => memberId != authUid)
+                  .toList();
 
-            if (remainingMembers.isEmpty) {
-              // Sole member leaving → the couple is destroyed. Route through
-              // the server-side callable so the admin SDK recursively deletes
-              // EVERY subcollection (photos+reactions, notes, noteHistory,
-              // dailyAnswers) + couple_codes with no orphans. The old client
-              // cleanup could only reach photos + couple_codes.
-              try {
-                await _functions
-                    .httpsCallable('leaveCoupleCleanup')
-                    .call<dynamic>(<String, dynamic>{
-                      'coupleId': currentCouple.id,
-                    });
-              } catch (_) {
-                // Fallback: callable unavailable (transient CF error). Do a
-                // best-effort client teardown so the user can still leave —
-                // may orphan notes/dailyAnswers, swept later by the next
-                // account-deletion teardown.
-                await _cleanupCoupleSharedData(currentCouple);
-                await docRef.delete();
-              }
-            } else {
-              final updatedCouple = currentCouple.copyWith(
-                memberIds: remainingMembers,
-                memberCount: remainingMembers.length,
-                status: 'waiting_partner',
-                updatedAt: now,
-              );
-              // Leave TRANSITION: must change memberIds/memberCount/status,
-              // so it keeps toFirestoreUpdate() (rule isCoupleLeaveTransition
-              // requires the new structural values).
-              await docRef.set(
-                updatedCouple.toFirestoreUpdate(),
-                SetOptions(merge: true),
-              );
-              // Bug fix: the remaining member's user doc still has
-              // status='in_couple' because only the leaver's doc is updated
-              // by updateCoupleMembership below. Reset the remaining member
-              // to 'waiting_partner' so they can accept a new partner join.
-              final remainingUid = remainingMembers.first;
-              try {
-                await _db.collection('users').doc(remainingUid).set({
-                  'status': 'waiting_partner',
-                  'updatedAt': now,
-                }, SetOptions(merge: true));
-              } catch (_) {
-                // Best-effort — the couple update already succeeded; the
-                // remaining member's status will correct itself on next login.
+              if (remainingMembers.isEmpty) {
+                // Sole member leaving → the couple is destroyed. Route through
+                // the server-side callable so the admin SDK recursively deletes
+                // EVERY subcollection (photos+reactions, notes, noteHistory,
+                // dailyAnswers) + couple_codes with no orphans. The old client
+                // cleanup could only reach photos + couple_codes.
+                try {
+                  await _functions
+                      .httpsCallable('leaveCoupleCleanup')
+                      .call<dynamic>(<String, dynamic>{'coupleId': currentCouple.id});
+                } catch (_) {
+                  // Fallback: callable unavailable (transient CF error). Do a
+                  // best-effort client teardown so the user can still leave —
+                  // may orphan notes/dailyAnswers, swept later by the next
+                  // account-deletion teardown.
+                  await _cleanupCoupleSharedData(currentCouple);
+                  await docRef.delete();
+                }
+              } else {
+                final updatedCouple = currentCouple.copyWith(
+                  memberIds: remainingMembers,
+                  memberCount: remainingMembers.length,
+                  status: 'waiting_partner',
+                  updatedAt: now,
+                );
+                // Leave TRANSITION: must change memberIds/memberCount/status,
+                // so it keeps toFirestoreUpdate() (rule isCoupleLeaveTransition
+                // requires the new structural values).
+                await docRef.set(
+                  updatedCouple.toFirestoreUpdate(),
+                  SetOptions(merge: true),
+                );
+                // Bug fix: the remaining member's user doc still has
+                // status='in_couple' because only the leaver's doc is updated
+                // by updateCoupleMembership below. Reset the remaining member
+                // to 'waiting_partner' so they can accept a new partner join.
+                final remainingUid = remainingMembers.first;
+                try {
+                  await _db.collection('users').doc(remainingUid).set(
+                    {
+                      'status': 'waiting_partner',
+                      'updatedAt': now,
+                    },
+                    SetOptions(merge: true),
+                  );
+                } catch (_) {
+                  // Best-effort — the couple update already succeeded; the
+                  // remaining member's status will correct itself on next login.
+                }
               }
             }
-          }
-        }, coupleId: currentUser.coupleId);
+          },
+          coupleId: currentUser.coupleId,
+        );
       } on CoupleException {
         rethrow;
       } on FirebaseException catch (e) {
@@ -860,8 +870,7 @@ class CoupleService {
     if (!isUsingFirebase) {
       return CouplePhotoSyncAttempt(
         result: CouplePhotoSyncResult(
-          localPath:
-              savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+          localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
           remoteUrl: existingCouple?.couplePhotoUrl,
           storagePath: existingCouple?.couplePhotoStoragePath,
         ),
@@ -890,8 +899,7 @@ class CoupleService {
 
       return CouplePhotoSyncAttempt(
         result: CouplePhotoSyncResult(
-          localPath:
-              savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+          localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
           remoteUrl: remoteUrl,
           storagePath: storagePath,
         ),
@@ -899,8 +907,7 @@ class CoupleService {
     } on FirebaseException catch (e) {
       return CouplePhotoSyncAttempt(
         result: CouplePhotoSyncResult(
-          localPath:
-              savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
+          localPath: savedPath ?? existingCouple?.couplePhotoPath ?? trimmedPath,
           remoteUrl: existingCouple?.couplePhotoUrl,
           storagePath: existingCouple?.couplePhotoStoragePath,
         ),
@@ -1035,9 +1042,7 @@ class CoupleService {
         return l10n.coupleFirebaseUnavailable;
       default:
         // Firebase's own message is English and technical — log it, never show it.
-        debugPrint(
-          'CoupleService error ${exception.code}: ${exception.message}',
-        );
+        debugPrint('CoupleService error ${exception.code}: ${exception.message}');
         return l10n.coupleSaveGeneric;
     }
   }
@@ -1053,9 +1058,7 @@ class CoupleService {
       case 'unavailable':
         return l10n.couplePhotoUploadUnavailable;
       default:
-        debugPrint(
-          'CoupleService photo error ${exception.code}: ${exception.message}',
-        );
+        debugPrint('CoupleService photo error ${exception.code}: ${exception.message}');
         return l10n.couplePhotoUploadGeneric;
     }
   }
@@ -1079,8 +1082,8 @@ class CoupleService {
           : localCouple.couplePhotoUrl,
       couplePhotoStoragePath:
           remoteCouple.couplePhotoStoragePath?.trim().isNotEmpty == true
-          ? remoteCouple.couplePhotoStoragePath
-          : localCouple.couplePhotoStoragePath,
+              ? remoteCouple.couplePhotoStoragePath
+              : localCouple.couplePhotoStoragePath,
     );
   }
 
@@ -1121,6 +1124,7 @@ class CoupleService {
     // Fallback: return a final random code even if we can't verify uniqueness.
     return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
   }
+
 }
 
 class CouplePhotoSyncResult {
@@ -1136,8 +1140,12 @@ class CouplePhotoSyncResult {
 }
 
 class CouplePhotoSyncAttempt {
-  const CouplePhotoSyncAttempt({required this.result, this.warningMessage});
+  const CouplePhotoSyncAttempt({
+    required this.result,
+    this.warningMessage,
+  });
 
   final CouplePhotoSyncResult result;
   final String? warningMessage;
 }
+

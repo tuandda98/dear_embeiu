@@ -287,7 +287,8 @@ class _CatchupGateDialogState extends State<_CatchupGateDialog> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: _sending || _controller.text.trim().isEmpty
+                    onPressed:
+                        _sending || _controller.text.trim().isEmpty
                         ? null
                         : _submit,
                     style: ElevatedButton.styleFrom(

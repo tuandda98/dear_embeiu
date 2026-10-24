@@ -32,29 +32,27 @@ void main() {
   }
 
   group('#3 session-liveness listener', () {
-    test(
-      'external revocation while authed flags sessionRevoked + clears state',
-      () async {
-        final fake = _FakeAuthService()..userToReturn = buildUser();
-        final provider = AuthProvider(authService: fake);
-        await provider.initialize();
+    test('external revocation while authed flags sessionRevoked + clears state',
+        () async {
+      final fake = _FakeAuthService()..userToReturn = buildUser();
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
 
-        expect(provider.isAuthenticated, isTrue);
-        expect(provider.sessionRevoked, isFalse);
+      expect(provider.isAuthenticated, isTrue);
+      expect(provider.sessionRevoked, isFalse);
 
-        // Session pulled out from under us (token revoked / deleted elsewhere).
-        fake.emitSession(active: false);
-        await _settle();
+      // Session pulled out from under us (token revoked / deleted elsewhere).
+      fake.emitSession(active: false);
+      await _settle();
 
-        expect(provider.sessionRevoked, isTrue, reason: 'revocation must flag');
-        expect(provider.isAuthenticated, isFalse);
-        expect(provider.currentUser, isNull);
+      expect(provider.sessionRevoked, isTrue, reason: 'revocation must flag');
+      expect(provider.isAuthenticated, isFalse);
+      expect(provider.currentUser, isNull);
 
-        // One-shot: ack clears it so the shell only navigates once.
-        provider.acknowledgeSessionRevoked();
-        expect(provider.sessionRevoked, isFalse);
-      },
-    );
+      // One-shot: ack clears it so the shell only navigates once.
+      provider.acknowledgeSessionRevoked();
+      expect(provider.sessionRevoked, isFalse);
+    });
 
     test('intentional sign-out does NOT flag a revocation', () async {
       final fake = _FakeAuthService()..userToReturn = buildUser();
@@ -151,53 +149,49 @@ void main() {
       expect(provider.sessionRevoked, isTrue);
     });
 
-    test(
-      'another Apple ID in the sheet: apple-id-mismatch, nothing deleted',
-      () async {
-        final fake = _FakeAuthService()
-          ..userToReturn = buildUser()
-          ..appleConfirmError = const AuthException('apple-id-mismatch');
-        final provider = AuthProvider(authService: fake);
-        await provider.initialize();
+    test('another Apple ID in the sheet: apple-id-mismatch, nothing deleted',
+        () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..appleConfirmError = const AuthException('apple-id-mismatch');
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
 
-        final result = await provider.deleteAccount(appleSheet: true);
+      final result = await provider.deleteAccount(appleSheet: true);
 
-        expect(result, 'apple-id-mismatch');
-        expect(fake.deleteCalled, isFalse);
-        expect(provider.errorMessage, isNull, reason: 'sentinel, never text');
-      },
-    );
+      expect(result, 'apple-id-mismatch');
+      expect(fake.deleteCalled, isFalse);
+      expect(provider.errorMessage, isNull, reason: 'sentinel, never text');
+    });
   });
 
   group('BUG-26 one deletion, on the dialog\'s answer', () {
-    test(
-      'a second call while one runs returns at once and leaves it alone',
-      () async {
-        final fake = _FakeAuthService()
-          ..userToReturn = buildUser()
-          ..deleteGate = Completer<void>();
-        final provider = AuthProvider(authService: fake);
-        await provider.initialize();
+    test('a second call while one runs returns at once and leaves it alone',
+        () async {
+      final fake = _FakeAuthService()
+        ..userToReturn = buildUser()
+        ..deleteGate = Completer<void>();
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
 
-        final first = provider.deleteAccount(appleSheet: true);
-        await _settle();
-        expect(provider.isLoading, isTrue);
+      final first = provider.deleteAccount(appleSheet: true);
+      await _settle();
+      expect(provider.isLoading, isTrue);
 
-        expect(
-          await provider
-              .deleteAccount(appleSheet: true)
-              .timeout(const Duration(seconds: 1)),
-          'delete-in-progress',
-        );
-        expect(fake.events, ['confirm', 'delete'], reason: 'one deletion');
-        expect(provider.isLoading, isTrue, reason: 'the first still runs');
+      expect(
+        await provider
+            .deleteAccount(appleSheet: true)
+            .timeout(const Duration(seconds: 1)),
+        'delete-in-progress',
+      );
+      expect(fake.events, ['confirm', 'delete'], reason: 'one deletion');
+      expect(provider.isLoading, isTrue, reason: 'the first still runs');
 
-        fake.deleteGate!.complete();
-        expect(await first, isNull);
-        expect(fake.events, ['confirm', 'delete', 'wipe:u1']);
-        expect(provider.isLoading, isFalse);
-      },
-    );
+      fake.deleteGate!.complete();
+      expect(await first, isNull);
+      expect(fake.events, ['confirm', 'delete', 'wipe:u1']);
+      expect(provider.isLoading, isFalse);
+    });
 
     test('the sheet closed: Delete again runs again', () async {
       final fake = _FakeAuthService()
@@ -229,17 +223,15 @@ void main() {
   });
 
   group('AU8 sleep data kept only on this phone', () {
-    test(
-      'wiped after the server delete, never before the Apple sheet',
-      () async {
-        final fake = _FakeAuthService()..userToReturn = buildUser();
-        final provider = AuthProvider(authService: fake);
-        await provider.initialize();
+    test('wiped after the server delete, never before the Apple sheet',
+        () async {
+      final fake = _FakeAuthService()..userToReturn = buildUser();
+      final provider = AuthProvider(authService: fake);
+      await provider.initialize();
 
-        expect(await provider.deleteAccount(appleSheet: true), isNull);
-        expect(fake.events, ['confirm', 'delete', 'wipe:u1']);
-      },
-    );
+      expect(await provider.deleteAccount(appleSheet: true), isNull);
+      expect(fake.events, ['confirm', 'delete', 'wipe:u1']);
+    });
 
     test('kept when nothing was deleted (sheet closed)', () async {
       final fake = _FakeAuthService()

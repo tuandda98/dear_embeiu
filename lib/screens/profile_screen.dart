@@ -15,7 +15,8 @@ import '../providers/photo_provider.dart';
 import '../providers/caro_game_provider.dart';
 import '../widgets/caro/caro_common.dart' show CaroPeople;
 import 'caro_game_screen.dart' show openCaroGame;
-import '../widgets/play_together_card.dart' show showPlayTogetherHistorySheet;
+import '../widgets/play_together_card.dart'
+    show showPlayTogetherHistorySheet;
 import '../providers/rps_game_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/care_message_service.dart';
@@ -828,11 +829,7 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                   // Whoever waits on me first (caro, then rps); otherwise a
                   // sheet with each game's history (review UI #14).
                   if (caroTurnId != null) {
-                    openCaroGame(
-                      context,
-                      gameId: caroTurnId,
-                      source: 'profile',
-                    );
+                    openCaroGame(context, gameId: caroTurnId, source: 'profile');
                   } else if (rpsInviteId != null) {
                     openRpsGame(context, gameId: rpsInviteId);
                   } else {

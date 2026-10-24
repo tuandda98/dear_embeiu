@@ -17,8 +17,8 @@ enum SocialSignIn { apple, google }
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider({required AuthService authService, UserService? userService})
-    : _authService = authService,
-      _userService = userService ?? UserService();
+      : _authService = authService,
+        _userService = userService ?? UserService();
 
   final AuthService _authService;
   final UserService _userService;
@@ -159,35 +159,29 @@ class AuthProvider extends ChangeNotifier {
     } catch (_) {
       return; // Best-effort — never block the sign-in path.
     }
-    _tokenSub = _authService
-        .watchSessionToken(uid)
-        .listen(
-          (remoteToken) {
-            if (_localToken == null || remoteToken == null) return;
-            if (remoteToken == _localToken) return;
-            if (_intentionalAuthClear) return;
-            if (_status != AuthStatus.authenticated) return;
-            // Another device took over — clear state and re-route to auth gate.
-            _intentionalAuthClear =
-                true; // Prevent _sessionSub from double-firing.
-            _currentUser = null;
-            _status = AuthStatus.unauthenticated;
-            _sessionRevoked = true;
-            unawaited(AnalyticsService.instance.setUserId(null));
-            AnalyticsService.instance.setIsGuest(true);
-            _tokenSub?.cancel();
-            _tokenSub = null;
-            _localToken = null;
-            unawaited(_authService.signOut());
-            notifyListeners();
-          },
-          onError: (Object e) {
-            // The listener outlives a session that ended under it (another Apple ID
-            // in the delete sheet, external revocation): rules then deny the read.
-            // Not a crash — keep it out of Crashlytics' fatal handler.
-            debugPrint('AuthProvider session token watch ended: $e');
-          },
-        );
+    _tokenSub = _authService.watchSessionToken(uid).listen((remoteToken) {
+      if (_localToken == null || remoteToken == null) return;
+      if (remoteToken == _localToken) return;
+      if (_intentionalAuthClear) return;
+      if (_status != AuthStatus.authenticated) return;
+      // Another device took over — clear state and re-route to auth gate.
+      _intentionalAuthClear = true; // Prevent _sessionSub from double-firing.
+      _currentUser = null;
+      _status = AuthStatus.unauthenticated;
+      _sessionRevoked = true;
+      unawaited(AnalyticsService.instance.setUserId(null));
+      AnalyticsService.instance.setIsGuest(true);
+      _tokenSub?.cancel();
+      _tokenSub = null;
+      _localToken = null;
+      unawaited(_authService.signOut());
+      notifyListeners();
+    }, onError: (Object e) {
+      // The listener outlives a session that ended under it (another Apple ID
+      // in the delete sheet, external revocation): rules then deny the read.
+      // Not a crash — keep it out of Crashlytics' fatal handler.
+      debugPrint('AuthProvider session token watch ended: $e');
+    });
   }
 
   @override
@@ -252,17 +246,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signIn({required String email, required String password}) async {
+  Future<bool> signIn({
+    required String email,
+    required String password,
+  }) async {
     _setLoading(true);
     _clearError(notify: false);
     // A fresh session is beginning — re-arm external-revocation detection.
     _intentionalAuthClear = false;
 
     try {
-      _currentUser = await _authService.signIn(
-        email: email,
-        password: password,
-      );
+      _currentUser = await _authService.signIn(email: email, password: password);
       _status = AuthStatus.authenticated;
       _isInitialized = true;
       await PushNotificationService.instance.syncForUser(_currentUser);
@@ -688,3 +682,4 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 }
+

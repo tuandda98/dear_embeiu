@@ -19,12 +19,10 @@ class AppColors {
 
   // ---------------------------------------------------------------------------
   // Accents
-  static const Color accentLove = Color(0xFFFF4D6D); // primary heart accent
+  static const Color accentLove = Color(0xFFFF4D6D);     // primary heart accent
   static const Color accentLoveDeep = Color(0xFFE63956); // active state
   static const Color accentLavender = Color(0xFFA78BFA); // secondary accent
-  static const Color accentLavenderDeep = Color(
-    0xFF7C5CD6,
-  ); // partner label on lavender tint
+  static const Color accentLavenderDeep = Color(0xFF7C5CD6); // partner label on lavender tint
 
   // Backwards-compat aliases (so existing screens keep compiling).
   static const Color accentRose = accentLove;
@@ -33,7 +31,7 @@ class AppColors {
 
   // ---------------------------------------------------------------------------
   // Surfaces
-  static const Color bgLight = Color(0xFFFAFAFC); // app background
+  static const Color bgLight = Color(0xFFFAFAFC);     // app background
   static const Color bgDark = Color(0xFFFAFAFC);
   static const Color surfaceLight = Color(0xFFF5F0F5); // section divider tint
   static const Color cardSurface = Color(0xFFFFFFFF);
@@ -49,7 +47,7 @@ class AppColors {
 
   // ---------------------------------------------------------------------------
   // Text
-  static const Color textPrimary = Color(0xFF1A1A2E); // deep navy-black
+  static const Color textPrimary = Color(0xFF1A1A2E);   // deep navy-black
   static const Color textSecondary = Color(0xFF6B6B7B);
   static const Color textTertiary = Color(0xFFA0A0B0);
   static const Color textOnGradient = Color(0xFFFFFFFF);
@@ -76,18 +74,14 @@ class AppColors {
   // Readable status ink (đợt 2, 2026-10-20). [error]/[warning] above are fills:
   // as text on white they only reach ~3:1, so text, icons and solid
   // destructive buttons use these instead.
-  static const Color errorInk = Color(
-    0xFFC4242A,
-  ); // 5.9:1 on white ("Xin thua")
-  static const Color warningInk = Color(
-    0xFF8A4B00,
-  ); // 6.0:1 on warning α.18 (pin yếu)
+  static const Color errorInk = Color(0xFFC4242A);   // 5.9:1 on white ("Xin thua")
+  static const Color warningInk = Color(0xFF8A4B00); // 6.0:1 on warning α.18 (pin yếu)
 
   // Sổ tiền amounts and budget state. Negative = [errorInk] so "vượt" reads
   // like every other destructive red in the app.
   static const Color moneyPositive = Color(0xFF247B50); // thu, "+120.000 ₫"
-  static const Color moneyNegative = errorInk; // vượt ngân sách
-  static const Color moneyWarn = Color(0xFFB65A00); // ≥80% ngân sách
+  static const Color moneyNegative = errorInk;          // vượt ngân sách
+  static const Color moneyWarn = Color(0xFFB65A00);     // ≥80% ngân sách
 
   // ---------------------------------------------------------------------------
   // Gradients
@@ -117,8 +111,8 @@ class AppColors {
 
   // Soft pink shadow for diffused, hue-matched depth
   static BoxShadow softCardShadow({double opacity = 0.12}) => BoxShadow(
-    color: sunset1.withValues(alpha: opacity),
-    blurRadius: 24,
-    offset: const Offset(0, 8),
-  );
+        color: sunset1.withValues(alpha: opacity),
+        blurRadius: 24,
+        offset: const Offset(0, 8),
+      );
 }

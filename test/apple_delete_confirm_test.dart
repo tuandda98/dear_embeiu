@@ -30,20 +30,17 @@ import 'package:dear_embeiu/services/auth_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test(
-    'same Apple ID: revoke with the fresh code, refresh the token',
-    () async {
-      final auth = _FakeAuth(signInUser: _FakeUser('u1'));
-      final service = _FirebaseAuthService(auth);
+  test('same Apple ID: revoke with the fresh code, refresh the token', () async {
+    final auth = _FakeAuth(signInUser: _FakeUser('u1'));
+    final service = _FirebaseAuthService(auth);
 
-      await service.confirmAppleDeletionIfNeeded(appleSheet: true);
+    await service.confirmAppleDeletionIfNeeded(appleSheet: true);
 
-      expect(auth.revokedCode, 'fresh-code');
-      expect(auth.signInUser!.tokenRefreshed, isTrue);
-      expect(auth.signedOut, isFalse);
-      expect(service.messagingTokenDeleted, isFalse);
-    },
-  );
+    expect(auth.revokedCode, 'fresh-code');
+    expect(auth.signInUser!.tokenRefreshed, isTrue);
+    expect(auth.signedOut, isFalse);
+    expect(service.messagingTokenDeleted, isFalse);
+  });
 
   Future<String> mismatch(_FakeAuth auth, _FirebaseAuthService service) async {
     try {
@@ -79,94 +76,88 @@ void main() {
     expect(auth.revokedCode, isNull);
   });
 
-  test(
-    'a failed revoke, orphan delete or token drop still signs out',
-    () async {
-      final auth = _FakeAuth(
-        signInUser: _FakeUser('u2', deleteFails: true),
-        isNewUser: true,
-        revokeFails: true,
-      );
-      final service = _FirebaseAuthService(auth, tokenDeleteFails: true);
+  test('a failed revoke, orphan delete or token drop still signs out',
+      () async {
+    final auth = _FakeAuth(
+      signInUser: _FakeUser('u2', deleteFails: true),
+      isNewUser: true,
+      revokeFails: true,
+    );
+    final service = _FirebaseAuthService(auth, tokenDeleteFails: true);
 
-      expect(await mismatch(auth, service), 'apple-id-mismatch');
-      expect(auth.signedOut, isTrue);
-    },
-  );
+    expect(await mismatch(auth, service), 'apple-id-mismatch');
+    expect(auth.signedOut, isTrue);
+  });
 
   test('a failed token refresh is only logged: the callable decides', () async {
     final auth = _FakeAuth(signInUser: _FakeUser('u1', tokenFails: true));
 
-    await _FirebaseAuthService(
-      auth,
-    ).confirmAppleDeletionIfNeeded(appleSheet: true);
+    await _FirebaseAuthService(auth).confirmAppleDeletionIfNeeded(
+      appleSheet: true,
+    );
 
     expect(auth.revokedCode, 'fresh-code');
   });
 
-  test(
-    'Apple + Google linked: the Apple sheet on iOS, Google on Android',
-    () async {
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      _FakeAuth linked() => _FakeAuth(
-        signInUser: _FakeUser('u1'),
-        current: _FakeUser('u1', providers: const ['apple.com', 'google.com']),
-      );
+  test('Apple + Google linked: the Apple sheet on iOS, Google on Android',
+      () async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    _FakeAuth linked() => _FakeAuth(
+      signInUser: _FakeUser('u1'),
+      current: _FakeUser('u1', providers: const ['apple.com', 'google.com']),
+    );
 
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      final android = linked();
-      final onAndroid = _FirebaseAuthService(android);
-      // Even told "the sheet", Android has none to show.
-      await onAndroid.confirmAppleDeletionIfNeeded(appleSheet: true);
-      expect(android.sheetShown, isFalse);
-      expect(onAndroid.reauthWithGoogle, isTrue);
-      expect(onAndroid.reauthWithApple, isFalse);
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final android = linked();
+    final onAndroid = _FirebaseAuthService(android);
+    // Even told "the sheet", Android has none to show.
+    await onAndroid.confirmAppleDeletionIfNeeded(appleSheet: true);
+    expect(android.sheetShown, isFalse);
+    expect(onAndroid.reauthWithGoogle, isTrue);
+    expect(onAndroid.reauthWithApple, isFalse);
 
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      final ios = linked();
-      final onIos = _FirebaseAuthService(ios);
-      await onIos.confirmAppleDeletionIfNeeded(appleSheet: true);
-      expect(ios.sheetShown, isTrue);
-      expect(onIos.reauthWithApple, isTrue);
-      expect(onIos.reauthWithGoogle, isFalse);
-    },
-  );
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    final ios = linked();
+    final onIos = _FirebaseAuthService(ios);
+    await onIos.confirmAppleDeletionIfNeeded(appleSheet: true);
+    expect(ios.sheetShown, isTrue);
+    expect(onIos.reauthWithApple, isTrue);
+    expect(onIos.reauthWithGoogle, isFalse);
+  });
 
-  test(
-    'AU3 Apple + password: the sheet and its revocation on iOS when the '
-    "account's Apple ID is signed in there, the password on Android",
-    () async {
-      addTearDown(() => debugDefaultTargetPlatformOverride = null);
-      final asked = _mockAppleIdState(() => 'authorized');
-      _FakeAuth withPassword() => _FakeAuth(
-        signInUser: _FakeUser('u1'),
-        current: _FakeUser('u1', providers: const ['apple.com', 'password']),
-      );
+  test('AU3 Apple + password: the sheet and its revocation on iOS when the '
+      "account's Apple ID is signed in there, the password on Android",
+      () async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final asked = _mockAppleIdState(() => 'authorized');
+    _FakeAuth withPassword() => _FakeAuth(
+      signInUser: _FakeUser('u1'),
+      current: _FakeUser('u1', providers: const ['apple.com', 'password']),
+    );
 
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      final ios = withPassword();
-      final onIos = _FirebaseAuthService(ios);
-      expect(onIos.reauthWithApple, isTrue);
-      expect(await onIos.passwordInsteadOfAppleSheet(), isFalse);
-      await onIos.confirmAppleDeletionIfNeeded(appleSheet: true);
-      expect(ios.sheetShown, isTrue);
-      expect(ios.revokedCode, 'fresh-code');
-      // The account's Apple user id (providerData → apple.com → uid), once:
-      // the deletion goes by the dialog's answer (BUG-26).
-      expect(asked, ['apple-sub-u1']);
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    final ios = withPassword();
+    final onIos = _FirebaseAuthService(ios);
+    expect(onIos.reauthWithApple, isTrue);
+    expect(await onIos.passwordInsteadOfAppleSheet(), isFalse);
+    await onIos.confirmAppleDeletionIfNeeded(appleSheet: true);
+    expect(ios.sheetShown, isTrue);
+    expect(ios.revokedCode, 'fresh-code');
+    // The account's Apple user id (providerData → apple.com → uid), once:
+    // the deletion goes by the dialog's answer (BUG-26).
+    expect(asked, ['apple-sub-u1']);
 
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      asked.clear();
-      final android = withPassword();
-      final onAndroid = _FirebaseAuthService(android);
-      expect(await onAndroid.passwordInsteadOfAppleSheet(), isFalse);
-      await onAndroid.confirmAppleDeletionIfNeeded(appleSheet: true);
-      expect(android.sheetShown, isFalse);
-      expect(onAndroid.reauthWithApple, isFalse);
-      expect(onAndroid.reauthWithGoogle, isFalse, reason: 'password dialog');
-      expect(asked, isEmpty, reason: 'Android never asks iOS');
-    },
-  );
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    asked.clear();
+    final android = withPassword();
+    final onAndroid = _FirebaseAuthService(android);
+    expect(await onAndroid.passwordInsteadOfAppleSheet(), isFalse);
+    await onAndroid.confirmAppleDeletionIfNeeded(appleSheet: true);
+    expect(android.sheetShown, isFalse);
+    expect(onAndroid.reauthWithApple, isFalse);
+    expect(onAndroid.reauthWithGoogle, isFalse, reason: 'password dialog');
+    expect(asked, isEmpty, reason: 'Android never asks iOS');
+  });
 
   group('BUG-25 Apple + password on iOS, another Apple ID on the iPhone', () {
     setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
@@ -204,14 +195,13 @@ void main() {
 
     test('no channel at all: the password too', () async {
       expect(
-        await _FirebaseAuthService(
-          withPassword(),
-        ).passwordInsteadOfAppleSheet(),
+        await _FirebaseAuthService(withPassword()).passwordInsteadOfAppleSheet(),
         isTrue,
       );
     });
 
-    test('iOS never answers: the password once its 2 seconds are up', () async {
+    test('iOS never answers: the password once its 2 seconds are up',
+        () async {
       _mockAppleIdState(() => Completer<String>().future);
       final service = _FirebaseAuthService(withPassword());
 
@@ -224,16 +214,14 @@ void main() {
       );
     });
 
-    test(
-      'no Apple user id on the account: the password, iOS never asked',
-      () async {
-        final asked = _mockAppleIdState(() => 'authorized');
-        final service = _FirebaseAuthService(withPassword(appleSub: ''));
+    test('no Apple user id on the account: the password, iOS never asked',
+        () async {
+      final asked = _mockAppleIdState(() => 'authorized');
+      final service = _FirebaseAuthService(withPassword(appleSub: ''));
 
-        expect(await service.passwordInsteadOfAppleSheet(), isTrue);
-        expect(asked, isEmpty);
-      },
-    );
+      expect(await service.passwordInsteadOfAppleSheet(), isTrue);
+      expect(asked, isEmpty);
+    });
 
     test('through the provider: the dialog skips the Apple note, the '
         'account is deleted (it was signed out instead before)', () async {
@@ -285,19 +273,17 @@ void main() {
       });
     }
 
-    test(
-      'Apple only: iOS is never asked, the sheet as before (PF18)',
-      () async {
-        final asked = _mockAppleIdState(() => 'notFound');
-        final auth = _FakeAuth(signInUser: _FakeUser('u1'));
-        final service = _FirebaseAuthService(auth);
+    test('Apple only: iOS is never asked, the sheet as before (PF18)',
+        () async {
+      final asked = _mockAppleIdState(() => 'notFound');
+      final auth = _FakeAuth(signInUser: _FakeUser('u1'));
+      final service = _FirebaseAuthService(auth);
 
-        expect(await service.passwordInsteadOfAppleSheet(), isFalse);
-        await service.confirmAppleDeletionIfNeeded(appleSheet: true);
-        expect(auth.sheetShown, isTrue);
-        expect(asked, isEmpty);
-      },
-    );
+      expect(await service.passwordInsteadOfAppleSheet(), isFalse);
+      await service.confirmAppleDeletionIfNeeded(appleSheet: true);
+      expect(auth.sheetShown, isTrue);
+      expect(asked, isEmpty);
+    });
   });
 
   group('BUG-24 the delete callable only runs on the account itself', () {
@@ -353,26 +339,24 @@ void main() {
       expect(service.events, isEmpty);
     });
 
-    test(
-      'the session switching during the token refresh: never calls',
-      () async {
-        late final _FakeAuth auth;
-        auth = _FakeAuth(
-          current: _FakeUser(
-            'u1',
-            providers: const ['google.com'],
-            onTokenRefresh: () => auth._current = _FakeUser('u2'),
-          ),
-        );
-        final service = _FirebaseAuthService(auth);
+    test('the session switching during the token refresh: never calls',
+        () async {
+      late final _FakeAuth auth;
+      auth = _FakeAuth(
+        current: _FakeUser(
+          'u1',
+          providers: const ['google.com'],
+          onTokenRefresh: () => auth._current = _FakeUser('u2'),
+        ),
+      );
+      final service = _FirebaseAuthService(auth);
 
-        expect(
-          await _messageOf(() => service.deleteAccount(currentUser: _appUser)),
-          'session-gone',
-        );
-        expect(service.events, isEmpty);
-      },
-    );
+      expect(
+        await _messageOf(() => service.deleteAccount(currentUser: _appUser)),
+        'session-gone',
+      );
+      expect(service.events, isEmpty);
+    });
   });
 
   group('AU3 deleteAccount: a linked Google grant goes after the delete', () {
@@ -426,9 +410,9 @@ void main() {
     Future<String?> messageFor(String code) async {
       final auth = _FakeAuth(error: FirebaseAuthException(code: code));
       try {
-        await _FirebaseAuthService(
-          auth,
-        ).confirmAppleDeletionIfNeeded(appleSheet: true);
+        await _FirebaseAuthService(auth).confirmAppleDeletionIfNeeded(
+          appleSheet: true,
+        );
       } on AuthException catch (e) {
         return e.message;
       }

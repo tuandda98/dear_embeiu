@@ -33,7 +33,10 @@ class MasonryGallery extends StatelessWidget {
             SizedBox(height: 16),
             Text(
               context.l10n.galleryEmptyTitle,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 16,
+              ),
             ),
             SizedBox(height: 8),
             Text(
@@ -67,3 +70,4 @@ class MasonryGallery extends StatelessWidget {
     );
   }
 }
+

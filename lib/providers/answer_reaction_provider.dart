@@ -20,7 +20,7 @@ import '../services/answer_reaction_service.dart';
 /// `clear` is called on sign-out / no-couple.
 class AnswerReactionProvider extends ChangeNotifier {
   AnswerReactionProvider({AnswerReactionService? service})
-    : _service = service ?? AnswerReactionService();
+      : _service = service ?? AnswerReactionService();
 
   final AnswerReactionService _service;
 
@@ -55,21 +55,18 @@ class AnswerReactionProvider extends ChangeNotifier {
     }
 
     final pendingEmoji = _pendingMine[key];
-    final others = base
-        .where((r) => r.reactorUserId != uid)
-        .toList(growable: true);
+    final others =
+        base.where((r) => r.reactorUserId != uid).toList(growable: true);
     if (pendingEmoji == null) {
       return others; // removed mine
     }
-    others.add(
-      AnswerReaction(
-        reactorUserId: uid,
-        answerAuthorUserId: answerAuthorUid,
-        emoji: pendingEmoji,
-        coupleId: _coupleId ?? '',
-        date: date,
-      ),
-    );
+    others.add(AnswerReaction(
+      reactorUserId: uid,
+      answerAuthorUserId: answerAuthorUid,
+      emoji: pendingEmoji,
+      coupleId: _coupleId ?? '',
+      date: date,
+    ));
     return others;
   }
 
@@ -126,33 +123,31 @@ class AnswerReactionProvider extends ChangeNotifier {
     notifyListeners();
 
     _subscription?.cancel();
-    _subscription = _service
-        .watchCoupleAnswerReactions(coupleId)
-        .listen(
-          (reactions) {
-            _serverReactions = reactions;
-            // Once the server reflects an optimistic write, drop its override so the
-            // two no longer fight.
-            final uid = _myUid;
-            if (uid != null && _pendingMine.isNotEmpty) {
-              final confirmed = <String>[];
-              _pendingMine.forEach((key, expected) {
-                if (_serverEmojiFor(key, uid) == expected) {
-                  confirmed.add(key);
-                }
-              });
-              for (final key in confirmed) {
-                _pendingMine.remove(key);
-              }
+    _subscription = _service.watchCoupleAnswerReactions(coupleId).listen(
+      (reactions) {
+        _serverReactions = reactions;
+        // Once the server reflects an optimistic write, drop its override so the
+        // two no longer fight.
+        final uid = _myUid;
+        if (uid != null && _pendingMine.isNotEmpty) {
+          final confirmed = <String>[];
+          _pendingMine.forEach((key, expected) {
+            if (_serverEmojiFor(key, uid) == expected) {
+              confirmed.add(key);
             }
-            notifyListeners();
-          },
-          onError: (_) {
-            // Keep the last good data; per-action errors are handled in the write
-            // path.
-            notifyListeners();
-          },
-        );
+          });
+          for (final key in confirmed) {
+            _pendingMine.remove(key);
+          }
+        }
+        notifyListeners();
+      },
+      onError: (_) {
+        // Keep the last good data; per-action errors are handled in the write
+        // path.
+        notifyListeners();
+      },
+    );
   }
 
   String? _serverEmojiFor(String key, String? uid) {
@@ -250,7 +245,8 @@ class AnswerReactionProvider extends ChangeNotifier {
     _errorKeys.remove(key);
     notifyListeners();
 
-    AnalyticsService.instance.logReactionSet('remove', surface: 'daily_answer');
+    AnalyticsService.instance
+        .logReactionSet('remove', surface: 'daily_answer');
 
     try {
       await _service.removeReaction(

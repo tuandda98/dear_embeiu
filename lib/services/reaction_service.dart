@@ -27,12 +27,13 @@ class ReactionService {
   CollectionReference<Map<String, dynamic>> _reactionsCollection(
     String coupleId,
     String photoId,
-  ) => _db
-      .collection('couples')
-      .doc(coupleId)
-      .collection('photos')
-      .doc(photoId)
-      .collection('reactions');
+  ) =>
+      _db
+          .collection('couples')
+          .doc(coupleId)
+          .collection('photos')
+          .doc(photoId)
+          .collection('reactions');
 
   /// Streams every reaction of the couple at once, grouped by photoId.
   ///
@@ -56,21 +57,21 @@ class ReactionService {
         .where('coupleId', isEqualTo: coupleId)
         .snapshots()
         .map((snapshot) {
-          final byPhoto = <String, List<PhotoReaction>>{};
-          for (final doc in snapshot.docs) {
-            // reactions/{uid} → parent is the photo doc → its id is the photoId.
-            final photoId = doc.reference.parent.parent?.id;
-            if (photoId == null || photoId.isEmpty) {
-              continue;
-            }
-            final reaction = PhotoReaction.fromDoc(doc.id, doc.data());
-            if (!reaction.isValid) {
-              continue;
-            }
-            (byPhoto[photoId] ??= <PhotoReaction>[]).add(reaction);
-          }
-          return byPhoto;
-        });
+      final byPhoto = <String, List<PhotoReaction>>{};
+      for (final doc in snapshot.docs) {
+        // reactions/{uid} → parent is the photo doc → its id is the photoId.
+        final photoId = doc.reference.parent.parent?.id;
+        if (photoId == null || photoId.isEmpty) {
+          continue;
+        }
+        final reaction = PhotoReaction.fromDoc(doc.id, doc.data());
+        if (!reaction.isValid) {
+          continue;
+        }
+        (byPhoto[photoId] ??= <PhotoReaction>[]).add(reaction);
+      }
+      return byPhoto;
+    });
   }
 
   /// Creates or overwrites the current user's reaction (doc id == [uid]).
@@ -90,12 +91,15 @@ class ReactionService {
       return;
     }
 
-    await _reactionsCollection(coupleId, photoId).doc(uid).set({
-      'authorUserId': uid,
-      'emoji': emoji,
-      'coupleId': coupleId,
-      'reactedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await _reactionsCollection(coupleId, photoId).doc(uid).set(
+      {
+        'authorUserId': uid,
+        'emoji': emoji,
+        'coupleId': coupleId,
+        'reactedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
   }
 
   /// Removes (deletes) the current user's reaction. No-ops on the local

@@ -77,26 +77,25 @@ void main() {
       expect(auth.signedOut, isFalse);
     });
 
-    test(
-      'old session, Google: the picker, reauth with its ID token, link',
-      () async {
-        final user = _FakeUser(
-          providers: ['google.com'],
-          linkErrors: ['requires-recent-login'],
-        );
-        final auth = _FakeAuth(user);
+    test('old session, Google: the picker, reauth with its ID token, link',
+        () async {
+      final user = _FakeUser(
+        providers: ['google.com'],
+        linkErrors: ['requires-recent-login'],
+      );
+      final auth = _FakeAuth(user);
 
-        await _Service(auth).setPassword('secret1', uid: 'u1');
+      await _Service(auth).setPassword('secret1', uid: 'u1');
 
-        final reauth = user.reauthenticated.single as OAuthCredential;
-        expect(reauth.providerId, 'google.com');
-        expect(reauth.idToken, 'google-id-token');
-        expect(user.linked, hasLength(2));
-        expect(auth.sheetShown, isFalse);
-      },
-    );
+      final reauth = user.reauthenticated.single as OAuthCredential;
+      expect(reauth.providerId, 'google.com');
+      expect(reauth.idToken, 'google-id-token');
+      expect(user.linked, hasLength(2));
+      expect(auth.sheetShown, isFalse);
+    });
 
-    test('closing the Apple sheet or the Google picker stays silent', () async {
+    test('closing the Apple sheet or the Google picker stays silent',
+        () async {
       addTearDown(() => debugDefaultTargetPlatformOverride = null);
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       _mockAppleIdState(() => 'authorized');
@@ -153,38 +152,36 @@ void main() {
       expect(other.linked, isEmpty);
     });
 
-    test(
-      'BUG-24 the sheet left another Apple ID signed in (its sign-out '
-      'failed): apple-id-mismatch, and a second try links nothing either',
-      () async {
-        addTearDown(() => debugDefaultTargetPlatformOverride = null);
-        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        _mockAppleIdState(() => 'authorized');
-        final user = _FakeUser(
-          providers: ['apple.com'],
-          linkErrors: ['requires-recent-login'],
-        );
-        final other = _FakeUser(uid: 'u2', providers: ['apple.com']);
-        final auth = _FakeAuth(
-          user,
-          sheetUser: other,
-          switchesSession: true,
-          signOutError: FirebaseAuthException(code: 'keychain-error'),
-        );
-        final service = _Service(auth);
+    test('BUG-24 the sheet left another Apple ID signed in (its sign-out '
+        'failed): apple-id-mismatch, and a second try links nothing either',
+        () async {
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      _mockAppleIdState(() => 'authorized');
+      final user = _FakeUser(
+        providers: ['apple.com'],
+        linkErrors: ['requires-recent-login'],
+      );
+      final other = _FakeUser(uid: 'u2', providers: ['apple.com']);
+      final auth = _FakeAuth(
+        user,
+        sheetUser: other,
+        switchesSession: true,
+        signOutError: FirebaseAuthException(code: 'keychain-error'),
+      );
+      final service = _Service(auth);
 
-        expect(
-          await errorOf(() => service.setPassword('secret1', uid: 'u1')),
-          'apple-id-mismatch',
-        );
-        expect(auth.currentUser?.uid, 'u2', reason: 'the sign-out did fail');
-        expect(
-          await errorOf(() => service.setPassword('secret1', uid: 'u1')),
-          'session-gone',
-        );
-        expect(other.linked, isEmpty);
-      },
-    );
+      expect(
+        await errorOf(() => service.setPassword('secret1', uid: 'u1')),
+        'apple-id-mismatch',
+      );
+      expect(auth.currentUser?.uid, 'u2', reason: 'the sign-out did fail');
+      expect(
+        await errorOf(() => service.setPassword('secret1', uid: 'u1')),
+        'session-gone',
+      );
+      expect(other.linked, isEmpty);
+    });
 
     test('BUG-24 a session that is not the account on screen: session-gone, '
         'signed out, nothing linked', () async {
@@ -223,17 +220,12 @@ void main() {
       setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
       tearDown(() => debugDefaultTargetPlatformOverride = null);
 
-      for (final (name, answer, appleSub)
-          in <(String, Object? Function(), String?)>[
-            ('notFound', () => 'notFound', null),
-            ('revoked', () => 'revoked', null),
-            (
-              'the channel failing',
-              () => throw PlatformException(code: 'x'),
-              null,
-            ),
-            ('no Apple user id', () => 'authorized', ''),
-          ]) {
+      for (final (name, answer, appleSub) in <(String, Object? Function(), String?)>[
+        ('notFound', () => 'notFound', null),
+        ('revoked', () => 'revoked', null),
+        ('the channel failing', () => throw PlatformException(code: 'x'), null),
+        ('no Apple user id', () => 'authorized', ''),
+      ]) {
         test('$name: no sheet, the copy, still signed in, nothing more '
             'linked', () async {
           final asked = _mockAppleIdState(answer);
@@ -312,19 +304,17 @@ void main() {
       );
     });
 
-    test(
-      'already set elsewhere: reloads so the Settings row goes away',
-      () async {
-        final user = _FakeUser(
-          providers: ['apple.com'],
-          linkErrors: ['provider-already-linked'],
-        );
-        await errorOf(
-          () => _Service(_FakeAuth(user)).setPassword('secret1', uid: 'u1'),
-        );
-        expect(user.reloaded, isTrue);
-      },
-    );
+    test('already set elsewhere: reloads so the Settings row goes away',
+        () async {
+      final user = _FakeUser(
+        providers: ['apple.com'],
+        linkErrors: ['provider-already-linked'],
+      );
+      await errorOf(
+        () => _Service(_FakeAuth(user)).setPassword('secret1', uid: 'u1'),
+      );
+      expect(user.reloaded, isTrue);
+    });
   });
 
   group('email-verification gate', () {

@@ -57,10 +57,8 @@ void main() {
       final r = judge(RpsChoice.rock, RpsChoice.scissors);
       expect(r.outcomeFor(a), RpsOutcome.win);
       expect(r.outcomeFor(b), RpsOutcome.lose);
-      expect(
-        judge(RpsChoice.paper, RpsChoice.paper).outcomeFor(a),
-        RpsOutcome.draw,
-      );
+      expect(judge(RpsChoice.paper, RpsChoice.paper).outcomeFor(a),
+          RpsOutcome.draw);
     });
 
     test('explicit reason overrides the inferred one', () {
@@ -180,9 +178,7 @@ void main() {
           '  ': started.toIso8601String(), // blank key dropped
           'uid-c': 'not a date', // unparseable stamp dropped
         },
-        'lastNudgeAt': started
-            .add(const Duration(seconds: 40))
-            .toIso8601String(),
+        'lastNudgeAt': started.add(const Duration(seconds: 40)).toIso8601String(),
       });
       expect(game.moved.keys, <String>['uid-b']);
       expect(game.hasMoved('uid-b'), isTrue);
@@ -218,11 +214,11 @@ void main() {
   group('RpsGame timing helpers', () {
     final started = DateTime(2026, 9, 13, 10, 0, 0);
     RpsGame playing() => RpsGame(
-      id: 'g',
-      createdBy: 'uid-a',
-      status: RpsGameStatus.playing,
-      startedAt: started,
-    );
+          id: 'g',
+          createdBy: 'uid-a',
+          status: RpsGameStatus.playing,
+          startedAt: started,
+        );
 
     test('countdownRemaining clamps to 0..5s', () {
       final g = playing();
@@ -237,7 +233,9 @@ void main() {
       );
       // Server clock slightly ahead of device → never exceeds the full window.
       expect(
-        g.countdownRemaining(now: started.subtract(const Duration(seconds: 1))),
+        g.countdownRemaining(
+          now: started.subtract(const Duration(seconds: 1)),
+        ),
         RpsTiming.countdown,
       );
     });
@@ -297,36 +295,35 @@ void main() {
         isFalse,
       );
       expect(g.isPresenceFresh('uid-c', reference: started), isFalse);
-      expect(
-        g.isInviteStale(now: started.add(const Duration(minutes: 9))),
-        isFalse,
-      );
-      expect(
-        g.isInviteStale(now: started.add(const Duration(minutes: 10))),
-        isTrue,
-      );
+      expect(g.isInviteStale(now: started.add(const Duration(minutes: 9))),
+          isFalse);
+      expect(g.isInviteStale(now: started.add(const Duration(minutes: 10))),
+          isTrue);
     });
   });
 
   group('RpsScore.tally', () {
     test('counts only finished games from my side', () {
       RpsGame finished(String winner) => RpsGame(
-        id: winner,
-        createdBy: 'me',
-        status: RpsGameStatus.finished,
-        result: RpsResult(
-          winnerUid: winner.isEmpty ? null : winner,
-          choices: const <String, RpsChoice>{},
-          reason: RpsResultReason.normal,
-        ),
+            id: winner,
+            createdBy: 'me',
+            status: RpsGameStatus.finished,
+            result: RpsResult(
+              winnerUid: winner.isEmpty ? null : winner,
+              choices: const <String, RpsChoice>{},
+              reason: RpsResultReason.normal,
+            ),
+          );
+      final score = RpsScore.tally(
+        <RpsGame>[
+          finished('me'),
+          finished('me'),
+          finished('you'),
+          finished(''),
+          const RpsGame(id: 'x', createdBy: 'me', status: RpsGameStatus.invited),
+        ],
+        'me',
       );
-      final score = RpsScore.tally(<RpsGame>[
-        finished('me'),
-        finished('me'),
-        finished('you'),
-        finished(''),
-        const RpsGame(id: 'x', createdBy: 'me', status: RpsGameStatus.invited),
-      ], 'me');
       expect(score.wins, 2);
       expect(score.losses, 1);
       expect(score.draws, 1);
@@ -377,31 +374,25 @@ void main() {
       DateTime? createdAt,
       DateTime? startedAt,
       String? rematchOf,
-    }) => RpsGame(
-      id: id,
-      createdBy: createdBy,
-      status: status,
-      createdAt: createdAt,
-      startedAt: startedAt,
-      rematchOf: rematchOf,
-    );
+    }) =>
+        RpsGame(
+          id: id,
+          createdBy: createdBy,
+          status: status,
+          createdAt: createdAt,
+          startedAt: startedAt,
+          rematchOf: rematchOf,
+        );
 
     test('isDeadOpen: only a stale invite — a playing round never dies', () {
-      final invite = game('i', status: RpsGameStatus.invited, createdAt: t0);
-      expect(
-        invite.isDeadOpen(now: t0.add(const Duration(minutes: 9))),
-        isFalse,
-      );
-      expect(
-        invite.isDeadOpen(now: t0.add(const Duration(minutes: 10))),
-        isTrue,
-      );
-      final round = game(
-        'p',
-        status: RpsGameStatus.playing,
-        createdAt: t0,
-        startedAt: t0,
-      );
+      final invite =
+          game('i', status: RpsGameStatus.invited, createdAt: t0);
+      expect(invite.isDeadOpen(now: t0.add(const Duration(minutes: 9))),
+          isFalse);
+      expect(invite.isDeadOpen(now: t0.add(const Duration(minutes: 10))),
+          isTrue);
+      final round = game('p',
+          status: RpsGameStatus.playing, createdAt: t0, startedAt: t0);
       // No-skip rule (2026-09-14): 7s, 5 minutes, 3 days — still alive.
       for (final age in const <Duration>[
         Duration(seconds: 6),
@@ -413,27 +404,19 @@ void main() {
       }
       // A closed game is never "dead open" — it just isn't open.
       expect(
-        game(
-          'f',
-          status: RpsGameStatus.finished,
-          createdAt: t0,
-        ).isDeadOpen(now: t0.add(const Duration(days: 1))),
+        game('f', status: RpsGameStatus.finished, createdAt: t0)
+            .isDeadOpen(now: t0.add(const Duration(days: 1))),
         isFalse,
       );
     });
 
     test('pickOpen skips stale invites and returns the newest live one', () {
       final now = t0.add(const Duration(minutes: 12));
-      final staleInvite = game(
-        'stale',
-        status: RpsGameStatus.invited,
-        createdAt: t0,
-      ); // 12' old
-      final liveInvite = game(
-        'live',
-        status: RpsGameStatus.invited,
-        createdAt: now.subtract(const Duration(minutes: 2)),
-      );
+      final staleInvite = game('stale',
+          status: RpsGameStatus.invited, createdAt: t0); // 12' old
+      final liveInvite = game('live',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 2)));
       // Newest first, as the stream delivers them.
       expect(
         RpsGame.pickOpen(<RpsGame>[staleInvite, liveInvite], now: now)?.id,
@@ -445,17 +428,13 @@ void main() {
 
     test('pickOpen: a playing round long past the beat is still the game', () {
       final now = t0.add(const Duration(hours: 30));
-      final oldRound = game(
-        'round',
-        status: RpsGameStatus.playing,
-        createdAt: t0,
-        startedAt: t0.add(const Duration(seconds: 20)),
-      );
-      final staleInvite = game(
-        'stale',
-        status: RpsGameStatus.invited,
-        createdAt: now.subtract(const Duration(minutes: 11)),
-      );
+      final oldRound = game('round',
+          status: RpsGameStatus.playing,
+          createdAt: t0,
+          startedAt: t0.add(const Duration(seconds: 20)));
+      final staleInvite = game('stale',
+          status: RpsGameStatus.invited,
+          createdAt: now.subtract(const Duration(minutes: 11)));
       // A newer but stale invite doesn't shadow it; the round wins.
       expect(
         RpsGame.pickOpen(<RpsGame>[staleInvite, oldRound], now: now)?.id,
@@ -465,52 +444,33 @@ void main() {
     });
 
     test('closed game follows its own rematch or a newer game only', () {
-      final finished = game(
-        'g1',
-        status: RpsGameStatus.finished,
-        createdBy: 'a',
-        createdAt: t0,
-      );
-      final rematch = game(
-        rpsRematchGameId('g1'),
-        status: RpsGameStatus.invited,
-        createdAt: t0.add(const Duration(minutes: 1)),
-        rematchOf: 'g1',
-      );
-      final older = game(
-        'g0',
-        status: RpsGameStatus.invited,
-        createdAt: t0.subtract(const Duration(minutes: 3)),
-      );
-      final newer = game(
-        'g2',
-        status: RpsGameStatus.invited,
-        createdAt: t0.add(const Duration(minutes: 2)),
-      );
+      final finished = game('g1',
+          status: RpsGameStatus.finished, createdBy: 'a', createdAt: t0);
+      final rematch = game(rpsRematchGameId('g1'),
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(minutes: 1)),
+          rematchOf: 'g1');
+      final older = game('g0',
+          status: RpsGameStatus.invited,
+          createdAt: t0.subtract(const Duration(minutes: 3)));
+      final newer = game('g2',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(minutes: 2)));
       expect(
-        RpsGame.shouldFollow(current: finished, open: rematch, myUid: 'a'),
-        isTrue,
-      );
-      expect(
-        RpsGame.shouldFollow(current: finished, open: newer, myUid: 'a'),
-        isTrue,
-      );
+          RpsGame.shouldFollow(current: finished, open: rematch, myUid: 'a'),
+          isTrue);
+      expect(RpsGame.shouldFollow(current: finished, open: newer, myUid: 'a'),
+          isTrue);
       // Never dragged back to an OLDER open doc (the RPS-2 bug).
-      expect(
-        RpsGame.shouldFollow(current: finished, open: older, myUid: 'a'),
-        isFalse,
-      );
+      expect(RpsGame.shouldFollow(current: finished, open: older, myUid: 'a'),
+          isFalse);
       // Never to a game I created myself.
-      final mine = game(
-        'g3',
-        status: RpsGameStatus.invited,
-        createdBy: 'a',
-        createdAt: t0.add(const Duration(minutes: 5)),
-      );
-      expect(
-        RpsGame.shouldFollow(current: finished, open: mine, myUid: 'a'),
-        isFalse,
-      );
+      final mine = game('g3',
+          status: RpsGameStatus.invited,
+          createdBy: 'a',
+          createdAt: t0.add(const Duration(minutes: 5)));
+      expect(RpsGame.shouldFollow(current: finished, open: mine, myUid: 'a'),
+          isFalse);
       // Pending server stamp on either side → not provably newer.
       expect(
         RpsGame.shouldFollow(
@@ -522,90 +482,60 @@ void main() {
       );
     });
 
-    test('waiting: twin rematches converge on the partner\'s / newer game', () {
-      final myRematch = game(
-        'mine',
-        status: RpsGameStatus.invited,
-        createdBy: 'a',
-        createdAt: t0.add(const Duration(seconds: 2)),
-        rematchOf: 'g1',
-      );
-      final theirTwin = game(
-        'theirs',
-        status: RpsGameStatus.invited,
-        createdAt: t0.add(const Duration(seconds: 1)),
-        rematchOf: 'g1',
-      );
+    test('waiting: twin rematches converge on the partner\'s / newer game',
+        () {
+      final myRematch = game('mine',
+          status: RpsGameStatus.invited,
+          createdBy: 'a',
+          createdAt: t0.add(const Duration(seconds: 2)),
+          rematchOf: 'g1');
+      final theirTwin = game('theirs',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(seconds: 1)),
+          rematchOf: 'g1');
       // Same source round → follow even though theirs is a hair older.
       expect(
-        RpsGame.shouldFollow(current: myRematch, open: theirTwin, myUid: 'a'),
-        isTrue,
-      );
+          RpsGame.shouldFollow(current: myRematch, open: theirTwin, myUid: 'a'),
+          isTrue);
       // The deterministic target of my source round.
-      final target = game(
-        rpsRematchGameId('g1'),
-        status: RpsGameStatus.invited,
-        createdAt: t0,
-      );
+      final target = game(rpsRematchGameId('g1'),
+          status: RpsGameStatus.invited, createdAt: t0);
       expect(
-        RpsGame.shouldFollow(current: myRematch, open: target, myUid: 'a'),
-        isTrue,
-      );
+          RpsGame.shouldFollow(current: myRematch, open: target, myUid: 'a'),
+          isTrue);
       // Unrelated OLDER invite while waiting → stay.
-      final plainWaiting = game(
-        'w',
-        status: RpsGameStatus.invited,
-        createdBy: 'a',
-        createdAt: t0,
-      );
-      final olderInvite = game(
-        'o',
-        status: RpsGameStatus.invited,
-        createdAt: t0.subtract(const Duration(seconds: 5)),
-      );
+      final plainWaiting = game('w',
+          status: RpsGameStatus.invited, createdBy: 'a', createdAt: t0);
+      final olderInvite = game('o',
+          status: RpsGameStatus.invited,
+          createdAt: t0.subtract(const Duration(seconds: 5)));
       expect(
-        RpsGame.shouldFollow(
-          current: plainWaiting,
-          open: olderInvite,
-          myUid: 'a',
-        ),
-        isFalse,
-      );
+          RpsGame.shouldFollow(
+              current: plainWaiting, open: olderInvite, myUid: 'a'),
+          isFalse);
       // Newer invite from the partner (both tapped "Chơi" at once) → follow;
       // the partner's phone sees the same newest game, so they converge.
-      final newerInvite = game(
-        'n',
-        status: RpsGameStatus.invited,
-        createdAt: t0.add(const Duration(seconds: 1)),
-      );
+      final newerInvite = game('n',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(seconds: 1)));
       expect(
-        RpsGame.shouldFollow(
-          current: plainWaiting,
-          open: newerInvite,
-          myUid: 'a',
-        ),
-        isTrue,
-      );
+          RpsGame.shouldFollow(
+              current: plainWaiting, open: newerInvite, myUid: 'a'),
+          isTrue);
     });
 
     test('never switches away mid-round', () {
-      final round = game(
-        'p',
-        status: RpsGameStatus.playing,
-        createdBy: 'a',
-        createdAt: t0,
-        startedAt: t0,
-      );
-      final newer = game(
-        'n',
-        status: RpsGameStatus.invited,
-        createdAt: t0.add(const Duration(minutes: 1)),
-        rematchOf: 'p',
-      );
-      expect(
-        RpsGame.shouldFollow(current: round, open: newer, myUid: 'a'),
-        isFalse,
-      );
+      final round = game('p',
+          status: RpsGameStatus.playing,
+          createdBy: 'a',
+          createdAt: t0,
+          startedAt: t0);
+      final newer = game('n',
+          status: RpsGameStatus.invited,
+          createdAt: t0.add(const Duration(minutes: 1)),
+          rematchOf: 'p');
+      expect(RpsGame.shouldFollow(current: round, open: newer, myUid: 'a'),
+          isFalse);
     });
 
     test('rpsRematchGameId is deterministic and bounded along a chain', () {

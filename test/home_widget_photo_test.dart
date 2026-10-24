@@ -17,9 +17,9 @@ void main() {
   setUpAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-          if (call.method == 'setPhoto') sent.add(call.arguments as Uint8List?);
-          return null;
-        });
+      if (call.method == 'setPhoto') sent.add(call.arguments as Uint8List?);
+      return null;
+    });
   });
 
   Future<File> fakePhoto(Directory dir) async {
@@ -35,9 +35,7 @@ void main() {
     return file;
   }
 
-  testWidgets('downscales to 720px, dedupes by key, null clears', (
-    tester,
-  ) async {
+  testWidgets('downscales to 720px, dedupes by key, null clears', (tester) async {
     await tester.runAsync(() async {
       HomeWidgetBridge.resetForTest();
       sent.clear();
@@ -51,25 +49,14 @@ void main() {
       final codec = await ui.instantiateImageCodec(png);
       final frame = await codec.getNextFrame();
       expect(frame.image.width, HomeWidgetBridge.photoMaxEdge);
-      expect(
-        frame.image.height,
-        405,
-        reason: 'aspect kept (1600×900 → 720×405)',
-      );
+      expect(frame.image.height, 405, reason: 'aspect kept (1600×900 → 720×405)');
 
       await HomeWidgetBridge.pushPhoto(key: 'p1', local: file.path);
       expect(sent.length, 1, reason: 'same key is not re-sent');
 
-      await HomeWidgetBridge.pushPhoto(
-        key: 'missing',
-        local: '${dir.path}/nope.jpg',
-      );
+      await HomeWidgetBridge.pushPhoto(key: 'missing', local: '${dir.path}/nope.jpg');
       expect(sent.length, 2);
-      expect(
-        sent.last,
-        isNull,
-        reason: 'unresolvable photo → widget falls back to the gradient',
-      );
+      expect(sent.last, isNull, reason: 'unresolvable photo → widget falls back to the gradient');
 
       await HomeWidgetBridge.pushPhoto(key: null);
       expect(sent.length, 3);
