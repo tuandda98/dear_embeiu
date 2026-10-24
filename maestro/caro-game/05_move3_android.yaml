@@ -33,5 +33,5 @@ appId: com.tony.dearembeiu.dev
 - assertNotVisible: 'Hàng 15, cột 15, quân .*'
 # Vừa đi xong: nút Nhắc chưa dùng được.
 - assertVisible:
-    text: '(?s)Nhắc được sau .* phút.*'
+    text: '(?s)Nhắc sau .* phút.*'
     enabled: false

@@ -4827,9 +4827,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caroLanePlusOne => '+1 this game';
 
   @override
-  String get caroPickCell => 'Tap a square to play';
-
-  @override
   String get caroPlayHere => 'Play here';
 
   @override
@@ -4860,13 +4857,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String caroNudgeIn(int m) {
-    String _temp0 = intl.Intl.pluralLogic(
-      m,
-      locale: localeName,
-      other: '$m minutes',
-      one: '1 minute',
-    );
-    return 'You can nudge in $_temp0';
+    return 'Nudge in $m min';
   }
 
   @override

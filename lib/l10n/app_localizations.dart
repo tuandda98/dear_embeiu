@@ -7774,12 +7774,6 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'Tap a square to play'**
-  String get caroPickCell;
-
-  /// caro-game (đợt 2)
-  ///
-  /// In en, this message translates to:
   /// **'Play here'**
   String get caroPlayHere;
 
@@ -7828,7 +7822,7 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'You can nudge in {m, plural, =1{1 minute} other{{m} minutes}}'**
+  /// **'Nudge in {m} min'**
   String caroNudgeIn(int m);
 
   /// caro-game (đợt 2)

@@ -547,7 +547,7 @@ void main() {
     expect(service.calls.single['op'], 'move');
     expect(find.text(vi.caroStaleBoard), findsOneWidget);
     expect(find.text(vi.caroSendError), findsNothing);
-    expect(find.text(vi.caroPickCell), findsOneWidget); // selection cleared
+    expect(find.text(vi.caroCtaRetry), findsNothing); // selection cleared
     // notYourTurn / occupied read the same way.
     service.reply = const CaroActionResult(CaroActionStatus.notYourTurn);
     await tester.tapAt(cellRight(tester));
@@ -890,12 +890,12 @@ void main() {
     await dispose(tester, caro);
   });
 
-  testWidgets('I18N-13 touch targets: pill 52, zoom 52, Home line ≥ 68', (
+  testWidgets('I18N-13 touch targets: side pill 52, zoom 52, Home line ≥ 68', (
     tester,
   ) async {
     final (caro, _) = await openGame(tester, g());
     final pill = find.ancestor(
-      of: find.text(vi.caroPickCell),
+      of: find.text(vi.caroLater),
       matching: find.byType(InkWell),
     );
     expect(tester.getSize(pill.first).height, 52);

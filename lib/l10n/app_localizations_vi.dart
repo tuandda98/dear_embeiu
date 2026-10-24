@@ -4598,9 +4598,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get caroLanePlusOne => '+1 ván này';
 
   @override
-  String get caroPickCell => 'Chạm một ô để đánh';
-
-  @override
   String get caroPlayHere => 'Đi nước này';
 
   @override
@@ -4630,7 +4627,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String caroNudgeIn(int m) {
-    return 'Nhắc được sau $m phút';
+    return 'Nhắc sau $m phút';
   }
 
   @override

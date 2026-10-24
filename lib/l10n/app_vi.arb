@@ -4033,7 +4033,6 @@
     }
   },
   "caroLanePlusOne": "+1 ván này",
-  "caroPickCell": "Chạm một ô để đánh",
   "caroPlayHere": "Đi nước này",
   "caroSending": "Đang đi…",
   "caroSendError": "Chưa đi được nước này, ô bạn chọn vẫn giữ nguyên. Thử lại nhé.",
@@ -4050,7 +4049,7 @@
       }
     }
   },
-  "caroNudgeIn": "Nhắc được sau {m} phút",
+  "caroNudgeIn": "Nhắc sau {m} phút",
   "@caroNudgeIn": {
     "description": "caro-game (đợt 2)",
     "placeholders": {

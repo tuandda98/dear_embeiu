@@ -4886,10 +4886,6 @@
   "@caroLanePlusOne": {
     "description": "caro-game (đợt 2)"
   },
-  "caroPickCell": "Tap a square to play",
-  "@caroPickCell": {
-    "description": "caro-game (đợt 2)"
-  },
   "caroPlayHere": "Play here",
   "@caroPlayHere": {
     "description": "caro-game (đợt 2)"
@@ -4927,7 +4923,7 @@
       }
     }
   },
-  "caroNudgeIn": "You can nudge in {m, plural, =1{1 minute} other{{m} minutes}}",
+  "caroNudgeIn": "Nudge in {m} min",
   "@caroNudgeIn": {
     "description": "caro-game (đợt 2)",
     "placeholders": {

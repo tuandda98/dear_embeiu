@@ -578,7 +578,6 @@ void main() {
     await tester.pump(); // initial zoom lands post-frame
     await tester.pump();
     expect(find.text(vi.caroInvitedTitle('Người ấy')), findsOneWidget);
-    expect(find.text(vi.caroPickCell), findsOneWidget);
     expect(find.text(vi.caroLater), findsOneWidget); // ≤1 stone: "Để sau"
 
     // Opened at 1.6× around the last move (7,7): (7,8) sits 1.6 cells right.

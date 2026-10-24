@@ -1166,7 +1166,10 @@ class _CaroGameScreenState extends State<CaroGameScreen>
       onTap: () => _toggleZoom(game),
     );
 
-    Widget primary;
+    // One row: zoom · main action (may be empty on my turn — one tap on
+    // the board plays) · the in-game exit (Xin thua / Để sau / Kết thúc).
+    Widget? primary;
+    Widget? sideAction;
     Widget? textAction;
     var showZoom = true;
     var showHint = false;
@@ -1188,25 +1191,28 @@ class _CaroGameScreenState extends State<CaroGameScreen>
           primary = _Pill.busy(l10n.caroSending);
         } else if (_offline) {
           primary = _Pill.disabled(l10n.caroWaitNetwork);
-        } else if (selected == null) {
-          primary = _Pill.disabled(l10n.caroPickCell);
-        } else {
+        } else if (selected != null) {
+          // A move that didn't go through keeps its cell: offer to resend.
           primary = _Pill.filled(
             _problem == _Problem.send ? l10n.caroCtaRetry : l10n.caroPlayHere,
             onTap: () => _play(game),
           );
         }
-        textAction = _textActionFor(l10n, people, game!, mode);
+        sideAction = _sideActionFor(l10n, people, game!, mode);
       case CaroScreenMode.stale:
       case CaroScreenMode.waiting:
         final wait = game!.nudgeWait(people.myUid, now: now) ?? Duration.zero;
         primary = wait == Duration.zero
-            ? _Pill.outlined(
+            ? _Pill.filled(
                 l10n.caroNudge(partner),
+                icon: IconsaxPlusLinear.notification_bing,
                 onTap: _provider.isBusy ? null : () => _nudge(partner),
               )
-            : _Pill.disabled(l10n.caroNudgeIn((wait.inSeconds / 60).ceil()));
-        textAction = _textActionFor(l10n, people, game, mode);
+            : _Pill.disabled(
+                l10n.caroNudgeIn((wait.inSeconds / 60).ceil()),
+                icon: IconsaxPlusLinear.timer_1,
+              );
+        sideAction = _sideActionFor(l10n, people, game, mode);
       case CaroScreenMode.finished:
         showZoom = true;
         final lost = game!.result?.winnerUid == people.partnerUid;
@@ -1230,8 +1236,20 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     children.add(
       Row(
         children: [
-          if (showZoom) ...[zoomButton, const SizedBox(width: 12)],
-          Expanded(child: primary),
+          if (showZoom) zoomButton,
+          if (primary != null) ...[
+            if (showZoom) const SizedBox(width: 12),
+            Expanded(child: primary),
+            if (sideAction != null) ...[
+              const SizedBox(width: 12),
+              sideAction,
+            ],
+          ] else if (sideAction != null) ...[
+            const SizedBox(width: 12),
+            Expanded(
+              child: Align(alignment: Alignment.centerRight, child: sideAction),
+            ),
+          ],
         ],
       ),
     );
@@ -1304,20 +1322,29 @@ class _CaroGameScreenState extends State<CaroGameScreen>
     return null;
   }
 
-  Widget _textActionFor(
+  Widget _sideActionFor(
     AppLocalizations l10n,
     CaroPeople people,
     CaroGame game,
     CaroScreenMode mode,
   ) {
     if (mode == CaroScreenMode.stale) {
-      return _TextAction(label: l10n.caroEndGame, onTap: _end);
+      return _SideAction(
+        label: l10n.caroEndGame,
+        icon: IconsaxPlusLinear.close_circle,
+        onTap: _end,
+      );
     }
     if (game.canCancel) {
-      return _TextAction(label: l10n.caroLater, onTap: () => _cancel(people));
+      return _SideAction(
+        label: l10n.caroLater,
+        icon: IconsaxPlusLinear.close_circle,
+        onTap: () => _cancel(people),
+      );
     }
-    return _TextAction(
+    return _SideAction(
       label: l10n.caroResign,
+      icon: IconsaxPlusLinear.flag,
       color: AppColors.errorInk,
       onTap: () => _resign(people),
     );
@@ -1427,25 +1454,23 @@ enum _PillStyle { filled, outlined, disabled, busy }
 /// Dock pill h52 (design §3.0): filled navy only when the partner is waiting
 /// on me (C6), outlined otherwise; a disabled pill SAYS why.
 class _Pill extends StatelessWidget {
-  const _Pill._(this.label, this.style, this.onTap);
+  const _Pill._(this.label, this.style, this.onTap, [this.icon]);
 
-  factory _Pill.filled(String label, {VoidCallback? onTap}) => _Pill._(
-    label,
-    onTap == null ? _PillStyle.disabled : _PillStyle.filled,
-    onTap,
-  );
-  factory _Pill.outlined(String label, {VoidCallback? onTap}) => _Pill._(
-    label,
-    onTap == null ? _PillStyle.disabled : _PillStyle.outlined,
-    onTap,
-  );
-  factory _Pill.disabled(String label) =>
-      _Pill._(label, _PillStyle.disabled, null);
+  factory _Pill.filled(String label, {IconData? icon, VoidCallback? onTap}) =>
+      _Pill._(
+        label,
+        onTap == null ? _PillStyle.disabled : _PillStyle.filled,
+        onTap,
+        icon,
+      );
+  factory _Pill.disabled(String label, {IconData? icon}) =>
+      _Pill._(label, _PillStyle.disabled, null, icon);
   factory _Pill.busy(String label) => _Pill._(label, _PillStyle.busy, null);
 
   final String label;
   final _PillStyle style;
   final VoidCallback? onTap;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -1487,6 +1512,9 @@ class _Pill extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
+                  ] else if (icon != null) ...[
+                    Icon(icon, size: 20, color: fg),
+                    const SizedBox(width: 8),
                   ],
                   Flexible(
                     child: Text(
@@ -1510,22 +1538,76 @@ class _Pill extends StatelessWidget {
   }
 }
 
-class _TextAction extends StatelessWidget {
-  const _TextAction({
+/// Compact h52 pill at the dock's right end for leaving the game (Xin thua /
+/// Để sau / Kết thúc): sized to its label so it never competes with the main
+/// action, tinted (not filled) so a stray tap still lands on a confirm dialog.
+class _SideAction extends StatelessWidget {
+  const _SideAction({
     required this.label,
+    required this.icon,
     required this.onTap,
     this.color = AppColors.textPrimary,
   });
 
   final String label;
+  final IconData icon;
   final VoidCallback onTap;
   final Color color;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    excludeSemantics: true,
+    child: Material(
+      color: AppColors.white.withValues(alpha: 0.55),
+      shape: StadiumBorder(
+        side: BorderSide(color: color.withValues(alpha: 0.35), width: 1.4),
+      ),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          height: 52,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18, color: color),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _TextAction extends StatelessWidget {
+  const _TextAction({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => TextButton(
     onPressed: onTap,
     style: TextButton.styleFrom(
-      foregroundColor: color,
+      foregroundColor: AppColors.textPrimary,
       minimumSize: const Size(0, 48),
       padding: const EdgeInsets.symmetric(horizontal: 16),
     ),
