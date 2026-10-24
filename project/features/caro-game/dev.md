@@ -143,3 +143,4 @@ Chi tiết từng op:
 - [2026-10-22] [Lead] CARO-T4 bổ sung: push `caro_ended`/`caro_result` gửi kèm `onlyIfKind=caro_turn`; native (Java plugin + Swift AppDelegate) bỏ qua nếu dòng đang hiện không phải loại đó ⇒ kết thúc ván không còn xoá dòng tâm trạng/chat của người ấy. analyze 0, `caro_ui_test` 43 pass, Java compile + `swiftc -parse` OK.
 
 - [2026-10-23] [dev] User chốt bỏ bước xác nhận: trong ván chạm ô trống là gửi nước luôn (bỏ chạm lần 2 + nút "Đi nước này"); nước đầu của lời mời vẫn chọn ô rồi bấm Mời. Ô ~22pt < 44pt nên dễ chạm nhầm — chấp nhận, nút phóng to giữ nguyên. Commit b7e0e88.
+- [2026-10-24] [dev] Thẻ Home caro: nút luôn ghi "Chơi" (bỏ "Phục thù"/"Ván mới" ở Home; vừa thua vẫn gửi kèm rematchOf). Màn ván giữ nguyên 2 nhãn cũ.

@@ -467,7 +467,7 @@ void main() {
       ]) {
         expect(view(k).urgent, false, reason: '$k');
       }
-      expect(view(CaroEntryKind.justLost).cta, 'Phục thù');
+      expect(view(CaroEntryKind.justLost).cta, 'Chơi');
       expect(
         view(CaroEntryKind.idle).subtitle,
         'Tuấn 12 – 9 Thảo. Rủ Thảo một ván?',

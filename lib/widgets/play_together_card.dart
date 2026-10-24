@@ -241,11 +241,11 @@ CaroEntryView caroEntryView(
         l10n.rpsEntryCtaOpen,
       );
     case CaroEntryKind.justLost:
-      return v(l10n.caroEntryJustLost(partnerName, score), l10n.caroCtaRematch);
+      return v(l10n.caroEntryJustLost(partnerName, score), l10n.caroCtaInvite);
     case CaroEntryKind.justWon:
-      return v(l10n.caroEntryJustWon(score), l10n.caroCtaNewGame);
+      return v(l10n.caroEntryJustWon(score), l10n.caroCtaInvite);
     case CaroEntryKind.justDraw:
-      return v(l10n.caroEntryJustDraw(score), l10n.caroCtaNewGame);
+      return v(l10n.caroEntryJustDraw(score), l10n.caroCtaInvite);
     case CaroEntryKind.idle:
       return v(l10n.caroEntryIdle(score, partnerName), l10n.caroCtaInvite);
     case CaroEntryKind.first:

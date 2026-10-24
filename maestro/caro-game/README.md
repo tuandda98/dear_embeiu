@@ -33,7 +33,7 @@ Không có ván caro nào đang mở. Nếu còn ván cũ: mở ván, "Xin thua"
 | 11 | `11_win_android.yaml` | A | X (12,8): 5 quân dọc, màn thắng + đường thắng |
 | 12 | `12_lost_live_ios.yaml` | I | `launchApp: stopApp: false` (giữ màn ván): thấy thua, "Phục thù" |
 | 13 | `13_history_android.yaml`, `13_history_ios.yaml` | A, I | Hồ sơ → Chơi cùng nhau → Cờ caro → lịch sử → xem lại |
-| 14 | `14_rematch_ios.yaml` | I | Phục thù bằng nút chính; để nguyên màn ván |
+| 14 | `14_rematch_ios.yaml` | I | Bấm "Chơi" ở Home khi vừa thua = phục thù; để nguyên màn ván |
 | 15 | `15_invited_cancel_android.yaml` | A | "Để sau" → "Chơi tiếp" → "Để sau" → "Bỏ ván" |
 | 16 | `16_cancelled_live_new_free_ios.yaml` | I | (giữ màn ván) thấy "Ván này đã huỷ", rủ ván mới luật Tự do |
 | 17 | `17_invited_free_move_android.yaml` | A | Lời mời nói "Luật tự do", đi O (8,9); để nguyên màn ván |
