@@ -43,6 +43,7 @@ class SettleSheet extends StatefulWidget {
     if (balance == null || balance == 0 || money.uid == null) return;
     final r = await showMoneySheet<_SettleResult>(
       context,
+      name: 'SettleSheet',
       builder: (_) => const SettleSheet(),
     );
     if (r == null || !context.mounted) return;

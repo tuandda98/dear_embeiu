@@ -23,7 +23,7 @@ import 'sleep_format.dart';
 
 Future<void> showSleepSetupSheet(BuildContext context) {
   HapticFeedback.selectionClick();
-  return _show(context, const _SetupSheet());
+  return _show(context, const _SetupSheet(), 'SleepSetupSheet');
 }
 
 Future<void> showSleepEditSheet(
@@ -31,18 +31,19 @@ Future<void> showSleepEditSheet(
   required String dateKey,
 }) {
   HapticFeedback.selectionClick();
-  return _show(context, _EditSheet(dateKey: dateKey));
+  return _show(context, _EditSheet(dateKey: dateKey), 'SleepEditSheet');
 }
 
 Future<void> showSleepHowItWorksSheet(BuildContext context) {
   HapticFeedback.selectionClick();
-  return _show(context, const _HowItWorksSheet());
+  return _show(context, const _HowItWorksSheet(), 'SleepHowItWorksSheet');
 }
 
-Future<void> _show(BuildContext context, Widget sheet) {
+Future<void> _show(BuildContext context, Widget sheet, String name) {
   final sleep = context.read<SleepProvider>();
   return showModalBottomSheet<void>(
     context: context,
+    routeSettings: RouteSettings(name: name),
     isScrollControlled: true,
     // Taller than the screen (small phone, big text): stop under the status
     // bar / notch instead of hiding the handle and title behind it.

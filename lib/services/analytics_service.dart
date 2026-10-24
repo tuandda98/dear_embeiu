@@ -149,6 +149,44 @@ class AnalyticsEvents {
   static const String pOn = 'on';
   static const String pAuto = 'auto';
 
+  // ── analytics-coverage ── (2026-10-25) actions that had no event. Same
+  // privacy rule: only enums / bools / counts, never text, names, times,
+  // coordinates, cities or mood values.
+  static const String photoCaptionEdited = 'photo_caption_edited';
+  static const String photoReplaced = 'photo_replaced';
+  static const String photoReported = 'photo_reported'; // reason: stable code
+  static const String chatBgSet = 'chat_bg_set'; // cleared (bool)
+  static const String counterBgSet = 'counter_bg_set'; // count (0 = show all)
+  static const String reminderUpdated = 'reminder_updated'; // action, notify_partner
+  static const String milestoneToggled = 'milestone_toggled'; // type, on
+  static const String milestoneTimeSet = 'milestone_time_set'; // type
+  static const String dqReminderChanged = 'dq_reminder_changed'; // enabled, count
+  static const String lunarReminderChanged = 'lunar_reminder_changed'; // enabled, count
+  static const String decisionReminderChanged = 'decision_reminder_changed'; // enabled
+  static const String notificationMarkAllRead = 'notification_mark_all_read';
+  static const String notificationRemoved = 'notification_removed';
+  static const String notificationClearedAll = 'notification_cleared_all';
+  static const String signOut = 'sign_out';
+  static const String verificationEmailResent = 'verification_email_resent';
+  static const String passwordSet = 'password_set';
+  static const String coupleUpdated = 'couple_updated'; // field
+  static const String rpsNudgeSent = 'rps_nudge_sent';
+  static const String rpsCancelled = 'rps_cancelled';
+  static const String rpsChoiceMade = 'rps_choice_made';
+  static const String sleepColorSet = 'sleep_color_set';
+  static const String sleepNightDeleted = 'sleep_night_deleted';
+  static const String sleepCardHidden = 'sleep_card_hidden';
+  static const String weatherCardHidden = 'weather_card_hidden';
+  static const String coupleLeft = 'couple_left';
+  static const String loveTreeShared = 'love_tree_shared';
+  static const String forceUpdateStoreTap = 'force_update_store_tap';
+  static const String inviteClipboardUsed = 'invite_clipboard_used';
+  static const String aiQuestionsToggle = 'ai_questions_toggle'; // enabled
+  static const String pCleared = 'cleared';
+  static const String pCount = 'count';
+  static const String pField = 'field';
+  static const String pNotifyPartner = 'notify_partner';
+
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
   static const String upHasPostedPhoto = 'has_posted_photo';
@@ -253,6 +291,10 @@ class AnalyticsService {
       : FirebaseAnalyticsObserver(
           analytics: _analytics!,
           nameExtractor: (settings) => _screenNameFor(settings.name),
+          // Also log NAMED non-page routes (content bottom sheets / dialogs
+          // that set `routeSettings`). Unnamed ones (confirm dialogs, time
+          // pickers) stay skipped.
+          routeFilter: (route) => route?.settings.name != null,
         );
 
   /// Maps a route name to a friendly, GA4-standard screen label so DebugView /
@@ -271,6 +313,12 @@ class AnalyticsService {
         return 'Register';
       case AppRoutes.setup:
         return 'CoupleSetup';
+      case AppRoutes.forgotPassword:
+        return 'ForgotPassword';
+      case AppRoutes.verifyEmail:
+        return 'VerifyEmail';
+      case AppRoutes.forceUpdate:
+        return 'ForceUpdate';
       case AppRoutes.home:
         return 'Home';
       case AppRoutes.authGate:
@@ -412,9 +460,13 @@ class AnalyticsService {
       logEvent(AnalyticsEvents.dailyQuestionRevealed);
 
   /// [repeat] is the recurrence enum name (once/daily/weekly/monthly/yearly).
-  void logReminderCreated(String repeat) => logEvent(
+  void logReminderCreated(String repeat, {bool notifyPartner = false}) =>
+      logEvent(
         AnalyticsEvents.reminderCreated,
-        params: {AnalyticsEvents.pRepeat: repeat},
+        params: {
+          AnalyticsEvents.pRepeat: repeat,
+          AnalyticsEvents.pNotifyPartner: notifyPartner,
+        },
       );
 
   /// [type] is the normalised push type
@@ -727,6 +779,125 @@ class AnalyticsService {
   void logMoneySearch(int filterCount) => logEvent(
         AnalyticsEvents.moneySearch,
         params: {AnalyticsEvents.pFilterCount: filterCount},
+      );
+
+  // ── analytics-coverage ── (2026-10-25)
+  void logPhotoCaptionEdited() => logEvent(AnalyticsEvents.photoCaptionEdited);
+
+  void logPhotoReplaced() => logEvent(AnalyticsEvents.photoReplaced);
+
+  /// [reason] is the stable report code (`inappropriate` / `spam` / `other`).
+  void logPhotoReported(String reason) => logEvent(
+        AnalyticsEvents.photoReported,
+        params: {AnalyticsEvents.pReason: reason},
+      );
+
+  void logChatBgSet({required bool cleared}) => logEvent(
+        AnalyticsEvents.chatBgSet,
+        params: {AnalyticsEvents.pCleared: cleared},
+      );
+
+  /// [count] = photos allowed as counter background, 0 = all shown.
+  void logCounterBgSet(int count) => logEvent(
+        AnalyticsEvents.counterBgSet,
+        params: {AnalyticsEvents.pCount: count},
+      );
+
+  /// [action]: edit · toggle_on · toggle_off · delete · restore.
+  void logReminderUpdated(String action, {required bool notifyPartner}) =>
+      logEvent(
+        AnalyticsEvents.reminderUpdated,
+        params: {
+          AnalyticsEvents.pAction: action,
+          AnalyticsEvents.pNotifyPartner: notifyPartner,
+        },
+      );
+
+  /// [type] is the MilestoneType name.
+  void logMilestoneToggled(String type, {required bool on}) => logEvent(
+        AnalyticsEvents.milestoneToggled,
+        params: {AnalyticsEvents.pType: type, AnalyticsEvents.pOn: on},
+      );
+
+  void logMilestoneTimeSet(String type) => logEvent(
+        AnalyticsEvents.milestoneTimeSet,
+        params: {AnalyticsEvents.pType: type},
+      );
+
+  /// [count] = number of reminder times now set.
+  void logDqReminderChanged({required bool enabled, required int count}) =>
+      logEvent(
+        AnalyticsEvents.dqReminderChanged,
+        params: {
+          AnalyticsEvents.pEnabled: enabled,
+          AnalyticsEvents.pCount: count,
+        },
+      );
+
+  void logLunarReminderChanged({required bool enabled, int? count}) =>
+      logEvent(
+        AnalyticsEvents.lunarReminderChanged,
+        params: {
+          AnalyticsEvents.pEnabled: enabled,
+          AnalyticsEvents.pCount: count,
+        },
+      );
+
+  void logDecisionReminderChanged({required bool enabled}) => logEvent(
+        AnalyticsEvents.decisionReminderChanged,
+        params: {AnalyticsEvents.pEnabled: enabled},
+      );
+
+  void logNotificationMarkAllRead() =>
+      logEvent(AnalyticsEvents.notificationMarkAllRead);
+
+  void logNotificationRemoved() =>
+      logEvent(AnalyticsEvents.notificationRemoved);
+
+  void logNotificationClearedAll() =>
+      logEvent(AnalyticsEvents.notificationClearedAll);
+
+  void logSignOut() => logEvent(AnalyticsEvents.signOut);
+
+  void logVerificationEmailResent() =>
+      logEvent(AnalyticsEvents.verificationEmailResent);
+
+  void logPasswordSet() => logEvent(AnalyticsEvents.passwordSet);
+
+  /// [field]: anniversary · names · photo (which field, never the value).
+  void logCoupleUpdated(String field) => logEvent(
+        AnalyticsEvents.coupleUpdated,
+        params: {AnalyticsEvents.pField: field},
+      );
+
+  void logRpsNudgeSent() => logEvent(AnalyticsEvents.rpsNudgeSent);
+
+  void logRpsCancelled() => logEvent(AnalyticsEvents.rpsCancelled);
+
+  /// Never which choice — only that a move was made.
+  void logRpsChoiceMade() => logEvent(AnalyticsEvents.rpsChoiceMade);
+
+  void logSleepColorSet() => logEvent(AnalyticsEvents.sleepColorSet);
+
+  void logSleepNightDeleted() => logEvent(AnalyticsEvents.sleepNightDeleted);
+
+  void logSleepCardHidden() => logEvent(AnalyticsEvents.sleepCardHidden);
+
+  void logWeatherCardHidden() => logEvent(AnalyticsEvents.weatherCardHidden);
+
+  void logCoupleLeft() => logEvent(AnalyticsEvents.coupleLeft);
+
+  void logLoveTreeShared() => logEvent(AnalyticsEvents.loveTreeShared);
+
+  void logForceUpdateStoreTap() =>
+      logEvent(AnalyticsEvents.forceUpdateStoreTap);
+
+  void logInviteClipboardUsed() =>
+      logEvent(AnalyticsEvents.inviteClipboardUsed);
+
+  void logAiQuestionsToggle({required bool enabled}) => logEvent(
+        AnalyticsEvents.aiQuestionsToggle,
+        params: {AnalyticsEvents.pEnabled: enabled},
       );
 
   // ---------------------------------------------------------------------------

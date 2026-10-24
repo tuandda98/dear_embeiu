@@ -10,6 +10,7 @@ import '../models/weather.dart';
 import '../services/reminder_service.dart';
 import '../services/weather_service.dart';
 import '../utils/weather_logic.dart';
+import '../services/analytics_service.dart';
 
 /// State of "Thời tiết hai nơi" (feature weather): both members' cities
 /// (realtime, `weather/{uid}`) + the forecast of each city (callable, kept in
@@ -427,6 +428,7 @@ class WeatherProvider extends ChangeNotifier {
   Future<void> hideCard() async {
     _cardHidden = true;
     notifyListeners();
+    AnalyticsService.instance.logWeatherCardHidden();
     await _service.savePref(WeatherService.keyCardHidden, 'true');
   }
 

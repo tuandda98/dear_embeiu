@@ -17,6 +17,7 @@ import '../providers/photo_provider.dart';
 import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/sub_screen_header.dart';
+import '../services/analytics_service.dart';
 
 /// "Chat background" picker (Settings → Ảnh nền đoạn chat, 2026-06-18). Lets a
 /// couple pick ONE photo to back the Chat tab instead of the gradient. The pick
@@ -162,6 +163,7 @@ class _ChatBgScreenState extends State<ChatBgScreen> {
     if (_coupleId.isNotEmpty) {
       unawaited(_prefs.setChatBg(_coupleId, value));
     }
+    AnalyticsService.instance.logChatBgSet(cleared: value.isEmpty);
     if (!mounted) {
       return;
     }

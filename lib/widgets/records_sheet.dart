@@ -41,6 +41,7 @@ class RecordsSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'RecordsSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => RecordsSheet._(

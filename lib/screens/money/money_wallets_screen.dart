@@ -110,6 +110,7 @@ class _MoneyWalletsScreenState extends State<MoneyWalletsScreen> {
     ];
     void open(MoneyWallet w) => Navigator.of(context).push(
       MaterialPageRoute<void>(
+        settings: RouteSettings(name: w.isGoal ? 'MoneyGoal' : 'MoneyWallet'),
         // ── expenses (đợt 2) ── stage 3B: a fund opens its own screen.
         builder: (_) => w.isGoal
             ? MoneyGoalScreen(book: _book, walletId: w.id)

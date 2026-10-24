@@ -465,6 +465,7 @@ Future<void> openDecisionSpend(BuildContext context, Decision d) {
 Future<void> showDecisionResultSheet(BuildContext context, Decision d) {
   return showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'DecisionResultSheet'),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,

@@ -1172,9 +1172,11 @@ Future<T?> showMoneySheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   bool enableDrag = true,
+  String name = 'MoneySheet',
 }) {
   return showModalBottomSheet<T>(
     context: context,
+    routeSettings: RouteSettings(name: name),
     isScrollControlled: true,
     useSafeArea: true,
     enableDrag: enableDrag,

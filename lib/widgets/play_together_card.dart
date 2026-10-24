@@ -460,6 +460,7 @@ class _RpsLine extends StatelessWidget {
 Future<void> showPlayTogetherHistorySheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'PlayTogetherSheet'),
     backgroundColor: AppColors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),

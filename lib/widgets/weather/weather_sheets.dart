@@ -116,6 +116,7 @@ Future<void> showWeatherDetailSheet(
   final people = WeatherPeople.of(context, couple);
   return showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'WeatherDetailSheet'),
     isScrollControlled: true,
     backgroundColor: AppColors.white,
     shape: const RoundedRectangleBorder(
@@ -674,6 +675,7 @@ Future<void> showCityPickerSheet(
   final messenger = ScaffoldMessenger.maybeOf(context);
   return showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'WeatherCareSheet'),
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => DraggableScrollableSheet(

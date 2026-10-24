@@ -258,6 +258,7 @@ void showMoodPicker(BuildContext context) {
   final provider = context.read<MoodProvider>();
   showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'MoodSheet'),
     isScrollControlled: true,
     // Tall on a small screen with big text: stop under the status bar
     // (opened over the Love Tree's night sky the icons there are light).

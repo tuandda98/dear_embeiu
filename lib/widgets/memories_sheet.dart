@@ -39,6 +39,7 @@ class MemoriesSheet extends StatelessWidget {
   }) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'MemoriesSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => MemoriesSheet._(

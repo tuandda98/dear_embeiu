@@ -254,6 +254,18 @@ class CoupleProvider extends ChangeNotifier {
       );
       _couple = result.couple;
       notifyListeners();
+      // Analytics — which fields changed (never the values).
+      final analytics = AnalyticsService.instance;
+      if (result.couple.anniversaryDate != existingCouple.anniversaryDate) {
+        analytics.logCoupleUpdated('anniversary');
+      }
+      if (result.couple.person1Name != existingCouple.person1Name ||
+          result.couple.person2Name != existingCouple.person2Name) {
+        analytics.logCoupleUpdated('names');
+      }
+      if (photoPath != null) {
+        analytics.logCoupleUpdated('photo');
+      }
       return result;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
@@ -283,7 +295,9 @@ class CoupleProvider extends ChangeNotifier {
       _couple = null;
       notifyListeners();
       // Analytics — back to single after leaving the couple.
-      AnalyticsService.instance.setCoupleStatus('single');
+      AnalyticsService.instance
+        ..logCoupleLeft()
+        ..setCoupleStatus('single');
       return updatedUser;
     } on CoupleException catch (e) {
       _errorMessage = e.message;

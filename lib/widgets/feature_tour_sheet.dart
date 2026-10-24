@@ -167,6 +167,7 @@ class FeatureTour {
   ) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'FeatureTourSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _FeatureTourSheet(

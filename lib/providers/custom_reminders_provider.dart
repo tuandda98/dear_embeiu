@@ -148,7 +148,10 @@ class CustomRemindersProvider extends ChangeNotifier {
     notifyListeners();
     // Analytics — a custom reminder was created (only the recurrence kind, no
     // name/note is ever logged).
-    AnalyticsService.instance.logReminderCreated(recurrence.name);
+    AnalyticsService.instance.logReminderCreated(
+      recurrence.name,
+      notifyPartner: notifyPartner,
+    );
     return reminder;
   }
 
@@ -216,6 +219,8 @@ class CustomRemindersProvider extends ChangeNotifier {
       await _schedule(synced);
     }
     notifyListeners();
+    AnalyticsService.instance
+        .logReminderUpdated('edit', notifyPartner: synced.notifyPartner);
   }
 
   /// Restore a previously deleted reminder (called by swipe-to-delete undo).
@@ -232,12 +237,15 @@ class CustomRemindersProvider extends ChangeNotifier {
       await _schedule(synced);
     }
     notifyListeners();
+    AnalyticsService.instance
+        .logReminderUpdated('restore', notifyPartner: synced.notifyPartner);
   }
 
   /// Delete a reminder and cancel its schedule (also removes the partner mirror
   /// if this reminder was shared).
   Future<void> delete(int id) async {
     final index = _reminders.indexWhere((r) => r.id == id);
+    final wasShared = index != -1 && _reminders[index].notifyPartner;
     if (index != -1) {
       await _removePartner(_reminders[index]);
     }
@@ -250,6 +258,8 @@ class CustomRemindersProvider extends ChangeNotifier {
       debugPrint('CustomRemindersProvider.delete failed: $error');
     }
     notifyListeners();
+    AnalyticsService.instance
+        .logReminderUpdated('delete', notifyPartner: wasShared);
   }
 
   /// Toggle a reminder on/off → reschedule or cancel accordingly.
@@ -270,6 +280,10 @@ class CustomRemindersProvider extends ChangeNotifier {
       await _service.cancelCustom(id);
     }
     notifyListeners();
+    AnalyticsService.instance.logReminderUpdated(
+      enabled ? 'toggle_on' : 'toggle_off',
+      notifyPartner: synced.notifyPartner,
+    );
   }
 
   /// Next fire time for a reminder, exposed for the "Next: …" list label.

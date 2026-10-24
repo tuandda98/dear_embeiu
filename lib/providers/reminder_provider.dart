@@ -9,6 +9,7 @@ import '../services/home_prefs_service.dart';
 import '../services/catchup_service.dart';
 import '../services/reminder_service.dart';
 import '../utils/lunar_calendar.dart';
+import '../services/analytics_service.dart';
 
 /// User-facing settings for the "milestone & anniversary reminders" feature.
 @immutable
@@ -436,6 +437,10 @@ class ReminderProvider extends ChangeNotifier {
     await _persistLunar();
     await refreshLunar(l10n ?? _lastL10n);
     notifyListeners();
+    AnalyticsService.instance.logLunarReminderChanged(
+      enabled: enabled,
+      count: _lunarTimes.length,
+    );
   }
 
   /// Replace the reminder times (normalized) and reschedule.
@@ -447,6 +452,10 @@ class ReminderProvider extends ChangeNotifier {
     await _persistLunar();
     await refreshLunar(l10n ?? _lastL10n);
     notifyListeners();
+    AnalyticsService.instance.logLunarReminderChanged(
+      enabled: _lunarEnabled,
+      count: _lunarTimes.length,
+    );
   }
 
   /// Replace the lunar days (normalized) and reschedule.
@@ -458,6 +467,10 @@ class ReminderProvider extends ChangeNotifier {
     await _persistLunar();
     await refreshLunar(l10n ?? _lastL10n);
     notifyListeners();
+    AnalyticsService.instance.logLunarReminderChanged(
+      enabled: _lunarEnabled,
+      count: _lunarTimes.length,
+    );
   }
 
   /// (Re)compute the upcoming occurrences (for the chosen [_lunarDays]) and
@@ -586,6 +599,7 @@ class ReminderProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+    AnalyticsService.instance.logMilestoneToggled(type.name, on: value);
   }
 
   /// Set or clear a milestone's custom reminder time (Dv8).
@@ -607,6 +621,9 @@ class ReminderProvider extends ChangeNotifier {
       await _scheduleMilestone(type, anniversary, l10n);
     }
     notifyListeners();
+    if (time != null) {
+      AnalyticsService.instance.logMilestoneTimeSet(type.name);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -681,6 +698,10 @@ class ReminderProvider extends ChangeNotifier {
     await _scheduleEndOfDay(l10n);
     _publishReminderPrefs(enabled: value);
     notifyListeners();
+    AnalyticsService.instance.logDqReminderChanged(
+      enabled: value,
+      count: _dqTimes.length,
+    );
     return true;
   }
 
@@ -695,6 +716,10 @@ class ReminderProvider extends ChangeNotifier {
     await _scheduleDailyQuestion(l10n);
     _publishReminderPrefs(times: _dqTimes);
     notifyListeners();
+    AnalyticsService.instance.logDqReminderChanged(
+      enabled: _dqEnabled,
+      count: _dqTimes.length,
+    );
   }
 
   /// Add one fire time (no-op past the cap or when it already exists).
@@ -1673,6 +1698,7 @@ class ReminderProvider extends ChangeNotifier {
     await _persistDecision();
     notifyListeners();
     await _scheduleDecision();
+    AnalyticsService.instance.logDecisionReminderChanged(enabled: value);
     return true;
   }
 

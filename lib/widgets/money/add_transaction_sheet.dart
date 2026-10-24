@@ -151,6 +151,7 @@ class AddTransactionSheet extends StatefulWidget {
     _ensureStarterWallets(money, kind);
     final result = await showMoneySheet<_SheetResult>(
       context,
+      name: 'AddTransactionSheet',
       enableDrag: false,
       builder: (_) => AddTransactionSheet(
         book: kind,
@@ -1863,6 +1864,9 @@ class _MoneyCategoryPickerState extends State<MoneyCategoryPicker> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
+                        settings: const RouteSettings(
+                          name: 'MoneyCategories',
+                        ),
                         builder: (_) => MoneyCategoriesScreen(
                           book: widget.book,
                           kind: widget.kind,

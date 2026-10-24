@@ -431,6 +431,7 @@ class _TodayRitualCardState extends State<TodayRitualCard> {
 
     final sent = await showModalBottomSheet<bool>(
       context: context,
+      routeSettings: const RouteSettings(name: 'TodayRitualSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _DailyAnswerSheet(

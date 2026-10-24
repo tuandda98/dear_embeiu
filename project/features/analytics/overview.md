@@ -71,6 +71,41 @@
 | `couple_join_failed` | nhập mã ghép đôi thất bại | `reason`: tên `CoupleErrorCode` (`inviteNotFound`, `ownInvite`, `emptyInvite`, `full`, `alreadyHasCouple`, `unavailable`, `joinGeneric`, `unknown`…) |
 | `couple_create_failed` | tạo không gian cặp đôi thất bại | `reason`: tên `CoupleErrorCode` hoặc `other`/`unknown` |
 
+**analytics-coverage (2026-10-25)** — hành động trước đây chưa có event. Bắn ở chỗ hành động THÀNH CÔNG; param chỉ enum/bool/count.
+
+| Event | Param | Nơi bắn |
+|---|---|---|
+| `photo_caption_edited` | — | `PhotoProvider.updatePhotoCaption` |
+| `photo_replaced` | — | `PhotoProvider.replacePhotoImage` |
+| `photo_reported` | `reason` (inappropriate\|spam\|other) | `PhotoProvider.reportPhoto` |
+| `chat_bg_set` | `cleared` (bool) | `chat_bg_screen._onSave` |
+| `counter_bg_set` | `count` (số ảnh cho phép, 0 = hiện hết) | `counter_bg_screen._onSave` |
+| `reminder_created` | `repeat`, **+`notify_partner`** (bool) | `CustomRemindersProvider.add` |
+| `reminder_updated` | `action` (edit\|toggle_on\|toggle_off\|delete\|restore), `notify_partner` | `CustomRemindersProvider.update/toggle/delete/restore` |
+| `milestone_toggled` | `type` (MilestoneType), `on` | `ReminderProvider.toggleMilestone` |
+| `milestone_time_set` | `type` | `ReminderProvider.setMilestoneTime` (khi đặt giờ riêng) |
+| `dq_reminder_changed` | `enabled`, `count` (số giờ) | `ReminderProvider.setDailyQuestionReminderEnabled/setDailyQuestionTimes` (add/remove đi qua đây) |
+| `lunar_reminder_changed` | `enabled`, `count` (số giờ) | `ReminderProvider.setLunarEnabled/Times/Days` |
+| `decision_reminder_changed` | `enabled` | `ReminderProvider.setDecisionReminderEnabled` |
+| `notification_mark_all_read` / `notification_removed` / `notification_cleared_all` | — | `NotificationInboxProvider` |
+| `sign_out` | — | `AuthProvider.signOut` (thành công) |
+| `verification_email_resent` | — | `AuthProvider.resendVerificationEmail` |
+| `password_set` | — | `AuthProvider.setPassword` (thêm mật khẩu cho tài khoản Apple/Google) |
+| `couple_updated` | `field` (anniversary\|names\|photo) — mỗi field đổi 1 event | `CoupleProvider.updateCouple` |
+| `couple_left` | — | `CoupleProvider.leaveCouple` |
+| `rps_choice_made` | — (KHÔNG gửi lựa chọn) | `RpsGameProvider.choose` |
+| `rps_nudge_sent` / `rps_cancelled` | — | `RpsGameProvider.nudge` (status sent) / `cancel` |
+| `sleep_color_set` / `sleep_night_deleted` / `sleep_card_hidden` | — | `SleepProvider.setColor/deleteNight/hideCard` |
+| `weather_card_hidden` | — | `WeatherProvider.hideCard` (`weather_city_set`, `weather_notif_toggle` đã có sẵn) |
+| `love_tree_shared` | — | `love_tree_screen` (share ảnh cây) |
+| `force_update_store_tap` | — | `ForceUpdateScreen._openStore` |
+| `invite_clipboard_used` | — | `setup_screen` (nhận gợi ý mã từ bộ nhớ tạm) |
+| `ai_questions_toggle` | `enabled` | `settings_screen` (trước là `logEvent` trần) |
+
+Không làm có chủ ý: `profile_updated` (app không có màn sửa tên/avatar — `updateCurrentUser` chỉ là đồng bộ nội bộ); `money_evening_reminder_changed` (trùng `money_reminder_toggle`); `language_changed{system}` (đã có sẵn).
+
+**Screen view (2026-10-25):** observer có `routeFilter` = route có tên → bottom sheet/dialog nội dung đặt `routeSettings` cũng thành `screen_view`: StreakSheet, StreakMilestoneSheet, RecordsSheet, MemoriesSheet, MomentSheet, InviteQrSheet, MoodSheet, WeatherDetailSheet, WeatherCareSheet, CaroNewGameSheet, CaroRuleSheet, DecisionResultSheet, DecisionManualSheet, PlayTogetherSheet, TodayRitualSheet, FeatureTourSheet, CatchupGate, ArrivalPickSheet, InviteClipboardSheet, InviteCodeDialog, SleepSetupSheet, SleepEditSheet, SleepHowItWorksSheet, MoneySheet (mặc định), AddTransactionSheet, SettleSheet. Route trang đặt tên mới: PhotoViewer, CreatePost, SetupScreen (từ Journal), MoneyWallets/MoneyCategories/MoneyBudgets/MoneyReport/MoneySearch, MoneyGoal/MoneyWallet. Map thêm: ForgotPassword, VerifyEmail, ForceUpdate. Dialog xác nhận / time picker không tên → bỏ qua.
+
 GA4 custom dimension (Event scope, tạo 2026-10-15): `reason` ("Auth fail reason") · `result` ("Result").
 
 **User properties:** `couple_status` (single\|waiting_partner\|in_couple) · `has_posted_photo` (bool) · `app_locale` (en\|vi\|system) · `is_guest` (bool).
@@ -107,3 +142,4 @@ GA4 custom dimension (Event scope, tạo 2026-10-15): `reason` ("Auth fail reaso
 - [2026-06-03] [PO] Tạo feature, spec event taxonomy + posture riêng tư (D1–D4, user duyệt). Chuyển Dev.
 - [2026-06-03] [Dev] Implement xong (chi tiết `dev.md`): firebase_analytics + AnalyticsService/AnalyticsEvents no-context (no-op khi Firebase chưa sẵn / opt-out), 17 call site provider/service/widget, user props, screen_view observer, toggle opt-out Settings (l10n en+vi, default ON), Info.plist ad-perso=false, xcprivacy 3 data type (linked, tracking=false), privacy-policy mục Analytics + data transfer + opt-out. `fvm flutter analyze` sạch. Không deploy (không đụng rules/functions). Chờ Tester soi 0-PII + opt-out no-op.
 - [2026-10-11] [PO] `invite_shared.method` thêm `qr` (mở sheet Mã QR — feature pairing-funnel). Đăng nhập Apple/Google log `sign_up`/`login` với `method: apple|google` (`sign_up` = lần đầu tạo hồ sơ Firestore, không dựa `isNewUser` của Firebase).
+- [2026-10-25] [Dev] analytics-coverage: phủ screen_view cho mọi route/sheet có tên + ~30 event hành động còn thiếu (bảng ở §5). Nhánh `feature/analytics-coverage`.

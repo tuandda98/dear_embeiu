@@ -1019,6 +1019,10 @@ class RpsGameProvider extends ChangeNotifier {
         }),
       );
     }
+    // Analytics — a hand was locked in (never which one).
+    if (ok != false) {
+      AnalyticsService.instance.logRpsChoiceMade();
+    }
     notifyListeners();
     return ok ?? true;
   }
@@ -1051,6 +1055,9 @@ class RpsGameProvider extends ChangeNotifier {
       return result;
     }
     _nudgeInFlight = false;
+    if (result.status == RpsNudgeStatus.sent) {
+      AnalyticsService.instance.logRpsNudgeSent();
+    }
     if (_currentGameId == gameId) {
       switch (result.status) {
         case RpsNudgeStatus.sent:
@@ -1101,7 +1108,12 @@ class RpsGameProvider extends ChangeNotifier {
     }
     _setBusy(true);
     try {
-      return await _service.cancel(coupleId: coupleId, gameId: gameId, uid: me);
+      final ok =
+          await _service.cancel(coupleId: coupleId, gameId: gameId, uid: me);
+      if (ok) {
+        AnalyticsService.instance.logRpsCancelled();
+      }
+      return ok;
     } finally {
       _setBusy(false);
     }
