@@ -699,6 +699,7 @@ class _LoveTreeScreenState extends State<LoveTreeScreen>
           sharePositionOrigin: origin,
         ),
       );
+      AnalyticsService.instance.logLoveTreeShared();
     } catch (_) {
       // Rare, OS-driven; stay silent per design (no error toast).
     } finally {

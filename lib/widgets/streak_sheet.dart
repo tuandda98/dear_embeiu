@@ -27,6 +27,7 @@ class StreakSheet extends StatelessWidget {
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'StreakSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ChangeNotifierProvider<StreakProvider>.value(
@@ -40,6 +41,7 @@ class StreakSheet extends StatelessWidget {
   static Future<void> showMilestone(BuildContext context, int milestone) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'StreakMilestoneSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ChangeNotifierProvider<StreakProvider>.value(

@@ -441,6 +441,7 @@ class AuthProvider extends ChangeNotifier {
       _isInitialized = true;
       // Analytics — clear the user id (D2) and mark guest again. Fire-and-forget
       // so the analytics write can't delay returning to the auth gate.
+      AnalyticsService.instance.logSignOut();
       unawaited(AnalyticsService.instance.setUserId(null));
       AnalyticsService.instance.setIsGuest(true);
       return true;
@@ -572,6 +573,7 @@ class AuthProvider extends ChangeNotifier {
         return 'session-gone';
       }
       await _authService.setPassword(password, uid: uid);
+      AnalyticsService.instance.logPasswordSet();
       return null;
     } on AuthException catch (e) {
       _forgetSignedOutUser(e.message);
@@ -631,6 +633,7 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
     try {
       await _authService.resendEmailVerification();
+      AnalyticsService.instance.logVerificationEmailResent();
       return true;
     } on AuthException catch (e) {
       _errorMessage = e.message;

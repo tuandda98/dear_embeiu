@@ -34,8 +34,23 @@ import '../../widgets/money/settle_sheet.dart';
 import 'money_goal_screen.dart';
 
 // ── expenses (đợt 2) · stage 3A: budgets / report / search entry points ──
+/// Route name for a Sổ tiền sub-screen (screen_view label).
+Route<void> _moneyRoute(Widget screen) => MaterialPageRoute<void>(
+  settings: RouteSettings(
+    name: switch (screen) {
+      MoneyWalletsScreen() => 'MoneyWallets',
+      MoneyCategoriesScreen() => 'MoneyCategories',
+      MoneyBudgetsScreen() => 'MoneyBudgets',
+      MoneyReportScreen() => 'MoneyReport',
+      MoneySearchScreen() => 'MoneySearch',
+      _ => 'MoneySub',
+    },
+  ),
+  builder: (_) => screen,
+);
+
 void _openSub(BuildContext context, Widget screen) =>
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+    Navigator.of(context).push(_moneyRoute(screen));
 
 /// Opens Sổ tiền ([book] null = the tab used last on this phone).
 /// ── expenses (đợt 2) ── stage 3B: [focusWalletId] (a `money_goal*` push /
@@ -260,7 +275,7 @@ class _MoneyScreenState extends State<MoneyScreen> {
 
   void _push(Widget screen) => Navigator.of(
     context,
-  ).push(MaterialPageRoute<void>(builder: (_) => screen));
+  ).push(_moneyRoute(screen));
 
   void _editTx(MoneyTx t) =>
       AddTransactionSheet.show(context, book: _book, editing: t);

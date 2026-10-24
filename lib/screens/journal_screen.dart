@@ -621,6 +621,7 @@ class _JournalEmpty extends StatelessWidget {
                     // Send the user to the setup/invite flow.
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
+                        settings: const RouteSettings(name: 'SetupScreen'),
                         builder: (_) => const SetupScreen(),
                       ),
                     );

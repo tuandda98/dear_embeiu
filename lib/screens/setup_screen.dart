@@ -33,6 +33,7 @@ import '../widgets/love_lottie.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/sub_screen_header.dart';
 import 'settings_screen.dart';
+import '../services/analytics_service.dart';
 
 enum _SetupMode { create, join }
 
@@ -134,6 +135,7 @@ class _SetupScreenState extends State<SetupScreen>
       }
       final join = await showModalBottomSheet<bool>(
         context: context,
+        routeSettings: const RouteSettings(name: 'InviteClipboardSheet'),
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (_) => _ClipboardInviteSheet(code: code),
@@ -147,6 +149,7 @@ class _SetupScreenState extends State<SetupScreen>
       if (join != true) {
         return;
       }
+      AnalyticsService.instance.logInviteClipboardUsed();
       setState(() => _mode = _SetupMode.join);
       // Let the tab slide over and the code show in the field, then pair.
       await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -475,6 +478,7 @@ class _SetupScreenState extends State<SetupScreen>
     final l10n = context.l10n;
     await showDialog<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'InviteCodeDialog'),
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(

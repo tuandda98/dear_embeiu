@@ -11,6 +11,7 @@ import '../services/app_update_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../widgets/eyebrow_chip.dart';
+import '../services/analytics_service.dart';
 
 /// Full-screen "you must update" gate (feature force-update). Shown when
 /// [SessionResolver] resolves to [AppRoutes.forceUpdate] because this build is
@@ -25,6 +26,7 @@ class ForceUpdateScreen extends StatelessWidget {
 
   Future<void> _openStore() async {
     HapticFeedback.selectionClick();
+    AnalyticsService.instance.logForceUpdateStoreTap();
     final resolved = AppUpdateService.instance.storeUrl;
     final target = (resolved != null && resolved.isNotEmpty)
         ? resolved

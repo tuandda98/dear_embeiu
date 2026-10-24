@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/app_notification.dart';
 import '../services/app_badge.dart';
 import '../services/notification_inbox_service.dart';
+import '../services/analytics_service.dart';
 
 /// State for the in-app notification center: streams the current couple's
 /// notifications for the signed-in user, exposes the unread count (for the
@@ -115,6 +116,7 @@ class NotificationInboxProvider extends ChangeNotifier {
     _items = [for (final n in _items) n.read ? n : n.copyWith(read: true)];
     notifyListeners();
     await _service.markAllRead(uid, unreadIds);
+    AnalyticsService.instance.logNotificationMarkAllRead();
   }
 
   Future<void> remove(String id) async {
@@ -123,6 +125,7 @@ class NotificationInboxProvider extends ChangeNotifier {
     _items = [for (final n in _items) if (n.id != id) n];
     notifyListeners();
     await _service.delete(uid, id);
+    AnalyticsService.instance.logNotificationRemoved();
   }
 
   Future<void> clearAll() async {
@@ -133,6 +136,7 @@ class NotificationInboxProvider extends ChangeNotifier {
     _items = const <AppNotification>[];
     notifyListeners();
     await _service.clearAll(uid, ids);
+    AnalyticsService.instance.logNotificationClearedAll();
   }
 
   /// Stops watching and resets state (sign-out / leaving a couple).

@@ -102,6 +102,7 @@ class MomentSheet extends StatelessWidget {
   static Future<void> _present(BuildContext context, Widget child) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'MomentSheet'),
       isScrollControlled: true,
       useSafeArea: true, // never under the (light-icon) status bar
       backgroundColor: Colors.transparent,

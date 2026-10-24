@@ -24,6 +24,7 @@ Future<void> showCaroNewGameSheet(
   if (!context.mounted) return;
   await showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'CaroNewGameSheet'),
     isScrollControlled: true,
     backgroundColor: AppColors.white,
     shape: const RoundedRectangleBorder(

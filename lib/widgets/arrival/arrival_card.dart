@@ -1000,6 +1000,7 @@ Future<String?> showArrivalPickSheet(BuildContext context, Couple couple) {
   final me = ArrivalFormat.myName(l10n, couple, myUid);
   return showModalBottomSheet<String>(
     context: context,
+    routeSettings: const RouteSettings(name: 'ArrivalPickSheet'),
     backgroundColor: Colors.white,
     showDragHandle: true,
     isScrollControlled: true,

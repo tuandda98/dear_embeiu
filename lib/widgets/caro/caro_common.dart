@@ -121,6 +121,7 @@ Future<void> showCaroRuleSheet(
   final l10n = AppLocalizations.of(context);
   return showModalBottomSheet<void>(
     context: context,
+    routeSettings: const RouteSettings(name: 'CaroRuleSheet'),
     backgroundColor: AppColors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),

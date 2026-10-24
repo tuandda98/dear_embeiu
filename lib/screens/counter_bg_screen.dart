@@ -17,6 +17,7 @@ import '../providers/photo_provider.dart';
 import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/sub_screen_header.dart';
+import '../services/analytics_service.dart';
 
 /// "Counter background" picker (Settings → Ảnh nền thẻ đếm, 2026-06-14). Lets a
 /// couple choose WHICH photos may back the Home hero counter card. The chosen
@@ -97,6 +98,7 @@ class _CounterBgScreenState extends State<CounterBgScreen> {
     if (_coupleId.isNotEmpty) {
       unawaited(_prefs.setCounterBgIds(_coupleId, ids));
     }
+    AnalyticsService.instance.logCounterBgSet(ids.length);
     if (!mounted) {
       return;
     }

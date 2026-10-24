@@ -2075,10 +2075,7 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
 
     setState(() => _pending = value);
     final seq = ++_toggleSeq;
-    AnalyticsService.instance.logEvent(
-      'ai_questions_toggle',
-      params: <String, Object?>{'enabled': value},
-    );
+    AnalyticsService.instance.logAiQuestionsToggle(enabled: value);
     final ok = await _prefs.setAiQuestionsEnabled(coupleId, value);
     // A newer toggle superseded this one — its handler owns `_pending` now.
     if (seq != _toggleSeq) {

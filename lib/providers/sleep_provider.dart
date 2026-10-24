@@ -880,6 +880,7 @@ class SleepProvider extends ChangeNotifier {
     _settings = _settings.copyWith(localColor: colorId);
     _myProfile = SleepProfile(share: myShare, color: colorId);
     notifyListeners();
+    AnalyticsService.instance.logSleepColorSet();
     await _service.saveSettings(uid, _settings);
     if (_canShare) {
       unawaited(_quiet(_service.setProfile(_coupleId!, uid, color: colorId)));
@@ -982,6 +983,7 @@ class SleepProvider extends ChangeNotifier {
       hiddenUntil: DateTime.now().add(const Duration(days: 30)),
     );
     notifyListeners();
+    AnalyticsService.instance.logSleepCardHidden();
     await _service.saveSettings(uid, _settings);
   }
 
@@ -1058,6 +1060,7 @@ class SleepProvider extends ChangeNotifier {
     }
     _local[date] = null;
     notifyListeners();
+    AnalyticsService.instance.logSleepNightDeleted();
     await _service.saveNights(uid, _local);
     await _syncRecent();
   }
