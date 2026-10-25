@@ -7827,4 +7827,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get moneyLinkedPayerLocked =>
       'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.';
+
+  @override
+  String get moneyUndoTooLate => 'That one\'s already deleted.';
+
+  @override
+  String get moneyOwingCardDetail =>
+      'That\'s what you owe on this card. Pay it before the due date.';
+
+  @override
+  String moneyReminderTimeA11y(String time) {
+    return 'Reminder time, $time';
+  }
+
+  @override
+  String moneyAmountSpoken(String amount) {
+    return '$amount dong';
+  }
+
+  @override
+  String moneyAmountSpokenNeg(String amount) {
+    return 'minus $amount dong';
+  }
+
+  @override
+  String arrivalShareFirstSub(String name) {
+    return 'Turn it on to let $name know when you arrive.';
+  }
+
+  @override
+  String get arrivalSetAddressCta => 'Tap to set the address';
 }

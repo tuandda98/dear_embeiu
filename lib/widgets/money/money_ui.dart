@@ -111,8 +111,8 @@ DateTime moneyParseDate(String key) => DateTime(
 String moneyMonthLabel(BuildContext context, String month) {
   final lang = moneyLang(context);
   final d = moneyParseDate('$month-01');
-  if (lang == 'vi') return 'Tháng ${d.month}, ${d.year}';
-  return DateFormat('MMMM y', lang).format(d);
+  // Stand-alone month name from the locale: vi "Tháng 10", en "October".
+  return DateFormat(lang == 'vi' ? 'LLLL, y' : 'LLLL y', lang).format(d);
 }
 
 /// "10" (vi, after "tháng") / "October".
@@ -141,21 +141,8 @@ String moneyDayLabel(BuildContext context, String key, {DateTime? now}) {
   if (key == yesterday) return l10n.moneyDayYesterday(date);
   final lang = moneyLang(context);
   final d = moneyParseDate(key);
-  final weekday = lang == 'vi'
-      ? _viWeekdays[d.weekday % 7]
-      : DateFormat.EEEE(lang).format(d);
-  return '$weekday, $date';
+  return '${DateFormat.EEEE(lang).format(d)}, $date';
 }
-
-const List<String> _viWeekdays = <String>[
-  'Chủ nhật',
-  'Thứ Hai',
-  'Thứ Ba',
-  'Thứ Tư',
-  'Thứ Năm',
-  'Thứ Sáu',
-  'Thứ Bảy',
-];
 
 String moneyTime(BuildContext context, DateTime t) =>
     DateFormat.Hm(moneyLang(context)).format(t);

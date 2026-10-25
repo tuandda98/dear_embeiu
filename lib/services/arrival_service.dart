@@ -185,6 +185,15 @@ class ArrivalService {
   Future<void> saveSharePartner(String uid, String partnerUid) async =>
       (await _box()).put('sharePartner:$uid', partnerUid);
 
+  /// Sharing was on at least once (on this phone, for [uid]). The server
+  /// can't tell: switching off deletes the doc (D11). Only picks the copy
+  /// "Bật để…" vs "Bật lại để…" on the manage screen.
+  Future<bool> loadEverShared(String uid) async =>
+      (await _box()).get('everShared:$uid') == true;
+
+  Future<void> saveEverShared(String uid) async =>
+      (await _box()).put('everShared:$uid', true);
+
   /// Who is signed in + their couple, for the geofence background callback
   /// (stage 2), which has no providers. Null coupleId = nowhere to send.
   Future<void> saveSession(String uid, String? coupleId) async {

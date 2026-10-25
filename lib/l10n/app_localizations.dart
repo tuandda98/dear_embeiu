@@ -12519,6 +12519,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.'**
   String get moneyLinkedPayerLocked;
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: Hoàn tác bấm sau khi đã xoá
+  ///
+  /// In en, this message translates to:
+  /// **'That one\'s already deleted.'**
+  String get moneyUndoTooLate;
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: chi tiết ví thẻ tín dụng âm
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s what you owe on this card. Pay it before the due date.'**
+  String get moneyOwingCardDetail;
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: nhãn đọc màn hình ô giờ nhắc tối
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time, {time}'**
+  String moneyReminderTimeA11y(String time);
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: số tiền đọc màn hình
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} dong'**
+  String moneyAmountSpoken(String amount);
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: số tiền âm đọc màn hình
+  ///
+  /// In en, this message translates to:
+  /// **'minus {amount} dong'**
+  String moneyAmountSpokenNeg(String amount);
+
+  /// Feature arrival (đợt 2), vòng vá: chưa từng bật chia sẻ
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on to let {name} know when you arrive.'**
+  String arrivalShareFirstSub(String name);
+
+  /// Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to set the address'**
+  String get arrivalSetAddressCta;
 }
 
 class _AppLocalizationsDelegate

@@ -9236,5 +9236,53 @@
   "moneyLinkedPayerLocked": "This one also came out of my wallet, so who paid can't change. To change it, delete it and log it again.",
   "@moneyLinkedPayerLocked": {
     "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneyUndoTooLate": "That one's already deleted.",
+  "@moneyUndoTooLate": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: Hoàn tác bấm sau khi đã xoá"
+  },
+  "moneyOwingCardDetail": "That's what you owe on this card. Pay it before the due date.",
+  "@moneyOwingCardDetail": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: chi tiết ví thẻ tín dụng âm"
+  },
+  "moneyReminderTimeA11y": "Reminder time, {time}",
+  "@moneyReminderTimeA11y": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: nhãn đọc màn hình ô giờ nhắc tối",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountSpoken": "{amount} dong",
+  "@moneyAmountSpoken": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: số tiền đọc màn hình",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountSpokenNeg": "minus {amount} dong",
+  "@moneyAmountSpokenNeg": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: số tiền âm đọc màn hình",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalShareFirstSub": "Turn it on to let {name} know when you arrive.",
+  "@arrivalShareFirstSub": {
+    "description": "Feature arrival (đợt 2), vòng vá: chưa từng bật chia sẻ",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSetAddressCta": "Tap to set the address",
+  "@arrivalSetAddressCta": {
+    "description": "Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ"
   }
 }

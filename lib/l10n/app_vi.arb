@@ -8074,5 +8074,53 @@
   "moneyLinkedPayerLocked": "Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.",
   "@moneyLinkedPayerLocked": {
     "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneyUndoTooLate": "Khoản này đã xoá rồi.",
+  "@moneyUndoTooLate": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: Hoàn tác bấm sau khi đã xoá"
+  },
+  "moneyOwingCardDetail": "Đang nợ thẻ chừng này, nhớ trả trước hạn nhé.",
+  "@moneyOwingCardDetail": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: chi tiết ví thẻ tín dụng âm"
+  },
+  "moneyReminderTimeA11y": "Giờ nhắc, {time}",
+  "@moneyReminderTimeA11y": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: nhãn đọc màn hình ô giờ nhắc tối",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountSpoken": "{amount} đồng",
+  "@moneyAmountSpoken": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: số tiền đọc màn hình",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountSpokenNeg": "âm {amount} đồng",
+  "@moneyAmountSpokenNeg": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: số tiền âm đọc màn hình",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalShareFirstSub": "Bật để báo cho {name} mỗi khi bạn đến nơi.",
+  "@arrivalShareFirstSub": {
+    "description": "Feature arrival (đợt 2), vòng vá: chưa từng bật chia sẻ",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSetAddressCta": "Chạm để đặt địa chỉ",
+  "@arrivalSetAddressCta": {
+    "description": "Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ"
   }
 }

@@ -7555,4 +7555,34 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get moneyLinkedPayerLocked =>
       'Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.';
+
+  @override
+  String get moneyUndoTooLate => 'Khoản này đã xoá rồi.';
+
+  @override
+  String get moneyOwingCardDetail =>
+      'Đang nợ thẻ chừng này, nhớ trả trước hạn nhé.';
+
+  @override
+  String moneyReminderTimeA11y(String time) {
+    return 'Giờ nhắc, $time';
+  }
+
+  @override
+  String moneyAmountSpoken(String amount) {
+    return '$amount đồng';
+  }
+
+  @override
+  String moneyAmountSpokenNeg(String amount) {
+    return 'âm $amount đồng';
+  }
+
+  @override
+  String arrivalShareFirstSub(String name) {
+    return 'Bật để báo cho $name mỗi khi bạn đến nơi.';
+  }
+
+  @override
+  String get arrivalSetAddressCta => 'Chạm để đặt địa chỉ';
 }

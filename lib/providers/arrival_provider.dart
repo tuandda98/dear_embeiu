@@ -46,6 +46,7 @@ class ArrivalProvider extends ChangeNotifier {
   bool _loaded = false;
   List<ArrivalPlace> _places = const [ArrivalPlace.home()];
   bool _wantsAuto = false;
+  bool _everShared = false;
 
   /// Partner "Tự báo" was switched on for (Hive). Null = unknown / off.
   String? _autoPartner;
@@ -108,6 +109,9 @@ class ArrivalProvider extends ChangeNotifier {
   }
 
   bool get myShare => _mine?.share ?? false;
+
+  /// Sharing was on at least once (Hive): "Bật lại…" vs "Bật để…".
+  bool get everShared => _everShared || myShare;
   ArrivalEvent? get myLast => _mine?.last;
 
   bool get partnerShares => visible && (_partner?.share ?? false);
@@ -220,6 +224,10 @@ class ArrivalProvider extends ChangeNotifier {
     ) {
       _mine = s;
       _mineKnown = true;
+      if (s?.share == true && !_everShared) {
+        _everShared = true;
+        unawaited(_service.saveEverShared(myUid).catchError((_) {}));
+      }
       _clearQueuedIfAcked(s);
       notifyListeners();
       unawaited(_syncAuto());
@@ -239,9 +247,11 @@ class ArrivalProvider extends ChangeNotifier {
     final places = await _service.loadPlaces(uid);
     final wants = await _service.loadWantsAuto(uid);
     final autoPartner = await _service.loadAutoPartner(uid);
+    final everShared = await _service.loadEverShared(uid);
     if (_uid != uid) return; // switched account while loading
     _places = places;
     _wantsAuto = wants;
+    _everShared = everShared;
     _autoPartner = autoPartner;
     _loaded = true;
   }
@@ -258,6 +268,7 @@ class ArrivalProvider extends ChangeNotifier {
     _loaded = false;
     _places = const [ArrivalPlace.home()];
     _wantsAuto = false;
+    _everShared = false;
     _autoPartner = null;
     _mine = null;
     _mineKnown = false;

@@ -158,6 +158,27 @@ class NativePlaceSearch implements PlaceSearch {
   }
 }
 
+/// Android's address line repeats the street the title already has
+/// ("45 Đường Lê Văn Sỹ" over "45 Đ. Lê Văn Sỹ, Phú Nhuận, Hồ Chí Minh"):
+/// drop that first part when it is the same street (same house number, or
+/// the same words once "Đường"/"Đ." is set aside). iOS subtitles never
+/// start with the street, so they pass through.
+@visibleForTesting
+String arrivalDedupeSubtitle(String title, String subtitle) {
+  final parts = subtitle.split(',');
+  String norm(String s) => s
+      .toLowerCase()
+      .replaceAll(RegExp(r'(^|\s)(đường|đ\.)\s*'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  String? number(String s) => RegExp(r'^\d[\w/]*').stringMatch(s.trim());
+  final head = parts.first;
+  final n = number(title);
+  final same = norm(head) == norm(title) || (n != null && number(head) == n);
+  if (!same) return subtitle;
+  return parts.skip(1).join(',').trim();
+}
+
 /// Native maps → results, province filter, alley flag, ≤ 5.
 @visibleForTesting
 List<PlaceSearchResult> arrivalSearchResults(
@@ -171,7 +192,10 @@ List<PlaceSearchResult> arrivalSearchResults(
     final lng = r['lng'];
     final title = '${r['title'] ?? ''}'.trim();
     if (lat is! num || lng is! num || title.isEmpty) continue;
-    final subtitle = '${r['subtitle'] ?? ''}'.trim();
+    final subtitle = arrivalDedupeSubtitle(
+      title,
+      '${r['subtitle'] ?? ''}'.trim(),
+    );
     final full = '$title, $subtitle, ${r['address'] ?? ''}';
     if (!arrivalResultInProvince(full, q.province)) continue;
     out.add(

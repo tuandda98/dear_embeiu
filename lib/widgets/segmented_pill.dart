@@ -40,9 +40,11 @@ class SegmentedPill<T> extends StatelessWidget {
       builder: (context, constraints) {
         const inset = 4.0;
         final width = (constraints.maxWidth - inset * 2) / values.length;
+        // No padding on the track: the segments' tap areas run the full
+        // pill height (44+, UI UX Pro Max "Touch Target Size"); only the
+        // thumb and the labels keep the 4 inset.
         return Container(
           height: height,
-          padding: const EdgeInsets.all(inset),
           decoration: BoxDecoration(
             color: onSurface
                 ? AppColors.surfaceLight
@@ -59,9 +61,9 @@ class SegmentedPill<T> extends StatelessWidget {
                     ? Duration.zero
                     : const Duration(milliseconds: 260),
                 curve: Curves.easeInOutCubic,
-                left: width * index,
-                top: 0,
-                bottom: 0,
+                left: inset + width * index,
+                top: inset,
+                bottom: inset,
                 width: width,
                 child: Container(
                   decoration: BoxDecoration(
@@ -79,8 +81,20 @@ class SegmentedPill<T> extends StatelessWidget {
               ),
               Row(
                 children: [
-                  for (final v in values)
-                    Expanded(child: _segment(context, v, v == selected)),
+                  for (var i = 0; i < values.length; i++)
+                    Expanded(
+                      // The end cells take the side inset too, so each
+                      // label stays centred on its thumb.
+                      child: _segment(
+                        context,
+                        values[i],
+                        values[i] == selected,
+                        EdgeInsets.only(
+                          left: i == 0 ? inset : 0,
+                          right: i == values.length - 1 ? inset : 0,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -90,7 +104,12 @@ class SegmentedPill<T> extends StatelessWidget {
     );
   }
 
-  Widget _segment(BuildContext context, T value, bool isSelected) {
+  Widget _segment(
+    BuildContext context,
+    T value,
+    bool isSelected,
+    EdgeInsets edge,
+  ) {
     final ink = isSelected
         ? AppColors.textPrimary
         : AppColors.textPrimary.withValues(alpha: 0.72);
@@ -106,18 +125,23 @@ class SegmentedPill<T> extends StatelessWidget {
           splashColor: AppColors.accentRose.withValues(alpha: 0.08),
           highlightColor: Colors.transparent,
           onTap: !enabled || isSelected ? null : () => onChanged(value),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  labelOf(value),
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: ink,
+          child: Padding(
+            padding: edge,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    labelOf(value),
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
+                      color: ink,
+                    ),
                   ),
                 ),
               ),

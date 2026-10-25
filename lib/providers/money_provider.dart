@@ -195,6 +195,12 @@ class MoneyProvider extends ChangeNotifier {
 
   /// Undo window for a delete (D13): nothing is sent before it ends.
   static const Duration deleteDelay = Duration(seconds: 5);
+
+  /// The delete snackbar's own time. The [deleteDelay] timer starts on the
+  /// tap, the snackbar only after the sheet closes (~0,3 s) and slides in
+  /// (~0,25 s), so it stays a second shorter: no "Hoàn tác" left on screen
+  /// once the delete went out.
+  static const Duration deleteUndoSnack = Duration(seconds: 4);
   static const String _cacheBox = 'money_cache';
 
   String? _uid;

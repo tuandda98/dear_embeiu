@@ -207,6 +207,46 @@ void main() {
     expect(out[1].hasHouseNumber, isFalse);
   });
 
+  test('Android subtitle drops the street the title already has', () {
+    // Smoke 2026-10-20: "45 Đường Lê Văn Sỹ, 45 Đ. Lê Văn Sỹ, Phú Nhuận…".
+    expect(
+      arrivalDedupeSubtitle(
+        '45 Đường Lê Văn Sỹ',
+        '45 Đ. Lê Văn Sỹ, Phú Nhuận, Hồ Chí Minh',
+      ),
+      'Phú Nhuận, Hồ Chí Minh',
+    );
+    expect(
+      arrivalDedupeSubtitle('Lê Văn Sỹ', 'Đường Lê Văn Sỹ, Phú Nhuận'),
+      'Phú Nhuận',
+    );
+    // iOS shape and a place name over a street: untouched.
+    expect(
+      arrivalDedupeSubtitle(
+        '135 Nam Kỳ Khởi Nghĩa',
+        'P. Bến Thành, Thành Phố Hồ Chí Minh',
+      ),
+      'P. Bến Thành, Thành Phố Hồ Chí Minh',
+    );
+    expect(
+      arrivalDedupeSubtitle('Vincom Đồng Khởi', '72 Lê Thánh Tôn, Quận 1'),
+      '72 Lê Thánh Tôn, Quận 1',
+    );
+    final r = arrivalSearchResults([
+      {
+        'title': '45 Đường Lê Văn Sỹ',
+        'subtitle': '45 Đ. Lê Văn Sỹ, Phú Nhuận, Hồ Chí Minh',
+        'lat': 10.79,
+        'lng': 106.68,
+        'hasNumber': true,
+      },
+    ], shortenArrivalPlaceQuery('45 Lê Văn Sỹ, TP.HCM'));
+    expect(
+      r.single.address,
+      '45 Đường Lê Văn Sỹ, Phú Nhuận, Hồ Chí Minh',
+    );
+  });
+
   group('background bridge', () {
     final handled = <String>[];
     setUp(() {

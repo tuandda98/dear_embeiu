@@ -365,10 +365,16 @@ class AnalyticsService {
   // Low-level logging — all helpers funnel through here.
   // ---------------------------------------------------------------------------
 
+  /// Test seam: sees every event (before the SDK / opt-out checks).
+  @visibleForTesting
+  static void Function(String name, Map<String, Object?>? params)?
+  debugOnEvent;
+
   /// Logs [name] with [params]. No-op when the SDK isn't bound or the user
   /// opted out. Strips null param values and (defensively) drops any value
   /// that isn't an allowed scalar type so a stray object can't leak through.
   void logEvent(String name, {Map<String, Object?>? params}) {
+    debugOnEvent?.call(name, params);
     final analytics = _analytics;
     if (analytics == null || !_enabled) {
       return;

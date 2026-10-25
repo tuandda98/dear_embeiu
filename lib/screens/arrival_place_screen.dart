@@ -1246,7 +1246,7 @@ class _LocationRow extends StatelessWidget {
         ? ArrivalFormat.shortAddress(loc.address!)
         : l10n.arrivalUseCurrent;
     final sub = loc == null
-        ? l10n.arrivalNoAddressManual
+        ? l10n.arrivalSetAddressCta
         : loc.source == ArrivalLocationSource.current
         ? l10n.arrivalSavedFromCurrent(
             ArrivalFormat.shortDate(context, loc.savedAt),

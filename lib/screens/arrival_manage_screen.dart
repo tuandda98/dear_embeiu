@@ -180,7 +180,9 @@ class _ArrivalManageScreenState extends State<ArrivalManageScreen>
               title: l10n.arrivalShareTitle(partner),
               subtitle: arrival.myShare
                   ? l10n.arrivalShareSub(partner)
-                  : l10n.arrivalShareOffSub(partner),
+                  : arrival.everShared
+                  ? l10n.arrivalShareOffSub(partner)
+                  : l10n.arrivalShareFirstSub(partner),
               value: arrival.myShare,
               onChanged: (v) => _toggleShare(v, partner, me),
             ),

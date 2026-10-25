@@ -132,7 +132,7 @@ class MoneyHomeEntry extends StatelessWidget {
         sub = Text(
           plainSub,
           style: subStyle,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
       case MoneyHomeEntryKind.waiting:
@@ -145,7 +145,7 @@ class MoneyHomeEntry extends StatelessWidget {
         sub = Text(
           plainSub,
           style: subStyle,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
       case MoneyHomeEntryKind.neverLogged:
@@ -153,7 +153,7 @@ class MoneyHomeEntry extends StatelessWidget {
         sub = Text(
           plainSub,
           style: subStyle,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
       case MoneyHomeEntryKind.monthEmpty:
@@ -161,7 +161,7 @@ class MoneyHomeEntry extends StatelessWidget {
         sub = Text(
           plainSub,
           style: subStyle,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
       case MoneyHomeEntryKind.stale:
@@ -181,7 +181,7 @@ class MoneyHomeEntry extends StatelessWidget {
               child: Text(
                 plainSub,
                 style: subStyle,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -211,7 +211,7 @@ class MoneyHomeEntry extends StatelessWidget {
               ),
             ],
           ),
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
       case MoneyHomeEntryKind.noBudget:
@@ -326,7 +326,7 @@ class MoneyHomeEntry extends StatelessWidget {
       return Text(
         text,
         style: base,
-        maxLines: 1,
+        maxLines: 2,
         overflow: TextOverflow.ellipsis,
       );
     }
@@ -339,7 +339,7 @@ class MoneyHomeEntry extends StatelessWidget {
           TextSpan(text: text.substring(i + figure.length)),
         ],
       ),
-      maxLines: 1,
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
   }

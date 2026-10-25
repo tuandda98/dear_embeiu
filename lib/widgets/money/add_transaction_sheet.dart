@@ -94,6 +94,11 @@ class MoneyAmountInput {
       raw = '';
       chipMode = false;
     }
+    // After "k" a digit is dropped: "50k" + "0" read "50k0" yet stayed
+    // 50.000 (the tail is a fraction of the unit), which looked like a typo
+    // the sheet ignored. "tr"/"củ" keep their tail ("1tr2", "2tr05" = the
+    // hint the sheet itself shows).
+    if (_unit == 'k') return;
     final isMark = key == ',' || key == '.';
     if (raw.isEmpty && (key == '0' || key == '000' || key == '00' || isMark)) {
       return;
@@ -141,7 +146,9 @@ class _SheetResult {
 
   final String message;
   final String? detail;
-  final VoidCallback? undo;
+
+  /// "Hoàn tác". A `false` result = too late, the delete already went out.
+  final Object? Function()? undo;
   final Duration? duration;
 }
 
@@ -215,7 +222,20 @@ class AddTransactionSheet extends StatefulWidget {
       message: result.message,
       detail: result.detail,
       actionLabel: result.undo == null ? null : context.l10n.moneyUndo,
-      onAction: result.undo,
+      onAction: result.undo == null
+          ? null
+          : () {
+              if (result.undo!() != false) return;
+              // After the action's own hide (a11y mode completes it at once).
+              Future.microtask(() {
+                if (context.mounted) {
+                  showMoneySnack(
+                    context,
+                    message: context.l10n.moneyUndoTooLate,
+                  );
+                }
+              });
+            },
       duration: result.duration ?? const Duration(seconds: 4),
     );
   }
@@ -898,7 +918,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       _SheetResult(
         l10n.moneyDeleted(_titleOf(e), vnd(context, e.amount, book: _book)),
         undo: () => money.undoDelete(e.id),
-        duration: MoneyProvider.deleteDelay,
+        duration: MoneyProvider.deleteUndoSnack,
       ),
     );
   }
