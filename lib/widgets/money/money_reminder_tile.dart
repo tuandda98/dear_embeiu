@@ -54,73 +54,81 @@ class MoneyReminderTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         children: [
-          Row(
-            children: [
-              const IconBadge(IconsaxPlusLinear.wallet_2),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.moneyReminderSettingTitle,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.moneyReminderSettingSubtitle,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Switch.adaptive(
-                value: enabled,
-                activeThumbColor: AppColors.accentRose,
-                onChanged: toggle,
-              ),
-            ],
-          ),
-          if (enabled) ...[
-            const SizedBox(height: 12),
-            Material(
-              color: AppColors.accentRose.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(16),
-              child: InkWell(
-                onTap: editTime,
-                borderRadius: BorderRadius.circular(16),
-                splashColor: AppColors.accentRose.withValues(alpha: 0.08),
-                highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
+          // One node: title + subtitle + switch state, toggled as a whole.
+          MergeSemantics(
+            child: Row(
+              children: [
+                const IconBadge(IconsaxPlusLinear.wallet_2),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        IconsaxPlusLinear.clock,
-                        size: 18,
-                        color: AppColors.accentRose,
+                      Text(
+                        l10n.moneyReminderSettingTitle,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          time.format(context),
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.moneyReminderSettingSubtitle,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                          height: 1.4,
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Switch.adaptive(
+                  value: enabled,
+                  activeThumbColor: AppColors.accentRose,
+                  onChanged: toggle,
+                ),
+              ],
+            ),
+          ),
+          if (enabled) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              button: true,
+              label: l10n.moneyReminderTimeA11y(time.format(context)),
+              excludeSemantics: true,
+              child: Material(
+                color: AppColors.accentRose.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  onTap: editTime,
+                  borderRadius: BorderRadius.circular(16),
+                  splashColor: AppColors.accentRose.withValues(alpha: 0.08),
+                  highlightColor: AppColors.accentLove.withValues(alpha: 0.06),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          IconsaxPlusLinear.clock,
+                          size: 18,
+                          color: AppColors.accentRose,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            time.format(context),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

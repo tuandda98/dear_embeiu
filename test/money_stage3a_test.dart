@@ -10,6 +10,7 @@ import 'package:dear_embeiu/providers/money_provider.dart';
 import 'package:dear_embeiu/screens/money/money_budgets_screen.dart';
 import 'package:dear_embeiu/screens/money/money_report_screen.dart';
 import 'package:dear_embeiu/screens/money/money_search_screen.dart';
+import 'package:dear_embeiu/services/analytics_service.dart';
 import 'package:dear_embeiu/services/money_service.dart';
 import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:dear_embeiu/utils/money_views.dart';
@@ -60,6 +61,7 @@ class _Money extends MoneyProvider {
   _Money({this.trendData}) : super(clock: () => DateTime(2026, 10, 20, 12));
 
   final Map<String, MoneyMonthTotals?>? trendData;
+  int trendCalls = 0;
   final List<({MoneyBookKind kind, String cat, int amount})> set = [];
   final List<({MoneyBookKind kind, String id})> deleted = [];
 
@@ -83,8 +85,10 @@ class _Money extends MoneyProvider {
   Future<Map<String, MoneyMonthTotals?>> trend(
     MoneyBookKind kind,
     int n,
-  ) async =>
-      trendData ?? {for (final m in MoneyMath.trendMonths(_m, n)) m: null};
+  ) async {
+    trendCalls++;
+    return trendData ?? {for (final m in MoneyMath.trendMonths(_m, n)) m: null};
+  }
 
   @override
   void refreshDay() {}
@@ -922,6 +926,24 @@ void main() {
       expect(find.text('Chi theo ví'), findsOneWidget);
     });
 
+    testWidgets('trend reloads when the entries change while open', (
+      tester,
+    ) async {
+      final money = _Money()..debugSetBooks(uid: _me, own: _ownBook());
+      await _pump(tester, money, const MoneyReportScreen());
+      final first = money.trendCalls;
+      expect(first, greaterThan(0));
+      // Unrelated rebuild (same data) → no reload.
+      await tester.pumpAndSettle();
+      expect(money.trendCalls, first);
+      money.scheduleDelete(MoneyBookKind.own, _ownTx.first);
+      await tester.pumpAndSettle();
+      expect(money.trendCalls, first + 1);
+      money.undoDelete(_ownTx.first.id);
+      await tester.pumpAndSettle();
+      expect(money.trendCalls, first + 2);
+    });
+
     testWidgets('shared screen: person lanes, contributions, new book', (
       tester,
     ) async {
@@ -1165,6 +1187,30 @@ void main() {
       expect(find.text('1 khoản'), findsOneWidget);
       expect(find.text('Lẩu dê Valentine'), findsOneWidget);
       expect(find.text('12 tháng gần đây'), findsOneWidget);
+    });
+
+    testWidgets('opening the screen logs no search; a typed one does', (
+      tester,
+    ) async {
+      final events = <String>[];
+      AnalyticsService.debugOnEvent = (name, _) => events.add(name);
+      addTearDown(() => AnalyticsService.debugOnEvent = null);
+      final own = _ownBook();
+      final r3 = MoneyViews.searchRange(_today, 3);
+      own.searchCache['${r3.$1}|${r3.$2}'] = (
+        at: DateTime(2026, 10, 20, 12),
+        rows: _ownTx,
+      );
+      final money = _Money()..debugSetBooks(uid: _me, own: own);
+      await _pump(tester, money, const MoneySearchScreen());
+      expect(events.where((e) => e == AnalyticsEvents.moneySearch), isEmpty);
+      await tester.enterText(find.byType(TextField), 'bun cha');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(
+        events.where((e) => e == AnalyticsEvents.moneySearch),
+        hasLength(1),
+      );
     });
 
     testWidgets('screen: capped notice', (tester) async {

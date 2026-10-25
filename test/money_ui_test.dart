@@ -15,6 +15,7 @@ import 'package:dear_embeiu/utils/money_math.dart';
 import 'package:dear_embeiu/widgets/money/add_transaction_sheet.dart';
 import 'package:dear_embeiu/widgets/money/money_home_entry.dart';
 import 'package:dear_embeiu/widgets/money/money_ui.dart';
+import 'package:dear_embeiu/widgets/segmented_pill.dart';
 
 /// Sổ tiền stage 2 (feature expenses): keypad + hints, chips, "khoản quen"
 /// in 2 taps, smart defaults, the linked-entry lock, undo delete, the Home
@@ -264,6 +265,20 @@ void main() {
       expect(i.raw, '1');
     });
 
+    test('a digit after "k" is dropped; "tr" keeps its tail', () {
+      final i = MoneyAmountInput();
+      for (final k in ['5', '0', 'k', '0', '000', '5']) {
+        i.press(k);
+      }
+      expect(i.raw, '50k');
+      expect(i.parsed.value, 50000);
+      final t = MoneyAmountInput();
+      for (final k in ['2', 'tr', '0', '5']) {
+        t.press(k);
+      }
+      expect(t.parsed.value, 2050000);
+    });
+
     test('leading zeros are ignored, chips add up, a digit starts over', () {
       final i = MoneyAmountInput();
       i.press('0');
@@ -434,6 +449,186 @@ void main() {
       expect(money.isDeleting('d1'), isFalse);
       expect(money.visibleTxs(MoneyBookKind.own), hasLength(1));
       await tester.pump(const Duration(seconds: 6));
+    });
+  });
+
+  group('vòng vá đợt 2', () {
+    testWidgets('delete snackbar ends before the delete goes out', (
+      tester,
+    ) async {
+      final tx = _exp('d1', 480000, note: 'Lẩu Thái Phố Huế');
+      final money = _withOwn(txs: [tx]);
+      await _open(tester, money, editing: tx);
+      await tester.tap(find.text('Xoá khoản'));
+      await tester.pumpAndSettle();
+      final bar = tester.widget<SnackBar>(find.byType(SnackBar));
+      expect(bar.duration, lessThan(MoneyProvider.deleteDelay));
+      // The delete already left (timer fired) yet "Hoàn tác" is tapped.
+      expect(money.undoDelete('d1'), isTrue);
+      await tester.tap(find.text('Hoàn tác'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.text('Khoản này đã xoá rồi.'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('credit card: "đang nợ thẻ" only below zero', (tester) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      MoneyWallet card(String id, int balance) => MoneyWallet(
+        id: id,
+        name: 'Thẻ $id',
+        type: MoneyWalletType.credit,
+        emoji: '💳',
+        openingBalance: balance,
+      );
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(
+            wallets: [card('am', -2458000), card('khong', 0), card('du', 300000)],
+          ),
+        );
+      await tester.pumpWidget(_app(money, const MoneyWalletsScreen()));
+      await tester.pump();
+      expect(find.textContaining('đang nợ thẻ'), findsOneWidget);
+      await tester.pumpWidget(
+        _app(
+          money,
+          const MoneyWalletScreen(book: MoneyBookKind.own, walletId: 'am'),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.text('Đang nợ thẻ chừng này, nhớ trả trước hạn nhé.'),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(
+        _app(
+          money,
+          const MoneyWalletScreen(book: MoneyBookKind.own, walletId: 'du'),
+        ),
+      );
+      await tester.pump();
+      expect(find.textContaining('Đang nợ thẻ'), findsNothing);
+    });
+
+    testWidgets('spoken amounts + month / weekday from the locale', (
+      tester,
+    ) async {
+      late BuildContext vi;
+      await tester.pumpWidget(
+        _app(
+          _withOwn(),
+          Builder(
+            builder: (c) {
+              vi = c;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      expect(vndSpoken(vi, 120000), '120.000 đồng');
+      expect(vndSpoken(vi, -5000), 'âm 5.000 đồng');
+      expect(moneyMonthLabel(vi, '2026-10'), 'Tháng 10, 2026');
+      // 2026-10-18 is a Sunday; not today / yesterday.
+      expect(
+        moneyDayLabel(vi, '2026-10-18', now: DateTime(2026, 10, 25)),
+        startsWith('Chủ'),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (c) {
+              vi = c;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      expect(vndSpoken(vi, -5000), 'minus 5,000 dong');
+      expect(moneyMonthLabel(vi, '2026-10'), 'October 2026');
+      expect(
+        moneyDayLabel(vi, '2026-10-18', now: DateTime(2026, 10, 25)),
+        'Sunday, Oct 18',
+      );
+    });
+
+    testWidgets('Home entry at 360dp ×1.3 keeps the amount (2 lines)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 1920);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final m = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(
+            txs: [_sharedExp('s1', 3574000)],
+            budgets: const [
+              MoneyBudget(id: 'b', categoryId: '', amount: 5000000),
+            ],
+          ),
+        );
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(360, 640),
+            textScaler: TextScaler.linear(1.3),
+          ),
+          child: _app(m, const MoneyHomeEntry(waiting: false)),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final sub = find.textContaining('71% ngân sách', findRichText: true);
+      final text = tester.widget<RichText>(sub.first);
+      expect(text.maxLines, 2);
+      final painter = TextPainter(
+        text: text.text,
+        textDirection: TextDirection.ltr,
+        textScaler: text.textScaler,
+        maxLines: text.maxLines,
+      )..layout(maxWidth: tester.getSize(sub.first).width);
+      expect(painter.didExceedMaxLines, isFalse);
+    });
+
+    testWidgets('segmented pill: each segment takes taps the full 44 tall', (
+      tester,
+    ) async {
+      var picked = 'a';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 300,
+                child: StatefulBuilder(
+                  builder: (context, setState) => SegmentedPill<String>(
+                    values: const ['a', 'b'],
+                    selected: picked,
+                    height: 44,
+                    labelOf: (v) => v.toUpperCase(),
+                    onChanged: (v) => setState(() => picked = v),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final pill = tester.getRect(find.byType(SegmentedPill<String>));
+      // 2 px from the top edge: inside the old 4 inset, outside the 36 cell.
+      await tester.tapAt(Offset(pill.right - 2, pill.top + 2));
+      await tester.pump();
+      expect(picked, 'b');
+      final cell = tester.getSize(find.byType(InkWell).last);
+      expect(cell.height, greaterThanOrEqualTo(44));
     });
   });
 

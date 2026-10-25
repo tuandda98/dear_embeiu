@@ -489,6 +489,32 @@ void main() {
       expect(find.text('Đi tiếp'), findsOneWidget);
       await tester.tap(find.text('Cờ caro'));
       expect(taps, 1);
+      // The screen reader hears the action too (vòng vá đợt 2 #12).
+      expect(
+        tester.getSemantics(find.byType(CaroEntryRow)),
+        matchesSemantics(
+          label: 'Cờ caro. Đến lượt bạn. Thảo vừa đi nước 14, Đi tiếp',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+    });
+
+    test('semantics label: no empty parts, no ".,"', () {
+      const noSub = CaroEntryView(
+        title: 'Oẳn tù tì',
+        subtitle: '',
+        cta: 'Chơi',
+        urgent: false,
+      );
+      expect(noSub.semanticsLabel, 'Oẳn tù tì, Chơi');
+      const noCta = CaroEntryView(
+        title: 'Cờ caro',
+        subtitle: 'Rủ Thảo một ván?',
+        cta: '',
+        urgent: false,
+      );
+      expect(noCta.semanticsLabel, 'Cờ caro. Rủ Thảo một ván');
     });
   });
 

@@ -1251,7 +1251,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
         });
       // ── expenses (đợt 2) ── stage 3B: money_goal / money_goal_reached /
-      // money_budget → Sổ tiền, shared book (+ the fund for money_goal*).
+      // money_budget → Sổ tiền, shared book (+ the fund for money_goal*);
+      // the evening nudge → own book.
       case NotificationTapRouter.focusMoney:
         final target = NotificationTapRouter.pendingMoney.value;
         NotificationTapRouter.consumeMoneyRequest();
@@ -1259,7 +1260,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (!mounted) return;
           openMoneyScreen(
             context,
-            book: MoneyBookKind.shared,
+            book: target?.own == true
+                ? MoneyBookKind.own
+                : MoneyBookKind.shared,
             focusWalletId: target?.walletId,
             from: target?.from ?? 'push',
           );
@@ -1394,6 +1397,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // the band as soon as the couple goes active, and for good once it was
       // (PA7 — a partner who leaves doesn't restart them).
       _refreshDecisionReminder();
+      // Sổ tiền evening nudge too: a language switch mid-session re-arms it
+      // in the new language (the key above carries the locale).
+      _refreshMoneyEvening();
       reminderProvider.refreshInviteFollowUps(
         coupleId: coupleId,
         waiting: !coupleActive,

@@ -253,7 +253,9 @@ class ReminderService {
       try {
         final launch = await _plugin.getNotificationAppLaunchDetails();
         if (launch?.didNotificationLaunchApp ?? false) {
-          routeWeatherTap(launch!.notificationResponse?.payload);
+          final payload = launch!.notificationResponse?.payload;
+          // ── expenses (đợt 2) ── or the Sổ tiền evening nudge.
+          if (!routeWeatherTap(payload)) routeMoneyEveningTap(payload);
         }
       } catch (_) {
         // No launch details on this platform.
@@ -952,6 +954,11 @@ class ReminderService {
   static const int idMoneyEveningToday = 1210;
   static const int idMoneyEveningTomorrow = 1211;
 
+  /// Tap payload of 1210/1211: the shared local-tap callback routes it to
+  /// Sổ tiền, own book (NotificationTapRouter.routeMoney).
+  static const String moneyEveningType = 'money_evening';
+  static const String moneyEveningPayload = '{"type":"$moneyEveningType"}';
+
   /// The slots to arm at [minuteOfDay]: today (unless something was already
   /// logged today or the time has passed) + tomorrow. [variant] picks one of
   /// the 3 bodies by date, so the line changes day to day.
@@ -1009,7 +1016,13 @@ class ReminderService {
       if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
         continue;
       }
-      await _scheduleAt(id: s.id, when: when, title: s.title, body: s.body);
+      await _scheduleAt(
+        id: s.id,
+        when: when,
+        title: s.title,
+        body: s.body,
+        payload: moneyEveningPayload,
+      );
     }
   }
 
@@ -1312,6 +1325,7 @@ class ReminderService {
     required String title,
     required String body,
     DateTimeComponents? matchDateTimeComponents,
+    String? payload,
   }) async {
     if (!_initialized) {
       return;
@@ -1325,6 +1339,7 @@ class ReminderService {
         _details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: matchDateTimeComponents,
+        payload: payload,
       );
     } catch (error) {
       debugPrint('ReminderService schedule($id) failed: $error');
@@ -1376,6 +1391,13 @@ class ReminderService {
     pendingWeatherTap.value = payload;
     return true;
   }
+
+  // ── expenses (đợt 2) ──
+  /// True when [payload] is the evening nudge 1210/1211 (then routed to Sổ
+  /// tiền, own book).
+  static bool routeMoneyEveningTap(String? payload) =>
+      payload == moneyEveningPayload &&
+      NotificationTapRouter.routeMoney(moneyEveningType, from: 'reminder');
 
   /// Arm the morning notice at [fireAt] (phone-local) — replaces any earlier
   /// one; skipped when that moment has passed.

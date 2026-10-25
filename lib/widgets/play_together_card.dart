@@ -194,6 +194,17 @@ class CaroEntryView {
   /// The partner waits on me → solid navy CTA + dot (C6).
   final bool urgent;
   final bool loading;
+
+  /// What a screen reader says for the line: name, state, then the action
+  /// ("Cờ caro. Rủ Thảo một ván, bạn đi trước, Rủ chơi"), since the CTA pill
+  /// itself is left out of the tree.
+  String get semanticsLabel {
+    final head = (subtitle.isEmpty ? title : '$title. $subtitle').replaceFirst(
+      RegExp(r'[.!?…]+$'),
+      '',
+    );
+    return cta.isEmpty ? head : '$head, $cta';
+  }
 }
 
 CaroEntryView caroEntryView(
@@ -271,7 +282,7 @@ class CaroEntryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '${view.title}. ${view.subtitle}',
+      label: view.semanticsLabel,
       onTap: onTap,
       excludeSemantics: true,
       child: InkWell(

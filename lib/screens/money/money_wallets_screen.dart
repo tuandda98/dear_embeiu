@@ -176,7 +176,7 @@ class _MoneyWalletsScreenState extends State<MoneyWalletsScreen> {
                 MoneyWalletRow(
                   wallet: w,
                   balance: balances[w.id] ?? w.openingBalance,
-                  sub: _sub(l10n, w),
+                  sub: _sub(l10n, w, balances[w.id] ?? w.openingBalance),
                   onTap: () => open(w),
                 ),
             ],
@@ -243,9 +243,10 @@ class _MoneyWalletsScreenState extends State<MoneyWalletsScreen> {
     );
   }
 
-  String _sub(AppLocalizations l10n, MoneyWallet w) {
+  String _sub(AppLocalizations l10n, MoneyWallet w, int balance) {
     final type = moneyWalletTypeLabel(l10n, w.type);
-    if (w.type == MoneyWalletType.credit) {
+    // Only a card below zero is owed; 0 or a credit balance owes nothing.
+    if (w.type == MoneyWalletType.credit && balance < 0) {
       return '$type · ${l10n.moneyOwingCard}';
     }
     if (!w.includeInTotal) return '$type · ${l10n.moneyNotInTotal}';
@@ -329,7 +330,8 @@ class MoneyWalletScreen extends StatelessWidget {
       if (t.outWalletId == w.id) outSum += t.amount;
     }
     final type = moneyWalletTypeLabel(l10n, w.type);
-    final negative = balance < 0 && w.type != MoneyWalletType.credit;
+    final negative = balance < 0;
+    final owedCard = negative && w.type == MoneyWalletType.credit;
     final rowCtx = MoneyRowContext.of(context, money, book, hideWalletId: w.id);
     final monthName = moneyMonthShort(context, month);
 
@@ -382,7 +384,9 @@ class MoneyWalletScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        l10n.moneyNegWallet,
+                        owedCard
+                            ? l10n.moneyOwingCardDetail
+                            : l10n.moneyNegWallet,
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.textPrimary,

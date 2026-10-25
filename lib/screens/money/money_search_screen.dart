@@ -83,7 +83,8 @@ class _MoneySearchScreenState extends State<MoneySearchScreen> {
       );
       if (!mounted || id != _run) return;
       setState(() => _result = r);
-      AnalyticsService.instance.logMoneySearch(_filterCount);
+      // Run 1 is the automatic one on open, not a search the user made.
+      if (id > 1) AnalyticsService.instance.logMoneySearch(_filterCount);
     } catch (e) {
       debugPrint('money: search failed: $e');
       if (mounted && id == _run) setState(() => _error = true);

@@ -57,11 +57,18 @@ class _MoneyReportScreenState extends State<MoneyReportScreen> {
     );
   }
 
-  void _loadTrend(MoneyProvider money) {
-    final key = '${_book.name}|$_range';
+  void _loadTrend(MoneyProvider money, MoneyBookState state) {
+    final view = '${_book.name}|$_range';
+    // The live-window months are summed from the entries on hand, so an
+    // entry added / edited / deleted while the screen is open reloads them
+    // (a new snapshot = a new list; a pending delete changes the count).
+    final key =
+        '$view|${identityHashCode(state.txs)}|'
+        '${money.visibleTxs(_book).length}';
     if (_trendKey == key) return;
+    // Same view, newer data: keep the old bars until the new ones land.
+    if (_trendKey?.startsWith('$view|') != true) _trend = null;
     _trendKey = key;
-    _trend = null;
     money.trend(_book, _range).then((t) {
       if (mounted && _trendKey == key) setState(() => _trend = t);
     });
@@ -89,7 +96,7 @@ class _MoneyReportScreenState extends State<MoneyReportScreen> {
         (_) => money.viewMonth(_book, month),
       );
     }
-    if (state != null) _loadTrend(money);
+    if (state != null) _loadTrend(money, state);
     final loading = state == null || txs == null || !state.txLoaded;
     final list = txs ?? const <MoneyTx>[];
     final idx = state?.categories;

@@ -35,12 +35,13 @@ String vnd(BuildContext context, int amount) =>
 
 /// What a screen reader says for an amount ("120.000 đồng"), never "₫".
 String vndSpoken(BuildContext context, int amount) {
-  final vi = moneyLang(context) == 'vi';
+  final l10n = context.l10n;
   final digits = NumberFormat.decimalPattern(
-    vi ? 'vi' : 'en',
+    moneyLang(context),
   ).format(amount.abs());
-  final sign = amount < 0 ? (vi ? 'âm ' : 'minus ') : '';
-  return '$sign$digits ${vi ? 'đồng' : 'dong'}';
+  return amount < 0
+      ? l10n.moneyAmountSpokenNeg(digits)
+      : l10n.moneyAmountSpoken(digits);
 }
 
 DateTime moneyParseDate(String key) => DateTime(
@@ -53,8 +54,8 @@ DateTime moneyParseDate(String key) => DateTime(
 String moneyMonthLabel(BuildContext context, String month) {
   final lang = moneyLang(context);
   final d = moneyParseDate('$month-01');
-  if (lang == 'vi') return 'Tháng ${d.month}, ${d.year}';
-  return DateFormat('MMMM y', lang).format(d);
+  // Stand-alone month name from the locale: vi "Tháng 10", en "October".
+  return DateFormat(lang == 'vi' ? 'LLLL, y' : 'LLLL y', lang).format(d);
 }
 
 /// "10" (vi, after "tháng") / "October".
@@ -83,21 +84,8 @@ String moneyDayLabel(BuildContext context, String key, {DateTime? now}) {
   if (key == yesterday) return l10n.moneyDayYesterday(date);
   final lang = moneyLang(context);
   final d = moneyParseDate(key);
-  final weekday = lang == 'vi'
-      ? _viWeekdays[d.weekday % 7]
-      : DateFormat.EEEE(lang).format(d);
-  return '$weekday, $date';
+  return '${DateFormat.EEEE(lang).format(d)}, $date';
 }
-
-const List<String> _viWeekdays = <String>[
-  'Chủ nhật',
-  'Thứ Hai',
-  'Thứ Ba',
-  'Thứ Tư',
-  'Thứ Năm',
-  'Thứ Sáu',
-  'Thứ Bảy',
-];
 
 String moneyTime(BuildContext context, DateTime t) =>
     DateFormat.Hm(moneyLang(context)).format(t);
@@ -1717,4 +1705,3 @@ Widget moneyBlock(Widget child, {double top = 16}) => SliverPadding(
   padding: EdgeInsets.fromLTRB(16, top, 16, 0),
   sliver: SliverToBoxAdapter(child: child),
 );
-

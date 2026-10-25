@@ -288,8 +288,10 @@ class NotificationTapRouter {
   /// The fund to open (`money_goal*`; null for `money_budget`) and where the
   /// tap came from (`push` / `inbox`, for `money_screen_open`). Set BEFORE
   /// the focus value, like [pendingRpsGameId].
-  static final ValueNotifier<({String? walletId, String from})?> pendingMoney =
-      ValueNotifier<({String? walletId, String from})?>(null);
+  /// `own` = open the own book (evening nudge), else the shared one.
+  static final ValueNotifier<({String? walletId, String from, bool own})?>
+      pendingMoney =
+      ValueNotifier<({String? walletId, String from, bool own})?>(null);
 
   static void consumeMoneyRequest() {
     if (pendingMoney.value != null) {
@@ -305,16 +307,20 @@ class NotificationTapRouter {
     String? walletId,
     required String from,
   }) {
-    if (type != 'money_goal' &&
+    // `money_evening` = the local evening nudge (1210/1211): my own book.
+    final own = type == 'money_evening';
+    if (!own &&
+        type != 'money_goal' &&
         type != 'money_goal_reached' &&
         type != 'money_budget') {
       return false;
     }
     pendingMoney.value = (
-      walletId: type == 'money_budget' || (walletId ?? '').isEmpty
+      walletId: own || type == 'money_budget' || (walletId ?? '').isEmpty
           ? null
           : walletId,
       from: from,
+      own: own,
     );
     pendingHomeTab.value = 0;
     pendingHomeFocus.value = focusMoney;
@@ -813,6 +819,10 @@ class PushNotificationService {
           walletId: walletId,
           from: 'push',
         );
+        break;
+      // The local evening nudge 1210/1211 (warm tap) → own book.
+      case 'money_evening':
+        NotificationTapRouter.routeMoney(type, from: 'reminder');
         break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't
