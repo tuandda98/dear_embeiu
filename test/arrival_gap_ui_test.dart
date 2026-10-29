@@ -65,6 +65,14 @@ class _Service extends FakeArrivalService {
   @override
   Future<String?> loadAutoPartner(String uid) async => null;
 
+  final everShared = <String>{};
+
+  @override
+  Future<bool> loadEverShared(String uid) async => everShared.contains(uid);
+
+  @override
+  Future<void> saveEverShared(String uid) async => everShared.add(uid);
+
   @override
   Future<void> saveSession(String uid, String? coupleId) async {}
 

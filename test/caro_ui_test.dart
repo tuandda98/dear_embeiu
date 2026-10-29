@@ -594,7 +594,7 @@ void main() {
           locale: const Locale('vi'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const CaroGameScreen(gameId: 'g1'),
+          home: CaroGameScreen(gameId: 'g1', clock: () => now),
         ),
       ),
     );
@@ -686,7 +686,9 @@ void main() {
     final service = _FakeService();
     final caro = CaroGameProvider(service: service)
       ..watchForCouple('c', 'me', 'bob');
-    await tester.pumpWidget(app(caro, const CaroGameScreen(gameId: 'g1')));
+    await tester.pumpWidget(
+      app(caro, CaroGameScreen(gameId: 'g1', clock: () => now)),
+    );
     await tester.pump();
     service
         .stream('g1')
@@ -718,7 +720,9 @@ void main() {
     final service = _FakeService();
     final caro = CaroGameProvider(service: service)
       ..watchForCouple('c', 'me', 'bob');
-    await tester.pumpWidget(app(caro, const CaroGameScreen(gameId: 'g1')));
+    await tester.pumpWidget(
+      app(caro, CaroGameScreen(gameId: 'g1', clock: () => now)),
+    );
     await tester.pump();
     service
         .stream('g1')
@@ -777,7 +781,9 @@ void main() {
     final service = _FakeService();
     final caro = CaroGameProvider(service: service)
       ..watchForCouple('c', 'me', 'bob');
-    await tester.pumpWidget(app(caro, CaroGameScreen(gameId: game.id)));
+    await tester.pumpWidget(
+      app(caro, CaroGameScreen(gameId: game.id, clock: () => now)),
+    );
     await tester.pump();
     service.stream(game.id).add(game);
     await tester.pump();
@@ -800,7 +806,8 @@ void main() {
             body: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const CaroGameScreen(gameId: 'g1'),
+                  builder: (_) =>
+                      CaroGameScreen(gameId: 'g1', clock: () => now),
                 ),
               ),
               child: const Text('open'),
@@ -1050,7 +1057,7 @@ void main() {
   testWidgets('#5 an invite 3 days old says its date, not "hôm qua"', (
     tester,
   ) async {
-    final created = DateTime.now().subtract(const Duration(days: 3));
+    final created = now.subtract(const Duration(days: 3));
     final (caro, _) = await openGame(
       tester,
       g(

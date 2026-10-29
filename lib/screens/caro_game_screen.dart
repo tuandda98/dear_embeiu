@@ -162,6 +162,7 @@ class CaroGameScreen extends StatefulWidget {
     this.draftRule,
     this.rematchOf,
     this.readOnly = false,
+    this.clock,
   });
 
   final String? gameId;
@@ -172,6 +173,11 @@ class CaroGameScreen extends StatefulWidget {
 
   /// Replay of a finished game: no dock, no presence.
   final bool readOnly;
+
+  /// Tests pin "now" here; the app reads the wall clock (waiting vs stale
+  /// depends on it).
+  @visibleForTesting
+  final DateTime Function()? clock;
 
   static const String routeName = 'CaroGame';
 
@@ -736,7 +742,7 @@ class _CaroGameScreenState extends State<CaroGameScreen>
         ? _replay
         : (_draftRule != null ? null : provider.currentGame);
     final loaded = widget.readOnly ? _replayLoaded : provider.isCurrentLoaded;
-    final now = DateTime.now();
+    final now = (widget.clock ?? DateTime.now)();
     final mode = caroScreenModeFor(
       game: game,
       loaded: loaded,
