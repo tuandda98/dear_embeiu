@@ -1408,3 +1408,6 @@
 - [18:29] những bản trước vẫn lên đc , nên hãy để như vậy
 - [18:31] ok làm đi
 - [18:31] đã submit app lên gg và apple chưa ?
+- [18:46] hôm nay đã release bản nào rồ ?
+- [18:47] tại sao 1.12 nhưng live là 1.11.0 ? cả 2 store đang là 1.11.0 à ?
+- [18:48] merge tất cả vào main chưa ? dọn dẹp chưa ?
