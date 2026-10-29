@@ -42,6 +42,12 @@ enum InviteFollowUp {
   final Duration delay;
 }
 
+/// TẮT toàn bộ nhắc LOCAL "trả lời câu hỏi hằng ngày" (user chốt 2026-10-29):
+/// giờ user đặt (1040–1049), backstop 7 ngày (1020–1033), cảnh báo cuối ngày
+/// (1050–1052). Tắt = không arm gì và tự huỷ lịch đã arm từ bản cũ. Push
+/// server `notifyDailyAnswer` và nhắc mời người ấy (1180–1189) không đổi.
+const bool kDailyQuestionRemindersEnabled = false;
+
 /// Local, on-device infrastructure for the retention "love reminders" feature.
 ///
 /// This owns the [FlutterLocalNotificationsPlugin] instance, the timezone

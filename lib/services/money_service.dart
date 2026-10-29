@@ -6,6 +6,11 @@ import 'package:firebase_core/firebase_core.dart';
 import '../models/money.dart';
 import 'firebase_bootstrap_service.dart';
 
+/// TẮT toàn bộ Sổ tiền (user chốt 2026-10-29): ẩn sổ riêng + sổ chung, không
+/// watch Firestore, không nhắc tối/thử thách, tap thông báo money_* bị bỏ qua.
+/// Code giữ nguyên. Bật lại = đổi true.
+const bool kMoneyFeatureEnabled = false;
+
 /// What happened to a write: confirmed by the server, or (offline / slow
 /// network) sitting in Firestore's queue and sent later (D21).
 enum MoneyWriteOutcome { saved, queued }
@@ -72,7 +77,9 @@ class MoneyService {
   static const Duration writeTimeout = Duration(seconds: 4);
 
   static bool get isAvailable =>
-      FirebaseBootstrapService.isFirebaseReady && Firebase.apps.isNotEmpty;
+      kMoneyFeatureEnabled &&
+      FirebaseBootstrapService.isFirebaseReady &&
+      Firebase.apps.isNotEmpty;
 
   bool get isShared => kind == MoneyBookKind.shared;
 

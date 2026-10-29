@@ -19,6 +19,7 @@ import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'home_widget_bridge.dart';
 import 'home_widget_status.dart';
+import 'money_service.dart' show kMoneyFeatureEnabled;
 import 'notification_settings_service.dart';
 import 'reminder_service.dart';
 import 'user_service.dart';
@@ -340,6 +341,7 @@ class NotificationTapRouter {
     String? walletId,
     required String from,
   }) {
+    if (!kMoneyFeatureEnabled) return false;
     // `money_evening` = the local evening nudge (1210/1211): my own book.
     final own = type == 'money_evening';
     if (!own &&

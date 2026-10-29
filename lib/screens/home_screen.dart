@@ -85,6 +85,7 @@ import '../widgets/weather/weather_card.dart';
 // ── expenses (đợt 2) ──
 import '../models/money.dart';
 import '../providers/money_provider.dart';
+import '../services/money_service.dart' show kMoneyFeatureEnabled;
 import '../widgets/money/money_home_entry.dart';
 import '../utils/money_flows.dart' show moneyLoggedToday;
 import 'money/money_screen.dart' show openMoneyScreen;
@@ -951,6 +952,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _refreshMoneyEvening() {
     final money = _moneyProvider;
     final uid = money?.uid;
+    if (!kMoneyFeatureEnabled) {
+      // Xoá lịch đã arm từ trước khi tắt (máy dev); provider dedupe nên rẻ.
+      if (mounted) context.read<ReminderProvider>().cancelMoneyReminders();
+      return;
+    }
     if (!mounted || money == null || uid == null) {
       return;
     }
@@ -1263,6 +1269,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // money_budget → Sổ tiền, shared book (+ the fund for money_goal*);
       // the evening nudge → own book.
       case NotificationTapRouter.focusMoney:
+        if (!kMoneyFeatureEnabled) {
+          NotificationTapRouter.consumeMoneyRequest();
+          break;
+        }
         final target = NotificationTapRouter.pendingMoney.value;
         NotificationTapRouter.consumeMoneyRequest();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2355,16 +2365,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // ── expenses (đợt 2) ──
             // Sổ tiền: shared book's month spending (own book while waiting).
             // Brings its own 16 top gap (nothing at all without Firebase).
-            _gutter(
-              _entrance(
-                7,
-                MoneyHomeEntry(
-                  waiting: couple.isWaitingForPartner,
-                  onRetry: () =>
-                      context.read<MoneyProvider>().retry(MoneyBookKind.shared),
+            if (kMoneyFeatureEnabled)
+              _gutter(
+                _entrance(
+                  7,
+                  MoneyHomeEntry(
+                    waiting: couple.isWaitingForPartner,
+                    onRetry: () => context.read<MoneyProvider>().retry(
+                      MoneyBookKind.shared,
+                    ),
+                  ),
                 ),
               ),
-            ),
 
             // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
             // đâu · phân vân khác. Shown while waiting too (solo picks keep).

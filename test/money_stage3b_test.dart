@@ -536,6 +536,14 @@ void main() {
     });
 
     test('push route: Home + money focus (+ the fund for money_goal*)', () {
+      if (!kMoneyFeatureEnabled) {
+        // Cờ tắt: mọi tap money_* bị bỏ qua.
+        expect(
+          NotificationTapRouter.routeMoney('money_goal', from: 'push'),
+          isFalse,
+        );
+        return;
+      }
       for (final type in ['money_goal', 'money_goal_reached']) {
         expect(
           NotificationTapRouter.routeMoney(

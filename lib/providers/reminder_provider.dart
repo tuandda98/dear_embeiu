@@ -790,6 +790,15 @@ class ReminderProvider extends ChangeNotifier {
   /// provider notifications don't thrash the OS schedule. Clears each band first,
   /// so safe to call repeatedly.
   Future<void> _scheduleDailyQuestion(AppLocalizations l10n) async {
+    if (!kDailyQuestionRemindersEnabled) {
+      // Flag tắt: huỷ lịch cũ 1 lần/phiên, không arm gì.
+      if (_dqScheduleSignature != 'flag-off') {
+        _dqScheduleSignature = 'flag-off';
+        await _service.cancelDailyQuestionBands();
+        await _service.cancelDailyQuestionBackstop();
+      }
+      return;
+    }
     final now = DateTime.now();
     final dayKey = '${now.year}-${now.month}-${now.day}';
     final signature = <Object>[
@@ -894,6 +903,13 @@ class ReminderProvider extends ChangeNotifier {
   /// Shared by [refreshDailyQuestionSafetyNet] and the enable/disable paths (so
   /// toggling re-arms with the right copy). Debounced via [_eodSignature].
   Future<void> _scheduleEndOfDay(AppLocalizations l10n) async {
+    if (!kDailyQuestionRemindersEnabled) {
+      if (_eodSignature != 'flag-off') {
+        _eodSignature = 'flag-off';
+        await _service.cancelDailyQuestionEndOfDay();
+      }
+      return;
+    }
     final now = DateTime.now();
     final dayKey = '${now.year}-${now.month}-${now.day}';
     final signature = <Object>[
@@ -1821,6 +1837,18 @@ class ReminderProvider extends ChangeNotifier {
     await _persistMoneyEvening();
     notifyListeners();
     await _scheduleMoneyEvening();
+  }
+
+  bool _moneyCancelled = false;
+
+  /// Feature Sổ tiền tắt: huỷ lịch tối + thử thách đã arm sẵn (1 lần/phiên).
+  Future<void> cancelMoneyReminders() async {
+    if (_moneyCancelled) return;
+    _moneyCancelled = true;
+    _moneySignature = null;
+    _challengeSignature = null;
+    await _service.cancelMoneyEvening();
+    await _service.cancelMoneyChallenges();
   }
 
   Future<void> _persistMoneyEvening() async {

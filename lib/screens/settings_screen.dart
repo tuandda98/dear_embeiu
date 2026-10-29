@@ -17,6 +17,7 @@ import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/ai_question_source.dart';
+import '../services/reminder_service.dart' show kDailyQuestionRemindersEnabled;
 import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/lunar_calendar.dart';
@@ -523,8 +524,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   // Daily-question nudge (b2): toggle + multi-time editor.
-                  const _DailyQuestionReminderTile(),
-                  _rowDivider(),
+                  if (kDailyQuestionRemindersEnabled) ...[
+                    const _DailyQuestionReminderTile(),
+                    _rowDivider(),
+                  ],
                   // Meal-pick nudge (decision-wheel D10) — hidden while the
                   // couple still waits for the partner (no nudge then).
                   if (context.select<CoupleProvider, bool>(
