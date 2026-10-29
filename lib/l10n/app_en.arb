@@ -118,7 +118,7 @@
   "aiQuestionsTitle": "AI-personalised questions",
   "aiQuestionsSubtitle": "Uses the last 30 days of both your answers to write a question just for the two of you. The data is only used to create questions, never for training. Turn it off any time.",
   "aiQuestionsDialogTitle": "Turn on personalised questions?",
-  "aiQuestionsDialogBody": "This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow's question.",
+  "aiQuestionsDialogBody": "This applies to both of you: your partner will see the AI-written question too. The AI only reads the last 30 days of answers to write it. Nothing is used for training, and you can turn it off any time. AI questions start from tomorrow's question.",
   "aiQuestionsDialogConfirm": "Turn on",
   "introSkip": "Skip",
   "introNext": "Next",
@@ -229,7 +229,7 @@
   "confirmPasswordRequired": "Please confirm the password",
   "passwordsMismatch": "Passwords don't match yet",
   "createAccountBtn": "Create account",
-  "alreadyWithUs": "Already with us?",
+  "alreadyWithUs": "Already have an account?",
   "backToSignIn": "Back to sign in",
   "setupCreateTitle": "Begin\nour story",
   "setupEditTitle": "Refine the story of\n{me} ❤️ {partner}",
@@ -696,7 +696,7 @@
   "deletePhotoAction": "Delete photo",
   "reportPhotoAction": "Report photo",
   "reportPhotoTitle": "Report photo",
-  "reportPhotoSubtitle": "Tell us what's wrong with this photo.",
+  "reportPhotoSubtitle": "What's wrong with this photo?",
   "reportReasonInappropriate": "Inappropriate content",
   "reportReasonSpam": "Spam or scam",
   "reportReasonOther": "Something else",
@@ -743,7 +743,7 @@
   "photoUpdatedSuccess": "Photo updated",
   "photoUpdateError": "Could not update photo right now.",
   "galleryLoadErrorTitle": "Couldn't load photos",
-  "galleryLoadErrorSubtitle": "Your memories are safe — we just couldn't reach them right now.",
+  "galleryLoadErrorSubtitle": "Your memories are safe. They just couldn't load right now.",
   "galleryRetryBtn": "Try again",
   "multiPhotosResultPartial": "Posted {success}/{total}, {failed} failed",
   "@multiPhotosResultPartial": {
@@ -933,7 +933,7 @@
   "remindersHubTitle": "Our reminders",
   "remindersHubSubtitle": "Milestones, anniversaries and your own reminders — all in one place.",
   "settingsAnalyticsTitle": "Share usage data",
-  "settingsAnalyticsSubtitle": "Help improve the app with anonymous data. We never collect your private content.",
+  "settingsAnalyticsSubtitle": "Help improve the app with anonymous data. Your photos, messages and other private content are never included.",
   "languageSearchHint": "Search languages",
   "customRemindersScreenTitle": "Our reminders",
   "customRemindersBadge": "YOUR OWN MOMENTS",
@@ -1863,7 +1863,7 @@
   "@forgotPasswordSentTitle": {
     "description": "forgotPasswordSentTitle"
   },
-  "forgotPasswordSentBody": "We've sent a password reset link to {email}. Open the email and tap the link to reset it. Don't forget to check your spam folder.",
+  "forgotPasswordSentBody": "A password reset link was sent to {email}. Open the email and tap the link to reset it. Don't forget to check your spam folder.",
   "@forgotPasswordSentBody": {
     "description": "forgotPasswordSentBody",
     "placeholders": {
@@ -2927,7 +2927,7 @@
   "@rpsMoveNudgeFailed": {
     "description": "Snackbar when the move nudge failed (network / other error)."
   },
-  "rpsChosenLeaveHint": "Feel free to step away — we'll tell you the result",
+  "rpsChosenLeaveHint": "Feel free to step away. You'll get a notification with the result",
   "@rpsChosenLeaveHint": {
     "description": "Play screen hint under the nudge button: leaving is fine, the result is pushed."
   },
@@ -2947,7 +2947,7 @@
   "@rpsEntryAwaitingTitle": {
     "description": "Home card title: I have thrown, the partner has not."
   },
-  "rpsEntryAwaitingSubtitle": "You've thrown · we'll tell you",
+  "rpsEntryAwaitingSubtitle": "You've thrown · you'll get the result",
   "@rpsEntryAwaitingSubtitle": {
     "description": "Home card subtitle for rpsEntryAwaitingTitle."
   },
@@ -4093,11 +4093,11 @@
   "@decisionReelGoLabel": {
     "description": "Decision wheel (feature decision-wheel)"
   },
-  "decisionIdleEat": "Tap spin and we'll pick a dish",
+  "decisionIdleEat": "Tap spin to pick a dish",
   "@decisionIdleEat": {
     "description": "Decision wheel (feature decision-wheel)"
   },
-  "decisionIdleGo": "Tap spin and we'll pick a plan",
+  "decisionIdleGo": "Tap spin to pick a plan",
   "@decisionIdleGo": {
     "description": "Decision wheel (feature decision-wheel)"
   },
@@ -4795,7 +4795,7 @@
       }
     }
   },
-  "caroYouMoved": "You played move {n} at {time}. You can close the app. We'll let you know when {name} moves.",
+  "caroYouMoved": "You played move {n} at {time}. You can close the app. You'll get a notification when {name} moves.",
   "@caroYouMoved": {
     "description": "caro-game (đợt 2)",
     "placeholders": {
@@ -8753,11 +8753,11 @@
       }
     }
   },
-  "moneyBudgetNoCategory": "No category has its own budget yet. Set one for a group you spend a lot on and we'll tell you at 80% and 100%.",
+  "moneyBudgetNoCategory": "No category has its own budget yet. Set one for a group you spend a lot on and the app will alert you at 80% and 100%.",
   "@moneyBudgetNoCategory": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
   },
-  "moneyBudgetUnset": "No budget yet. Set one number for the month and we'll tell you at 80% and 100%.",
+  "moneyBudgetUnset": "No budget yet. Set one number for the month and the app will alert you at 80% and 100%.",
   "@moneyBudgetUnset": {
     "description": "Sổ tiền (feature expenses) · stage 3A"
   },
@@ -9374,7 +9374,7 @@
   "rateAppCtaDefault": "Pick a rating",
   "rateAppCtaIos": "Rate on the App Store",
   "rateAppCtaAndroid": "Rate on Google Play",
-  "rateAppCtaLow": "Tell us what happened",
+  "rateAppCtaLow": "Write feedback",
   "rateAppLater": "Not now",
   "rateAppStarSemantics": "{count} stars",
   "@rateAppStarSemantics": {
@@ -9393,10 +9393,10 @@
   "feedbackTypeSuggestion": "Suggestion",
   "feedbackTypeBug": "Bug report",
   "feedbackFieldLabel": "Message",
-  "feedbackHintSuggestion": "What should we add, or make easier to use?",
+  "feedbackHintSuggestion": "What should the app add, or make easier to use?",
   "feedbackHintBug": "What happened? What did you tap, on which screen, and what did you expect?",
   "feedbackHintLowRating": "What let you down? A single line is fine.",
-  "feedbackRatedLabel": "You rated us {count}/5",
+  "feedbackRatedLabel": "You rated {count}/5",
   "@feedbackRatedLabel": {
     "placeholders": {
       "count": {
@@ -9417,11 +9417,11 @@
   "feedbackPhotoRemove": "Remove screenshot",
   "feedbackPhotoError": "Couldn't open that image. Try another.",
   "feedbackPhotoTooLarge": "That image is too large (10 MB max).",
-  "feedbackDeviceNote": "We include your app version, OS and device model so we can track issues down faster.",
+  "feedbackDeviceNote": "Your app version, OS and device model are included to help track down issues faster.",
   "feedbackSendCta": "Send",
   "feedbackRetryCta": "Try again",
   "feedbackErrorBanner": "Couldn't send. Check your connection and try again. Your message is still here.",
   "feedbackSuccessTitle": "Thank you",
-  "feedbackSuccessBody": "We got your message.",
+  "feedbackSuccessBody": "Your feedback has been sent.",
   "feedbackDoneCta": "Done"
 }

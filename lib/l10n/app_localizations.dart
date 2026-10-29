@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiQuestionsDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.'**
+  /// **'This applies to both of you: your partner will see the AI-written question too. The AI only reads the last 30 days of answers to write it. Nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.'**
   String get aiQuestionsDialogBody;
 
   /// No description provided for @aiQuestionsDialogConfirm.
@@ -767,7 +767,7 @@ abstract class AppLocalizations {
   /// No description provided for @alreadyWithUs.
   ///
   /// In en, this message translates to:
-  /// **'Already with us?'**
+  /// **'Already have an account?'**
   String get alreadyWithUs;
 
   /// No description provided for @backToSignIn.
@@ -1973,7 +1973,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportPhotoSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tell us what\'s wrong with this photo.'**
+  /// **'What\'s wrong with this photo?'**
   String get reportPhotoSubtitle;
 
   /// No description provided for @reportReasonInappropriate.
@@ -2153,7 +2153,7 @@ abstract class AppLocalizations {
   /// No description provided for @galleryLoadErrorSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your memories are safe — we just couldn\'t reach them right now.'**
+  /// **'Your memories are safe. They just couldn\'t load right now.'**
   String get galleryLoadErrorSubtitle;
 
   /// No description provided for @galleryRetryBtn.
@@ -2759,7 +2759,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAnalyticsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Help improve the app with anonymous data. We never collect your private content.'**
+  /// **'Help improve the app with anonymous data. Your photos, messages and other private content are never included.'**
   String get settingsAnalyticsSubtitle;
 
   /// No description provided for @languageSearchHint.
@@ -4157,7 +4157,7 @@ abstract class AppLocalizations {
   /// forgotPasswordSentBody
   ///
   /// In en, this message translates to:
-  /// **'We\'ve sent a password reset link to {email}. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.'**
+  /// **'A password reset link was sent to {email}. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.'**
   String forgotPasswordSentBody(String email);
 
   /// forgotPasswordResendLink
@@ -5680,7 +5680,7 @@ abstract class AppLocalizations {
   /// Play screen hint under the nudge button: leaving is fine, the result is pushed.
   ///
   /// In en, this message translates to:
-  /// **'Feel free to step away — we\'ll tell you the result'**
+  /// **'Feel free to step away. You\'ll get a notification with the result'**
   String get rpsChosenLeaveHint;
 
   /// Home card subtitle when the partner has thrown and I have not.
@@ -5710,7 +5710,7 @@ abstract class AppLocalizations {
   /// Home card subtitle for rpsEntryAwaitingTitle.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve thrown · we\'ll tell you'**
+  /// **'You\'ve thrown · you\'ll get the result'**
   String get rpsEntryAwaitingSubtitle;
 
   /// Home card CTA to open a started round and throw.
@@ -6982,13 +6982,13 @@ abstract class AppLocalizations {
   /// Decision wheel (feature decision-wheel)
   ///
   /// In en, this message translates to:
-  /// **'Tap spin and we\'ll pick a dish'**
+  /// **'Tap spin to pick a dish'**
   String get decisionIdleEat;
 
   /// Decision wheel (feature decision-wheel)
   ///
   /// In en, this message translates to:
-  /// **'Tap spin and we\'ll pick a plan'**
+  /// **'Tap spin to pick a plan'**
   String get decisionIdleGo;
 
   /// Decision wheel (feature decision-wheel)
@@ -7714,7 +7714,7 @@ abstract class AppLocalizations {
   /// caro-game (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'You played move {n} at {time}. You can close the app. We\'ll let you know when {name} moves.'**
+  /// **'You played move {n} at {time}. You can close the app. You\'ll get a notification when {name} moves.'**
   String caroYouMoved(String n, String time, String name);
 
   /// caro-game (đợt 2)
@@ -12001,13 +12001,13 @@ abstract class AppLocalizations {
   /// Sổ tiền (feature expenses) · stage 3A
   ///
   /// In en, this message translates to:
-  /// **'No category has its own budget yet. Set one for a group you spend a lot on and we\'ll tell you at 80% and 100%.'**
+  /// **'No category has its own budget yet. Set one for a group you spend a lot on and the app will alert you at 80% and 100%.'**
   String get moneyBudgetNoCategory;
 
   /// Sổ tiền (feature expenses) · stage 3A
   ///
   /// In en, this message translates to:
-  /// **'No budget yet. Set one number for the month and we\'ll tell you at 80% and 100%.'**
+  /// **'No budget yet. Set one number for the month and the app will alert you at 80% and 100%.'**
   String get moneyBudgetUnset;
 
   /// Sổ tiền (feature expenses) · stage 3A
@@ -12625,7 +12625,7 @@ abstract class AppLocalizations {
   /// No description provided for @rateAppCtaLow.
   ///
   /// In en, this message translates to:
-  /// **'Tell us what happened'**
+  /// **'Write feedback'**
   String get rateAppCtaLow;
 
   /// No description provided for @rateAppLater.
@@ -12697,7 +12697,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackHintSuggestion.
   ///
   /// In en, this message translates to:
-  /// **'What should we add, or make easier to use?'**
+  /// **'What should the app add, or make easier to use?'**
   String get feedbackHintSuggestion;
 
   /// No description provided for @feedbackHintBug.
@@ -12715,7 +12715,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackRatedLabel.
   ///
   /// In en, this message translates to:
-  /// **'You rated us {count}/5'**
+  /// **'You rated {count}/5'**
   String feedbackRatedLabel(int count);
 
   /// No description provided for @feedbackCounter.
@@ -12757,7 +12757,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackDeviceNote.
   ///
   /// In en, this message translates to:
-  /// **'We include your app version, OS and device model so we can track issues down faster.'**
+  /// **'Your app version, OS and device model are included to help track down issues faster.'**
   String get feedbackDeviceNote;
 
   /// No description provided for @feedbackSendCta.
@@ -12787,7 +12787,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackSuccessBody.
   ///
   /// In en, this message translates to:
-  /// **'We got your message.'**
+  /// **'Your feedback has been sent.'**
   String get feedbackSuccessBody;
 
   /// No description provided for @feedbackDoneCta.

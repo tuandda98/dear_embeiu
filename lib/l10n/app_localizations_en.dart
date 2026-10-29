@@ -108,7 +108,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiQuestionsDialogBody =>
-      'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.';
+      'This applies to both of you: your partner will see the AI-written question too. The AI only reads the last 30 days of answers to write it. Nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.';
 
   @override
   String get aiQuestionsDialogConfirm => 'Turn on';
@@ -378,7 +378,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccountBtn => 'Create account';
 
   @override
-  String get alreadyWithUs => 'Already with us?';
+  String get alreadyWithUs => 'Already have an account?';
 
   @override
   String get backToSignIn => 'Back to sign in';
@@ -1133,7 +1133,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportPhotoTitle => 'Report photo';
 
   @override
-  String get reportPhotoSubtitle => 'Tell us what\'s wrong with this photo.';
+  String get reportPhotoSubtitle => 'What\'s wrong with this photo?';
 
   @override
   String get reportReasonInappropriate => 'Inappropriate content';
@@ -1235,7 +1235,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryLoadErrorSubtitle =>
-      'Your memories are safe — we just couldn\'t reach them right now.';
+      'Your memories are safe. They just couldn\'t load right now.';
 
   @override
   String get galleryRetryBtn => 'Try again';
@@ -1594,7 +1594,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAnalyticsSubtitle =>
-      'Help improve the app with anonymous data. We never collect your private content.';
+      'Help improve the app with anonymous data. Your photos, messages and other private content are never included.';
 
   @override
   String get languageSearchHint => 'Search languages';
@@ -2497,7 +2497,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String forgotPasswordSentBody(String email) {
-    return 'We\'ve sent a password reset link to $email. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.';
+    return 'A password reset link was sent to $email. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.';
   }
 
   @override
@@ -3534,7 +3534,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rpsChosenLeaveHint =>
-      'Feel free to step away — we\'ll tell you the result';
+      'Feel free to step away. You\'ll get a notification with the result';
 
   @override
   String get rpsEntryMyTurnSubtitle => 'Your turn — go ahead 😄';
@@ -3549,7 +3549,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsEntryAwaitingTitle => 'Waiting for their move';
 
   @override
-  String get rpsEntryAwaitingSubtitle => 'You\'ve thrown · we\'ll tell you';
+  String get rpsEntryAwaitingSubtitle =>
+      'You\'ve thrown · you\'ll get the result';
 
   @override
   String get rpsEntryCtaThrow => 'Throw';
@@ -4335,10 +4336,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get decisionReelGoLabel => 'TODAY WE\'LL';
 
   @override
-  String get decisionIdleEat => 'Tap spin and we\'ll pick a dish';
+  String get decisionIdleEat => 'Tap spin to pick a dish';
 
   @override
-  String get decisionIdleGo => 'Tap spin and we\'ll pick a plan';
+  String get decisionIdleGo => 'Tap spin to pick a plan';
 
   @override
   String get decisionIdleCustom => 'Add at least 2 options, then spin';
@@ -4780,7 +4781,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String caroYouMoved(String n, String time, String name) {
-    return 'You played move $n at $time. You can close the app. We\'ll let you know when $name moves.';
+    return 'You played move $n at $time. You can close the app. You\'ll get a notification when $name moves.';
   }
 
   @override
@@ -7480,11 +7481,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyBudgetNoCategory =>
-      'No category has its own budget yet. Set one for a group you spend a lot on and we\'ll tell you at 80% and 100%.';
+      'No category has its own budget yet. Set one for a group you spend a lot on and the app will alert you at 80% and 100%.';
 
   @override
   String get moneyBudgetUnset =>
-      'No budget yet. Set one number for the month and we\'ll tell you at 80% and 100%.';
+      'No budget yet. Set one number for the month and the app will alert you at 80% and 100%.';
 
   @override
   String get moneySetBudget => 'Set monthly budget';
@@ -7889,7 +7890,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rateAppCtaAndroid => 'Rate on Google Play';
 
   @override
-  String get rateAppCtaLow => 'Tell us what happened';
+  String get rateAppCtaLow => 'Write feedback';
 
   @override
   String get rateAppLater => 'Not now';
@@ -7929,7 +7930,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackHintSuggestion =>
-      'What should we add, or make easier to use?';
+      'What should the app add, or make easier to use?';
 
   @override
   String get feedbackHintBug =>
@@ -7941,7 +7942,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String feedbackRatedLabel(int count) {
-    return 'You rated us $count/5';
+    return 'You rated $count/5';
   }
 
   @override
@@ -7966,7 +7967,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackDeviceNote =>
-      'We include your app version, OS and device model so we can track issues down faster.';
+      'Your app version, OS and device model are included to help track down issues faster.';
 
   @override
   String get feedbackSendCta => 'Send';
@@ -7982,7 +7983,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackSuccessTitle => 'Thank you';
 
   @override
-  String get feedbackSuccessBody => 'We got your message.';
+  String get feedbackSuccessBody => 'Your feedback has been sent.';
 
   @override
   String get feedbackDoneCta => 'Done';

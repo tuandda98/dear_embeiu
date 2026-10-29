@@ -7617,7 +7617,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get rateAppCtaAndroid => 'Đánh giá trên Google Play';
 
   @override
-  String get rateAppCtaLow => 'Kể chúng mình nghe';
+  String get rateAppCtaLow => 'Viết góp ý';
 
   @override
   String get rateAppLater => 'Để sau';
@@ -7695,10 +7695,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get feedbackDeviceNote =>
-      'Chúng mình gửi kèm phiên bản app, hệ điều hành và đời máy để tìm lỗi nhanh hơn.';
+      'App gửi kèm phiên bản, hệ điều hành và đời máy để tìm lỗi nhanh hơn.';
 
   @override
-  String get feedbackSendCta => 'Gửi cho chúng mình';
+  String get feedbackSendCta => 'Gửi góp ý';
 
   @override
   String get feedbackRetryCta => 'Thử lại';
@@ -7711,7 +7711,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get feedbackSuccessTitle => 'Cảm ơn bạn';
 
   @override
-  String get feedbackSuccessBody => 'Chúng mình đã nhận được góp ý của bạn.';
+  String get feedbackSuccessBody => 'Dear Embeiu đã nhận được góp ý của bạn.';
 
   @override
   String get feedbackDoneCta => 'Xong';
