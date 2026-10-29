@@ -540,3 +540,91 @@ C dài hơn B 62 px (bỏ tim −42, tách hai hàng bảng thành hai thẻ +28
 - [2026-10-20] [Designer] Soát dễ dùng bản C theo UI UX Pro Max: nút trả lời lên màn đầu (1 chạm), một mẫu nhãn làn cho 4 thẻ người ấy, Thời tiết tự thu 1 hàng khi không có gì đáng nhắc, Tâm trạng thu nút "Đổi" lên tiêu đề, đồng bộ thẻ Về đến nhà bản 2 của Designer arrival. C 2.720 → 2.507 px mock (≈2.430 theo app, hiện tại 1.933). Lint 0/0, inspect 390 0 FAIL.
 - [2026-10-20] [Lead] Trên Home, nút "Về nhà rồi" của thẻ Về đến nhà dùng dạng viền (đã sửa `ui.js` bản C) để Home chỉ còn nút đặc cho trả lời câu hỏi và lượt caro.
 - [2026-10-20] [Lead] User chọn **giữ nguyên thẻ Câu hỏi đang chạy** (không đưa nút "Trả lời" lên trên, không thay ba thanh mờ). Bản C đã đổi lại dùng `ritual()` như app; `ritualC()` để lại trong mock chỉ làm tham khảo, Dev KHÔNG làm. User chưa duyệt đợt thiết kế, đang xem kỹ.
+
+### 16. Bản D — sắp xếp lại theo nhóm việc (2026-10-29)
+
+> User 2026-10-29: "sắp xếp lại layout của trang home, dùng skill ui ux promax". Giữ design system và giữ từng thẻ đúng như đang chạy (user từng chốt "mỗi thứ một thẻ riêng"). Chỉ đổi cách xếp.
+
+**Ảnh trước** (máy ảo Pixel 10, tài khoản Thảo, 16:03): một tiêu đề "Hôm nay của chúng mình" ôm 7 thẻ liền nhau (câu hỏi, tâm trạng, về nhà, thời tiết, đêm qua, chơi, phân vân). Mọi khe đều 16 nên mắt không thấy chỗ nào hết nhóm. Muốn tìm ván caro phải cuộn qua 5 thẻ và đọc từng tiêu đề.
+
+**UI UX Pro Max 2.13.0** (`search.py`, không `-I`): `"content priority above fold"`, `"progressive disclosure"`, `"visual hierarchy grouping"`, `"card layout spacing consistency"`, `"infinite scroll long page"` `--domain ux` trả về Truncation, Heading line balance, Breadcrumbs, Touch spacing: lệch chủ đề, như lần soát bản C. Nên đối chiếu thẳng `references/quick-reference.md` + `pro-rules.md`: **`whitespace-balance`** (dùng khoảng trắng gom nhóm, tách phần), **Section spacing hierarchy** (mỗi cấp một bậc khoảng cách), **`content-priority`**, **`visual-hierarchy`**, **`consistency`**, a11y thứ tự đọc + heading. `"bento grid"`, `"dashboard widgets cards mobile"` `--domain style` ra Bento Box Grid (để dành, xem cuối mục). `"list scroll sliver"` `--stack flutter` khuyên `CustomScrollView` cho list dài; Home ≈3,5 màn nên giữ `SingleChildScrollView`.
+
+**Tasteskill** (app run, sheet chung đợt 2 editorial-greeting seed 1822703143, `--keep palette,type`, không draw lại). Câu hỏi của màn giữ nguyên: "Hôm nay người ấy thế nào, và có gì đang chờ mình làm?". Bản D tách nó thành 3 câu con, mỗi câu một nhóm. Face giữ "cặp đôi là ba làn"; tiêu đề nhóm 2 gọi tên người ấy.
+
+| Nhóm | Câu hỏi của nhóm | Thẻ |
+|---|---|---|
+| Hôm nay của chúng mình (+ pill n/6) | Hôm nay mình cần làm gì? | Câu hỏi · Tâm trạng |
+| **{tên người ấy} thế nào rồi?** (mới) | Người ấy đang ra sao? | Về đến nhà chưa? · Thời tiết hai nơi · Đêm qua |
+| **Lúc rảnh** (mới) | Rảnh thì làm gì cùng nhau? | Chơi cùng nhau · Phân vân gì không? |
+| Kỷ niệm gần đây | Có gì để nhìn lại? | MemoryCinema |
+
+Khe theo token Home v2: thẻ 16 · nhóm 28 · tiêu đề → thẻ 12. Thứ tự thẻ y như bản C, chỉ chen 2 tiêu đề, nên chỗ quen tay không đổi.
+
+- **Cặp đang chờ:** chưa có người ấy để hỏi nên không có tiêu đề nhóm 2. Thời tiết + Đêm qua (một làn) nối tiếp nhóm Hôm nay với khe 16. Nhóm Lúc rảnh chỉ còn Phân vân. Tâm trạng, Về đến nhà, Chơi cùng nhau vẫn ẩn như cũ.
+- **Tiêu đề nhóm 2 tự ẩn** khi cả ba thẻ đều ẩn.
+- **Sổ tiền** (cờ `kMoneyFeatureEnabled` đang tắt): dời xuống cuối nhóm Lúc rảnh để khe đúng ở cả hai trạng thái cặp. Bật lại thì PO chốt nó thuộc nhóm nào.
+- **a11y:** `SectionHeader` bọc tiêu đề trong `Semantics(header: true)`, TalkBack/VoiceOver nhảy được từ nhóm này sang nhóm kia. Áp cho mọi màn dùng `SectionHeader`.
+
+**Copy** (humanizer cho VI, avoid-ai-writing detect cho EN: 0 sửa):
+
+| key | vi | en |
+|---|---|---|
+| `homePartnerSectionTitle` | {name} thế nào rồi? | How's {name} doing? |
+| `homePartnerSectionTitleFallback` | Người ấy thế nào rồi? | How's your partner doing? |
+| `homeFreeTimeSectionTitle` | Lúc rảnh | Free time |
+
+**Mock:** `docs/design/home-daily-open-2/home-d.html`, `home-d-waiting.html`, `compare-d.html` (C và D cạnh nhau, cả hai bỏ Sổ tiền như app). `ui.js` thêm `homeD`; `homeC` nhận `noMoney`.
+
+**Gate:** `lint.mjs --app` 0 FAIL / 0 WARN. `inspect.mjs --app --widths 390` cả 3 trang 0 FAIL, cùng `--allow` của bản C (§10). WARN có lý do như cũ: colour-sprawl (thẻ đếm hồng), kpi-size (số ngày 76), contrast nút "Gửi cho người ấy 💌" ở banner chờ (nợ cũ).
+
+**Chiều dài** (mock 390, 19:05, đỉnh vùng cuộn → hết Kỷ niệm): C 2.515 px → D 2.615 px (+100, +4%). Đó là giá của 2 tiêu đề.
+
+```
+ROUND 1 (mock 390)
+Seen in one second: thẻ đếm, rồi "Hôm nay của chúng mình" với câu hỏi.
+Scores: design 7,5 · usability 8 · creativity 7 · content 8 → 7,6.
+Top three: 1. compare-d chưa công bằng (C còn Sổ tiền, app đã tắt) → bỏ ở cả hai.
+2. Sổ tiền nằm giữa Chơi và Phân vân thì lệch khe khi cặp đang chờ (tiêu đề → Sổ tiền thành 28) → dời cuối nhóm.
+3. Tiêu đề nhóm chưa phải heading với trình đọc màn hình → Semantics(header: true).
+
+ROUND 2 (app thật, Pixel 10, Thảo 16:12)
+Ba nhóm tách rõ; "Tuấn thế nào rồi?" ló ở đáy màn khi vừa cuộn qua thẻ tâm trạng; khe 28/12/16 đúng token.
+Scores: design 8 · usability 8 · creativity 7 · content 8 → 7,8.
+Còn yếu (ngoài phạm vi sắp xếp, chưa sửa): nhóm "Tuấn thế nào rồi?" có 3 nút đặc navy liền nhau
+("Bật báo về nhà", "Nhắc Tuấn mang ô", "Bật theo dõi") — lệch primary-action và quy ước
+"đặc = người ấy đang chờ bạn"; thẻ "Chơi cùng nhau" là thẻ duy nhất không có IconBadge ở tiêu đề,
+giờ đứng ngay trên "Phân vân gì không?" trong cùng một nhóm.
+```
+
+**Để dành nếu muốn Home ngắn hơn:** Thời tiết + Đêm qua thành hai ô nửa bề ngang đứng cạnh nhau (Bento, dòng chấm màu người + số), tiết kiệm khoảng 200 px. Phải vẽ lại trạng thái chưa bật / thiếu quyền / lỗi của cả hai thẻ, nên chưa làm.
+
+- [2026-10-29] [Designer] Bản D: chia Home thành 3 nhóm có tiêu đề (Hôm nay của chúng mình · {người ấy} thế nào rồi? · Lúc rảnh) + Kỷ niệm, thẻ giữ nguyên. UI UX Pro Max (whitespace-balance, section spacing hierarchy, content-priority) + tasteskill (sheet đợt 2, không draw lại). Mock `home-d*.html` + `compare-d.html`; lint 0/0, inspect 390 0 FAIL. +100 px so với C.
+
+### 17. Bản E và F — bảng ô (2026-10-29, chờ user chọn)
+
+> User 2026-10-29, sau bản D: "design lại layout cho trang homepage". D chỉ chen tiêu đề nên Home vẫn dài gần 4 màn; user muốn đổi bố cục thật. Giữ design system, giữ thẻ câu hỏi, giữ "mỗi thứ một thẻ riêng" (mỗi ô là một thẻ, không gộp bảng).
+
+- **E · Bảng ô:** thẻ đếm giữ nguyên. "Hôm nay của chúng mình" = câu hỏi + lưới 2×2 ô (Tâm trạng · Về nhà / Thời tiết · Đêm qua). "Lúc rảnh" = 2 ô (Cờ caro · Oẳn tù tì) + Phân vân gọn (kết quả hôm nay + 3 nút Ăn gì? · Đi đâu? · Khác). Kỷ niệm giữ.
+- **F · Bảng ô + thẻ đếm gọn:** như E, thẻ đếm canh trái (tên + ★chuỗi cùng hàng, số ngày 56 + "NGÀY BÊN NHAU", đồng hồ chạy giây giữ khuôn viên thuốc, thanh cột mốc), thấp hơn khoảng 120 px ⇒ trọn thẻ câu hỏi và nút "Trả lời để mở khoá…" nằm ở màn đầu, trên thanh nav (1 chạm, `content-priority`).
+- **Khuôn ô:** ContentCard r24 đệm 14 · tiêu đề IconBadge 36 r12 + 15 w800 · Bạn trên, người ấy dưới (PersonLabel + giá trị 15 w700 + dòng phụ 12) · chân ô ghim đáy: một nút (pill 40, vùng chạm 44) hoặc một dòng sự thật. Lưới khe 12, ô cùng hàng cao bằng nhau nên chân ô thẳng hàng. Chạm thân ô mở màn/sheet chi tiết đang có (`progressive-disclosure`). Pin yếu nằm cùng dòng giờ để ô Về nhà không cao hơn ô bên cạnh.
+- **Dời vào chi tiết:** "Đến nơi rồi"/"Hỏi thăm" của Về nhà (ô chỉ còn "Về nhà rồi", hoặc "Đến nơi rồi" khi đã ở nhà), mặt tâm trạng to, giờ cập nhật thời tiết khi có nút nhắc.
+- **Cặp đang chờ:** lưới còn 2 ô của mình (Thời tiết, Đêm qua); Lúc rảnh còn Phân vân.
+- **Độ dài (mock 390, 19:05):** D 2.615 · E 2.116 (−19%) · F 1.979 (−24%).
+- **Gate:** lint `--app` 0/0; inspect `--app --widths 390` `home-e`, `home-f`, `home-e-waiting`, `compare-def` 0 FAIL (cùng `--allow` §10). WARN: colour-sprawl, kpi-size (F: 56 px), contrast nút banner chờ (nợ cũ), heavy-borders/radius-mix ở trang so sánh.
+- **Nhìn lại vòng 1:** E 7,9 · F 8,0. Đã sửa: icon đồng hồ ở chân ô Thời tiết đang tô hồng (hồng chỉ cho tim) → xám; ô Tâm trạng hở ~40 px vì ô Về nhà cao hơn → đưa pill pin yếu lên cùng dòng giờ.
+- **Mock:** `home-e.html`, `home-f.html`, `home-e-waiting.html`, `compare-def.html`; `ui.js` thêm `homeE`/`homeF` + hàm ô. Trang duyệt: https://claude.ai/artifact/EnmpGxDv6adHbC31crZ7Qk
+- **Câu chờ user:** chọn D/E/F · ô Về nhà một nút · Bạn trên/người ấy dưới trong ô · Phân vân bản gọn.
+
+- [2026-10-29] [Designer] Bản E (bảng ô) + F (bảng ô + thẻ đếm gọn) sau yêu cầu "design lại layout". Mock + gate 0 FAIL + artifact duyệt; đề xuất F. Chưa code.
+
+### 18. Chốt (2026-10-29): bản D + "Lúc rảnh" của bản E
+
+> User xem trang duyệt E/F rồi chốt bằng ảnh nhóm "Lúc rảnh" của mock: "chỉ sửa lại layout của lúc rảnh, còn lại giữ nguyên". ⇒ Home = bản D (§16) ở mọi chỗ khác; thẻ đếm, câu hỏi, tâm trạng, nhóm "{người ấy} thế nào rồi?" giữ nguyên. Lưới 2×2 và thẻ đếm gọn của E/F (§17) KHÔNG làm.
+
+**Lúc rảnh (đã code):**
+- **Hai ô cùng hàng** (khe 12, cao bằng nhau): Cờ caro trái · Oẳn tù tì phải. Mỗi ô: ContentCard r24 đệm 14 · huy hiệu 36 r12 + tên 15 w800 (tối đa 2 dòng, EN "Rock Paper Scissors") · câu đầu của dòng trạng thái in đậm 15 w700, phần sau xám 12 · nút ghim đáy, rộng hết ô, cao 40. Cả ô là vùng chạm; nút chỉ để nhìn (như hàng cũ). Nút đặc navy + chấm hồng khi người ấy đang chờ mình (C6), còn lại viền navy .18 dày 1.5 (cùng kiểu nút "Về nhà rồi"). Không còn tiêu đề "Chơi cùng nhau" trong thẻ vì tiêu đề nhóm "Lúc rảnh" đã nói điều đó.
+- **Chữ trong ô dùng lại copy đang chạy**, không thêm key: `splitEntryLine` tách câu đầu ("Đến lượt bạn") khỏi phần sau ("Thảo vừa đi nước 14."). Copy caro viết theo dạng "trạng thái. chi tiết." nên tách được cả 11 trạng thái vi/en (test `caro_tile_split_test.dart`).
+- **Phân vân gì không? bản gọn:** tiêu đề + "Đã quay" giữ · mỗi kết quả hôm nay (ăn, đi đâu, phân vân khác đầu tiên + "+N") là một hàng nền `surfaceLight` r16 (nhãn · kết quả · ai quay lúc nào · chevron → sheet kết quả) · ba nút cùng hàng nền hồng .10 cao ≥ 44: Ăn gì? · Đi đâu? · Khác (key mới `decisionChipCustom`). Ăn gì?/Đi đâu? mở kết quả hôm nay nếu đã có, chưa có thì mở vòng quay và quay luôn (không quay khi đang tải ngày); Khác luôn mở vòng quay để nhập (D20).
+- **Cặp đang chờ:** chỉ còn thẻ Phân vân (hai ô chơi cần người ấy, như cũ).
+
+- [2026-10-29] [Lead] User chốt: giữ bản D, chỉ đổi nhóm "Lúc rảnh" theo bản E (ảnh). Đã code + chạy máy ảo Android.

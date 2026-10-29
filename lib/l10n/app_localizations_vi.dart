@@ -621,6 +621,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeTodaySectionTitle => 'Hôm nay của chúng mình';
 
   @override
+  String homePartnerSectionTitle(String name) {
+    return '$name thế nào rồi?';
+  }
+
+  @override
+  String get homePartnerSectionTitleFallback => 'Người ấy thế nào rồi?';
+
+  @override
+  String get homeFreeTimeSectionTitle => 'Lúc rảnh';
+
+  @override
   String get dailyTapToAnswer => 'Chạm để trả lời…';
 
   @override
@@ -4028,6 +4039,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get decisionCustomCta => 'Nhập & quay';
+
+  @override
+  String get decisionChipCustom => 'Khác';
 
   @override
   String decisionByMe(String time) {

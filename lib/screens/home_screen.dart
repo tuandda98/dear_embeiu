@@ -2290,6 +2290,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               const SizedBox(height: 16),
               _gutter(_entrance(2, _buildWaitingForPartnerBanner(couple))),
             ],
+            // Home D (2026-10-29): three groups, one question each — today's
+            // tasks (question, mood) · "{partner} thế nào rồi?" (arrival,
+            // weather, last night) · "Lúc rảnh" (play, decide) — then memories.
+            // Gaps: card 16 · group 28 · header→card 12. Every card is unchanged.
             // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
             const SizedBox(height: 28),
             _gutter(
@@ -2327,64 +2331,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 _entrance(4, MoodCard(key: _moodCardKey, couple: couple)),
               ),
             ],
-            // ── Đợt 2 (Home C): ArrivalCard (feature arrival) chèn ở đây, chỉ khi đã ghép.
-            // ── arrival (đợt 2) ──
-            if (!couple.isWaitingForPartner)
-              Selector<ArrivalProvider, bool>(
-                selector: (_, arrival) => arrival.visible,
-                builder: (_, visible, _) => !visible
-                    ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: KeyedSubtree(
-                          key: _arrivalKey,
-                          child: _gutter(
-                            _entrance(5, ArrivalCard(couple: couple)),
-                          ),
-                        ),
-                      ),
-              ),
-
-            // ── Đợt 2 (Home C): WeatherCard (feature weather) chèn ở đây, hiện cả khi đang chờ.
-            // ── weather (đợt 2) ──
-            Selector<WeatherProvider, bool>(
-              selector: (_, w) => w.cardVisible,
-              builder: (_, visible, _) => !visible
-                  ? const SizedBox.shrink()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: KeyedSubtree(
-                        key: _weatherKey,
-                        child: _gutter(
-                          _entrance(5, WeatherCard(couple: couple)),
-                        ),
-                      ),
-                    ),
+            // ── Nhóm 2: "{người ấy} thế nào rồi?" — về nhà · thời tiết · đêm qua.
+            _buildPartnerStatusGroup(couple, myUid),
+            // ── Nhóm 3: Lúc rảnh — chơi cùng nhau · phân vân.
+            const SizedBox(height: 28),
+            _gutter(
+              _entrance(7, SectionHeader(title: l10n.homeFreeTimeSectionTitle)),
             ),
-
-            // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
-            // while still waiting too (my own nights, full width — state A0).
-            Selector<SleepProvider, bool>(
-              selector: (_, sleep) => sleep.cardHidden,
-              builder: (_, hidden, _) => hidden
-                  ? const SizedBox.shrink()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: _gutter(_entrance(6, SleepCard(couple: couple))),
-                    ),
-            ),
+            const SizedBox(height: 12),
             if (!couple.isWaitingForPartner) ...[
               // ── caro-game (đợt 2) ──
               // "Chơi cùng nhau" (design §3.1): caro + rock-paper-scissors in
               // one card, replacing the old RpsInviteCard at the same spot.
-              const SizedBox(height: 16),
               _gutter(_entrance(7, const PlayTogetherCard())),
+              const SizedBox(height: 16),
             ],
-
-            // ── Đợt 2 (Home C): MoneyHomeEntry (feature expenses) chèn ở đây.
+            // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
+            // đâu · phân vân khác. Shown while waiting too (solo picks keep).
+            KeyedSubtree(
+              key: _decisionKey,
+              child: _gutter(_entrance(7, const DecisionCard())),
+            ),
             // ── expenses (đợt 2) ──
             // Sổ tiền: shared book's month spending (own book while waiting).
             // Brings its own 16 top gap (nothing at all without Firebase).
+            // Flag is off; it sits last so the gaps stay right in both couple
+            // states — PO picks its group when it comes back.
             if (kMoneyFeatureEnabled)
               _gutter(
                 _entrance(
@@ -2397,15 +2369,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
               ),
-
-            // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
-            // đâu · phân vân khác. Shown while waiting too (solo picks keep).
-            const SizedBox(height: 16),
-            KeyedSubtree(
-              key: _decisionKey,
-              child: _gutter(_entrance(7, const DecisionCard())),
-            ),
-            // ── Nhóm 2: Kỷ niệm — create + browse.
+            // ── Nhóm 4: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(
               _entrance(
@@ -2437,6 +2401,74 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ],
         ),
       ),
+    );
+  }
+
+  /// Group 2 of Home D: arrival · weather · last night under
+  /// "{partner} thế nào rồi?". The header shows only once paired and while at
+  /// least one card is visible. While waiting there is no partner to ask
+  /// about, so weather + sleep (my lane only) carry on group 1 at the card gap.
+  Widget _buildPartnerStatusGroup(Couple couple, String? myUid) {
+    return Builder(
+      builder: (context) {
+        final waiting = couple.isWaitingForPartner;
+        final arrivalVisible = context.select<ArrivalProvider, bool>(
+          (a) => a.visible,
+        );
+        final weatherVisible = context.select<WeatherProvider, bool>(
+          (w) => w.cardVisible,
+        );
+        final sleepHidden = context.select<SleepProvider, bool>(
+          (s) => s.cardHidden,
+        );
+        final cards = <Widget>[
+          // ── arrival (đợt 2) ── only once paired.
+          if (!waiting && arrivalVisible)
+            KeyedSubtree(
+              key: _arrivalKey,
+              child: _gutter(_entrance(5, ArrivalCard(couple: couple))),
+            ),
+          // ── weather (đợt 2) ── shown while waiting too (my lane).
+          if (weatherVisible)
+            KeyedSubtree(
+              key: _weatherKey,
+              child: _gutter(_entrance(5, WeatherCard(couple: couple))),
+            ),
+          // Sleep "Đêm qua" (feature sleep) — shown while still waiting too
+          // (my own nights, full width — state A0).
+          if (!sleepHidden) _gutter(_entrance(6, SleepCard(couple: couple))),
+        ];
+        if (cards.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final String? title;
+        if (waiting) {
+          title = null;
+        } else {
+          final iAmCreator = myUid != null && myUid == couple.createdByUserId;
+          final name = (iAmCreator ? couple.person2Name : couple.person1Name)
+              .trim();
+          title = name.isEmpty
+              ? context.l10n.homePartnerSectionTitleFallback
+              : context.l10n.homePartnerSectionTitle(name);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title == null)
+              const SizedBox(height: 16)
+            else ...[
+              const SizedBox(height: 28),
+              _gutter(_entrance(5, SectionHeader(title: title))),
+              const SizedBox(height: 12),
+            ],
+            for (var i = 0; i < cards.length; i++) ...[
+              if (i > 0) const SizedBox(height: 16),
+              cards[i],
+            ],
+          ],
+        );
+      },
     );
   }
 

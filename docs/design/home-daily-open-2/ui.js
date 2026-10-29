@@ -302,15 +302,128 @@
   }
 
   // Thứ tự C: thẻ đếm → câu hỏi → Tâm trạng → Về đến nhà chưa? → Thời tiết → Đêm qua → Chơi → Sổ tiền → Phân vân → Kỷ niệm.
+  // o.noMoney: bỏ thẻ Sổ tiền như app từ 29/10 (cờ kMoneyFeatureEnabled tắt) để so với D cho công bằng.
   function homeC(s, o = {}) {
     const W = !!o.waiting;
     const blocks = W
       ? [counter(s, { waiting: true }), `<div style="margin-top:16px">${waitBanner()}</div>`, sectionToday(s, true),
-         `<div class="stack">${ritual(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
+         `<div class="stack">${ritual(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}${o.noMoney ? '' : money(s, { waiting: true })}${decide(s)}</div>`, memories(s)]
       : [counter(s, { plain: true }), sectionToday(s),
-         `<div class="stack">${ritual(s)}${moodCardC(s)}${arrivalCardC(s, o)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${money(s)}${decide(s)}</div>`, memories(s)];
+         `<div class="stack">${ritual(s)}${moodCardC(s)}${arrivalCardC(s, o)}${weatherCardC(s)}${sleepCard(s)}${play(s)}${o.noMoney ? '' : money(s)}${decide(s)}</div>`, memories(s)];
     return `<div class="home c">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
   }
+
+  // ======== BẢN D (2026-10-29): sắp xếp lại theo việc, thẻ giữ nguyên ========
+  // Bản C để 7 thẻ dưới một tiêu đề "Hôm nay của chúng mình", cách đều 16 ⇒ không thấy nhóm. D chia 3 nhóm,
+  // mỗi nhóm một câu hỏi: việc hôm nay (câu hỏi, tâm trạng) · người ấy thế nào (về nhà, thời tiết, đêm qua)
+  // · lúc rảnh (chơi, phân vân). Khe: thẻ 16, nhóm 28, tiêu đề → thẻ 12 (token Home v2). Cặp đang chờ: không có
+  // nhóm người ấy, thời tiết + đêm qua (một làn) ở lại nhóm hôm nay.
+  const sec = (title) => `<div class="sec"><h2>${title}</h2></div>`;
+  function homeD(s, o = {}) {
+    const W = !!o.waiting;
+    const blocks = W
+      ? [counter(s, { waiting: true }), `<div style="margin-top:16px">${waitBanner()}</div>`, sectionToday(s, true),
+         `<div class="stack">${ritual(s, { waiting: true })}${weatherCardC(s, { waiting: true })}${sleepCard(s, { waiting: true })}</div>`,
+         sec('Lúc rảnh'), `<div class="stack">${decide(s)}</div>`, memories(s)]
+      : [counter(s, { plain: true }), sectionToday(s), `<div class="stack">${ritual(s)}${moodCardC(s)}</div>`,
+         sec(`${P} thế nào rồi?`), `<div class="stack">${arrivalCardC(s, o)}${weatherCardC(s)}${sleepCard(s)}</div>`,
+         sec('Lúc rảnh'), `<div class="stack">${play(s)}${decide(s)}</div>`, memories(s)];
+    return `<div class="home c">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
+  }
+
+  // ======== BẢN E / F (2026-10-29, user "design lại layout cho trang homepage") ========
+  // E giữ thẻ đếm. "Hôm nay của chúng mình" = câu hỏi (giữ nguyên) + lưới 2×2 ô: Tâm trạng · Về nhà / Thời tiết · Đêm qua.
+  // "Lúc rảnh" = 2 ô Cờ caro · Oẳn tù tì + Phân vân gọn (3 nút cùng hàng). Kỷ niệm giữ nguyên. F = E + thẻ đếm gọn.
+  // Mỗi ô: ContentCard r24 đệm 14 · hàng tiêu đề (IconBadge 36 r12 + tên 15 w800) · Bạn trên, người ấy dưới (PersonLabel +
+  // giá trị 15 w700 + dòng phụ 12) · chân ô ghim đáy: một hành động (pill 40, vùng chạm 44) hoặc một dòng sự thật.
+  // Ô cùng hàng cao bằng nhau (grid stretch) nên chân ô thẳng hàng. Chạm thân ô = mở màn/sheet chi tiết đang có.
+  const lanes = (rows) => rows.map(([who, val, sub, extra]) => `<div class="tl">${plabel(who)}<p class="tv">${val}</p>${sub ? `<p class="tsub">${sub}</p>` : ''}${extra || ''}</div>`).join('');
+  function tile({ cls = '', icon, bold, badge = '', badgeHtml, title, body, foot, label }) {
+    const b = badgeHtml || `<span class="badge xs ${badge}" aria-hidden="true">${ic(icon, bold)}</span>`;
+    return `<article class="card tile ${cls}" aria-label="${label || title}"><div class="thead">${b}<h3>${title}</h3></div>
+      <div class="tbody">${body}</div><div class="tfoot">${foot || ''}</div></article>`;
+  }
+  const pill = (cp, text, kind = '') => `<button class="tpill ${kind}" type="button">${cp ? ic(cp) : ''}${text}</button>`;
+  const fact = (cp, text, heart) => `<p class="tfact${heart ? ' heart' : ''}">${cp ? ic(cp, heart) : ''}<span>${text}</span></p>`;
+
+  function moodTile(s) {
+    const side = (who) => {
+      const v = s.moods[who];
+      if (!v) return [who, '<span class="muted">Chưa chia sẻ</span>'];
+      const [g, w] = MOODS[v.key];
+      return [who, `<span class="glyph" aria-hidden="true">${g}</span>${w}`, v.note ? `“${v.note}”` : ''];
+    };
+    return tile({ icon: 0xea36, bold: true, title: 'Tâm trạng', body: lanes([side('m'), side('p')]),
+      foot: s.moods.m ? pill(I.edit, 'Đổi', 'ghost') : pill(I.heartB, 'Chia sẻ', 'rose') });
+  }
+  function arrivalTile(s) {
+    const side = (who) => {
+      const e = s.arrival[who];
+      if (!e) return [who, '<span class="muted">Chưa bật</span>'];
+      const low = who === 'p' && e.battery != null && e.battery <= LOW_BATTERY;
+      const src = who === 'm' ? (e.pending ? ' · chờ mạng' : e.source === 'manual' ? ' · bấm tay' : ' · tự báo') : '';
+      // Pin yếu nằm cùng dòng giờ (không thêm dòng) để ô Về nhà cao bằng ô Tâm trạng bên cạnh.
+      return [who, D.placeLine(who, e), `<span class="num">${when(s, e)}</span>${src}${low ? `<span class="batt">${ic(I.batLow)}Pin ${e.battery}%</span>` : ''}`];
+    };
+    const atHome = s.arrival.m && s.arrival.m.place === 'home' && s.arrival.m.type === 'enter';
+    return tile({ icon: I.home, title: 'Về nhà', body: lanes([side('m'), side('p')]),
+      foot: atHome ? pill(I.go, 'Đến nơi rồi', 'ghost') : pill(I.home, 'Về nhà rồi', 'ghost') });
+  }
+  function weatherTile(s, o = {}) {
+    const side = (who) => { const w = s.weather[who]; return [who, `<span class="num">${w.temp}°</span>${ic(w.icon)}<span class="cond">${w.cond.text}</span>`, w.city]; };
+    const care = !o.waiting && D.CARE[s.weather.p.cond.kind];
+    return tile({ icon: I.weather, title: 'Thời tiết', body: lanes(o.waiting ? [side('m')] : [side('m'), side('p')]),
+      foot: care ? pill(0xe9cf, care, 'rose') : fact(I.clock, `Cập nhật ${s.weather.fetchedAt}`) });
+  }
+  function sleepTile(s, o = {}) {
+    const side = (who) => { const n = s.sleep[who]; return [who, `<span class="num">${Math.floor(n.min / 60)}<small>g</small> ${n.min % 60}<small>p</small></span>`, `<span class="num">${n.bed}–${n.wake}</span>`]; };
+    const adj = (who) => D.mins(s.sleep[who].bed) + (D.mins(s.sleep[who].bed) > 720 ? -1440 : 0);
+    const ov = Math.min(D.mins(s.sleep.m.wake), D.mins(s.sleep.p.wake)) - Math.max(adj('m'), adj('p'));
+    return tile({ icon: I.moon, badge: 'lav', title: 'Đêm qua', body: lanes(o.waiting ? [side('m')] : [side('m'), side('p')]),
+      foot: o.waiting ? fact(null, 'Chạm để xem cả tháng') : fact(I.heartB, `Ngủ cùng lúc ${D.fmtDur(ov)}`, true) });
+  }
+  function caroTile(s) {
+    const c = s.caro, myTurn = c.moves % 2 === 0;
+    return tile({ cls: 'game', badgeHtml: caroBadge(myTurn).replace('badge soft', 'badge xs soft'), title: 'Cờ caro',
+      body: `<div class="tl"><p class="tv">${myTurn ? 'Đến lượt bạn' : `Chờ ${P}`}</p><p class="tsub">${P} vừa đi nước ${c.moves}</p><p class="tsub num">Tỉ số ${c.score.m} – ${c.score.p}</p></div>`,
+      foot: myTurn ? pill(null, 'Đi tiếp', 'navy') : pill(null, 'Xem', 'ghost') });
+  }
+  function rpsTile(s) {
+    const w = s.caro.rpsWeek;
+    return tile({ cls: 'game', icon: I.game, badge: 'rps', title: 'Oẳn tù tì',
+      body: `<div class="tl"><p class="tv">Tuần này</p><p class="tsub num">${w.w} thắng · ${w.d} hoà · ${w.l} thua</p></div>`,
+      foot: pill(null, 'Chơi', 'ghost') });
+  }
+  function decideCompact(s) {
+    const e = s.decisions.eat;
+    const today = e ? `<a class="dtoday" href="#"><span class="txt"><span class="lab">HÔM NAY ĂN</span><span class="t">${e.result}</span><span class="s">${e.by === 'p' ? P : 'Bạn'} quay · ${e.at}</span></span><span class="chev">${ic(I.chev)}</span></a>` : '';
+    return `<article class="card decide2" aria-labelledby="dc2-t"><div class="chead"><span class="badge" aria-hidden="true">${ic(I.shuffle)}</span><h2 id="dc2-t">Phân vân gì không?</h2><a class="textlink" href="#">Đã quay</a></div>
+      ${today}<div class="dbtns">${pill(I.eat, 'Ăn gì?', 'rose')}${pill(I.go, 'Đi đâu?', 'rose')}${pill(I.edit, 'Khác', 'rose')}</div></article>`;
+  }
+  // Thẻ đếm gọn (F): canh trái, tên + chuỗi cùng hàng, số ngày 56 + "NGÀY BÊN NHAU", đồng hồ chạy giây giữ khuôn viên thuốc, thanh cột mốc.
+  const heartSvg = '<svg viewBox="0 0 24 24" aria-label="và" role="img"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.2C.3 8.5 2.2 4.5 6 4.5c2.1 0 3.4 1.1 4.2 2.3h.1c.8-1.2 2-2.3 4.1-2.3 3.8 0 5.7 4 4 7.3C19.5 16.4 12 21 12 21z"/></svg>';
+  function counterCompact(s, o = {}) {
+    const streak = o.waiting ? '' : `<span class="cc-streak" aria-label="${s.streak.n} ngày kết nối">${ic(I.starB, true)}<b class="num">${s.streak.n}</b></span>`;
+    return `<section class="counter cc" aria-label="Thẻ đếm ngày"><span class="aurora a1"></span><span class="aurora a2"></span>
+      <div class="inner"><div class="cc-top"><div class="names-plain">${ME.name} ${heartSvg} ${P}</div>${streak}</div>
+        <div class="cc-mid"><span class="big num">${fmtInt(s.daysTogether)}</span><span class="unit">NGÀY BÊN NHAU</span></div>
+        <div class="clock num" aria-label="Đã bên nhau ${s.clock.h} giờ"><span class="seg"><span class="v">${s.clock.h}</span><span class="l">GIỜ</span></span><span class="sep">:</span><span class="seg"><span class="v">${s.clock.m}</span><span class="l">PHÚT</span></span><span class="sep">:</span><span class="seg"><span class="v">${s.clock.s}</span><span class="l">GIÂY</span></span></div>
+        <div class="ms"><div class="row">${ic(I.flag)}<span>Cột mốc ${fmtInt(s.next)} ngày</span><span class="left num">còn ${s.left} ngày</span></div><div class="track"><b style="width:${(s.progress * 100).toFixed(1)}%"></b></div></div>
+      </div></section>`;
+  }
+  function homeEF(s, o, compact) {
+    const W = !!o.waiting;
+    const hero = compact ? counterCompact(s, { waiting: W }) : counter(s, W ? { waiting: true } : { plain: true });
+    const today = W
+      ? `<div class="stack">${ritual(s, { waiting: true })}<div class="bento">${weatherTile(s, { waiting: true })}${sleepTile(s, { waiting: true })}</div></div>`
+      : `<div class="stack">${ritual(s)}<div class="bento">${moodTile(s)}${arrivalTile(s)}${weatherTile(s)}${sleepTile(s)}</div></div>`;
+    const free = W ? `<div class="stack">${decideCompact(s)}</div>`
+      : `<div class="stack"><div class="bento">${caroTile(s)}${rpsTile(s)}</div>${decideCompact(s)}</div>`;
+    const blocks = [hero, W ? `<div style="margin-top:16px">${waitBanner()}</div>` : '', sectionToday(s, W), today, sec('Lúc rảnh'), free, memories(s)];
+    return `<div class="home c ${compact ? 'f' : 'e'}">${header(s, o.h1 === false ? 'p' : 'h1')}<main class="scroll">${blocks.join('')}${o.after || ''}</main>${nav()}</div>`;
+  }
+  const homeE = (s, o = {}) => homeEF(s, o, false);
+  const homeF = (s, o = {}) => homeEF(s, o, true);
 
   const nav = () => `<nav class="nav" aria-label="Điều hướng chính"><a href="#" aria-current="page">${ic(I.heartB, true)}<span>Trang chủ</span></a><a href="#">${ic(I.chat)}<span>Trò chuyện</span></a><a href="#">${ic(I.gallery)}<span>Thư viện</span></a><a href="#">${ic(I.user)}<span>Hồ sơ</span></a></nav>`;
 
@@ -332,5 +445,5 @@
     }));
   }
 
-  window.UI = { ic, I, homeC, homeB, moodCard, sleepCard, home, header, counter, ritual, board, play, money, decide, memories, nav };
+  window.UI = { ic, I, homeE, homeF, homeD, homeC, homeB, moodCard, sleepCard, home, header, counter, ritual, board, play, money, decide, memories, nav };
 })();

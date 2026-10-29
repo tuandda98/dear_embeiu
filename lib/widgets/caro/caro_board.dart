@@ -316,12 +316,16 @@ class CaroGlyph extends StatelessWidget {
     required this.mine,
     required this.partner,
     this.size = 44,
+    this.radius = 16,
     this.showDot = false,
   });
 
   final Color mine;
   final Color partner;
   final double size;
+
+  /// Corner of the square (16 on the 44 badge; Home's play tile uses 36/12).
+  final double radius;
 
   /// The 9px rose "người ấy đang chờ bạn" dot (same as the rps medallion).
   final bool showDot;
@@ -337,10 +341,11 @@ class CaroGlyph extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(radius),
           ),
           child: CustomPaint(
-            size: const Size.square(26),
+            // 26 on the 44 square; scales with smaller badges.
+            size: Size.square(size * 26 / 44),
             painter: _GlyphPainter(mine, partner),
           ),
         ),

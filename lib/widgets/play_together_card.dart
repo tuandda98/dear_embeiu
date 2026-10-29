@@ -18,6 +18,7 @@ import 'caro/caro_common.dart';
 import 'caro/caro_new_game_sheet.dart';
 import 'content_card.dart';
 import 'icon_badge.dart';
+import 'ink_tile.dart';
 import 'rps_invite_card.dart' show rpsMedalAccent;
 import 'shimmer_skeleton.dart';
 
@@ -77,9 +78,9 @@ CaroEntryKind caroEntryKindFor({
   return total > 0 || last != null ? CaroEntryKind.idle : CaroEntryKind.first;
 }
 
-/// Home "Chơi cùng nhau" (feature caro-game, design §3.1 — replaces
-/// `RpsInviteCard`): two fixed lines, Cờ caro on top, Oẳn tù tì below. A
-/// line's CTA is solid navy only while the partner waits on me (C6), with
+/// Home "Lúc rảnh" games (feature caro-game, design §3.1; Home D tiles,
+/// 2026-10-29): two equal tiles side by side, Cờ caro left, Oẳn tù tì right.
+/// A tile's CTA is solid navy only while the partner waits on me (C6), with
 /// the rose dot; outlined otherwise. Hidden by the caller while the couple
 /// still waits for a partner.
 class PlayTogetherCard extends StatelessWidget {
@@ -87,36 +88,137 @@ class PlayTogetherCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return ContentCard(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Column(
+    // Equal heights so both CTAs sit on one line whatever the copy length.
+    return const IntrinsicHeight(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.caroPlayTogetherTitle,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const _CaroLine(),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: AppColors.textPrimary.withValues(alpha: 0.08),
-          ),
-          const _RpsLine(),
+          Expanded(child: _CaroTile()),
+          SizedBox(width: 12),
+          Expanded(child: _RpsTile()),
         ],
       ),
     );
   }
 }
 
-class _CaroLine extends StatelessWidget {
-  const _CaroLine();
+/// "Đến lượt bạn. Thảo vừa đi nước 14." → ("Đến lượt bạn", "Thảo vừa đi
+/// nước 14."): the tile shows the first sentence bold and the rest grey. A
+/// full stop closing the first sentence is dropped, `?`/`!`/`…` are kept. One
+/// sentence → (it without its full stop, ''). The entry copy is written as
+/// "state. detail." for this; caro_tile_split_test pins every state.
+/// ponytail: a partner name with ". " inside ("T. Anh") splits early — the
+/// text is all still shown, only the bold/grey cut moves.
+(String, String) splitEntryLine(String line) {
+  final text = line.trim();
+  final m = RegExp(r'^(.+?)([.!?…])\s+(\S.*)$', dotAll: true).firstMatch(text);
+  if (m == null) {
+    return (text.endsWith('.') ? text.substring(0, text.length - 1) : text, '');
+  }
+  final mark = m.group(2)!;
+  return ('${m.group(1)}${mark == '.' ? '' : mark}', m.group(3)!);
+}
+
+/// One game tile: 36 badge + name, the state's first sentence bold and the
+/// rest grey, CTA pinned to the bottom. The whole tile is the tap target (the
+/// CTA pill is visual only), read as one button like [CaroEntryRow].
+class PlayTile extends StatelessWidget {
+  const PlayTile({
+    super.key,
+    required this.view,
+    required this.badge,
+    required this.onTap,
+  });
+
+  final CaroEntryView view;
+  final Widget badge;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final (head, rest) = splitEntryLine(view.subtitle);
+    return Semantics(
+      button: true,
+      label: view.semanticsLabel,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: ContentCard(
+        padding: EdgeInsets.zero,
+        child: InkTile(
+          borderRadius: 24,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    badge,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        view.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (view.loading) ...[
+                  ShimmerSkeleton(width: 96, height: 16, borderRadius: 6),
+                  const SizedBox(height: 6),
+                  ShimmerSkeleton(width: 120, height: 12, borderRadius: 6),
+                ] else ...[
+                  Text(
+                    head,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.3,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  if (rest.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      rest,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+                const Spacer(),
+                const SizedBox(height: 12),
+                if (view.loading)
+                  ShimmerSkeleton(height: 40, borderRadius: 999)
+                else
+                  _Cta(label: view.cta, filled: view.urgent, expand: true),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CaroTile extends StatelessWidget {
+  const _CaroTile();
 
   @override
   Widget build(BuildContext context) {
@@ -165,11 +267,13 @@ class _CaroLine extends StatelessWidget {
       }
     }
 
-    return CaroEntryRow(
+    return PlayTile(
       view: view,
       badge: CaroGlyph(
         mine: people.myColor,
         partner: people.partnerColor,
+        size: 36,
+        radius: 12,
         showDot: view.urgent,
       ),
       onTap: kind == CaroEntryKind.loading ? null : onTap,
@@ -348,14 +452,18 @@ class CaroEntryRow extends StatelessWidget {
 
 /// Visual-only 40pt pill (the whole line handles the tap).
 class _Cta extends StatelessWidget {
-  const _Cta({required this.label, required this.filled});
+  const _Cta({required this.label, required this.filled, this.expand = false});
 
   final String label;
   final bool filled;
 
+  /// Full width (Home tiles) instead of hugging the label (rows).
+  final bool expand;
+
   @override
   Widget build(BuildContext context) => Container(
     height: 40,
+    width: expand ? double.infinity : null,
     padding: const EdgeInsets.symmetric(horizontal: 18),
     alignment: Alignment.center,
     decoration: BoxDecoration(
@@ -363,7 +471,12 @@ class _Cta extends StatelessWidget {
       borderRadius: BorderRadius.circular(999),
       border: filled
           ? null
-          : Border.all(color: AppColors.textPrimary, width: 1.4),
+          // Same outline as the arrival card's "Về nhà rồi" (navy .18, 1.5)
+          // so every outlined button on Home matches.
+          : Border.all(
+              color: AppColors.textPrimary.withValues(alpha: 0.18),
+              width: 1.5,
+            ),
     ),
     child: Text(
       label,
@@ -376,10 +489,10 @@ class _Cta extends StatelessWidget {
   );
 }
 
-/// The rock-paper-scissors line: same six states as the old `RpsInviteCard`,
+/// The rock-paper-scissors tile: same six states as the old `RpsInviteCard`,
 /// navy/outlined per C6 instead of the gradient.
-class _RpsLine extends StatelessWidget {
-  const _RpsLine();
+class _RpsTile extends StatelessWidget {
+  const _RpsTile();
 
   @override
   Widget build(BuildContext context) {
@@ -426,7 +539,7 @@ class _RpsLine extends StatelessWidget {
               );
         cta = l10n.rpsEntryCtaPlay;
     }
-    return CaroEntryRow(
+    return PlayTile(
       view: CaroEntryView(
         title: l10n.rpsGameTitle,
         subtitle: subtitle,
@@ -436,7 +549,13 @@ class _RpsLine extends StatelessWidget {
       badge: Stack(
         clipBehavior: Clip.none,
         children: [
-          const IconBadge(IconsaxPlusBold.game, tint: rpsMedalAccent),
+          const IconBadge(
+            IconsaxPlusBold.game,
+            tint: rpsMedalAccent,
+            size: 36,
+            radius: 12,
+            iconSize: 18,
+          ),
           if (urgent)
             Positioned(
               top: -3,

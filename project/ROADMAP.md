@@ -19,6 +19,8 @@
 
 ## Đang làm
 
+> **📌 2026-10-29 — Home bản D (sắp xếp lại, user "dùng skill ui ux promax"):** Home chia 3 nhóm có tiêu đề "Hôm nay của chúng mình" (câu hỏi, tâm trạng) · "{người ấy} thế nào rồi?" (về nhà, thời tiết, đêm qua) · "Lúc rảnh" + Kỷ niệm. User chốt thêm: "Lúc rảnh" thành 2 ô Cờ caro · Oẳn tù tì + thẻ Phân vân gọn (3 nút); các thẻ khác giữ nguyên (bản E/F lưới 2×2 + thẻ đếm gọn không làm). 💻 Dev xong trên `release/1.12.0`, analyze 0, chạy máy ảo Android OK. → [design §16](features/home/design.md) · [dev](features/home/dev.md)
+
 > **📌 Brainstorm 2026-09-05 (tối, chưa dev):** **care-message → timeline RIÊNG** (màn dòng thời gian quan tâm gom theo ngày, TÁCH khỏi Nhật ký câu hỏi, client-only) → [overview](features/care-message/overview.md). ❌ Ý "tự đặt câu hỏi hôm nay" đã **BỎ** theo user (2026-09-05): cả hai luôn trả lời câu hỏi của hệ thống, không ai đặt/sửa câu hỏi.
 
 > **📌 Phiên 2026-09-05 (đợt 2 — 9 agent song song, user uỷ quyền chốt theo đề xuất) — 💻 Dev XONG `onboarding` + `endless-questions`, 🧪 Tester đang soi, PROD chờ lệnh:** **`onboarding`** (intro lần đầu + "cần cả hai": link tải trong tin mời + trang `dearembeiu.com/get`, checklist chờ partner + nhắc lại 24h/72h, feature tour theo version, intro 3 slide) → [overview](features/onboarding/overview.md) · **`endless-questions`** (engine 4 tầng: marker = nguồn sự thật, chọn theo `askedBankIds` thay `% n`, template thời gian/ngữ cảnh/lịch/mood/mốc, "nhìn lại" từ lịch sử, AI opt-in) → [overview](features/endless-questions/overview.md). ⚠️ Bank 229 câu sẽ lặp từ ~giữa 01/2027; thêm câu vào bank hiện tại = xáo trộn hoán vị mọi cặp.

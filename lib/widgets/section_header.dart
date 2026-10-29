@@ -38,10 +38,16 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleText = Text(title, style: AppTheme.sectionTitleStyle());
+    // Announced as a heading so screen readers can jump group to group
+    // (Home D splits the tab into named groups, 2026-10-29).
+    final titleText = Semantics(
+      header: true,
+      child: Text(title, style: AppTheme.sectionTitleStyle()),
+    );
     return Row(
-      crossAxisAlignment:
-          trailing != null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: trailing != null
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
@@ -57,10 +63,7 @@ class SectionHeader extends StatelessWidget {
                 titleText,
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  style: AppTheme.sectionSubtitleStyle(),
-                ),
+                Text(subtitle!, style: AppTheme.sectionSubtitleStyle()),
               ],
             ],
           ),

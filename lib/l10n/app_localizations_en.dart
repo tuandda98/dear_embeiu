@@ -626,6 +626,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTodaySectionTitle => 'Today, together';
 
   @override
+  String homePartnerSectionTitle(String name) {
+    return 'How\'s $name doing?';
+  }
+
+  @override
+  String get homePartnerSectionTitleFallback => 'How\'s your partner doing?';
+
+  @override
+  String get homeFreeTimeSectionTitle => 'Free time';
+
+  @override
   String get dailyTapToAnswer => 'Tap to answer…';
 
   @override
@@ -4248,6 +4259,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get decisionCustomCta => 'Type & spin';
+
+  @override
+  String get decisionChipCustom => 'Other';
 
   @override
   String decisionByMe(String time) {

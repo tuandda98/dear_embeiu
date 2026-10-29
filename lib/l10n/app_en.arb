@@ -340,6 +340,17 @@
   "homeGreetingEvening": "Good evening,",
   "homeGreetingNight": "Up late,",
   "homeTodaySectionTitle": "Today, together",
+  "homePartnerSectionTitle": "How's {name} doing?",
+  "@homePartnerSectionTitle": {
+    "description": "Home section header above the arrival, weather and last-night cards (Home D, 2026-10-29). name = the partner's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homePartnerSectionTitleFallback": "How's your partner doing?",
+  "homeFreeTimeSectionTitle": "Free time",
   "dailyTapToAnswer": "Tap to answer…",
   "dailyPartnerAnsweredTeaser": "{name} has answered 👀",
   "@dailyPartnerAnsweredTeaser": {
@@ -3953,6 +3964,10 @@
     "description": "Decision wheel (feature decision-wheel)"
   },
   "decisionCustomCta": "Type & spin",
+  "decisionChipCustom": "Other",
+  "@decisionChipCustom": {
+    "description": "Third button on the Home card Can't decide? (compact layout, Home D 2026-10-29): opens the wheel to type your own options."
+  },
   "@decisionCustomCta": {
     "description": "Decision wheel (feature decision-wheel)"
   },

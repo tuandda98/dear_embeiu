@@ -358,3 +358,59 @@ p, h1, h2, h3 { margin: 0; }
 .frame { position: relative; border-top: 1px solid rgba(255,255,255,.4); }
 
 @media (prefers-reduced-motion: reduce) { .heart-btn, .btn { transition: none; } }
+
+/* ---------- Bản E / F (2026-10-29): bảng ô ----------
+   390: thẻ 358 ⇒ 2 ô × 173 + khe 12 · 360: 2 × 158 + 12. Đệm ô 14 ⇒ lòng 145 (390) / 130 (360).
+   Khe trong lưới 12 (nhỏ hơn khe thẻ 16) để bốn ô đọc thành một khối; giữa lưới và thẻ khác vẫn 16. */
+.bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { display: flex; flex-direction: column; min-width: 0; padding: 14px; }
+.tile .thead { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.tile .thead h3 { flex: 1; min-width: 0; font-size: 15px; line-height: 19px; font-weight: 800; }
+.badge.xs { width: 36px; height: 36px; border-radius: 12px; }
+.badge.xs .ic { font-size: 18px; }
+.badge.xs svg { width: 22px; height: 22px; }
+.tbody { display: grid; gap: 10px; margin-top: 12px; }
+.tl { min-width: 0; }
+.tv { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: 3px; font-size: 15px; line-height: 20px; font-weight: 700; }
+.tv .glyph { font-size: 20px; line-height: 1; }
+.tv .ic { font-size: 16px; color: var(--ink2); }
+.tv small { font-size: 12px; font-weight: 700; color: var(--ink2); }
+.tv .muted { font-size: 14px; font-weight: 600; color: var(--ink2); }
+.tsub { margin-top: 1px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tsub .batt { height: 20px; margin: 0 0 0 6px; padding: 0 6px; font-size: 11px; vertical-align: 1px; }
+.tsub .batt .ic { font-size: 12px; }
+.tl .batt { margin-top: 4px; }
+.tfoot { margin-top: auto; padding-top: 12px; }
+.tfoot:empty { display: none; }
+.tpill { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 40px; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.tpill::after { content: ''; position: absolute; inset: -2px 0; } /* vùng chạm 44 */
+.tpill .ic { font-size: 16px; }
+.tpill.ghost { border: 1.5px solid rgba(26,26,46,.18); }
+.tpill.rose { background: rgba(255,77,109,.10); }
+.tpill.navy { background: var(--ink); color: #fff; }
+.tfact { display: flex; align-items: center; gap: 6px; min-height: 40px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
+.tfact .ic { flex: none; font-size: 14px; color: var(--ink2); }
+.tfact.heart .ic { font-size: 12px; color: var(--rose); } /* tim = màu thương hiệu; icon khác xám */
+
+/* Phân vân gọn: kết quả hôm nay (nếu có) + 3 nút cùng hàng */
+.decide2 .dtoday { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: var(--soft); }
+.decide2 .dtoday .txt { flex: 1; min-width: 0; display: grid; }
+.decide2 .dtoday .lab { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px; color: var(--ink2); }
+.decide2 .dtoday .t { font-size: 15px; line-height: 20px; font-weight: 700; }
+.decide2 .dtoday .s { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); }
+.dbtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.dbtns .tpill { height: 44px; font-size: 14px; }
+.dbtns .tpill::after { content: none; }
+
+/* Thẻ đếm gọn (F) */
+.home.f .counter.cc { text-align: left; padding: 18px 20px 18px; }
+.cc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.home.f .counter.cc .names-plain { font-size: 18px; line-height: 24px; min-width: 0; }
+.cc-streak { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.30); font-size: 14px; font-weight: 700; }
+.cc-streak .ic { font-size: 14px; color: #FFE08A; }
+.cc-mid { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; }
+.home.f .counter.cc .big { margin: 0; font-size: 56px; line-height: 60px; letter-spacing: -1.2px; }
+.home.f .counter.cc .unit { margin: 0; }
+.home.f .counter.cc .clock { margin-top: 6px; padding: 8px 14px; }
+.home.f .counter.cc .clock .v { font-size: 18px; line-height: 18px; }
+.home.f .counter.cc .ms { margin-top: 14px; }

@@ -1226,6 +1226,24 @@ abstract class AppLocalizations {
   /// **'Today, together'**
   String get homeTodaySectionTitle;
 
+  /// Home section header above the arrival, weather and last-night cards (Home D, 2026-10-29). name = the partner's name.
+  ///
+  /// In en, this message translates to:
+  /// **'How\'s {name} doing?'**
+  String homePartnerSectionTitle(String name);
+
+  /// No description provided for @homePartnerSectionTitleFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'How\'s your partner doing?'**
+  String get homePartnerSectionTitleFallback;
+
+  /// No description provided for @homeFreeTimeSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free time'**
+  String get homeFreeTimeSectionTitle;
+
   /// No description provided for @dailyTapToAnswer.
   ///
   /// In en, this message translates to:
@@ -6834,6 +6852,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type & spin'**
   String get decisionCustomCta;
+
+  /// Third button on the Home card Can't decide? (compact layout, Home D 2026-10-29): opens the wheel to type your own options.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get decisionChipCustom;
 
   /// Decision wheel (feature decision-wheel)
   ///

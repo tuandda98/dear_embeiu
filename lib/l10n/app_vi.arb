@@ -317,6 +317,16 @@
   "homeGreetingEvening": "Chào buổi tối,",
   "homeGreetingNight": "Khuya rồi đó,",
   "homeTodaySectionTitle": "Hôm nay của chúng mình",
+  "homePartnerSectionTitle": "{name} thế nào rồi?",
+  "@homePartnerSectionTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homePartnerSectionTitleFallback": "Người ấy thế nào rồi?",
+  "homeFreeTimeSectionTitle": "Lúc rảnh",
   "dailyTapToAnswer": "Chạm để trả lời…",
   "dailyPartnerAnsweredTeaser": "{name} đã trả lời rồi đó 👀",
   "@dailyPartnerAnsweredTeaser": {
@@ -3175,6 +3185,7 @@
     "description": "Decision wheel (feature decision-wheel)"
   },
   "decisionCustomCta": "Nhập & quay",
+  "decisionChipCustom": "Khác",
   "@decisionCustomCta": {
     "description": "Decision wheel (feature decision-wheel)"
   },
