@@ -7857,4 +7857,133 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arrivalSetAddressCta => 'Tap to set the address';
+
+  @override
+  String get rateAppTitle => 'How\'s Dear Embeiu treating you?';
+
+  @override
+  String get rateAppSubtitle => 'It only takes a few seconds.';
+
+  @override
+  String get rateAppStar1 => 'Not great';
+
+  @override
+  String get rateAppStar2 => 'Needs work';
+
+  @override
+  String get rateAppStar3 => 'It\'s okay';
+
+  @override
+  String get rateAppStar4 => 'Pretty good';
+
+  @override
+  String get rateAppStar5 => 'Love it';
+
+  @override
+  String get rateAppCtaDefault => 'Pick a rating';
+
+  @override
+  String get rateAppCtaIos => 'Rate on the App Store';
+
+  @override
+  String get rateAppCtaAndroid => 'Rate on Google Play';
+
+  @override
+  String get rateAppCtaLow => 'Tell us what happened';
+
+  @override
+  String get rateAppLater => 'Not now';
+
+  @override
+  String rateAppStarSemantics(int count) {
+    return '$count stars';
+  }
+
+  @override
+  String get rateAppStarsGroupSemantics => 'Rate Dear Embeiu';
+
+  @override
+  String get settingsRateAppTitle => 'Rate Dear Embeiu';
+
+  @override
+  String get settingsRateAppSubtitle => 'Leave a rating on the app store';
+
+  @override
+  String get settingsFeedbackTitle => 'Feedback & bug reports';
+
+  @override
+  String get settingsFeedbackSubtitle =>
+      'What\'s off, or what would you like to see?';
+
+  @override
+  String get feedbackBadge => 'FEEDBACK';
+
+  @override
+  String get feedbackTypeSuggestion => 'Suggestion';
+
+  @override
+  String get feedbackTypeBug => 'Bug report';
+
+  @override
+  String get feedbackFieldLabel => 'Message';
+
+  @override
+  String get feedbackHintSuggestion =>
+      'What should we add, or make easier to use?';
+
+  @override
+  String get feedbackHintBug =>
+      'What happened? What did you tap, on which screen, and what did you expect?';
+
+  @override
+  String get feedbackHintLowRating =>
+      'What let you down? A single line is fine.';
+
+  @override
+  String feedbackRatedLabel(int count) {
+    return 'You rated us $count/5';
+  }
+
+  @override
+  String feedbackCounter(int count) {
+    return '$count/2000';
+  }
+
+  @override
+  String get feedbackAttachCta => 'Attach a screenshot';
+
+  @override
+  String get feedbackPhotoLabel => 'Attached screenshot';
+
+  @override
+  String get feedbackPhotoRemove => 'Remove screenshot';
+
+  @override
+  String get feedbackPhotoError => 'Couldn\'t open that image. Try another.';
+
+  @override
+  String get feedbackPhotoTooLarge => 'That image is too large (10 MB max).';
+
+  @override
+  String get feedbackDeviceNote =>
+      'We include your app version, OS and device model so we can track issues down faster.';
+
+  @override
+  String get feedbackSendCta => 'Send';
+
+  @override
+  String get feedbackRetryCta => 'Try again';
+
+  @override
+  String get feedbackErrorBanner =>
+      'Couldn\'t send. Check your connection and try again. Your message is still here.';
+
+  @override
+  String get feedbackSuccessTitle => 'Thank you';
+
+  @override
+  String get feedbackSuccessBody => 'We got your message.';
+
+  @override
+  String get feedbackDoneCta => 'Done';
 }

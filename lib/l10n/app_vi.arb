@@ -6850,18 +6850,33 @@
   "moneyKeyBillion": "tỷ",
   "moneyAmountTooBigFor": "Tối đa {max} một khoản.",
   "@moneyAmountTooBigFor": {
-    "placeholders": {"max": {"type": "String"}}
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
   },
   "moneyWalletTooBigFor": "Tối đa {max} một ví.",
   "@moneyWalletTooBigFor": {
-    "placeholders": {"max": {"type": "String"}}
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
   },
   "moneyAddSource": "Thêm nguồn",
   "moneyCurrencyTitle": "Tiền tệ",
   "moneyTypeSave": "Góp quỹ",
   "moneySavedContribution": "Đã góp {amount} vào {fund}",
   "@moneySavedContribution": {
-    "placeholders": {"amount": {"type": "String"}, "fund": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "fund": {
+        "type": "String"
+      }
+    }
   },
   "moneySaveInto": "Góp vào",
   "moneyPaidFrom": "Tiền từ đâu",
@@ -6876,30 +6891,60 @@
   "moneyChTplNoTech30": "30 ngày không mua đồ công nghệ",
   "moneyChTplEatOutCap7": "Tuần này ăn ngoài dưới {amount}",
   "@moneyChTplEatOutCap7": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyChTplDateCap7": "Tuần này hẹn hò dưới {amount}",
   "@moneyChTplDateCap7": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyChTplAllCap7": "Tuần này chi dưới {amount}",
   "@moneyChTplAllCap7": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengesTitle": "Thử thách tiết kiệm",
   "moneyChallengeNew": "Thử thách mới",
   "moneyChallengeCustom": "Tự tạo",
   "moneyChallengeDaysLeft": "Còn {n} ngày",
   "@moneyChallengeDaysLeft": {
-    "placeholders": {"n": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeCleanDays": "{done}/{total} ngày",
   "@moneyChallengeCleanDays": {
-    "placeholders": {"done": {"type": "String"}, "total": {"type": "String"}}
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeSpentOf": "{spent} / {limit}",
   "@moneyChallengeSpentOf": {
-    "placeholders": {"spent": {"type": "String"}, "limit": {"type": "String"}}
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeWon": "Hoàn thành",
   "moneyChallengeLost": "Thử lại lần sau",
@@ -6911,34 +6956,68 @@
   "moneyChallengeAll": "Mọi khoản chi",
   "moneyChallengeDays": "{n} ngày",
   "@moneyChallengeDays": {
-    "placeholders": {"n": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeMax": "Đang chạy đủ 3 thử thách",
   "moneyChallengeLastDayTitle": "Hôm nay là ngày cuối thử thách",
   "moneyChallengeStarted": "Bắt đầu: {title}",
   "@moneyChallengeStarted": {
-    "placeholders": {"title": {"type": "String"}}
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapTitle": "Nhìn lại {month}",
   "@moneyRecapTitle": {
-    "placeholders": {"month": {"type": "String"}}
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapKeptBudget": "Giữ được hạn mức tháng",
   "moneyRecapSpentLess": "Chi ít hơn {month} {amount}",
   "@moneyRecapSpentLess": {
-    "placeholders": {"amount": {"type": "String"}, "month": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapSaved": "Góp quỹ thêm {amount}",
   "@moneyRecapSaved": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapChallenges": "Xong {n} thử thách",
   "@moneyRecapChallenges": {
-    "placeholders": {"n": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapLogged": "Ghi chi tiêu {n}/{total} ngày",
   "@moneyRecapLogged": {
-    "placeholders": {"n": {"type": "String"}, "total": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapEmpty": "Tháng mới bắt đầu. Đặt hạn mức cho tháng này?",
   "moneyChallengeLength": "Thời gian",
@@ -8122,5 +8201,65 @@
   "arrivalSetAddressCta": "Chạm để đặt địa chỉ",
   "@arrivalSetAddressCta": {
     "description": "Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ"
-  }
+  },
+  "rateAppTitle": "Bạn thấy Dear Embeiu thế nào?",
+  "rateAppSubtitle": "Chỉ mất vài giây thôi.",
+  "rateAppStar1": "Chưa ổn lắm",
+  "rateAppStar2": "Còn thiếu nhiều",
+  "rateAppStar3": "Tạm được",
+  "rateAppStar4": "Khá thích",
+  "rateAppStar5": "Rất thích",
+  "rateAppCtaDefault": "Chọn số sao",
+  "rateAppCtaIos": "Đánh giá trên App Store",
+  "rateAppCtaAndroid": "Đánh giá trên Google Play",
+  "rateAppCtaLow": "Kể chúng mình nghe",
+  "rateAppLater": "Để sau",
+  "rateAppStarSemantics": "{count} sao",
+  "@rateAppStarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rateAppStarsGroupSemantics": "Chấm sao cho Dear Embeiu",
+  "settingsRateAppTitle": "Đánh giá Dear Embeiu",
+  "settingsRateAppSubtitle": "Chấm sao cho app trên cửa hàng ứng dụng",
+  "settingsFeedbackTitle": "Góp ý & báo lỗi",
+  "settingsFeedbackSubtitle": "Điều gì chưa ổn, hay bạn muốn có thêm gì?",
+  "feedbackBadge": "GÓP Ý & BÁO LỖI",
+  "feedbackTypeSuggestion": "Góp ý",
+  "feedbackTypeBug": "Báo lỗi",
+  "feedbackFieldLabel": "Nội dung",
+  "feedbackHintSuggestion": "Bạn muốn app có thêm gì, hay sửa chỗ nào cho dễ dùng hơn?",
+  "feedbackHintBug": "Chuyện gì đã xảy ra? Bạn bấm gì, ở màn hình nào, và lẽ ra phải thế nào?",
+  "feedbackHintLowRating": "Điều gì khiến bạn chưa hài lòng? Một dòng cũng được.",
+  "feedbackRatedLabel": "Bạn chấm {count}/5 sao",
+  "@feedbackRatedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackCounter": "{count}/2000",
+  "@feedbackCounter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackAttachCta": "Đính kèm ảnh chụp màn hình",
+  "feedbackPhotoLabel": "Ảnh đính kèm",
+  "feedbackPhotoRemove": "Bỏ ảnh đính kèm",
+  "feedbackPhotoError": "Không mở được ảnh này. Thử ảnh khác nhé.",
+  "feedbackPhotoTooLarge": "Ảnh lớn quá, tối đa 10 MB.",
+  "feedbackDeviceNote": "Chúng mình gửi kèm phiên bản app, hệ điều hành và đời máy để tìm lỗi nhanh hơn.",
+  "feedbackSendCta": "Gửi cho chúng mình",
+  "feedbackRetryCta": "Thử lại",
+  "feedbackErrorBanner": "Chưa gửi được. Kiểm tra mạng rồi thử lại, nội dung của bạn vẫn còn đây.",
+  "feedbackSuccessTitle": "Cảm ơn bạn",
+  "feedbackSuccessBody": "Chúng mình đã nhận được góp ý của bạn.",
+  "feedbackDoneCta": "Xong"
 }

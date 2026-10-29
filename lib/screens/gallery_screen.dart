@@ -29,6 +29,7 @@ import '../widgets/reaction_bar.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../services/rating_prompt_service.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -2991,5 +2992,7 @@ Future<void> composeAndPostPhotos(
             : l10n.multiPhotosResultPartial(successCount, total, failed),
       ),
     ),
-  );
+  );  if (successCount > 0) {
+    RatingPromptService.maybePrompt(context, source: 'photo');
+  }
 }

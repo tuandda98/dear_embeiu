@@ -87,6 +87,7 @@ import '../models/money.dart';
 import '../providers/money_provider.dart';
 import '../services/money_service.dart' show kMoneyFeatureEnabled;
 import '../widgets/money/money_home_entry.dart';
+import '../services/rating_prompt_service.dart';
 import '../utils/money_flows.dart' show moneyLoggedToday;
 import 'money/money_screen.dart' show openMoneyScreen;
 
@@ -558,6 +559,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _dqProvider = context.read<DailyQuestionProvider>();
     _chatProvider = context.read<ChatProvider>();
     _dqProvider!.addListener(_refreshDqSafetyNet);
+    _dqProvider!.addListener(_onDqForRating);
+    RatingPromptService.recordOpen();
     _streakProvider!.addListener(_refreshDqSafetyNet);
     _moodProvider = context.read<MoodProvider>();
     _moodProvider!.addListener(_refreshDqSafetyNet);
@@ -730,6 +733,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
+    _dqProvider?.removeListener(_onDqForRating);
     _moodProvider?.removeListener(_refreshDqSafetyNet);
     for (final p in <ChangeNotifier?>[
       _dqProvider,
@@ -980,6 +984,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ],
       l10n: context.l10n,
     );
+  }
+
+  /// Đã thấy câu hỏi hôm nay CHƯA mở khoá trong phiên này → lần chuyển sang
+  /// mở khoá kế tiếp là "vừa mở khoá" thật (không phải mở app khi đã xong sẵn).
+  bool _dqSawUnrevealed = false;
+
+  /// Khoảnh khắc vui #1 của thẻ chấm sao (feature feedback): cả hai vừa trả lời.
+  void _onDqForRating() {
+    final dq = _dqProvider;
+    if (dq == null || dq.isLoading) return;
+    if (!dq.hasRevealed) {
+      _dqSawUnrevealed = true;
+    } else if (_dqSawUnrevealed) {
+      _dqSawUnrevealed = false;
+      RatingPromptService.maybePrompt(context, source: 'reveal');
+    }
   }
 
   void _refreshDqSafetyNet() {
@@ -3021,6 +3041,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(context.l10n.photoAddedSuccess)));
+    RatingPromptService.maybePrompt(context, source: 'photo');
   }
 
   /// Compact milestone progress rendered INSIDE the hero CounterCard

@@ -25,6 +25,8 @@ import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/feature_tour_sheet.dart';
+import '../widgets/rating_sheet.dart';
+import 'feedback_screen.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
 import '../widgets/app_time_picker.dart';
@@ -238,6 +240,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             EntranceReveal(
                               order: 2,
                               child: _buildGeneralSection(context),
+                            ),
+                          ],
+                          if (!hasCouple) ...[
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 2,
+                              child: ContentCard(child: _feedbackRow(context)),
                             ),
                           ],
                           if (!hideDataManagement) ...[
@@ -707,6 +716,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _feedbackRow(BuildContext context) {
+    final l10n = context.l10n;
+    return _navRow(
+      icon: IconsaxPlusLinear.message_question,
+      title: l10n.settingsFeedbackTitle,
+      subtitle: l10n.settingsFeedbackSubtitle,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: 'Feedback'),
+          builder: (_) => const FeedbackScreen(),
+        ),
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Group: General — language, analytics opt-out (D1c) and the privacy-policy
   // link (promoted from the old 12px footer link: a compliance touchpoint
@@ -847,6 +871,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mode: LaunchMode.externalApplication,
                 ),
               ),
+              _rowDivider(),
+              // Đánh giá + góp ý (feature: feedback, D4).
+              _navRow(
+                icon: IconsaxPlusLinear.star_1,
+                title: l10n.settingsRateAppTitle,
+                subtitle: l10n.settingsRateAppSubtitle,
+                onTap: () => RatingSheet.show(context, source: 'settings'),
+              ),
+              _rowDivider(),
+              _feedbackRow(context),
               _rowDivider(),
               // "What's new" — replays the version feature tour on demand
               // (feature: onboarding, 2026-09-05).

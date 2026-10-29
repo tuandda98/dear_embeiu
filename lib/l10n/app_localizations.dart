@@ -12561,6 +12561,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to set the address'**
   String get arrivalSetAddressCta;
+
+  /// No description provided for @rateAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How\'s Dear Embeiu treating you?'**
+  String get rateAppTitle;
+
+  /// No description provided for @rateAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It only takes a few seconds.'**
+  String get rateAppSubtitle;
+
+  /// No description provided for @rateAppStar1.
+  ///
+  /// In en, this message translates to:
+  /// **'Not great'**
+  String get rateAppStar1;
+
+  /// No description provided for @rateAppStar2.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get rateAppStar2;
+
+  /// No description provided for @rateAppStar3.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s okay'**
+  String get rateAppStar3;
+
+  /// No description provided for @rateAppStar4.
+  ///
+  /// In en, this message translates to:
+  /// **'Pretty good'**
+  String get rateAppStar4;
+
+  /// No description provided for @rateAppStar5.
+  ///
+  /// In en, this message translates to:
+  /// **'Love it'**
+  String get rateAppStar5;
+
+  /// No description provided for @rateAppCtaDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a rating'**
+  String get rateAppCtaDefault;
+
+  /// No description provided for @rateAppCtaIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate on the App Store'**
+  String get rateAppCtaIos;
+
+  /// No description provided for @rateAppCtaAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate on Google Play'**
+  String get rateAppCtaAndroid;
+
+  /// No description provided for @rateAppCtaLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened'**
+  String get rateAppCtaLow;
+
+  /// No description provided for @rateAppLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get rateAppLater;
+
+  /// No description provided for @rateAppStarSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stars'**
+  String rateAppStarSemantics(int count);
+
+  /// No description provided for @rateAppStarsGroupSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Dear Embeiu'**
+  String get rateAppStarsGroupSemantics;
+
+  /// No description provided for @settingsRateAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Dear Embeiu'**
+  String get settingsRateAppTitle;
+
+  /// No description provided for @settingsRateAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave a rating on the app store'**
+  String get settingsRateAppSubtitle;
+
+  /// No description provided for @settingsFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback & bug reports'**
+  String get settingsFeedbackTitle;
+
+  /// No description provided for @settingsFeedbackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s off, or what would you like to see?'**
+  String get settingsFeedbackSubtitle;
+
+  /// No description provided for @feedbackBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'FEEDBACK'**
+  String get feedbackBadge;
+
+  /// No description provided for @feedbackTypeSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion'**
+  String get feedbackTypeSuggestion;
+
+  /// No description provided for @feedbackTypeBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug report'**
+  String get feedbackTypeBug;
+
+  /// No description provided for @feedbackFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get feedbackFieldLabel;
+
+  /// No description provided for @feedbackHintSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What should we add, or make easier to use?'**
+  String get feedbackHintSuggestion;
+
+  /// No description provided for @feedbackHintBug.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened? What did you tap, on which screen, and what did you expect?'**
+  String get feedbackHintBug;
+
+  /// No description provided for @feedbackHintLowRating.
+  ///
+  /// In en, this message translates to:
+  /// **'What let you down? A single line is fine.'**
+  String get feedbackHintLowRating;
+
+  /// No description provided for @feedbackRatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You rated us {count}/5'**
+  String feedbackRatedLabel(int count);
+
+  /// No description provided for @feedbackCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/2000'**
+  String feedbackCounter(int count);
+
+  /// No description provided for @feedbackAttachCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a screenshot'**
+  String get feedbackAttachCta;
+
+  /// No description provided for @feedbackPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached screenshot'**
+  String get feedbackPhotoLabel;
+
+  /// No description provided for @feedbackPhotoRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove screenshot'**
+  String get feedbackPhotoRemove;
+
+  /// No description provided for @feedbackPhotoError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open that image. Try another.'**
+  String get feedbackPhotoError;
+
+  /// No description provided for @feedbackPhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That image is too large (10 MB max).'**
+  String get feedbackPhotoTooLarge;
+
+  /// No description provided for @feedbackDeviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'We include your app version, OS and device model so we can track issues down faster.'**
+  String get feedbackDeviceNote;
+
+  /// No description provided for @feedbackSendCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get feedbackSendCta;
+
+  /// No description provided for @feedbackRetryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get feedbackRetryCta;
+
+  /// No description provided for @feedbackErrorBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Check your connection and try again. Your message is still here.'**
+  String get feedbackErrorBanner;
+
+  /// No description provided for @feedbackSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get feedbackSuccessTitle;
+
+  /// No description provided for @feedbackSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We got your message.'**
+  String get feedbackSuccessBody;
+
+  /// No description provided for @feedbackDoneCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get feedbackDoneCta;
 }
 
 class _AppLocalizationsDelegate

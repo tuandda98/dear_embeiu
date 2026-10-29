@@ -37,3 +37,17 @@
 
 ## Nhật ký backend
 - [2026-10-29] [dev] Thêm rules feedback + storage feedback/{uid} + CF notifyFeedback; test 537 pass; deploy DEV xong.
+
+## Client (2026-10-29)
+
+- **Trạng thái:** xong, chờ test. `flutter analyze` sạch; `flutter test test/rating_prompt_test.dart` 7/7.
+- **Package mới:** `in_app_review ^2.0.12`, `device_info_plus ^12.4.0` (pubspec + lock). `pod install` iOS chạy cho 2 plugin mới.
+- **File mới:** `lib/services/feedback_service.dart` (submit: upload `feedback/<uid>/<uuid>.jpg` trước → `add` doc; timeout 20s; bỏ key tuỳ chọn thay vì null; thu OS/đời máy qua device_info, `utsname.machine` trên iOS) · `lib/services/rating_prompt_service.dart` (Hive `app_settings`: `rating_first_open`, `rating_open_count`, `rating_last_prompt`, `rating_rated_high`; hàm thuần `shouldPrompt`; `maybePrompt` chờ 1s, chỉ hiện khi `ModalRoute.isCurrent` và không có `CatchupGate`) · `lib/widgets/rating_sheet.dart` · `lib/screens/feedback_screen.dart` · `test/rating_prompt_test.dart`.
+- **Sửa:** `settings_screen.dart` (2 tile cuối nhóm "Chung"; bản rút gọn chưa có couple: 1 `ContentCard` tile Góp ý trên khối danger) · `home_screen.dart` (`recordOpen` + listener `_onDqForRating` + hook sau đăng ảnh) · `gallery_screen.dart` (hook sau `addPhotosBatch` thành công) · `analytics_service.dart` (`rate_prompt_shown{source}`, `rate_stars{stars}`, `feedback_sent{type}`) · ARB en+vi (+37 key; file ARB bị json.dump định dạng lại vài dòng `placeholders`, không đổi nghĩa).
+- **Hook 2 khoảnh khắc:** (a) reveal: `_onDqForRating` nghe `DailyQuestionProvider`; chỉ gọi khi đã THẤY trạng thái chưa mở khoá trong phiên rồi chuyển sang `hasRevealed` (mở app lúc đã xong sẵn thì không mời). (b) đăng ảnh: cuối đường `addPhotosBatch` (successCount>0) và `addPhoto` camera ở Home.
+- **Chấm 4–5:** `markRatedHigh` → `isAvailable()`/`requestReview()`, không được thì `openStoreListing(appStoreId: 6775165592)`. 1–3: đóng sheet, push `FeedbackScreen(lowRating)`.
+- **Soát UX:** theo `design.md` (đã tra UI UX Pro Max); không thêm thành phần ngoài spec.
+- **Ngỏ / Tester soi:** (1) "ngày cài" = lần đầu chạy bản này (user cũ phải đợi 7 ngày kể từ lúc cập nhật; marker cài đặt của InstallState là file private nên không dùng). (2) Hộp `requestReview` chỉ test được trên bản store/TestFlight; iOS giới hạn 3 lần/năm. (3) Android: `openStoreListing` không cần id. (4) Rules `feedback` cần PROD lên trước app. (5) Chưa smoke runtime sheet/form trên máy; ảnh quá >10MB đã nén 1600px khó xảy ra. (6) Back khi đang gửi thoát và mất nội dung (theo design).
+
+- [2026-10-29] [dev] Client feedback: RatingSheet + FeedbackScreen + FeedbackService + RatingPromptService + 2 tile Settings + ARB vi/en + analytics; analyze sạch, test 7/7.
+- [2026-10-29] [dev] Smoke Android emulator (test4, DEV) PASS: gửi báo lỗi → doc `feedback` + CF log "Feedback email sent."; 2★ → form có "Bạn chấm 2/5 sao"; 5★ → gọi in_app_review (bản sideload không hiện hộp — đúng hành vi Play). Sổ tiền + giờ nhắc câu hỏi đã ẩn. Sửa: icon sao Iconsax là "sao băng" → `Icons.star_rounded`/`star_outline_rounded`; soát copy (humanizer/avoid-ai-writing): bỏ "đọc hết/đọc kỹ từng chữ", "giúp app đến được thêm nhiều cặp đôi", EN "Send to us" → "Send".

@@ -61,6 +61,13 @@ class AnalyticsEvents {
   static const String introFinished = 'intro_finished';
   static const String featureTourShown = 'feature_tour_shown';
 
+  // Đánh giá + góp ý (feature `feedback`). Chỉ số sao / loại / nguồn — không
+  // bao giờ nội dung tin nhắn.
+  static const String ratePromptShown = 'rate_prompt_shown';
+  static const String rateStars = 'rate_stars';
+  static const String feedbackSent = 'feedback_sent';
+  static const String pStars = 'stars'; // rate_stars (int 1..5)
+
   // Auth failures + forgot password (2026-10-14). `reason` = Firebase error
   // code (e.g. wrong-password), never the message or the email.
   static const String loginFailed = 'login_failed';
@@ -648,6 +655,23 @@ class AnalyticsService {
   void logIntroFinished({required bool skipped}) => logEvent(
         AnalyticsEvents.introFinished,
         params: {AnalyticsEvents.pSkipped: skipped},
+      );
+
+  /// [source]: `settings` · `reveal` · `photo`.
+  void logRatePromptShown({required String source}) => logEvent(
+        AnalyticsEvents.ratePromptShown,
+        params: {AnalyticsEvents.pSource: source},
+      );
+
+  void logRateStars(int stars) => logEvent(
+        AnalyticsEvents.rateStars,
+        params: {AnalyticsEvents.pStars: stars},
+      );
+
+  /// [type]: `idea` · `bug` · `rating`.
+  void logFeedbackSent(String type) => logEvent(
+        AnalyticsEvents.feedbackSent,
+        params: {AnalyticsEvents.pType: type},
       );
 
   /// [manual] = opened from Settings → "Có gì mới".

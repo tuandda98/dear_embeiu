@@ -8012,18 +8012,33 @@
   "moneyKeyBillion": "billion",
   "moneyAmountTooBigFor": "{max} max per entry.",
   "@moneyAmountTooBigFor": {
-    "placeholders": {"max": {"type": "String"}}
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
   },
   "moneyWalletTooBigFor": "{max} max per wallet.",
   "@moneyWalletTooBigFor": {
-    "placeholders": {"max": {"type": "String"}}
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
   },
   "moneyAddSource": "Add source",
   "moneyCurrencyTitle": "Currency",
   "moneyTypeSave": "Save",
   "moneySavedContribution": "Put {amount} into {fund}",
   "@moneySavedContribution": {
-    "placeholders": {"amount": {"type": "String"}, "fund": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "fund": {
+        "type": "String"
+      }
+    }
   },
   "moneySaveInto": "Into",
   "moneyPaidFrom": "Paid from",
@@ -8038,30 +8053,60 @@
   "moneyChTplNoTech30": "30 days without gadgets",
   "moneyChTplEatOutCap7": "Eat out under {amount} this week",
   "@moneyChTplEatOutCap7": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyChTplDateCap7": "Dates under {amount} this week",
   "@moneyChTplDateCap7": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyChTplAllCap7": "Spend under {amount} this week",
   "@moneyChTplAllCap7": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengesTitle": "Saving challenges",
   "moneyChallengeNew": "New challenge",
   "moneyChallengeCustom": "Make your own",
   "moneyChallengeDaysLeft": "{n} days left",
   "@moneyChallengeDaysLeft": {
-    "placeholders": {"n": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeCleanDays": "{done}/{total} days",
   "@moneyChallengeCleanDays": {
-    "placeholders": {"done": {"type": "String"}, "total": {"type": "String"}}
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeSpentOf": "{spent} of {limit}",
   "@moneyChallengeSpentOf": {
-    "placeholders": {"spent": {"type": "String"}, "limit": {"type": "String"}}
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeWon": "Done",
   "moneyChallengeLost": "Try again next time",
@@ -8073,34 +8118,68 @@
   "moneyChallengeAll": "All spending",
   "moneyChallengeDays": "{n} days",
   "@moneyChallengeDays": {
-    "placeholders": {"n": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
   },
   "moneyChallengeMax": "3 challenges are running",
   "moneyChallengeLastDayTitle": "Last day of your challenge",
   "moneyChallengeStarted": "Started: {title}",
   "@moneyChallengeStarted": {
-    "placeholders": {"title": {"type": "String"}}
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapTitle": "{month} in review",
   "@moneyRecapTitle": {
-    "placeholders": {"month": {"type": "String"}}
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapKeptBudget": "Stayed within the monthly limit",
   "moneyRecapSpentLess": "Spent {amount} less than {month}",
   "@moneyRecapSpentLess": {
-    "placeholders": {"amount": {"type": "String"}, "month": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapSaved": "Saved {amount} into funds",
   "@moneyRecapSaved": {
-    "placeholders": {"amount": {"type": "String"}}
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapChallenges": "Finished {n} challenges",
   "@moneyRecapChallenges": {
-    "placeholders": {"n": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapLogged": "Logged spending on {n} of {total} days",
   "@moneyRecapLogged": {
-    "placeholders": {"n": {"type": "String"}, "total": {"type": "String"}}
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
   },
   "moneyRecapEmpty": "A new month. Set a limit for it?",
   "moneyChallengeLength": "Length",
@@ -9284,5 +9363,65 @@
   "arrivalSetAddressCta": "Tap to set the address",
   "@arrivalSetAddressCta": {
     "description": "Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ"
-  }
+  },
+  "rateAppTitle": "How's Dear Embeiu treating you?",
+  "rateAppSubtitle": "It only takes a few seconds.",
+  "rateAppStar1": "Not great",
+  "rateAppStar2": "Needs work",
+  "rateAppStar3": "It's okay",
+  "rateAppStar4": "Pretty good",
+  "rateAppStar5": "Love it",
+  "rateAppCtaDefault": "Pick a rating",
+  "rateAppCtaIos": "Rate on the App Store",
+  "rateAppCtaAndroid": "Rate on Google Play",
+  "rateAppCtaLow": "Tell us what happened",
+  "rateAppLater": "Not now",
+  "rateAppStarSemantics": "{count} stars",
+  "@rateAppStarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rateAppStarsGroupSemantics": "Rate Dear Embeiu",
+  "settingsRateAppTitle": "Rate Dear Embeiu",
+  "settingsRateAppSubtitle": "Leave a rating on the app store",
+  "settingsFeedbackTitle": "Feedback & bug reports",
+  "settingsFeedbackSubtitle": "What's off, or what would you like to see?",
+  "feedbackBadge": "FEEDBACK",
+  "feedbackTypeSuggestion": "Suggestion",
+  "feedbackTypeBug": "Bug report",
+  "feedbackFieldLabel": "Message",
+  "feedbackHintSuggestion": "What should we add, or make easier to use?",
+  "feedbackHintBug": "What happened? What did you tap, on which screen, and what did you expect?",
+  "feedbackHintLowRating": "What let you down? A single line is fine.",
+  "feedbackRatedLabel": "You rated us {count}/5",
+  "@feedbackRatedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackCounter": "{count}/2000",
+  "@feedbackCounter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackAttachCta": "Attach a screenshot",
+  "feedbackPhotoLabel": "Attached screenshot",
+  "feedbackPhotoRemove": "Remove screenshot",
+  "feedbackPhotoError": "Couldn't open that image. Try another.",
+  "feedbackPhotoTooLarge": "That image is too large (10 MB max).",
+  "feedbackDeviceNote": "We include your app version, OS and device model so we can track issues down faster.",
+  "feedbackSendCta": "Send",
+  "feedbackRetryCta": "Try again",
+  "feedbackErrorBanner": "Couldn't send. Check your connection and try again. Your message is still here.",
+  "feedbackSuccessTitle": "Thank you",
+  "feedbackSuccessBody": "We got your message.",
+  "feedbackDoneCta": "Done"
 }

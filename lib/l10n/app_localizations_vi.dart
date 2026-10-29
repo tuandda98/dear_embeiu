@@ -7585,4 +7585,134 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get arrivalSetAddressCta => 'Chạm để đặt địa chỉ';
+
+  @override
+  String get rateAppTitle => 'Bạn thấy Dear Embeiu thế nào?';
+
+  @override
+  String get rateAppSubtitle => 'Chỉ mất vài giây thôi.';
+
+  @override
+  String get rateAppStar1 => 'Chưa ổn lắm';
+
+  @override
+  String get rateAppStar2 => 'Còn thiếu nhiều';
+
+  @override
+  String get rateAppStar3 => 'Tạm được';
+
+  @override
+  String get rateAppStar4 => 'Khá thích';
+
+  @override
+  String get rateAppStar5 => 'Rất thích';
+
+  @override
+  String get rateAppCtaDefault => 'Chọn số sao';
+
+  @override
+  String get rateAppCtaIos => 'Đánh giá trên App Store';
+
+  @override
+  String get rateAppCtaAndroid => 'Đánh giá trên Google Play';
+
+  @override
+  String get rateAppCtaLow => 'Kể chúng mình nghe';
+
+  @override
+  String get rateAppLater => 'Để sau';
+
+  @override
+  String rateAppStarSemantics(int count) {
+    return '$count sao';
+  }
+
+  @override
+  String get rateAppStarsGroupSemantics => 'Chấm sao cho Dear Embeiu';
+
+  @override
+  String get settingsRateAppTitle => 'Đánh giá Dear Embeiu';
+
+  @override
+  String get settingsRateAppSubtitle =>
+      'Chấm sao cho app trên cửa hàng ứng dụng';
+
+  @override
+  String get settingsFeedbackTitle => 'Góp ý & báo lỗi';
+
+  @override
+  String get settingsFeedbackSubtitle =>
+      'Điều gì chưa ổn, hay bạn muốn có thêm gì?';
+
+  @override
+  String get feedbackBadge => 'GÓP Ý & BÁO LỖI';
+
+  @override
+  String get feedbackTypeSuggestion => 'Góp ý';
+
+  @override
+  String get feedbackTypeBug => 'Báo lỗi';
+
+  @override
+  String get feedbackFieldLabel => 'Nội dung';
+
+  @override
+  String get feedbackHintSuggestion =>
+      'Bạn muốn app có thêm gì, hay sửa chỗ nào cho dễ dùng hơn?';
+
+  @override
+  String get feedbackHintBug =>
+      'Chuyện gì đã xảy ra? Bạn bấm gì, ở màn hình nào, và lẽ ra phải thế nào?';
+
+  @override
+  String get feedbackHintLowRating =>
+      'Điều gì khiến bạn chưa hài lòng? Một dòng cũng được.';
+
+  @override
+  String feedbackRatedLabel(int count) {
+    return 'Bạn chấm $count/5 sao';
+  }
+
+  @override
+  String feedbackCounter(int count) {
+    return '$count/2000';
+  }
+
+  @override
+  String get feedbackAttachCta => 'Đính kèm ảnh chụp màn hình';
+
+  @override
+  String get feedbackPhotoLabel => 'Ảnh đính kèm';
+
+  @override
+  String get feedbackPhotoRemove => 'Bỏ ảnh đính kèm';
+
+  @override
+  String get feedbackPhotoError => 'Không mở được ảnh này. Thử ảnh khác nhé.';
+
+  @override
+  String get feedbackPhotoTooLarge => 'Ảnh lớn quá, tối đa 10 MB.';
+
+  @override
+  String get feedbackDeviceNote =>
+      'Chúng mình gửi kèm phiên bản app, hệ điều hành và đời máy để tìm lỗi nhanh hơn.';
+
+  @override
+  String get feedbackSendCta => 'Gửi cho chúng mình';
+
+  @override
+  String get feedbackRetryCta => 'Thử lại';
+
+  @override
+  String get feedbackErrorBanner =>
+      'Chưa gửi được. Kiểm tra mạng rồi thử lại, nội dung của bạn vẫn còn đây.';
+
+  @override
+  String get feedbackSuccessTitle => 'Cảm ơn bạn';
+
+  @override
+  String get feedbackSuccessBody => 'Chúng mình đã nhận được góp ý của bạn.';
+
+  @override
+  String get feedbackDoneCta => 'Xong';
 }
