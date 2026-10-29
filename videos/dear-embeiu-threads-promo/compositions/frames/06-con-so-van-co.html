@@ -1,0 +1,209 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face{font-family:"Quicksand";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Bold.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:300;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Light.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Medium.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Regular.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-SemiBold.ttf") format("truetype");}
+    /* Quicksand ships 300–700; weight 800 maps to the Bold file, as in the app. */
+    @font-face{font-family:"Quicksand";font-weight:800;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Bold.ttf") format("truetype");}
+
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Quicksand", sans-serif;
+      color: #1a1a2e;
+    }
+
+    /* Ground (same as frame 02): faint grain over 2 soft glows (white top-left, rose bottom-right) over dawnBlush. */
+    #f06-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E") 0 0 / 240px 240px,
+        radial-gradient(70% 42% at 14% 10%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 70%),
+        radial-gradient(70% 42% at 88% 92%, rgba(255, 77, 109, 0.12), rgba(255, 77, 109, 0) 70%),
+        linear-gradient(135deg, #ffc1cc 0%, #e8b4d8 50%, #c8a8e9 100%);
+    }
+
+    /* Static rose glow behind the phone (10%). The flat core sits under the phone; the fade
+       is what shows, as a warm aura along the phone's sides and above its top edge. */
+    #f06-halo {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(470px 900px at 540px 1280px, rgba(255, 77, 109, 0.1) 0%, rgba(255, 77, 109, 0.1) 55%, rgba(255, 77, 109, 0) 100%);
+    }
+
+    /* Phone rig (shared by frames 3–6). A 12px ring, so the screen rect (x 240, y 652, 600×1304)
+       stays an empty transparent hole for the hoisted recording. Bottom bleeds 48px past the canvas. */
+    #f06-phone {
+      position: absolute;
+      left: 228px;
+      top: 640px;
+      width: 624px;
+      height: 1328px;
+      box-sizing: border-box;
+      border: 12px solid #1b1d22;
+      border-radius: 100px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
+    }
+    /* 1px highlight just inside the body's outer edge (backs out over the border). */
+    #f06-phone::before {
+      content: "";
+      position: absolute;
+      inset: -12px;
+      border-radius: 100px;
+      box-shadow: inset 0 0 0 1px #343740;
+    }
+
+    /* Both cues sit inside 72px gutters, above the phone. Quicksand's ascent is 1.0em and
+       descent 0.25em, so with line-height 1.2 the baseline is 0.975em below the box top:
+       cue 1 baseline at y 300 (top 211.5), cue 2 baseline at y 448 so its x-height band centers near y 430. */
+    #f06-cue1,
+    #f06-cue2 {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+    }
+    #f06-cue1 {
+      top: 211.5px;
+      font-size: 8.4cqw;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    #f06-cue2 {
+      top: 389px;
+      font-size: 5.6cqw;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .f06-w,
+    #f06-kw {
+      display: inline-block;
+    }
+    #f06-kw {
+      transform-origin: 50% 50%;
+    }
+    /* The period rides inside the keyword so the glow scale cannot collide with it, but stays ink and unglowed. */
+    .f06-stop {
+      color: #1a1a2e;
+      text-shadow: none;
+    }
+  </style>
+
+  <div data-hf-id="hf-bjg7"
+    id="root"
+    lang="vi"
+    data-composition-id="06-con-so-van-co"
+    data-duration="3.95"
+    data-width="1080"
+    data-height="1920"
+  >
+    <div data-hf-id="hf-mt9x" id="f06-ground" class="clip" data-start="0" data-duration="3.95" data-track-index="0"></div>
+    <div data-hf-id="hf-z6qi" id="f06-halo"></div>
+    <div data-hf-id="hf-8i4k" id="f06-phone"></div>
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <div data-hf-id="hf-2kj1" id="f06-cue1">Con số vẫn có.</div>
+    <div data-hf-id="hf-ld81" id="f06-cue2"><span data-hf-id="hf-x60v" class="f06-w">Chỉ</span> <span data-hf-id="hf-1q9v" class="f06-w">là</span> <span data-hf-id="hf-8a87" class="f06-w">không</span> <span data-hf-id="hf-xrcs" class="f06-w">còn</span> <span data-hf-id="hf-l79t" id="f06-kw"><span data-hf-id="hf-roqo" class="f06-w">trơ</span> <span data-hf-id="hf-uphz" class="f06-w">trọi<span data-hf-id="hf-g26q" class="f06-stop">.</span></span></span></div>
+  </div>
+
+  <script>
+    (function () {
+      var byId = function (name) {
+        return document.getElementById("f06-" + name);
+      };
+      var DURATION = 3.95;
+      // One cue grid drives every reveal: cue 1 lands, cue 2 starts, then everything holds still.
+      var CUE = { slam: 0.8, words: 1.9, still: 2.6 };
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–0.8s): nothing tweens. The rig and the glow are static from the hard cut;
+      // only the hoisted Home recording plays (counter ticking).
+
+      // Scene 2 (0.8–1.9s): kinetic-beat-slam on cue 1 — scale + blur + opacity resolve on power4.out,
+      // which has no overshoot. It covers ~85% of the move in its first 0.16s, so the hit reads at
+      // CUE.slam and the remaining 0.34s is the smooth settle.
+      tl.fromTo(
+        byId("cue1"),
+        { scale: 1.3, opacity: 0, filter: "blur(12px)" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power4.out" },
+        CUE.slam - 0.16,
+      );
+
+      // Scene 3 (1.9–2.6s): cue 2 reveals per word with frame 02's length-based cadence
+      // (a longer word holds the cursor a touch longer before the next one starts).
+      var cursor = CUE.words;
+      var kwOnset = null;
+      Array.prototype.forEach.call(byId("cue2").querySelectorAll(".f06-w"), function (word) {
+        tl.fromTo(
+          word,
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.34, ease: "power2.out" },
+          cursor,
+        );
+        if (kwOnset === null && word.parentNode === byId("kw")) kwOnset = cursor;
+        cursor += 0.02 + word.textContent.length * 0.008;
+      });
+
+      // asr-keyword-glow, once, on "trơ trọi": one linear driver sweeps frame time and an
+      // attack–sustain–release envelope (resting above zero) drives a lavender text-shadow + scale.
+      // The attack starts as "trơ" rises; the release ends exactly at CUE.still.
+      var ATTACK = 0.14;
+      var RELEASE = 0.24;
+      var REST_LEVEL = 0.35;
+      var MAX_BLUR = 22;
+      var MAX_SCALE_BOOST = 0.06;
+      var KW = { start: kwOnset + 0.04, end: CUE.still - RELEASE };
+      // Color shift on the peak, capped: the text tints ink -> lavender only up to 40% (#524780,
+      // ~4.8:1 on the blush) so it stays readable; full #A78BFA lives in the glow, not the glyphs.
+      var TINT = 0.4;
+      var INK = [26, 26, 46];
+      var LAVENDER = [167, 139, 250];
+
+      function envelope(time, start, end) {
+        if (time < start) return 0;
+        if (time < end) return Math.min((time - start) / ATTACK, 1);
+        var releaseEnd = end + RELEASE;
+        if (time < releaseEnd) return 1 - ((time - end) / RELEASE) * (1 - REST_LEVEL);
+        return REST_LEVEL;
+      }
+
+      var kw = byId("kw");
+      var driver = { t: 0 };
+      tl.fromTo(
+        driver,
+        { t: 0 },
+        {
+          t: DURATION,
+          duration: DURATION,
+          ease: "none", // linear: driver.t maps 1:1 to frame time
+          onUpdate: function () {
+            var env = envelope(driver.t, KW.start, KW.end);
+            var mix = TINT * Math.min(env / REST_LEVEL, 1);
+            kw.style.color =
+              "rgb(" +
+              INK.map(function (c, i) {
+                return Math.round(c + (LAVENDER[i] - c) * mix);
+              }).join(",") +
+              ")";
+            kw.style.textShadow =
+              "0 0 " + (MAX_BLUR * env).toFixed(2) + "px rgba(167,139,250," + (0.9 * env).toFixed(3) + ")";
+            kw.style.transform = "scale(" + (1 + MAX_SCALE_BOOST * env).toFixed(4) + ")";
+          },
+        },
+        0,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["06-con-so-van-co"] = tl;
+    })();
+  </script>
+</template>

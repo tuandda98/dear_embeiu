@@ -1,0 +1,5 @@
+# HyperFrames project — giữ nguồn (index, compositions, assets nhỏ), bỏ sản phẩm sinh ra
+node_modules/
+.hyperframes/artifacts/
+renders/
+capture/assets/bgm-source.mp3

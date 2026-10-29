@@ -1,0 +1,283 @@
+<template>
+  <style>
+    @font-face { font-family: "Quicksand"; font-weight: 300; font-style: normal; font-display: block; src: url("assets/fonts/Quicksand-Light.ttf") format("truetype"); }
+    @font-face { font-family: "Quicksand"; font-weight: 400; font-style: normal; font-display: block; src: url("assets/fonts/Quicksand-Regular.ttf") format("truetype"); }
+    @font-face { font-family: "Quicksand"; font-weight: 500; font-style: normal; font-display: block; src: url("assets/fonts/Quicksand-Medium.ttf") format("truetype"); }
+    @font-face { font-family: "Quicksand"; font-weight: 600; font-style: normal; font-display: block; src: url("assets/fonts/Quicksand-SemiBold.ttf") format("truetype"); }
+    @font-face { font-family: "Quicksand"; font-weight: 700; font-style: normal; font-display: block; src: url("assets/fonts/Quicksand-Bold.ttf") format("truetype"); }
+
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Quicksand", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- ground: wallpaper -> navy scrim -> rose glow -> grain ---------- */
+    #f01-notification-ground {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #0d0d1a; /* dark fill so the blurred photo edge never shows the host canvas */
+    }
+    /* oversized by 30px a side so the faint blur never reaches the frame edge */
+    #f01-notification-wall {
+      position: absolute;
+      inset: -30px;
+      transform-origin: 50% 37.4%; /* the card's center, so the 1% nudge leans toward it */
+    }
+    #f01-notification-wall-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(3px);
+    }
+    #f01-notification-scrim {
+      position: absolute;
+      inset: 0;
+      background: #1a1a2e;
+      opacity: 0.55;
+    }
+    /* soft rose glow centred on the resting card (540, 710) */
+    #f01-notification-glow {
+      position: absolute;
+      left: -80px;
+      top: 410px;
+      width: 1240px;
+      height: 600px;
+      background: radial-gradient(
+        closest-side,
+        rgba(255, 77, 109, 0.14) 0%,
+        rgba(255, 77, 109, 0.08) 55%,
+        rgba(255, 77, 109, 0) 100%
+      );
+    }
+    #f01-notification-grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.03;
+      background-size: 256px 256px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    /* ---------- notification banner (one iOS-style card) ---------- */
+    #f01-notification-banner {
+      position: absolute;
+      inset: 0;
+    }
+    #f01-notification-drop {
+      position: absolute;
+      left: 65px; /* 950px wide = 88% of 1080, centred */
+      top: 618px;
+      width: 950px;
+      height: 184px;
+    }
+    #f01-notification-card {
+      position: absolute;
+      inset: 0;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      backdrop-filter: blur(24px) saturate(1.4);
+      transform-origin: 50% 50%;
+    }
+    #f01-notification-icon {
+      position: absolute;
+      left: 34px;
+      top: 40px;
+      width: 104px;
+      height: 104px;
+      border-radius: 22.4%; /* matches the squircle baked into app_icon.png */
+    }
+    #f01-notification-text {
+      position: absolute;
+      left: 166px;
+      right: 34px;
+      top: 34px;
+    }
+    #f01-notification-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    #f01-notification-app {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #1a1a2e;
+    }
+    #f01-notification-when {
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: #5a5b6e; /* ~5:1 on the frosted card */
+    }
+    #f01-notification-body {
+      margin-top: 6px;
+      font-size: 40px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: #1a1a2e;
+      white-space: nowrap;
+    }
+
+    /* ---------- lock-screen header: lock glyph, date, clock ---------- */
+    #f01-notification-lockup {
+      position: absolute;
+      inset: 0;
+    }
+    #f01-notification-lockup-inner {
+      position: absolute;
+      inset: 0;
+      transform-origin: 540px 474px; /* the clock's centre */
+    }
+    #f01-notification-lock {
+      position: absolute;
+      left: 523px;
+      top: 220px;
+      width: 34px;
+      height: 46px;
+      opacity: 0.92;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+    }
+    #f01-notification-date {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 310px;
+      text-align: center;
+      font-size: 46px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: rgba(255, 255, 255, 0.92);
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    #f01-notification-time {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 352px; /* digits sit at y 393-555 */
+      text-align: center;
+      font-size: 232px;
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 8px 40px rgba(0, 0, 0, 0.25);
+    }
+    /* Quicksand's colon sits on the x-height; lift it to the digits' centre */
+    #f01-notification-colon {
+      position: relative;
+      top: -0.1em;
+      margin: 0 0.03em 0 0.01em;
+    }
+  </style>
+
+  <div data-hf-id="hf-31mp" id="root" data-composition-id="01-notification" data-width="1080" data-height="1920" data-duration="3.8">
+    <div data-hf-id="hf-nv5s" id="f01-notification-ground" class="clip" data-start="0" data-duration="3.8" data-track-index="0">
+      <div data-hf-id="hf-6gzd" id="f01-notification-wall">
+        <img data-hf-id="hf-7nhk" id="f01-notification-wall-img" src="assets/bg-lock.jpg" alt="" />
+      </div>
+      <div data-hf-id="hf-3xo1" id="f01-notification-scrim"></div>
+      <div data-hf-id="hf-fsce" id="f01-notification-glow"></div>
+      <div data-hf-id="hf-qxhe" id="f01-notification-grain"></div>
+    </div>
+
+    <!-- banner sits under the lock-screen header, so its drop passes beneath the clock -->
+    <div data-hf-id="hf-dtke" id="f01-notification-banner" class="clip" data-start="0.6" data-duration="3.2" data-track-index="1">
+      <div data-hf-id="hf-2ovu" id="f01-notification-drop">
+        <div data-hf-id="hf-amxv" id="f01-notification-card">
+          <img data-hf-id="hf-jv9m" id="f01-notification-icon" src="assets/app_icon.png" alt="Dear Embeiu" />
+          <div data-hf-id="hf-b8ls" id="f01-notification-text">
+            <div data-hf-id="hf-htpj" id="f01-notification-head">
+              <span data-hf-id="hf-47zq" id="f01-notification-app">Dear Embeiu</span>
+              <span data-hf-id="hf-c0fk" id="f01-notification-when">bây giờ</span>
+            </div>
+            <div data-hf-id="hf-o26c" id="f01-notification-body">Tuấn đang thấy Nhớ 🥹</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-hf-id="hf-t3g9" id="f01-notification-lockup" class="clip" data-start="0" data-duration="3.8" data-track-index="2">
+      <div data-hf-id="hf-rmf4" id="f01-notification-lockup-inner">
+        <svg data-hf-id="hf-ukiy" id="f01-notification-lock" viewBox="0 0 34 46" aria-hidden="true">
+          <path data-hf-id="hf-g58j" d="M9.5 21V14a7.5 7.5 0 0 1 15 0v7" fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linecap="round" />
+          <rect data-hf-id="hf-7xzg" x="3" y="19.5" width="28" height="24" rx="6" fill="#ffffff" />
+        </svg>
+        <div data-hf-id="hf-8v4n" id="f01-notification-date">Thứ Tư, 15 tháng 10</div>
+        <div data-hf-id="hf-qwct" id="f01-notification-time">22<span data-hf-id="hf-wi21" id="f01-notification-colon">:</span>41</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-0.6s): the lock screen wakes. Clock group pops in from 96%, smooth settle.
+      tl.fromTo(
+        "#f01-notification-lockup-inner",
+        { opacity: 0, scale: 0.96 },
+        { opacity: 1, scale: 1, duration: 0.4, ease: "power3.out" },
+        0
+      );
+
+      // Scene 2 (0.6-1.6s): the banner drops from above the clock and settles just under it.
+      // It travels beneath the clock layer; the fast expo front clears the clock in ~0.17s.
+      // Drop (wrapper y) and pop (card scale) both settle on long tails, no overshoot.
+      // Opacity sits on the card itself (the element that owns the backdrop blur) and stays
+      // faint while the card is still behind the digits, then solidifies as it lands.
+      tl.fromTo(
+        "#f01-notification-drop",
+        { y: -368 },
+        { y: 0, duration: 0.7, ease: "expo.out" },
+        0.6
+      );
+      tl.fromTo(
+        "#f01-notification-card",
+        { scale: 0.78 },
+        { scale: 1, duration: 0.6, ease: "power3.out" },
+        0.6
+      );
+      tl.fromTo(
+        "#f01-notification-card",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "power2.in" },
+        0.6
+      );
+      // As it lands the phone "lights up": scrim +10%, wallpaper +1%. One tween each, then locked.
+      tl.fromTo(
+        "#f01-notification-scrim",
+        { opacity: 0.55 },
+        { opacity: 0.65, duration: 0.5, ease: "power2.out" },
+        0.88
+      );
+      tl.fromTo(
+        "#f01-notification-wall",
+        { scale: 1 },
+        { scale: 1.01, duration: 0.6, ease: "power2.out" },
+        0.88
+      );
+
+      // Scene 3 (1.6s-end): hold. A soft rose glow fades up once behind the card and stays.
+      tl.fromTo(
+        "#f01-notification-glow",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.6, ease: "sine.inOut" },
+        1.6
+      );
+
+      window.__timelines["01-notification"] = tl;
+    })();
+  </script>
+</template>
