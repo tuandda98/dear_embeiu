@@ -1,0 +1,277 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face{font-family:"Quicksand";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Bold.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:300;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Light.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Medium.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Regular.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-SemiBold.ttf") format("truetype");}
+
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Quicksand", sans-serif;
+      color: #1a1a2e;
+    }
+
+    /* Ground (same as frames 02 and 04): faint grain over 2 soft glows (white top-left,
+       rose bottom-right) over dawnBlush. */
+    #f05-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E") 0 0 / 240px 240px,
+        radial-gradient(70% 42% at 14% 10%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 70%),
+        radial-gradient(70% 42% at 88% 92%, rgba(255, 77, 109, 0.12), rgba(255, 77, 109, 0) 70%),
+        linear-gradient(135deg, #ffc1cc 0%, #e8b4d8 50%, #c8a8e9 100%);
+    }
+
+    /* Static 10% rose haze behind the phone (plain CSS, never animated) — same as frame 04,
+       so the 4→5 cut keeps an identical ground. */
+    #f05-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(70% 40% at 50% 62%, rgba(255, 77, 109, 0.1), rgba(255, 77, 109, 0) 75%);
+    }
+
+    /* Standalone preview only. At assembly the recording is hoisted to the host root with
+       exactly this geometry (from the data-frame-video-* attributes), above this frame. */
+    #root > video[data-frame-video] {
+      position: absolute;
+      left: 240px;
+      top: 652px;
+      width: 600px;
+      height: 1304px;
+      object-fit: cover;
+    }
+
+    /* Phone rig shared by frames 3–6: hardware only, a 12px ring around a transparent screen
+       hole (x 240–840, y 652–1956). The bottom bleeds 48px past the canvas on purpose. */
+    #f05-phone {
+      position: absolute;
+      left: 228px;
+      top: 640px;
+      width: 624px;
+      height: 1328px;
+      box-sizing: border-box;
+      border: 12px solid #1b1d22;
+      border-radius: 100px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
+    }
+    /* 1px inner highlight along the body's outer rim (on the bezel, not in the hole). */
+    #f05-phone::before {
+      content: "";
+      position: absolute;
+      inset: -12px;
+      border-radius: 100px;
+      box-shadow: inset 0 0 0 1px #343740;
+    }
+
+    /* Question chip: rose pill, white caps (700 so white-on-rose clears 3:1 as large bold text).
+       Right padding trimmed by the trailing 0.12em of tracking so the label centers. */
+    #f05-chip {
+      position: absolute;
+      left: 72px;
+      top: 176px;
+      height: 44px;
+      box-sizing: border-box;
+      padding: 0 17px 0 20px;
+      display: flex;
+      align-items: center;
+      border-radius: 9999px;
+      background: #ff4d6d;
+      color: #ffffff;
+      font-size: 2.2cqw;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    /* Three set lines (y 236–490): a free wrap at 640px strands "nhau?" alone and splits
+       "chúng mình"; the explicit breaks keep both phrases whole. */
+    #f05-headline {
+      position: absolute;
+      left: 72px;
+      top: 236px;
+      max-width: 640px;
+      font-size: 6.8cqw;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #f05-headline > span {
+      display: inline-block;
+    }
+
+    /* The old app's card, ghosted (frame 02's bland card at 45%), and its whole "answer".
+       One wrapper so the 3.6s "gives up" dim is a single tween over both. */
+    #f05-ghost {
+      position: absolute;
+      left: 744px;
+      top: 176px;
+      width: 264px;
+    }
+    #f05-ghost-card {
+      height: 150px;
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 10px 16px rgba(26, 26, 46, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7cqw;
+      opacity: 0.45;
+    }
+    #f05-ghost-count {
+      font-size: 3.2cqw;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #f05-ghost-heart {
+      font-size: 2cqw;
+      line-height: 1;
+    }
+    /* Box top at y 300 (as in frame 04): the dots sit on the baseline, ≈ y 364–376. */
+    #f05-ghost-dots {
+      position: absolute;
+      left: 0;
+      top: 124px;
+      width: 264px;
+      text-align: center;
+      font-size: 8cqw;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 0.6;
+    }
+
+    /* Caption pill: one line fits (≈ 760px of text inside 936px), so it holds the 64px zone. */
+    #f05-caption {
+      position: absolute;
+      left: 72px;
+      top: 548px;
+      height: 64px;
+      max-width: 936px;
+      box-sizing: border-box;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 10px 16px rgba(26, 26, 46, 0.06);
+      font-size: 3.2cqw;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      transform-origin: 0% 50%;
+    }
+    #f05-caption-dot {
+      opacity: 0.4;
+    }
+  </style>
+
+  <div data-hf-id="hf-633w"
+    id="root"
+    lang="vi"
+    data-composition-id="05-cau-3-cau-hoi"
+    data-duration="5.28"
+    data-width="1080"
+    data-height="1920"
+  >
+    <div data-hf-id="hf-5ln2" id="f05-ground" class="clip" data-start="0" data-duration="5.28" data-track-index="0"></div>
+    <div data-hf-id="hf-fbw2" id="f05-glow"></div>
+
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <div data-hf-id="hf-va4j" id="f05-phone"></div>
+
+    <div data-hf-id="hf-h9e8" id="f05-chip">CÂU 3</div>
+    <div data-hf-id="hf-i7qp" id="f05-headline"><span data-hf-id="hf-waio">Hôm</span> <span data-hf-id="hf-3qev">nay</span><br data-hf-id="hf-x5px"><span data-hf-id="hf-1wef">chúng</span> <span data-hf-id="hf-isim">mình</span><br data-hf-id="hf-rsrt"><span data-hf-id="hf-fvux">đã</span> <span data-hf-id="hf-coqh">nói</span> <span data-hf-id="hf-pshm">gì</span> <span data-hf-id="hf-pf3t">với</span> <span data-hf-id="hf-ydue">nhau?</span></div>
+
+    <div data-hf-id="hf-7xb6" id="f05-ghost">
+      <div data-hf-id="hf-rpll" id="f05-ghost-card">
+        <div data-hf-id="hf-sxe6" id="f05-ghost-count">1250 ngày</div>
+        <div data-hf-id="hf-omto" id="f05-ghost-heart">❤️</div>
+      </div>
+      <div data-hf-id="hf-rsp7" id="f05-ghost-dots">…</div>
+    </div>
+
+    <div data-hf-id="hf-bbs9" id="f05-caption">Một câu hỏi mỗi ngày&nbsp;<span data-hf-id="hf-p13j" id="f05-caption-dot">·</span>&nbsp;mở khi cả hai đã trả lời</div>
+  </div>
+
+  <script>
+    (function () {
+      var el = function (name) {
+        return document.getElementById("f05-" + name);
+      };
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–0.7s). The phone and recording are static from t=0 (hard cut in).
+      // Chip: spring-pop-entrance, smooth power3 settle, no overshoot.
+      tl.fromTo(
+        el("chip"),
+        { scale: 0, opacity: 0, y: 12 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        0.04,
+      );
+
+      // Headline: per-word staggered reveal. Onsets are pre-computed once from each
+      // word's length (dynamic-content-sequencing), so longer words hold the cursor a
+      // touch longer; the last word lands at ≈ 0.70s.
+      var HEAD_AT = 0.1;
+      var WORD_BASE = 0.016;
+      var WORD_PER_CHAR = 0.007;
+      var WORD_DUR = 0.3;
+      var cursor = HEAD_AT;
+      var WORDS = Array.prototype.map.call(
+        el("headline").querySelectorAll("span"),
+        function (word) {
+          var start = cursor;
+          cursor += WORD_BASE + word.textContent.length * WORD_PER_CHAR;
+          return { word: word, start: start };
+        },
+      );
+      WORDS.forEach(function (entry) {
+        tl.fromTo(
+          entry.word,
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: WORD_DUR, ease: "power2.out" },
+          entry.start,
+        );
+      });
+
+      // The old card ghost fades in at its fixed spot, then its "…" fades in beneath it.
+      tl.fromTo(el("ghost-card"), { opacity: 0 }, { opacity: 0.45, duration: 0.4, ease: "power2.out" }, 0.22);
+      tl.fromTo(el("ghost-dots"), { opacity: 0 }, { opacity: 0.6, duration: 0.32, ease: "power2.out" }, 0.38);
+
+      // Scene 2 (0.7–3.6s): hold. The recording carries type → send → reveal + confetti.
+
+      // Scene 3 (3.6–5.28s): the caption pill slides up into the caption zone
+      // (spring-pop-entrance, origin at its left gutter, expo.out so it has nearly
+      // settled by the 3.8s poster) while the ghost gives up: the wrapper dims so the
+      // card goes 45% → 25% and its "…" fades in proportion. Then hold.
+      tl.fromTo(
+        el("caption"),
+        { scale: 0, opacity: 0, y: 24 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "expo.out" },
+        3.6,
+      );
+      tl.fromTo(
+        el("ghost"),
+        { opacity: 1 },
+        { opacity: 0.25 / 0.45, duration: 0.8, ease: "power2.inOut" },
+        3.6,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["05-cau-3-cau-hoi"] = tl;
+    })();
+  </script>
+</template>

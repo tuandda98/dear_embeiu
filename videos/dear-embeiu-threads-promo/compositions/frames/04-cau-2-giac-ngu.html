@@ -1,0 +1,309 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face{font-family:"Quicksand";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Bold.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:300;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Light.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Medium.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Regular.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-SemiBold.ttf") format("truetype");}
+
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Quicksand", sans-serif;
+      color: #1a1a2e;
+    }
+
+    /* Ground: very faint grain over 2 soft glows (white top-left, rose bottom-right) over dawnBlush. */
+    #f04-cau-2-giac-ngu-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E") 0 0 / 240px 240px,
+        radial-gradient(70% 42% at 14% 10%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 70%),
+        radial-gradient(70% 42% at 88% 92%, rgba(255, 77, 109, 0.12), rgba(255, 77, 109, 0) 70%),
+        linear-gradient(135deg, #ffc1cc 0%, #e8b4d8 50%, #c8a8e9 100%);
+    }
+
+    /* Static rose glow behind the phone (10%, plain CSS, never animated): it hugs the
+       phone's sides and fades out before the caption zone. (Same as frame 3.) */
+    #f04-cau-2-giac-ngu-glow {
+      position: absolute;
+      left: -160px;
+      top: 590px;
+      width: 1400px;
+      height: 1500px;
+      background: radial-gradient(
+        closest-side,
+        rgba(255, 77, 109, 0.1) 0%,
+        rgba(255, 77, 109, 0.1) 40%,
+        rgba(255, 77, 109, 0) 100%
+      );
+    }
+
+    /* Phone rig shared by frames 3–6 (verbatim from frame 3). A ring only: the screen hole
+       (x 240, y 652, 600×1304, r 88) stays transparent; the approved recording is hoisted above it. */
+    #f04-cau-2-giac-ngu-phone {
+      position: absolute;
+      left: 228px;
+      top: 640px;
+      width: 624px;
+      height: 1328px;
+      box-sizing: border-box;
+      border: 12px solid #1b1d22;
+      border-radius: 100px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
+    }
+    /* 1px inner highlight along the body's outer rim. */
+    #f04-cau-2-giac-ngu-phone::before {
+      content: "";
+      position: absolute;
+      inset: -12px;
+      border-radius: 100px;
+      box-shadow: inset 0 0 0 1px #343740;
+    }
+
+    /* Chip (same box as frame 3's): rose pill, white caps. 24px is WCAG large text, so
+       white on #FF4D6D (3.2:1) passes. Left padding carries the trailing 0.12em of tracking. */
+    #f04-cau-2-giac-ngu-chip {
+      position: absolute;
+      left: 72px;
+      top: 176px;
+      height: 44px;
+      box-sizing: border-box;
+      padding: 0 0.75em 0 0.87em;
+      border-radius: 9999px;
+      background: #ff4d6d;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 44px;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      transform-origin: 50% 50%;
+    }
+
+    /* 6.9cqw (as frame 3) is the largest size where "Đêm qua người ấy" (631px) stays inside
+       the 640px measure; the break is explicit so the question always reads in exactly 2 lines. */
+    #f04-cau-2-giac-ngu-headline {
+      position: absolute;
+      left: 72px;
+      top: 236px;
+      max-width: 640px;
+      font-size: 6.9cqw;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #f04-cau-2-giac-ngu-headline > span {
+      display: inline-block;
+    }
+
+    /* The old card's ghost (identical to frame 3's, so it does not jump at the cut). */
+    #f04-cau-2-giac-ngu-ghost {
+      position: absolute;
+      left: 744px;
+      top: 176px;
+      width: 264px;
+      height: 150px;
+      box-sizing: border-box;
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 10px 16px rgba(26, 26, 46, 0.06);
+      opacity: 0.45;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    #f04-cau-2-giac-ngu-count {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #f04-cau-2-giac-ngu-heart {
+      font-size: 26px;
+      line-height: 1;
+    }
+    /* Its whole "answer": U+2026 in ink 60%, same spot as frame 3 (ink centred under the
+       ghost at x 876, baseline y 387). */
+    #f04-cau-2-giac-ngu-dots {
+      position: absolute;
+      left: 836px;
+      top: 275px;
+      height: 128px;
+      font-size: 128px;
+      font-weight: 700;
+      line-height: 128px;
+      color: rgba(26, 26, 46, 0.6);
+      white-space: nowrap;
+    }
+
+    /* Callout pill in the caption zone (y 548–612). */
+    #f04-cau-2-giac-ngu-callout {
+      position: absolute;
+      left: 72px;
+      top: 548px;
+      height: 64px;
+      max-width: 936px;
+      box-sizing: border-box;
+      padding: 0 30px 0 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 10px 16px rgba(26, 26, 46, 0.06);
+      font-size: 3.8cqw;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      transform-origin: 0% 50%;
+    }
+    #f04-cau-2-giac-ngu-moon {
+      flex: none;
+      width: 28px;
+      height: 28px;
+    }
+    /* Quicksand has no U+2192, so the arrow is drawn: 0.12em stroke = the font's stem,
+       centred on the cap height (0.34em) like the digits around it. */
+    #f04-cau-2-giac-ngu-arrow {
+      width: 0.9em;
+      height: 0.58em;
+      vertical-align: 0.05em;
+      overflow: visible;
+    }
+    /* Quicksand ships no `tnum` feature, so tabular-nums alone does nothing: every counting
+       digit gets a fixed 0.62em cell (widest digit "0" = 0.614em) — the count never jitters. */
+    #f04-cau-2-giac-ngu-figure {
+      display: inline-block;
+      font-variant-numeric: tabular-nums;
+      transform-origin: 0% 55%;
+    }
+    #f04-cau-2-giac-ngu-figure > span {
+      display: inline-block;
+      width: 0.62em;
+      text-align: center;
+    }
+  </style>
+
+  <div data-hf-id="hf-cmgo"
+    id="root"
+    lang="vi"
+    data-composition-id="04-cau-2-giac-ngu"
+    data-duration="5.27"
+    data-width="1080"
+    data-height="1920"
+  >
+    <div data-hf-id="hf-blxx" id="f04-cau-2-giac-ngu-ground" class="clip" data-start="0" data-duration="5.27" data-track-index="0"></div>
+
+    <!-- Approved recording: hoisted to the host root above this frame, into the phone's screen hole. -->
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <div data-hf-id="hf-532c" id="f04-cau-2-giac-ngu-glow"></div>
+    <div data-hf-id="hf-5wfh" id="f04-cau-2-giac-ngu-phone"></div>
+
+    <div data-hf-id="hf-jred" id="f04-cau-2-giac-ngu-chip">CÂU 2</div>
+    <div data-hf-id="hf-4wjv" id="f04-cau-2-giac-ngu-headline"><span data-hf-id="hf-nvxu">Đêm</span> <span data-hf-id="hf-bixm">qua</span> <span data-hf-id="hf-v5z8">người</span> <span data-hf-id="hf-xwq7">ấy</span><br data-hf-id="hf-x5px"><span data-hf-id="hf-nitn">ngủ</span> <span data-hf-id="hf-5fb0">lúc</span> <span data-hf-id="hf-w6e6">mấy</span> <span data-hf-id="hf-a2i9">giờ?</span></div>
+
+    <div data-hf-id="hf-qdbs" id="f04-cau-2-giac-ngu-ghost">
+      <div data-hf-id="hf-liyi" id="f04-cau-2-giac-ngu-count">1250 ngày</div>
+      <div data-hf-id="hf-g0m0" id="f04-cau-2-giac-ngu-heart">❤️</div>
+    </div>
+    <div data-hf-id="hf-si3r" id="f04-cau-2-giac-ngu-dots">…</div>
+
+    <div data-hf-id="hf-4lb5" id="f04-cau-2-giac-ngu-callout">
+      <svg data-hf-id="hf-kpb3" id="f04-cau-2-giac-ngu-moon" viewBox="0 0 24 24" aria-hidden="true"><path data-hf-id="hf-1n3e" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#a78bfa"/></svg>
+      <span data-hf-id="hf-aqva">23:10 <svg data-hf-id="hf-6a2r" id="f04-cau-2-giac-ngu-arrow" viewBox="0 0 90 58" role="img" aria-label="→"><path data-hf-id="hf-cm0l" d="M6 29H84M62 7L84 29L62 51" fill="none" stroke="#1a1a2e" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg> 06:00 · ngủ <span data-hf-id="hf-6l85" id="f04-cau-2-giac-ngu-figure"><span data-hf-id="hf-izfu" id="f04-cau-2-giac-ngu-hh">0</span> giờ <span data-hf-id="hf-et98" id="f04-cau-2-giac-ngu-m1">0</span><span data-hf-id="hf-v6bx" id="f04-cau-2-giac-ngu-m2">0</span></span></span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var el = function (name) {
+        return document.getElementById("f04-cau-2-giac-ngu-" + name);
+      };
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–0.7s): the phone and recording are already there (hard cut). The chip pops
+      // (spring-pop-entrance, power3 smooth settle), the ghost card fades in at its fixed spot,
+      // the question assembles word by word, then the ghost's "…" fades in beneath it.
+      tl.fromTo(
+        el("chip"),
+        { scale: 0, opacity: 0, y: 12 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        0.04,
+      );
+      tl.fromTo(el("ghost"), { opacity: 0 }, { opacity: 0.45, duration: 0.35, ease: "power2.out" }, 0.05);
+
+      // Per-word staggered reveal; onsets pre-computed from each word's length
+      // (dynamic-content-sequencing), same cadence as frame 2.
+      var WORD_BASE = 0.02;
+      var WORD_PER_CHAR = 0.008;
+      var WORD_DUR = 0.32;
+      var cursor = 0.12;
+      Array.prototype.forEach.call(el("headline").querySelectorAll("span"), function (word) {
+        tl.fromTo(word, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: WORD_DUR, ease: "power2.out" }, cursor);
+        cursor += WORD_BASE + word.textContent.length * WORD_PER_CHAR;
+      });
+
+      // The 60% lives in the dots' ink colour, so the element itself fades to 1.
+      tl.fromTo(el("dots"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.4);
+
+      // Scene 2 (0.7–4.0s): hold. The recording carries the beat (calendar → last night's lanes).
+
+      // Scene 3 (4.0–5.27s): the callout pops in out of the left gutter (spring-pop-entrance,
+      // origin-anchored at its left edge + a short slide), then its figure counts 0 giờ 00 →
+      // 6 giờ 50 (counting-dynamic-scale): value and scale share one timing + ease, and onUpdate
+      // writes text only — driven by the timeline, so any seek lands on the right digits.
+      tl.fromTo(
+        el("callout"),
+        { x: -60, scale: 0, opacity: 0 },
+        { x: 0, scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+        4.0,
+      );
+
+      var TARGET_MINUTES = 6 * 60 + 50;
+      var COUNT_AT = 4.06;
+      var COUNT_DUR = 0.8;
+      var START_SCALE = 0.6;
+      var hh = el("hh");
+      var m1 = el("m1");
+      var m2 = el("m2");
+      var state = { minutes: 0 };
+      tl.fromTo(
+        state,
+        { minutes: 0 },
+        {
+          minutes: TARGET_MINUTES,
+          duration: COUNT_DUR,
+          ease: "power3.out",
+          onUpdate: function () {
+            var total = Math.round(state.minutes);
+            var minutes = total % 60;
+            hh.textContent = Math.floor(total / 60);
+            m1.textContent = Math.floor(minutes / 10);
+            m2.textContent = minutes % 10;
+          },
+        },
+        COUNT_AT,
+      );
+      tl.fromTo(
+        el("figure"),
+        { scale: START_SCALE },
+        { scale: 1, duration: COUNT_DUR, ease: "power3.out" },
+        COUNT_AT,
+      );
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["04-cau-2-giac-ngu"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,205 @@
+<template>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face{font-family:"Quicksand";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Bold.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:300;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Light.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Medium.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-Regular.ttf") format("truetype");}
+    @font-face{font-family:"Quicksand";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Quicksand-SemiBold.ttf") format("truetype");}
+
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+      font-family: "Quicksand", sans-serif;
+      color: #1a1a2e;
+    }
+
+    /* Ground: very faint grain over 2 soft glows (white top-left, rose bottom-right) over dawnBlush. */
+    #f02-roi-sao-nua-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E") 0 0 / 240px 240px,
+        radial-gradient(70% 42% at 14% 10%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 70%),
+        radial-gradient(70% 42% at 88% 92%, rgba(255, 77, 109, 0.12), rgba(255, 77, 109, 0) 70%),
+        linear-gradient(135deg, #ffc1cc 0%, #e8b4d8 50%, #c8a8e9 100%);
+    }
+
+    /* The stack lives in the Threads-safe band (8%–83% of height); the bottom padding
+       lifts it a little above the band's center so it sits optically centered. */
+    #f02-roi-sao-nua-stage {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 8%;
+      height: 75%;
+      box-sizing: border-box;
+      padding-bottom: 3cqh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* EyebrowChip: white 72% pill, white hairline, ink caps tracked 0.1em
+       (right padding trimmed by the trailing 0.1em of tracking so the label centers). */
+    #f02-roi-sao-nua-chip {
+      padding: 0.55em 1.2em 0.55em 1.3em;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      font-size: 3cqw;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    /* The bland "app thường" card: white, r24, soft blurred shadow, no border. */
+    #f02-roi-sao-nua-card {
+      margin-top: 5cqw;
+      width: 70cqw;
+      height: 20cqh;
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 10px 16px rgba(26, 26, 46, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.6cqw;
+    }
+    #f02-roi-sao-nua-count {
+      font-size: 9cqw;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #f02-roi-sao-nua-heart {
+      font-size: 5.5cqw;
+      line-height: 1;
+    }
+
+    #f02-roi-sao-nua-headline {
+      margin-top: 14cqw;
+      font-size: 11cqw;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    #f02-roi-sao-nua-accent {
+      margin-top: 3.5cqw;
+      width: 10cqw;
+      height: 0.75cqw;
+      border-radius: 9999px;
+      background: #ff4d6d;
+    }
+    #f02-roi-sao-nua-sub {
+      margin-top: 6cqw;
+      font-size: 4.2cqw;
+      font-weight: 600;
+      line-height: 1.3;
+      opacity: 0.7;
+      white-space: nowrap;
+    }
+    #f02-roi-sao-nua-sub > span {
+      display: inline-block;
+    }
+  </style>
+
+  <div data-hf-id="hf-e0gw"
+    id="root"
+    lang="vi"
+    data-composition-id="02-roi-sao-nua"
+    data-duration="3.64"
+    data-width="1080"
+    data-height="1920"
+  >
+    <div data-hf-id="hf-m2gb" id="f02-roi-sao-nua-ground" class="clip" data-start="0" data-duration="3.64" data-track-index="0"></div>
+
+    <div data-hf-id="hf-lt6w" id="f02-roi-sao-nua-stage">
+      <div data-hf-id="hf-pneo" id="f02-roi-sao-nua-chip">APP ĐẾM NGÀY YÊU CỦA BẠN</div>
+      <div data-hf-id="hf-te50" id="f02-roi-sao-nua-card">
+        <div data-hf-id="hf-zq6n" id="f02-roi-sao-nua-count">1250 ngày</div>
+        <div data-hf-id="hf-4ypn" id="f02-roi-sao-nua-heart">❤️</div>
+      </div>
+      <div data-hf-id="hf-479o" id="f02-roi-sao-nua-headline">Rồi sao nữa?</div>
+      <div data-hf-id="hf-7es0" id="f02-roi-sao-nua-accent"></div>
+      <div data-hf-id="hf-9guk" id="f02-roi-sao-nua-sub"><span data-hf-id="hf-hs2e">3</span> <span data-hf-id="hf-sm9n">câu</span> <span data-hf-id="hf-md4a">nó</span> <span data-hf-id="hf-bard">không</span> <span data-hf-id="hf-bkj0">trả</span> <span data-hf-id="hf-bgk5">lời</span> <span data-hf-id="hf-yk8s">được:</span></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var el = function (name) {
+        return document.getElementById("f02-roi-sao-nua-" + name);
+      };
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–0.8s): the chip pops in (spring-pop-entrance, power3 smooth settle),
+      // then the bland card slides up on the same settle, lands, and goes dead still.
+      tl.fromTo(
+        el("chip"),
+        { scale: 0, opacity: 0, y: 12 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        0.04,
+      );
+      tl.fromTo(
+        el("card"),
+        { y: 180, scale: 0.9, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+        0.12,
+      );
+
+      // Scene 2 (0.8–2.0s): a beat of nothing, then one slam that LANDS on the music's first
+      // downbeat. Scale + blur + opacity per kinetic-beat-slam; the attack is shorter than the
+      // recipe's 0.35–0.6s so the impact resolves on the beat instead of ~0.2s ahead of it.
+      // power2.out = smooth settle, no overshoot.
+      var DOWNBEAT = 1.0;
+      var SLAM = 0.2;
+      tl.fromTo(
+        el("headline"),
+        { scale: 1.3, opacity: 0, filter: "blur(10px)" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: SLAM, ease: "power2.out" },
+        DOWNBEAT - SLAM,
+      );
+      // Slim rose accent pill grows out from its center (plain width tween, flex-centered).
+      tl.fromTo(
+        el("accent"),
+        { width: "0cqw" },
+        { width: "10cqw", duration: 0.35, ease: "expo.out" },
+        DOWNBEAT,
+      );
+
+      // Scene 3 (2.0–3.64s): per-word staggered reveal of the sub-line, then hold.
+      // dynamic-content-sequencing: onsets are pre-computed once from each word's length,
+      // so a longer word holds the cursor a touch longer before the next one starts.
+      var SUB_AT = 2.0;
+      var WORD_BASE = 0.02;
+      var WORD_PER_CHAR = 0.008;
+      var WORD_DUR = 0.34;
+      var cursor = SUB_AT;
+      var WORDS = Array.prototype.map.call(el("sub").children, function (word) {
+        var start = cursor;
+        cursor += WORD_BASE + word.textContent.length * WORD_PER_CHAR;
+        return { word: word, start: start };
+      });
+      WORDS.forEach(function (entry) {
+        tl.fromTo(
+          entry.word,
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: WORD_DUR, ease: "power2.out" },
+          entry.start,
+        );
+      });
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["02-roi-sao-nua"] = tl;
+    })();
+  </script>
+</template>

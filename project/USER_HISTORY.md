@@ -1411,3 +1411,29 @@
 - [18:46] hôm nay đã release bản nào rồ ?
 - [18:47] tại sao 1.12 nhưng live là 1.11.0 ? cả 2 store đang là 1.11.0 à ?
 - [18:48] merge tất cả vào main chưa ? dọn dẹp chưa ?
+
+
+---
+## Phien moi - 2026-10-25 00:29:42 (source: startup)
+- [00:30] run prj lên máy ảo android và ios simulator, bản mới nhất tôi muonó test
+
+
+---
+## Phien moi - 2026-10-25 00:30:48 (source: startup)
+- [00:31] check eventracking tính năng nào đang bị người dùng ít sử dụng nhất ?
+- [00:35] gắn hết tất cả event có trong app
+- [00:38] run prj lene máy ảo android và login cho cả android và ios
+- [00:44] <task-notification> <task-id>a97e72b866bc6e27b</task-id> <tool-use-id>toolu_011JtqQRnCtf8h6oQKrVSs79</tool-use-id> <output-file>/private/tmp/claude-501/-Users-dodaoanhtuan-AndroidStudioProjects-dear-embeiu/5e2e54a5-b0c2-4f88-837e-014a9796be65/tasks/a97e72b866bc6e27b.output</output-file> <status>completed</status> <summary>Agent "Gắn analytics event toàn app" finished</summary> <note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note> <result>Đã ...[cat]
+- [00:46] commit code và push, tôi sẽ release trong next release
+- [00:53] tạo custom dimension GA4 qua Chrome luôn đi
+
+
+---
+## Phien moi - 2026-10-25 01:50:31 (source: compact)
+
+
+---
+## Phien moi - 2026-10-29 14:24:18 (source: startup)
+- [14:24] code mới nhất chưa ?
+- [14:26] tại sao lại có foler 1.12.0 ?
+- [14:26] chuyển sang release/1.12.0 đi

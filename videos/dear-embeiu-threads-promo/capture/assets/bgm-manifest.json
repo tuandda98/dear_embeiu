@@ -1,0 +1,50 @@
+[
+  {
+    "file": "01.mp3",
+    "title": "Champ de tournesol",
+    "artist": "Komiku",
+    "sourcePageUrl": "https://web.archive.org/web/20251208231555/https://freepd.com/romantic.php",
+    "downloadUrl": "https://web.archive.org/web/20251118154444im_/https://freepd.com/music/Champ%20de%20tournesol.mp3",
+    "license": "CC0 1.0 Public Domain (FreePD.com: dùng thương mại tự do, không cần ghi công)",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "licenseProofUrl": "https://web.archive.org/web/20251202191130/https://freepd.com/legal.php",
+    "attributionRequired": false,
+    "durationSec": 117.9,
+    "bpmEstimate": 79,
+    "bpmNote": "Autocorrelation cho 79 hoặc 158 (đếm nhịp đôi); guitar quạt chạy đều.",
+    "moodNote": "Guitar acoustic ấm, nhẹ, lặp lại; 4,5 s đầu gần như im lặng rồi cả ban nhạc vào một lúc.",
+    "bestDropAtSec": 4.5
+  },
+  {
+    "file": "02.mp3",
+    "title": "3 am West End",
+    "artist": "statusq",
+    "sourcePageUrl": "https://web.archive.org/web/20251202214002/https://freepd.com/electronic.php",
+    "downloadUrl": "https://web.archive.org/web/20251202215403im_/https://freepd.com/music/3%20am%20West%20End.mp3",
+    "license": "CC0 1.0 Public Domain (FreePD.com: dùng thương mại tự do, không cần ghi công)",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "licenseProofUrl": "https://web.archive.org/web/20251202191130/https://freepd.com/legal.php",
+    "attributionRequired": false,
+    "durationSec": 291.1,
+    "bpmEstimate": 91,
+    "bpmNote": "Autocorrelation ổn định ~91.",
+    "moodNote": "Lo-fi chill: synth mờ, trumpet nhẹ; 0–5 s chỉ có tiếng gõ thưa, beat đầy đủ vào ở 5,25 s.",
+    "bestDropAtSec": 5.25
+  },
+  {
+    "file": "03.mp3",
+    "title": "Meditating Beat",
+    "artist": "Kevin MacLeod",
+    "sourcePageUrl": "https://web.archive.org/web/20251202214002/https://freepd.com/electronic.php",
+    "downloadUrl": "https://web.archive.org/web/20251202215358im_/https://freepd.com/music/Meditating%20Beat.mp3",
+    "license": "CC0 1.0 Public Domain (FreePD.com: dùng thương mại tự do, không cần ghi công)",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "licenseProofUrl": "https://web.archive.org/web/20251202191130/https://freepd.com/legal.php",
+    "attributionRequired": false,
+    "durationSec": 157.2,
+    "bpmEstimate": 92,
+    "bpmNote": "Autocorrelation cho 92 (hoặc 61 nửa nhịp).",
+    "moodNote": "Beat điện tử nhẹ, pad mềm, hiện đại; âm lượng dao động nhẹ, nhấn lên rõ ở ~5 s (không phải drop mạnh).",
+    "bestDropAtSec": 5.0
+  }
+]

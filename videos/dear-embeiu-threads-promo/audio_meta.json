@@ -1,0 +1,106 @@
+{
+  "bgm": {
+    "path": "assets/bgm.mp3",
+    "source": "host",
+    "volume": 0.9
+  },
+  "voices": [],
+  "sfx": [
+    {
+      "frame": 1,
+      "file": "assets/sfx/chime.wav",
+      "offset_s": 0.6,
+      "duration_s": 0.79,
+      "volume": 0.32,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/whoosh.wav",
+      "offset_s": 0.0,
+      "duration_s": 0.4,
+      "volume": 0.22,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/tick.wav",
+      "offset_s": 1.25,
+      "duration_s": 0.06,
+      "volume": 0.28,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/tick.wav",
+      "offset_s": 1.65,
+      "duration_s": 0.06,
+      "volume": 0.28,
+      "source": "host"
+    },
+    {
+      "frame": 3,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 2.15,
+      "duration_s": 0.14,
+      "volume": 0.3,
+      "source": "host"
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/whoosh.wav",
+      "offset_s": 0.0,
+      "duration_s": 0.4,
+      "volume": 0.22,
+      "source": "host"
+    },
+    {
+      "frame": 4,
+      "file": "assets/sfx/tick.wav",
+      "offset_s": 0.42,
+      "duration_s": 0.06,
+      "volume": 0.28,
+      "source": "host"
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/whoosh.wav",
+      "offset_s": 0.0,
+      "duration_s": 0.4,
+      "volume": 0.22,
+      "source": "host"
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/tick.wav",
+      "offset_s": 1.0,
+      "duration_s": 0.06,
+      "volume": 0.28,
+      "source": "host"
+    },
+    {
+      "frame": 5,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 1.35,
+      "duration_s": 0.14,
+      "volume": 0.32,
+      "source": "host"
+    },
+    {
+      "frame": 6,
+      "file": "assets/sfx/whoosh.wav",
+      "offset_s": 0.0,
+      "duration_s": 0.4,
+      "volume": 0.2,
+      "source": "host"
+    },
+    {
+      "frame": 7,
+      "file": "assets/sfx/pop.wav",
+      "offset_s": 0.12,
+      "duration_s": 0.14,
+      "volume": 0.26,
+      "source": "host"
+    }
+  ]
+}
