@@ -1588,6 +1588,37 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    // Đánh giá / góp ý / báo lỗi (feature feedback). Create-only cho user đã
+    // đăng nhập; CF notifyFeedback gửi email, admin xem qua Console. App không
+    // bao giờ đọc/sửa/xoá lại. Mọi field ngoài các key dưới đây bị chặn.
+    function feedbackOk(uid) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['userId', 'type', 'message', 'appVersion', 'buildNumber', 'platform', 'createdAt'])
+        && d.keys().hasOnly(['userId', 'type', 'message', 'stars', 'screenshotPath',
+            'appVersion', 'buildNumber', 'platform', 'osVersion', 'deviceModel',
+            'locale', 'email', 'createdAt'])
+        && d.userId == uid
+        && d.createdAt == request.time
+        && d.type in ['idea', 'bug', 'rating']
+        && d.message is string && d.message.size() <= 2000
+        && (d.type == 'rating' || d.message.size() >= 1)
+        && (!('stars' in d) || (d.stars is int && d.stars >= 1 && d.stars <= 5))
+        && (!('screenshotPath' in d) || (d.screenshotPath is string
+            && d.screenshotPath.size() <= 300
+            && d.screenshotPath.matches('feedback/' + uid + '/.*')))
+        && d.appVersion is string && d.appVersion.size() <= 20
+        && d.buildNumber is int
+        && d.platform in ['ios', 'android']
+        && (!('osVersion' in d) || (d.osVersion is string && d.osVersion.size() <= 60))
+        && (!('deviceModel' in d) || (d.deviceModel is string && d.deviceModel.size() <= 80))
+        && (!('locale' in d) || (d.locale is string && d.locale.size() <= 10))
+        && (!('email' in d) || (d.email is string && d.email.size() <= 200));
+    }
+    match /feedback/{feedbackId} {
+      allow create: if isSignedIn() && feedbackOk(request.auth.uid);
+      allow read, update, delete: if false;
+    }
+
     // Couple entry codes (feature couple-code). Each doc maps a 6-char code
     // to a coupleId. Used by joinCoupleByCode as the primary lookup (before
     // falling back to invite_codes for legacy couples). Created by the couple

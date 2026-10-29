@@ -26,5 +26,12 @@ service firebase.storage {
       allow create, update: if isCoupleMember(coupleId) && isValidImageUpload();
       allow delete: if isCoupleMember(coupleId);
     }
+
+    // Ảnh chụp màn hình đính kèm góp ý/báo lỗi (feature feedback). Chỉ chủ
+    // tạo mới được upload; admin xem qua signed URL trong email.
+    match /feedback/{uid}/{fileName} {
+      allow create: if isSignedIn() && request.auth.uid == uid && isValidImageUpload();
+      allow read, update, delete: if false;
+    }
   }
 }

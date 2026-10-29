@@ -5526,3 +5526,122 @@ exports.notifyMoney = onDocumentWritten(
 );
 
 // ── hết expenses (đợt 2) ──
+
+// ── feedback (đánh giá · góp ý · báo lỗi) ──
+// App ghi doc `feedback/{id}` (rules: create-only). Hàm này gửi email về hộp
+// thư của dev qua Resend. Mọi lỗi chỉ log, không throw (doc đã lưu, Console
+// vẫn xem được).
+const FEEDBACK_EMAIL_TO = "thesavior9820@gmail.com";
+const FEEDBACK_TYPE_LABEL = {idea: "Góp ý", bug: "Báo lỗi", rating: "Đánh giá"};
+
+function escapeFeedbackHtml(value) {
+  return `${value == null ? "" : value}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+exports.notifyFeedback = onDocumentCreated(
+  {document: "feedback/{feedbackId}", region: "us-central1", secrets: [RESEND_API_KEY]},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Feedback email skipped because snapshot is missing.");
+      return;
+    }
+    const fb = snapshot.data() || {};
+    const id = event.params.feedbackId;
+    const type = `${fb.type || ""}`;
+    const label = FEEDBACK_TYPE_LABEL[type] || "Phản hồi";
+    const stars = Number.isInteger(fb.stars) ? fb.stars : null;
+    const ver = `${fb.appVersion || "?"} (${fb.buildNumber != null ? fb.buildNumber : "?"})`;
+    const platform = `${fb.platform || "?"}`;
+    const head = type === "rating" && stars ? `Đánh giá ${stars}★` : label;
+    const subject = `[Dear Embeiu] ${head} · ${ver} · ${platform}`;
+
+    // Email: ưu tiên field trong doc, thiếu thì hỏi Admin Auth (fail-soft).
+    const uid = `${fb.userId || ""}`;
+    let email = `${fb.email || ""}`.trim();
+    if (!email && uid) {
+      try {
+        const u = await admin.auth().getUser(uid);
+        email = `${u.email || ""}`.trim();
+      } catch (err) {
+        logger.warn("Feedback email: could not load Auth user.", {uid, message: err && err.message});
+      }
+    }
+
+    // Ảnh chụp màn hình: signed URL 7 ngày; lỗi thì ghi đường dẫn.
+    const path = `${fb.screenshotPath || ""}`.trim();
+    let shot = "";
+    if (path) {
+      try {
+        const [url] = await admin.storage().bucket().file(path).getSignedUrl({
+          action: "read",
+          expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        });
+        shot = url;
+      } catch (err) {
+        logger.warn("Feedback email: signed URL failed.", {path, message: err && err.message});
+        shot = `(không tạo được link) ${path}`;
+      }
+    }
+
+    const rows = [
+      ["Loại", label + (stars ? ` · ${stars}★` : "")],
+      ["Phiên bản", ver],
+      ["Nền tảng", `${platform} ${fb.osVersion || ""}`.trim()],
+      ["Máy", fb.deviceModel || ""],
+      ["Ngôn ngữ", fb.locale || ""],
+      ["User", uid],
+      ["Email", email],
+      ["Ảnh", shot],
+      ["Doc", `feedback/${id}`],
+    ].filter(([, v]) => `${v}`.trim() !== "");
+    const message = `${fb.message || ""}`;
+
+    const text = `${message || "(không có nội dung)"}\n\n` +
+      rows.map(([k, v]) => `${k}: ${v}`).join("\n");
+    const tableRows = rows.map(([k, v]) => {
+      const safe = escapeFeedbackHtml(v);
+      const cell = k === "Ảnh" && /^https:\/\//.test(`${v}`) ?
+        `<a href="${safe}">Xem ảnh (hết hạn sau 7 ngày)</a>` : safe;
+      return `<tr><td style="color:#888;padding:2px 12px 2px 0">${escapeFeedbackHtml(k)}</td><td>${cell}</td></tr>`;
+    }).join("");
+    const html = `<div style="font-family:-apple-system,Segoe UI,sans-serif;font-size:15px;color:#1A1A2E">` +
+      `<p style="white-space:pre-wrap">${escapeFeedbackHtml(message) || "<i>(không có nội dung)</i>"}</p>` +
+      `<table style="font-size:13px;border-collapse:collapse">${tableRows}</table></div>`;
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY.value()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: VERIFICATION_EMAIL_FROM,
+          to: [FEEDBACK_EMAIL_TO],
+          subject,
+          html,
+          text,
+          // Trả lời thẳng cho user nếu họ có email hợp lệ.
+          ...(/^[^@\s]+@[^@\s]+$/.test(email) ? {reply_to: email} : {}),
+        }),
+      });
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        logger.error("Feedback email: Resend returned an error.", {
+          id, status: response.status, detail: detail.slice(0, 500),
+        });
+        return;
+      }
+      logger.info("Feedback email sent.", {id, type});
+    } catch (err) {
+      logger.error("Feedback email: Resend request threw.", {id, message: err && err.message});
+    }
+  },
+);
+// ── hết feedback ──
