@@ -22,7 +22,7 @@
 - [ ] Thẻ Home 6 trạng thái ("Về nhà rồi" + "Đến nơi rồi"), màn thiết lập, màn thêm/sửa nơi, 2 màn giải thích quyền, mục Cài đặt
 - [ ] Geofence iOS + Android (≤5 nơi, 150/250 m, bộ lọc rìa vùng D6), cờ `config/app.arrivalAutoEnabled`
 - [ ] Widget-today 2 loại `arrival_home` / `arrival_place`, chạm push → thẻ
-- [ ] Privacy policy (`phase3`, có câu tìm địa chỉ D22) + Data safety + App Privacy + form Play + video ≤30 giây
+- [x] Privacy policy (`phase3`, có câu tìm địa chỉ D22) + Data safety + App Privacy + form Play + video ≤30 giây
 - [ ] Kế hoạch B sẵn sàng: hằng `kArrivalAutoAndroid`, bản manifest không quyền nền
 - *Xong khi:* acceptance §10 PASS; cả 2 store duyệt bản đợt 2 (hoặc Android lên bằng kế hoạch B).
 
