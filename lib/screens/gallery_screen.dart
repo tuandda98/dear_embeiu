@@ -29,6 +29,7 @@ import '../widgets/reaction_bar.dart';
 import '../widgets/shared_couple_photo_view.dart';
 import '../widgets/shared_photo_view.dart';
 import '../widgets/shimmer_skeleton.dart';
+import '../services/rating_prompt_service.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({super.key, this.bottomInset = 0});
@@ -58,6 +59,7 @@ class GalleryScreen extends StatefulWidget {
 
     await Navigator.of(context).push(
       PageRouteBuilder(
+        settings: const RouteSettings(name: 'PhotoViewer'),
         opaque: false,
         barrierDismissible: true,
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -858,6 +860,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
     await Navigator.of(context).push(
       PageRouteBuilder(
+        settings: const RouteSettings(name: 'PhotoViewer'),
         opaque: false,
         barrierDismissible: true,
         pageBuilder: (context, animation, secondaryAnimation) =>
@@ -2948,6 +2951,7 @@ Future<void> composeAndPostPhotos(
   // sub-screen, not an X-dismiss fullscreen dialog (header unify 2026-06-14).
   final result = await Navigator.of(context).push<CreatePostResult>(
     MaterialPageRoute<CreatePostResult>(
+      settings: const RouteSettings(name: 'CreatePost'),
       builder: (_) => CreatePostScreen(
         initialFiles: initialFiles,
         initialCaption: initialCaption,
@@ -2988,5 +2992,7 @@ Future<void> composeAndPostPhotos(
             : l10n.multiPhotosResultPartial(successCount, total, failed),
       ),
     ),
-  );
+  );  if (successCount > 0) {
+    RatingPromptService.maybePrompt(context, source: 'photo');
+  }
 }

@@ -340,6 +340,7 @@ class _DecisionWheelScreenState extends State<DecisionWheelScreen>
   Future<void> _openManual() async {
     final text = await showModalBottomSheet<String>(
       context: context,
+      routeSettings: const RouteSettings(name: 'DecisionManualSheet'),
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,

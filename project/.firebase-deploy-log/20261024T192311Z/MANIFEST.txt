@@ -1,0 +1,6 @@
+time_utc=20261024T192311Z
+project=tonyembeiu-dev
+head=f3633bf branch=release/1.12.0 dirty=1 (D34 chưa commit)
+cmd=npx firebase-tools deploy --only firestore:rules --project tonyembeiu-dev
+exit=0
+restore: git checkout f3633bf -- firestore.rules && deploy lại firestore:rules

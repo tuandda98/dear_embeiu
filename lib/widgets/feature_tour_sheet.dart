@@ -135,6 +135,22 @@ class FeatureTour {
     }
   }
 
+  /// Fresh install: record the current build right away. Waiting for Home
+  /// isn't enough — kill the app before signing in and the next launch is no
+  /// longer "fresh", so the tour showed every old entry (smoke 2026-10-22).
+  static Future<void> rememberFreshInstall() async {
+    final current = int.tryParse((await _packageInfo())?.buildNumber ?? '');
+    if (current == null || current <= 0) return;
+    try {
+      final box = Hive.isBoxOpen(_boxName)
+          ? Hive.box<String>(_boxName)
+          : await Hive.openBox<String>(_boxName);
+      await _remember(box, current);
+    } catch (_) {
+      // Best-effort, like _remember.
+    }
+  }
+
   static Future<void> _remember(Box<String> box, int build) async {
     try {
       await box.put(_seenKey, '$build');
@@ -151,6 +167,7 @@ class FeatureTour {
   ) {
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'FeatureTourSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _FeatureTourSheet(

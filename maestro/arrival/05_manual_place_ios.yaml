@@ -1,0 +1,19 @@
+# 05 (iOS, Thảo) — "Đến nơi rồi" → sheet "Bạn vừa đến đâu?" → Công ty. Chạy sau 04_add_place_ios.
+# Kiểm: SK-10.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- tapOn: 'Đến nơi rồi'
+- extendedWaitUntil:
+    visible: '(?s).*Bạn vừa đến đâu\?.*'
+    timeout: 8000
+- tapOn: 'Công ty'
+- extendedWaitUntil:
+    visible: '(?s).*Đã báo Tuấn.*'
+    timeout: 20000
+- assertVisible: '(?s).*Đã đến Công ty.*'
+- takeScreenshot: 05_manual_place_ios

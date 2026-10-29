@@ -1,0 +1,16 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && git add -A && git commit -q -m "fix(weather): hai máy cùng hỏi một thành phố lần đầu thì máy sau chờ, không báo lỗi
+
+Smoke 2026-10-20: chọn thành phố xong, máy người ấy (đang mở app) gọi
+getCityWeather cùng lúc; khoá mềm làm lời gọi sau trả rỗng khi thành phố chưa
+có cache ⇒ thẻ \"Chưa tải được thời tiết\". Giờ lời gọi sau đọc bản mới nhất
+trong transaction, chưa có thì chờ lời gọi đầu (≤10 × 800 ms), dừng sớm nếu
+lời gọi đầu thất bại. +2 test.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_012X1VMGRJpoHqhF9Ad89y6g" && git push -q && NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --only functions:getCityWeather --project tonyembeiu-dev --non-interactive 2>&1 | grep -E "✔|Error|error" | tail -4
+time_utc: 20261020T144849Z
+git_head: f45f423 (feature/launch-film)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f45f423)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f45f423 -- functions` rồi redeploy

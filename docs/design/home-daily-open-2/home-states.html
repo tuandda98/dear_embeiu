@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home đợt 2, ngày mới và mất mạng · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<style>.frame .tabhead { position: static; } .frame .nav { display: none; } .frame .scroll { padding-bottom: 24px; }</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main>
+<h1 class="state-h" style="margin-top:24px;font-size:22px;line-height:28px">Home lúc 00:05 và lúc mất mạng</h1>
+<p class="state-p">Hai trạng thái của cùng cặp Tuấn và Thảo. Thanh điều hướng nổi ẩn đi cho dễ đọc; trong app nó vẫn ở đáy.</p>
+<div id="app"></div>
+</main>
+<script>
+const frame = (title, desc, html) => `<h2 class="state-h">${title}</h2><p class="state-p">${desc}</p><div class="frame">${html}</div>`;
+document.getElementById('app').innerHTML =
+  frame('Ngày mới, 00:05, chưa ai làm gì', 'Số chạm về 0, câu hỏi mới, tâm trạng trống, chòm sao 0/6. “Đến nơi” và “Đêm qua” vẫn là tin cũ nhất có thật; không có việc phía Thảo nên chân bảng chỉ còn “Về nhà rồi”.', UI.home(D.N, { h1: false })) +
+  frame('Mất mạng lúc 19:05', 'Tuấn chạm tim 2 lần và bấm “Về nhà rồi” khi mất sóng. Mọi khối giữ số đã lưu; bảng ghi giờ của số, tim và nút về nhà xếp hàng chờ gửi.', UI.home(D.O, { h1: false, sentHome: 'queued' }));
+</script>
+</body>
+</html>

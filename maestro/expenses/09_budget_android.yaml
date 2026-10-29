@@ -1,0 +1,27 @@
+# Ngân sách: đặt ngân sách cả sổ 5.000.000 (đặt lại được nhiều lần, không để rác).
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ví, danh mục, ngân sách'
+- tapOn: 'Ngân sách'
+- extendedWaitUntil:
+    visible: '(?s).*NGÂN SÁCH.*'
+    timeout: 8000
+- tapOn: 'Đặt ngân sách'
+- extendedWaitUntil:
+    visible: '(?s).*Ngân sách tháng.*'
+    timeout: 8000
+- tapOn: 'Cả sổ'
+- tapOn: 'Mỗi tháng tối đa.*'
+- eraseText: 20
+- inputText: '5000000'
+- tapOn: 'Lưu ngân sách'
+- extendedWaitUntil:
+    visible: 'Đã đặt ngân sách .*5\.000\.000.*'
+    timeout: 8000
+- assertVisible: '.*5\.000\.000.*'

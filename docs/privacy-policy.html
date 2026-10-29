@@ -149,8 +149,8 @@
         <span class="en-only">Privacy Policy</span>
       </h1>
       <p class="page-meta">
-        <span class="vi-only">Ngày hiệu lực: 28 tháng 5 năm 2026 &nbsp;·&nbsp; Cập nhật lần cuối: 11 tháng 10 năm 2026</span>
-        <span class="en-only">Effective date: 28 May 2026 &nbsp;·&nbsp; Last updated: 11 October 2026</span>
+        <span class="vi-only">Ngày hiệu lực: 28 tháng 5 năm 2026 &nbsp;·&nbsp; Cập nhật lần cuối: 29 tháng 10 năm 2026</span>
+        <span class="en-only">Effective date: 28 May 2026 &nbsp;·&nbsp; Last updated: 29 October 2026</span>
       </p>
     </div>
   </div>
@@ -176,6 +176,12 @@
           <strong class="en-only">Account information:</strong>
           <span class="vi-only"> địa chỉ email và tên hiển thị (xử lý bởi Firebase Authentication; chúng tôi không bao giờ xem hoặc lưu mật khẩu của bạn dưới dạng văn bản thuần túy).</span>
           <span class="en-only"> email address and display name (handled by Firebase Authentication; we never see or store your password in plain text).</span>
+        </li>
+        <li>
+          <strong class="vi-only">Đăng nhập với Apple hoặc Google:</strong>
+          <strong class="en-only">Sign in with Apple or Google:</strong>
+          <span class="vi-only"> nếu bạn chọn cách này, Apple hoặc Google chỉ gửi cho ứng dụng tên và địa chỉ email của bạn. Với Apple, bạn có thể chọn ẩn email, khi đó chúng tôi chỉ nhận một địa chỉ chuyển tiếp do Apple tạo. Chúng tôi không bao giờ nhận mật khẩu Apple ID hay tài khoản Google của bạn.</span>
+          <span class="en-only"> if you choose this option, Apple or Google shares only your name and email address with the App. With Apple you can choose to hide your email, in which case we receive only a relay address created by Apple. We never receive your Apple ID or Google account password.</span>
         </li>
         <li>
           <strong class="vi-only">Thông tin cặp đôi:</strong>
@@ -216,8 +222,26 @@
         <li>
           <strong class="vi-only">Giấc ngủ (tuỳ chọn):</strong>
           <strong class="en-only">Sleep (optional):</strong>
-          <span class="vi-only"> khi bạn bật tính năng Giấc ngủ, ứng dụng tính giờ đi ngủ, giờ thức dậy và các lần thức giấc giữa đêm. Trên iPhone, dữ liệu này được đọc từ ứng dụng Sức khoẻ (Apple Health) khi bạn cho phép; ứng dụng chỉ đọc, không ghi gì vào Sức khoẻ. Trên Android, ứng dụng ước lượng từ thời điểm màn hình tắt và sáng (cần quyền truy cập dữ liệu sử dụng); các sự kiện này được xử lý ngay trên máy và không rời khỏi thiết bị. Bạn cũng có thể tự ghi hoặc sửa giờ ngủ. Mặc định, giờ ngủ chỉ nằm trên máy của bạn.</span>
-          <span class="en-only"> when you turn on the Sleep feature, the App works out your bedtime, wake time and any wake-ups during the night. On iPhone, this is read from the Health app (Apple Health) with your permission; the App only reads and never writes anything to Health. On Android, the App estimates it from when your screen turns off and on (this needs Usage access); those events are processed on your device and never leave it. You can also log or edit a night yourself. By default, your sleep times stay on your device.</span>
+          <span class="vi-only"> khi bạn bật tính năng Giấc ngủ, ứng dụng tính giờ đi ngủ, giờ thức dậy và các lần thức giấc giữa đêm. Trên iPhone, dữ liệu này được đọc từ ứng dụng Sức khoẻ (Apple Health) khi bạn cho phép; ứng dụng chỉ đọc, không ghi gì vào Sức khoẻ. Trên Android, ứng dụng ước lượng từ thời điểm màn hình tắt và sáng (cần quyền truy cập dữ liệu sử dụng); các sự kiện này được xử lý ngay trên máy và không rời khỏi thiết bị. Đêm nào không có dữ liệu từ hai nguồn trên, ứng dụng có thể đoán giờ ngủ từ lúc điện thoại nằm yên, dựa vào cảm biến chuyển động (Chuyển động &amp; thể chất trên iPhone, nhận diện hoạt động trên Android) khi bạn cho phép; dữ liệu chuyển động được xử lý trên máy và không rời khỏi thiết bị, chỉ giờ ngủ tính ra mới được lưu. Bạn cũng có thể tự ghi hoặc sửa giờ ngủ. Mặc định, giờ ngủ chỉ nằm trên máy của bạn.</span>
+          <span class="en-only"> when you turn on the Sleep feature, the App works out your bedtime, wake time and any wake-ups during the night. On iPhone, this is read from the Health app (Apple Health) with your permission; the App only reads and never writes anything to Health. On Android, the App estimates it from when your screen turns off and on (this needs Usage access); those events are processed on your device and never leave it. For nights with no data from either source, the App can guess your sleep from when your phone lay still, using the motion sensors (Motion &amp; Fitness on iPhone, activity recognition on Android) with your permission; motion data is processed on your device and never leaves it, and only the resulting sleep times are kept. You can also log or edit a night yourself. By default, your sleep times stay on your device.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Vị trí, tính năng "Về đến nhà chưa?" (tuỳ chọn):</strong>
+          <strong class="en-only">Location, "Home yet?" feature (optional):</strong>
+          <span class="vi-only"> tính năng này chỉ chạy khi bạn tự bật. Bạn lưu tối đa 5 nơi (Nhà và 4 nơi tự đặt) bằng địa chỉ hoặc vị trí hiện tại. Địa chỉ và toạ độ của các nơi này chỉ lưu trên điện thoại của bạn, không gửi lên máy chủ của Dear Embeiu và không nằm trong bản sao lưu iCloud/Google. Khi bạn bật <em>Tự báo khi đến nơi</em>, điện thoại dùng vị trí, kể cả khi app đã đóng hoặc không dùng, để nhận ra lúc bạn vào hoặc rời một nơi đã lưu. Lúc đó app chỉ gửi cho người ấy tên nơi, giờ đến hoặc giờ rời và mức pin; máy chủ chỉ giữ một sự kiện mới nhất, không giữ lịch sử đi lại. Khi bạn tìm địa chỉ, chữ bạn gõ được gửi tới dịch vụ bản đồ của Apple (iPhone) hoặc Google (Android) để tìm toạ độ. Dear Embeiu không gửi chuỗi này lên máy chủ của mình và không lưu nó ngoài máy bạn. Tắt chia sẻ thì sự kiện trên máy chủ bị xoá ngay và điện thoại ngừng dùng vị trí; bạn cũng có thể thu hồi quyền vị trí trong Cài đặt của máy.</span>
+          <span class="en-only"> this feature only runs if you turn it on. You can save up to 5 places (Home and 4 of your own) from an address or your current location. Their addresses and coordinates stay on your phone: they are not sent to Dear Embeiu's servers and are left out of iCloud/Google backups. When you turn on <em>Send automatically</em>, your phone uses your location, even when the app is closed or not in use, to notice when you reach or leave a saved place. The app then sends your partner only the place name, the arrival or departure time and your battery level; the server keeps just the latest event, with no travel history. When you search for an address, the text you type is sent to Apple's (iPhone) or Google's (Android) map service to find its coordinates. Dear Embeiu does not send that text to its own servers and does not store it anywhere but your phone. Turning sharing off deletes the event from the server right away and the phone stops using your location; you can also revoke location access in your phone's Settings.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Thời tiết hai nơi (tuỳ chọn):</strong>
+          <strong class="en-only">Weather here and there (optional):</strong>
+          <span class="vi-only"> thành phố bạn chọn từ danh sách trong app được lưu để người ấy xem thời tiết chỗ bạn, và ngược lại. Máy chủ của Dear Embeiu lấy dự báo cho thành phố đó từ Viện Khí tượng Na Uy (MET Norway). Tính năng này không dùng vị trí của điện thoại.</span>
+          <span class="en-only"> the city you pick from the list in the App is saved so your partner can see the weather where you are, and you can see theirs. Dear Embeiu's server fetches the forecast for that city from the Norwegian Meteorological Institute (MET Norway). This feature does not use your phone's location.</span>
+        </li>
+        <li>
+          <strong class="vi-only">Góp ý, báo lỗi và đánh giá (tuỳ chọn):</strong>
+          <strong class="en-only">Feedback, bug reports and ratings (optional):</strong>
+          <span class="vi-only"> khi bạn gửi góp ý, báo lỗi hoặc chấm sao trong app, chúng tôi nhận nội dung bạn viết, số sao, ảnh chụp màn hình nếu bạn đính kèm, email tài khoản để trả lời bạn, cùng phiên bản app, hệ điều hành, đời máy và ngôn ngữ. Thông tin này lưu trên Firebase và được gửi tới hộp thư hỗ trợ của Dear Embeiu qua dịch vụ email Resend, chỉ để xử lý góp ý của bạn.</span>
+          <span class="en-only"> when you send feedback, report a bug or leave a rating in the App, we receive what you wrote, the star rating, a screenshot if you attach one, your account email so we can reply, and the app version, operating system, device model and language. This is stored in Firebase and sent to Dear Embeiu's support inbox through the Resend email service, only to handle your feedback.</span>
         </li>
       </ul>
       <div class="info-box">
@@ -291,10 +315,22 @@
               <td><span class="vi-only">Tính năng Giấc ngủ</span><span class="en-only">Sleep feature</span></td>
             </tr>
             <tr>
-              <td><span class="vi-only">Vị trí chính xác</span><span class="en-only">Precise location</span></td>
-              <td><span class="badge-no"><span class="vi-only">Không</span><span class="en-only">No</span></span></td>
+              <td><span class="vi-only">Vị trí gần đúng (sự kiện đến / rời nơi đã lưu)</span><span class="en-only">Approximate location (arriving at / leaving a saved place)</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có, tuỳ chọn</span><span class="en-only">Yes, optional</span></span></td>
+              <td><span class="vi-only">Người bạn đời, chỉ tên nơi, giờ và mức pin</span><span class="en-only">Your paired partner: place name, time and battery level only</span></td>
+              <td><span class="vi-only">Tính năng Về đến nhà chưa?</span><span class="en-only">"Home yet?" feature</span></td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Vị trí chính xác (toạ độ)</span><span class="en-only">Precise location (coordinates)</span></td>
+              <td><span class="badge-no"><span class="vi-only">Không, chỉ xử lý trên máy</span><span class="en-only">No, processed on your phone only</span></span></td>
               <td>—</td>
               <td>—</td>
+            </tr>
+            <tr>
+              <td><span class="vi-only">Góp ý, báo lỗi, ảnh chụp màn hình</span><span class="en-only">Feedback, bug reports, screenshots</span></td>
+              <td><span class="badge-yes"><span class="vi-only">Có, tuỳ chọn</span><span class="en-only">Yes, optional</span></span></td>
+              <td><span class="vi-only">Không chia sẻ</span><span class="en-only">Not shared</span></td>
+              <td><span class="vi-only">Hỗ trợ người dùng</span><span class="en-only">User support</span></td>
             </tr>
             <tr>
               <td><span class="vi-only">Danh bạ / SMS</span><span class="en-only">Contacts / SMS</span></td>
@@ -346,11 +382,24 @@
           <span class="en-only">Your sleep times are shared with your partner only when you turn on "Share with your person". You can turn it off at any time.</span>
         </li>
         <li>
+          <span class="vi-only">Tên nơi, giờ đến hoặc rời và mức pin chỉ được gửi cho người bạn đời khi bạn bật "Về đến nhà chưa?". Thành phố bạn chọn ở "Thời tiết hai nơi" người bạn đời xem được.</span>
+          <span class="en-only">The place name, arrival or departure time and battery level are sent to your partner only when you turn on "Home yet?". Your partner can see the city you picked in "Weather here and there".</span>
+        </li>
+        <li>
           <span class="vi-only">Với các dịch vụ hạ tầng <strong>Google Firebase</strong> xử lý dữ liệu thay mặt chúng tôi:</span>
           <span class="en-only">With <strong>Google Firebase</strong> infrastructure services that process data on our behalf:</span>
           <ul>
             <li>Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Messaging, Crashlytics, Analytics — <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">firebase.google.com/support/privacy</a></li>
             <li>Google Play Services — <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a></li>
+          </ul>
+        </li>
+        <li>
+          <span class="vi-only">Với các dịch vụ khác chỉ nhận đúng phần dữ liệu cần cho việc của chúng:</span>
+          <span class="en-only">With other services that receive only the data needed for their task:</span>
+          <ul>
+            <li><span class="vi-only">MET Norway (dự báo thời tiết, chỉ nhận tên thành phố)</span><span class="en-only">MET Norway (weather forecasts; receives the city only)</span> — <a href="https://www.met.no/en/About-us/privacy" target="_blank" rel="noopener">met.no/en/About-us/privacy</a></li>
+            <li><span class="vi-only">Resend (gửi email góp ý tới hộp thư hỗ trợ)</span><span class="en-only">Resend (delivers feedback emails to our support inbox)</span> — <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">resend.com/legal/privacy-policy</a></li>
+            <li><span class="vi-only">Dịch vụ bản đồ của Apple / Google (tìm địa chỉ bạn gõ)</span><span class="en-only">Apple / Google map services (looking up an address you type)</span></li>
           </ul>
         </li>
       </ul>
@@ -368,6 +417,7 @@
         <li><span class="vi-only">Chúng tôi giữ dữ liệu của bạn miễn là tài khoản còn tồn tại.</span><span class="en-only">We retain your data for as long as your account exists.</span></li>
         <li><span class="vi-only"><strong>Khi xóa tài khoản</strong>, toàn bộ dữ liệu cá nhân sẽ bị <strong>xóa vĩnh viễn khỏi máy chủ trong vòng 30 ngày</strong>.</span><span class="en-only"><strong>Upon account deletion</strong>, all personal data is <strong>permanently removed from our servers within 30 days</strong>.</span></li>
         <li><span class="vi-only">Giờ ngủ chỉ nằm trên máy chủ khi bạn đang chia sẻ. Tắt chia sẻ hoặc rời cặp đôi thì bản trên máy chủ bị xoá ngay.</span><span class="en-only">Sleep times stay on our servers only while you share them. Turning sharing off or leaving the couple removes them right away.</span></li>
+        <li><span class="vi-only">Với "Về đến nhà chưa?", máy chủ chỉ giữ một sự kiện mới nhất. Tắt tính năng hoặc rời cặp đôi thì sự kiện bị xoá ngay. Địa chỉ và toạ độ các nơi đã lưu không bao giờ rời điện thoại.</span><span class="en-only">For "Home yet?", the server keeps only the latest event. Turning the feature off or leaving the couple deletes it right away. The addresses and coordinates of your saved places never leave your phone.</span></li>
         <li><span class="vi-only">Dữ liệu cache trên thiết bị bị xóa khi bạn gỡ cài đặt ứng dụng hoặc xóa bộ nhớ của nó.</span><span class="en-only">Local cached data on your device is removed when you delete the App or clear its storage.</span></li>
       </ul>
     </div>

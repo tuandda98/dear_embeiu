@@ -1,0 +1,17 @@
+step	fragment	n	error	first
+1	45	-1	-	
+2	45 Lê	-1	-	
+3	45 Lê Vă	-1	-	
+4	45 Lê Văn 	-1	-	
+5	45 Lê Văn Sỹ	-1	-	
+6	45 Lê Văn Sỹ, 	-1	-	
+7	45 Lê Văn Sỹ, Ph	-1	-	
+8	45 Lê Văn Sỹ, Phư	-1	-	
+9	45 Lê Văn Sỹ, Phườ	-1	-	
+10	45 Lê Văn Sỹ, Phườn	-1	-	
+11	45 Lê Văn Sỹ, Phường	-1	-	
+12	45 Lê Văn Sỹ, Phường 	-1	-	
+13	45 Lê Văn Sỹ, Phường 1	-1	-	
+14	45 Lê Văn Sỹ, Phường 13	-1	-	
+15	45 Lê Văn Sỹ, Phường 13	-1	-	
+final	45 Lê Văn Sỹ, Phường 13	0	-	

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home bản D, sắp xếp theo nhóm việc · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const note = `<aside class="doc-note" aria-label="Ghi chú mock">
+  <p><b>Bản D · sắp xếp lại (29/10).</b> Thẻ giữ nguyên như app. Bảy thẻ dưới một tiêu đề được chia ba nhóm: việc hôm nay, Thảo thế nào rồi, lúc rảnh. Máy Tuấn, 20/10 19:05.</p>
+  <nav aria-label="Các trang mock"><a href="home-d.html" aria-current="page">Bản D</a><a href="home-d-waiting.html">D · cặp đang chờ</a><a href="compare-d.html">So sánh C · D</a></nav></aside>`;
+document.getElementById('app').innerHTML = UI.homeD(D.S, { after: note });
+</script>
+</body>
+</html>

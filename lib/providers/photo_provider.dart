@@ -595,6 +595,7 @@ class PhotoProvider extends ChangeNotifier {
         await StorageService.savePhotos(sortedPhotos);
       }
 
+      AnalyticsService.instance.logPhotoCaptionEdited();
       notifyListeners();
     } on PhotoSyncException catch (e) {
       _errorMessage = e.message;
@@ -637,6 +638,7 @@ class PhotoProvider extends ChangeNotifier {
         await StorageService.savePhotos(sortedPhotos);
       }
 
+      AnalyticsService.instance.logPhotoReplaced();
       notifyListeners();
     } on PhotoSyncException catch (e) {
       _errorMessage = e.message;
@@ -661,6 +663,7 @@ class PhotoProvider extends ChangeNotifier {
       authorUserId: photo.authorUserId ?? '',
       reason: reason,
     );
+    AnalyticsService.instance.logPhotoReported(reason);
   }
 
   Future<void> clearForSignOut() async {

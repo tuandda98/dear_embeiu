@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nút tim trên widget — Dear Embeiu</title>
+<link rel="stylesheet" href="poke.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="doc" id="app"></main>
+<script>
+const { C, partner, mine, theirs, offline } = D;
+const nav = (cur) => `<nav class="pages" aria-label="Các màn của feature">${[['home.html', 'Home'], ['widget.html', 'Widget'], ['push.html', 'Thông báo'], ['settings.html', 'Cài đặt']]
+  .map(([h, t]) => `<a href="${h}"${h === cur ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const W = UI.widget;
+const fig = (html, cap) => `<figure style="margin:0">${html}<figcaption class="wcap">${cap}</figcaption></figure>`;
+const state = (title, desc, items) => `<section class="state"><h2>${title}</h2><p>${desc}</p><div class="wgrid">${items.join('')}</div></section>`;
+const live = { poke: true, m: mine, p: theirs, status: true };
+
+document.getElementById('app').innerHTML = `
+<header>
+  <h1>Tim nằm cạnh số ngày</h1>
+  <p>Chạm tim ngay trên màn hình chính, app không mở. Số dưới tim là tổng lần nhớ nhau hôm nay, tăng ngay khi chạm. Chạm chỗ khác vẫn mở app như cũ.</p>
+  ${nav('widget.html')}
+</header>
+
+${state('iOS 17+, nền trời đêm', `Chiều nay: Thảo ${theirs} lần, mình ${mine} lần, tổng ${D.total}. Dòng trạng thái loại poke đứng dưới chú thích như widget-today.`, [
+  fig(W({ plat: 'ios', size: 's', bg: 'night', ...live }), 'Nhỏ 158×158pt. Đĩa 30pt, vùng chạm 44×44pt.'),
+  fig(W({ plat: 'ios', size: 'm', bg: 'night', ...live }), 'Vừa 338×158pt. Tim ở cột trái, cột phải không đổi.'),
+])}
+
+${state('iOS 17+, nền ảnh thẻ đếm', 'Ảnh sáng nhất trong bộ mẫu, để thử chữ trắng ở mức scrim cố định .18 → .60.', [
+  fig(W({ plat: 'ios', size: 's', bg: 'photo', ...live }), 'Nhỏ, đĩa trắng .84 như chip tên.'),
+  fig(W({ plat: 'ios', size: 'm', bg: 'photo', ...live }), 'Vừa.'),
+])}
+
+${state('Android, nền trời đêm', 'Chữ Roboto vì RemoteViews không nạp Quicksand. Cột tim rộng 48dp; lề phải nội dung còn 8dp để đĩa vẫn thẳng mép 16dp.', [
+  fig(W({ plat: 'and', size: 's', bg: 'night', ...live }), '2×2 ≈152dp. Số ngày tự co còn khoảng 34sp.'),
+  fig(W({ plat: 'and', size: 'm', bg: 'night', ...live }), '4×2 ≈328dp.'),
+])}
+
+${state('Android, nền ảnh thẻ đếm', 'Cùng bố cục, đổi chip và đĩa sang nền trắng.', [
+  fig(W({ plat: 'and', size: 's', bg: 'photo', ...live }), '2×2.'),
+  fig(W({ plat: 'and', size: 'm', bg: 'photo', ...live }), '4×2.'),
+])}
+
+${state('Sáng sớm, chưa ai chạm', 'Tim rỗng trên đĩa trong, không có số. Không in số 0 cạnh nút.', [
+  fig(W({ plat: 'ios', size: 's', bg: 'night', poke: true, m: 0, p: 0 }), 'iOS nhỏ, trời đêm.'),
+  fig(W({ plat: 'ios', size: 's', bg: 'photo', poke: true, m: 0, p: 0 }), 'iOS nhỏ, ảnh.'),
+])}
+
+${state('Vừa chạm', 'Trong 1 giây: đĩa chuyển sang trắng đặc, tim đặc, số lăn lên. iOS dùng hiệu ứng chuyển số của hệ thống; Android đổi ngay, không có chuyển động.', [
+  fig(W({ plat: 'ios', size: 's', bg: 'night', poke: true, m: 1, p: 0, bump: true }), 'Lần chạm đầu trong ngày: số 1 hiện ra.'),
+])}
+
+${state('Mất mạng', `Chạm ${offline.queued} lần lúc ${offline.at}. Số vẫn tăng, viền đĩa thành nét đứt tới khi gửi xong. Trình đọc màn hình nói thêm “đang chờ mạng để gửi”.`, [
+  fig(W({ plat: 'ios', size: 's', bg: 'night', poke: true, m: 0, p: 0, pending: offline.queued }), 'iOS nhỏ.'),
+  fig(W({ plat: 'and', size: 's', bg: 'photo', poke: true, m: 0, p: 0, pending: offline.queued }), 'Android 2×2, nền ảnh.'),
+])}
+
+${state('iOS 18 tô màu (tinted)', 'Hệ thống tô mọi phần tử một màu. Đĩa hạ còn .22 như chip tên, tim và số nhận màu tô; trạng thái đã gửi đọc bằng hình tim đặc, không bằng màu.', [
+  fig(W({ plat: 'ios', size: 's', bg: 'night', tint: true, ...live }), 'Nhỏ, tinted.'),
+])}
+
+${state('Không có tim', 'iOS 15–16 (giới hạn hệ điều hành), cặp đang chờ người ấy, chưa đăng nhập: bố cục giữ nguyên bản widget-today, chòm sao vẫn ở góc.', [
+  fig(W({ plat: 'ios', size: 's', bg: 'night', poke: false, m: 0, p: 0 }), 'iOS 16, nhỏ.'),
+  fig(W({ plat: 'and', size: 'm', bg: 'night', poke: false, m: 0, p: 0 }), 'Android 4×2, chưa có token.'),
+])}
+`;
+document.fonts.ready.then(() => { UI.fit(); document.querySelectorAll('.w .days').forEach((el) => { const f = el.closest('figure')?.querySelector('.wcap'); if (f && el.dataset.fitted !== '40') f.textContent += ` Số ngày co còn ${el.dataset.fitted}.`; }); });
+</script>
+</body>
+</html>

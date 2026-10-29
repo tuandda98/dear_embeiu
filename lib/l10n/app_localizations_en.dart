@@ -108,7 +108,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiQuestionsDialogBody =>
-      'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.';
+      'This applies to both of you: your partner will see the AI-written question too. The AI only reads the last 30 days of answers to write it. Nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.';
 
   @override
   String get aiQuestionsDialogConfirm => 'Turn on';
@@ -378,7 +378,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAccountBtn => 'Create account';
 
   @override
-  String get alreadyWithUs => 'Already with us?';
+  String get alreadyWithUs => 'Already have an account?';
 
   @override
   String get backToSignIn => 'Back to sign in';
@@ -626,6 +626,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeTodaySectionTitle => 'Today, together';
 
   @override
+  String homePartnerSectionTitle(String name) {
+    return 'How\'s $name doing?';
+  }
+
+  @override
+  String get homePartnerSectionTitleFallback => 'How\'s your partner doing?';
+
+  @override
+  String get homeFreeTimeSectionTitle => 'Free time';
+
+  @override
   String get dailyTapToAnswer => 'Tap to answer…';
 
   @override
@@ -821,6 +832,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moodUpdateCta => 'Update mood';
+
+  @override
+  String get moodChangeShort => 'Change';
 
   @override
   String get moodNotSharedYou => 'Tap to share';
@@ -1130,7 +1144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportPhotoTitle => 'Report photo';
 
   @override
-  String get reportPhotoSubtitle => 'Tell us what\'s wrong with this photo.';
+  String get reportPhotoSubtitle => 'What\'s wrong with this photo?';
 
   @override
   String get reportReasonInappropriate => 'Inappropriate content';
@@ -1232,7 +1246,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get galleryLoadErrorSubtitle =>
-      'Your memories are safe — we just couldn\'t reach them right now.';
+      'Your memories are safe. They just couldn\'t load right now.';
 
   @override
   String get galleryRetryBtn => 'Try again';
@@ -1591,7 +1605,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAnalyticsSubtitle =>
-      'Help improve the app with anonymous data. We never collect your private content.';
+      'Help improve the app with anonymous data. Your photos, messages and other private content are never included.';
 
   @override
   String get languageSearchHint => 'Search languages';
@@ -2494,7 +2508,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String forgotPasswordSentBody(String email) {
-    return 'We\'ve sent a password reset link to $email. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.';
+    return 'A password reset link was sent to $email. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.';
   }
 
   @override
@@ -3531,7 +3545,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rpsChosenLeaveHint =>
-      'Feel free to step away — we\'ll tell you the result';
+      'Feel free to step away. You\'ll get a notification with the result';
 
   @override
   String get rpsEntryMyTurnSubtitle => 'Your turn — go ahead 😄';
@@ -3546,7 +3560,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rpsEntryAwaitingTitle => 'Waiting for their move';
 
   @override
-  String get rpsEntryAwaitingSubtitle => 'You\'ve thrown · we\'ll tell you';
+  String get rpsEntryAwaitingSubtitle =>
+      'You\'ve thrown · you\'ll get the result';
 
   @override
   String get rpsEntryCtaThrow => 'Throw';
@@ -4246,6 +4261,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get decisionCustomCta => 'Type & spin';
 
   @override
+  String get decisionChipCustom => 'Other';
+
+  @override
   String decisionByMe(String time) {
     return 'You spun · $time';
   }
@@ -4332,10 +4350,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get decisionReelGoLabel => 'TODAY WE\'LL';
 
   @override
-  String get decisionIdleEat => 'Tap spin and we\'ll pick a dish';
+  String get decisionIdleEat => 'Tap spin to pick a dish';
 
   @override
-  String get decisionIdleGo => 'Tap spin and we\'ll pick a plan';
+  String get decisionIdleGo => 'Tap spin to pick a plan';
 
   @override
   String get decisionIdleCustom => 'Add at least 2 options, then spin';
@@ -4618,4 +4636,3369 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name re-spun: $result';
   }
+
+  @override
+  String get caroPlayTogetherTitle => 'Play together';
+
+  @override
+  String get caroGameTitle => 'Caro';
+
+  @override
+  String caroEntryInvited(String name) {
+    return '$name started a game and made the first move.';
+  }
+
+  @override
+  String caroEntryMyTurn(String name, String n) {
+    return 'Your turn. $name just played move $n.';
+  }
+
+  @override
+  String caroEntryWaiting(String name, String n, String time) {
+    return 'Waiting for $name. You played move $n at $time.';
+  }
+
+  @override
+  String caroEntryWatching(String name) {
+    return 'Waiting for $name, who has the game open.';
+  }
+
+  @override
+  String caroEntryStale(String days) {
+    return 'No moves for $days days. Open it to end the game.';
+  }
+
+  @override
+  String caroEntryJustLost(String name, String score) {
+    return '$name won the last game. $score.';
+  }
+
+  @override
+  String caroEntryJustWon(String score) {
+    return 'You won the last game. $score.';
+  }
+
+  @override
+  String caroEntryJustDraw(String score) {
+    return 'The last game was a draw. $score.';
+  }
+
+  @override
+  String caroEntryIdle(String score, String name) {
+    return '$score. Another game with $name?';
+  }
+
+  @override
+  String caroEntryFirst(String name) {
+    return 'Start a game with $name. You go first.';
+  }
+
+  @override
+  String caroScore(String me, String a, String b, String partner) {
+    return '$me $a–$b $partner';
+  }
+
+  @override
+  String caroScoreDraws(String score, String n) {
+    return '$score, $n draws';
+  }
+
+  @override
+  String caroScorePair(String a, String b) {
+    return '$a – $b';
+  }
+
+  @override
+  String get caroCtaJoin => 'Play';
+
+  @override
+  String get caroCtaPlayOn => 'Your move';
+
+  @override
+  String get caroCtaRematch => 'Rematch';
+
+  @override
+  String get caroCtaNewGame => 'New game';
+
+  @override
+  String get caroCtaInvite => 'Play';
+
+  @override
+  String get caroCtaRetry => 'Try again';
+
+  @override
+  String get caroActionError => 'That didn\'t go through. Try again.';
+
+  @override
+  String get caroEntryError => 'Couldn\'t load the game. Tap to try again.';
+
+  @override
+  String caroNewTitle(String name) {
+    return 'Start a caro game with $name';
+  }
+
+  @override
+  String get caroNewSub =>
+      'Pick the rules for this game. You can switch next time.';
+
+  @override
+  String get caroRuleVn => 'Blocked ends';
+
+  @override
+  String get caroRuleVnDesc =>
+      'Five in a row wins, unless both ends are blocked by the other player.';
+
+  @override
+  String get caroRuleFree => 'Freestyle';
+
+  @override
+  String get caroRuleFreeDesc =>
+      'Any five in a row wins, even with both ends blocked.';
+
+  @override
+  String get caroRuleExampleNoWin => 'This doesn\'t win';
+
+  @override
+  String get caroRuleExampleWin => 'This wins';
+
+  @override
+  String get caroRuleLastUsed => 'last time';
+
+  @override
+  String caroNewFirstNote(String name) {
+    return 'You play X and your first piece goes in the centre. $name gets the invite right away.';
+  }
+
+  @override
+  String caroNewCta(String name) {
+    return 'Invite $name';
+  }
+
+  @override
+  String get caroNewPickFirst => 'Choose your own first square';
+
+  @override
+  String get caroBadge => 'CARO';
+
+  @override
+  String get caroMyTurn => 'Your turn';
+
+  @override
+  String caroLastMove(String name, String n, String time) {
+    return '$name played move $n at $time.';
+  }
+
+  @override
+  String caroWaiting(String name) {
+    return 'Waiting for $name';
+  }
+
+  @override
+  String caroYouMoved(String n, String time, String name) {
+    return 'You played move $n at $time. You can close the app. You\'ll get a notification when $name moves.';
+  }
+
+  @override
+  String caroPartnerWatching(String n, String time, String name) {
+    return 'You played move $n at $time. $name is looking at the board.';
+  }
+
+  @override
+  String caroWaitedMin(String n, String time, int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: '$m minutes',
+      one: '1 minute',
+    );
+    return 'You played move $n at $time, $_temp0 ago.';
+  }
+
+  @override
+  String caroNudged(String name, String time) {
+    return 'You nudged $name at $time.';
+  }
+
+  @override
+  String get caroLaneWins => 'wins';
+
+  @override
+  String get caroLaneWatching => 'watching';
+
+  @override
+  String caroLaneMove(String n) {
+    return 'move $n';
+  }
+
+  @override
+  String get caroLaneNew => 'new game';
+
+  @override
+  String caroLaneGames(String n) {
+    return '$n games';
+  }
+
+  @override
+  String get caroLanePlusOne => '+1 this game';
+
+  @override
+  String get caroPlayHere => 'Play here';
+
+  @override
+  String get caroSending => 'Playing…';
+
+  @override
+  String get caroSendError =>
+      'That move didn\'t go through. Your square is still selected.';
+
+  @override
+  String get caroStaleBoard =>
+      'The board changed. Take another look before you move.';
+
+  @override
+  String get caroOffline => 'You\'re offline. You can move once you\'re back.';
+
+  @override
+  String get caroWaitNetwork => 'Waiting for connection';
+
+  @override
+  String get caroTapAgainHint =>
+      'Tap the selected square again to play it, or pick another.';
+
+  @override
+  String caroNudge(String name) {
+    return 'Nudge $name';
+  }
+
+  @override
+  String caroNudgeIn(int m) {
+    return 'Nudge in $m min';
+  }
+
+  @override
+  String caroNudgeSent(String name) {
+    return 'Nudged $name';
+  }
+
+  @override
+  String caroInvitedTitle(String name) {
+    return '$name wants to play caro';
+  }
+
+  @override
+  String caroInvitedSubVn(String name) {
+    return '$name made the first move. Blocked ends: a five blocked at both ends doesn\'t win.';
+  }
+
+  @override
+  String caroInvitedSubFree(String name) {
+    return '$name made the first move. Freestyle: any five in a row wins.';
+  }
+
+  @override
+  String get caroLater => 'Not now';
+
+  @override
+  String get caroFirstTitle => 'Place your first piece';
+
+  @override
+  String caroFirstSub(String name) {
+    return 'You play X and go first. $name gets the invite after your move.';
+  }
+
+  @override
+  String caroInviteCta(String name) {
+    return 'Invite $name';
+  }
+
+  @override
+  String caroStaleTitle(String days) {
+    return 'No moves for $days days';
+  }
+
+  @override
+  String caroStaleSub(String date, String name) {
+    return 'Nobody has moved since $date. Nudge $name, or end it and start over.';
+  }
+
+  @override
+  String get caroEndGame => 'End game';
+
+  @override
+  String caroInvitedYesterday(String name, String when, String time) {
+    return 'You invited $name $when at $time.';
+  }
+
+  @override
+  String caroOldAppHint(String name) {
+    return 'If $name can\'t see the game, their app may need an update.';
+  }
+
+  @override
+  String get caroLoading => 'Loading game';
+
+  @override
+  String get caroCancelledTitle => 'This game was cancelled';
+
+  @override
+  String caroCancelledSub(String name, String time) {
+    return '$name chose Not now at $time. Cancelled games don\'t count.';
+  }
+
+  @override
+  String get caroExpiredTitle => 'This game has ended';
+
+  @override
+  String get caroExpiredSub =>
+      'Nobody moved for 7 days, so it stopped here. It doesn\'t count.';
+
+  @override
+  String caroNewInviteCta(String name) {
+    return 'New game with $name';
+  }
+
+  @override
+  String get caroHistoryTooltip => 'Game history';
+
+  @override
+  String caroRuleTapHint(String rule) {
+    return '$rule rules, tap for details';
+  }
+
+  @override
+  String get caroResign => 'Resign';
+
+  @override
+  String get caroRuleEdgeNote =>
+      'The edge of the board doesn\'t count as a block.';
+
+  @override
+  String get caroEndKeep => 'Leave it';
+
+  @override
+  String get caroEndConfirm => 'End it';
+
+  @override
+  String get caroResignTitle => 'Resign this game?';
+
+  @override
+  String caroResignBody(String name, String score) {
+    return '$name gets the win. The score becomes $score.';
+  }
+
+  @override
+  String get caroKeepPlaying => 'Keep playing';
+
+  @override
+  String get caroCancelTitle => 'Skip this game?';
+
+  @override
+  String caroCancelBody(String name) {
+    return 'It won\'t count. $name will see it was cancelled.';
+  }
+
+  @override
+  String get caroCancelConfirm => 'Skip';
+
+  @override
+  String get caroEndTitle => 'End this game?';
+
+  @override
+  String get caroEndBody => 'It won\'t count, and you can start a new one.';
+
+  @override
+  String get caroZoomIn => 'Zoom in on the last move';
+
+  @override
+  String get caroZoomOut => 'Show the whole board';
+
+  @override
+  String get caroYouWon => 'You won this game';
+
+  @override
+  String caroPartnerWon(String name) {
+    return '$name won this game';
+  }
+
+  @override
+  String caroWinDetail(String n, String time, String span) {
+    return 'Five in a row on move $n, at $time. The game took $span.';
+  }
+
+  @override
+  String caroSpanHours(int h) {
+    String _temp0 = intl.Intl.pluralLogic(
+      h,
+      locale: localeName,
+      other: '$h hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String caroSpanMinutes(int m) {
+    String _temp0 = intl.Intl.pluralLogic(
+      m,
+      locale: localeName,
+      other: '$m minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String caroPartnerResigned(String name) {
+    return '$name resigned';
+  }
+
+  @override
+  String caroPartnerResignedSub(String n) {
+    return 'You win this one, on move $n.';
+  }
+
+  @override
+  String get caroYouResigned => 'You resigned';
+
+  @override
+  String caroYouResignedSub(String name) {
+    return '$name gets the win.';
+  }
+
+  @override
+  String get caroDraw => 'This game is a draw';
+
+  @override
+  String get caroDrawSub => 'All 225 squares are full and nobody won.';
+
+  @override
+  String get caroSeeHistory => 'See game history';
+
+  @override
+  String get caroHistoryBadge => 'CARO HISTORY';
+
+  @override
+  String caroLeads(String name, String n) {
+    return '$name leads by $n';
+  }
+
+  @override
+  String caroTied(String a) {
+    return 'Tied at $a–$a';
+  }
+
+  @override
+  String caroHistorySub(String n, String date, String name, String when) {
+    return '$n games since $date. $name won the last one $when.';
+  }
+
+  @override
+  String caroHistorySubNoSince(String n, String name, String when) {
+    return '$n games. $name won the last one $when.';
+  }
+
+  @override
+  String caroHistorySubDrawNoSince(String n, String when) {
+    return '$n games. The last one was a draw $when.';
+  }
+
+  @override
+  String caroHistorySubDraw(String n, String date, String when) {
+    return '$n games since $date. The last one was a draw $when.';
+  }
+
+  @override
+  String get caroWhenToday => 'today';
+
+  @override
+  String get caroWhenYesterday => 'yesterday';
+
+  @override
+  String caroWhenOn(String date) {
+    return 'on $date';
+  }
+
+  @override
+  String get caroDateToday => 'Today';
+
+  @override
+  String get caroDateYesterday => 'Yesterday';
+
+  @override
+  String caroRowWon(String name) {
+    return '$name won';
+  }
+
+  @override
+  String get caroRowDraw => 'Draw';
+
+  @override
+  String caroRowFive(String n) {
+    return 'Five in a row, $n moves';
+  }
+
+  @override
+  String caroRowResign(String name, String n) {
+    return '$name resigned on move $n';
+  }
+
+  @override
+  String get caroRowFull => 'Board full, 225 moves';
+
+  @override
+  String get caroRowFreeSuffix => '. Freestyle';
+
+  @override
+  String get caroHistoryEmpty => 'No finished games yet';
+
+  @override
+  String get caroHistoryEmptySub =>
+      'Your first game is waiting. The score starts at 0–0.';
+
+  @override
+  String get caroOpenCurrent => 'Open current game';
+
+  @override
+  String caroStartWith(String name) {
+    return 'Start a game with $name';
+  }
+
+  @override
+  String get caroHistoryPageError => 'Couldn\'t load older games.';
+
+  @override
+  String caroReplayBadge(String date) {
+    return 'GAME $date';
+  }
+
+  @override
+  String caroCellEmpty(String r, String c) {
+    return 'Row $r, column $c, empty';
+  }
+
+  @override
+  String caroCellX(String r, String c, String name) {
+    return 'Row $r, column $c, $name\'s X';
+  }
+
+  @override
+  String caroCellO(String r, String c, String name) {
+    return 'Row $r, column $c, $name\'s O';
+  }
+
+  @override
+  String get caroCellLast => ', last move';
+
+  @override
+  String get caroCellSelected => ', selected';
+
+  @override
+  String get caroCellWinning => ', part of the winning line';
+
+  @override
+  String caroNotifInvite(String name) {
+    return '$name started a game of caro';
+  }
+
+  @override
+  String get caroNotifInviteBody => 'They made the first move. Your turn.';
+
+  @override
+  String caroWidgetTurn(String name) {
+    return '$name moved in caro, your turn';
+  }
+
+  @override
+  String get caroWidgetTurnShort => 'Your caro move';
+
+  @override
+  String get caroTourTitle => 'Turn-based caro';
+
+  @override
+  String get caroTourBody =>
+      'Take turns whenever you have a minute, all day if you like. Every win adds to your shared score.';
+
+  @override
+  String get weatherCardTitle => 'Weather here and there';
+
+  @override
+  String weatherUpdatedAt(String time) {
+    return 'Updated $time';
+  }
+
+  @override
+  String weatherStaleAt(String time) {
+    return 'As of $time';
+  }
+
+  @override
+  String get weatherStaleHeader => 'Couldn\'t update';
+
+  @override
+  String get weatherLoadFailed => 'Couldn\'t load the weather';
+
+  @override
+  String get weatherRetry => 'Try again';
+
+  @override
+  String get weatherWhereAmI => 'Where are you?';
+
+  @override
+  String weatherWhereIsPartner(String name) {
+    return 'Where is $name?';
+  }
+
+  @override
+  String weatherWhereIsPartnerNext(String name) {
+    return 'And where is $name?';
+  }
+
+  @override
+  String get weatherChoose => 'Choose';
+
+  @override
+  String get weatherChooseForPartner => 'Choose for them';
+
+  @override
+  String weatherSetupBody(String name) {
+    return 'Pick your city and $name\'s. Both forecasts show up here every morning.';
+  }
+
+  @override
+  String get weatherSetupBodySolo =>
+      'Pick your city. Today\'s weather shows up here every morning.';
+
+  @override
+  String get weatherSetupCta => 'Choose a city';
+
+  @override
+  String get weatherHide => 'Hide';
+
+  @override
+  String get weatherHideA11y => 'Hide the weather card';
+
+  @override
+  String weatherSameCity(String city) {
+    return 'You\'re both in $city';
+  }
+
+  @override
+  String weatherColder(String name, int n) {
+    return '$n° colder where $name is';
+  }
+
+  @override
+  String weatherWarmer(String name, int n) {
+    return '$n° warmer where $name is';
+  }
+
+  @override
+  String weatherCtaUmbrella(String name) {
+    return 'Remind $name: umbrella';
+  }
+
+  @override
+  String weatherCtaWater(String name) {
+    return 'Remind $name: water';
+  }
+
+  @override
+  String weatherCtaWarm(String name) {
+    return 'Remind $name: dress warm';
+  }
+
+  @override
+  String weatherCtaA11yUmbrella(String name) {
+    return 'Remind $name to take an umbrella';
+  }
+
+  @override
+  String weatherCtaA11yWater(String name) {
+    return 'Remind $name to drink water';
+  }
+
+  @override
+  String weatherCtaA11yWarm(String name) {
+    return 'Remind $name to dress warm';
+  }
+
+  @override
+  String get weatherCtaHint => 'Opens a care note with the message filled in';
+
+  @override
+  String get weatherCardHint => 'Opens the weather details';
+
+  @override
+  String weatherDegrees(int n) {
+    return '$n degrees';
+  }
+
+  @override
+  String get weatherCondRainNow => 'Raining now';
+
+  @override
+  String get weatherCondRainMorning => 'Rain this morning';
+
+  @override
+  String get weatherCondRainAfternoon => 'Rain this afternoon';
+
+  @override
+  String get weatherCondRainTonight => 'Rain tonight';
+
+  @override
+  String get weatherCondRainTomorrow => 'Rain tomorrow morning';
+
+  @override
+  String weatherCondHot(int max) {
+    return 'Hot, up to $max°';
+  }
+
+  @override
+  String weatherCondCold(int min) {
+    return 'Cold, down to $min°';
+  }
+
+  @override
+  String get weatherSkyClear => 'Clear';
+
+  @override
+  String get weatherSkyPartlyCloudy => 'Partly cloudy';
+
+  @override
+  String get weatherSkyCloudy => 'Cloudy';
+
+  @override
+  String get weatherSkyFog => 'Foggy';
+
+  @override
+  String get weatherSkyLightRain => 'Light rain';
+
+  @override
+  String get weatherSkyRain => 'Rain';
+
+  @override
+  String get weatherSkyHeavyRain => 'Heavy rain';
+
+  @override
+  String get weatherSkyThunder => 'Thunderstorms';
+
+  @override
+  String get weatherSkySnow => 'Snow';
+
+  @override
+  String weatherRestOfDay(int min, int max) {
+    return 'Rest of today $min° to $max°';
+  }
+
+  @override
+  String weatherScaleA11y(int min, int max, int now) {
+    return 'Rest of today $min to $max degrees, now $now degrees';
+  }
+
+  @override
+  String weatherSlotA11y(String time, int n) {
+    return '$time, $n degrees';
+  }
+
+  @override
+  String weatherSlotRainA11y(String time, int n) {
+    return '$time, $n degrees, rain';
+  }
+
+  @override
+  String weatherPartnerSelfSet(String name) {
+    return '$name picked this';
+  }
+
+  @override
+  String get weatherSetByMe => 'you picked this';
+
+  @override
+  String get weatherChangeCity => 'Change city';
+
+  @override
+  String get weatherChangeForPartner => 'Change for them';
+
+  @override
+  String weatherTheirTimeNow(String time) {
+    return 'it\'s $time there';
+  }
+
+  @override
+  String get weatherPickerSubSelf =>
+      'Just the city. The app never asks for your location.';
+
+  @override
+  String weatherPickerSubPartner(String name) {
+    return '$name can still change it later.';
+  }
+
+  @override
+  String get weatherSearchHint => 'Search a city or province';
+
+  @override
+  String get weatherSearchLabel => 'Search cities';
+
+  @override
+  String get weatherClearSearch => 'Clear search';
+
+  @override
+  String get weatherGroupCurrent => 'Current';
+
+  @override
+  String get weatherGroupVn => 'Vietnam';
+
+  @override
+  String get weatherGroupIntl => 'Abroad';
+
+  @override
+  String weatherOldProvince(String name) {
+    return 'Formerly $name';
+  }
+
+  @override
+  String get weatherNoMatch =>
+      'That city isn\'t on the list yet. Pick the closest one.';
+
+  @override
+  String weatherPartnerJustSet(String name) {
+    return '$name just picked their own city.';
+  }
+
+  @override
+  String get weatherLater => 'Later';
+
+  @override
+  String get weatherSourcePrefix => 'Weather data: ';
+
+  @override
+  String get weatherSettingsSection => 'Weather here and there';
+
+  @override
+  String get weatherSettingsMine => 'Your city';
+
+  @override
+  String weatherSettingsPartner(String name) {
+    return '$name\'s city';
+  }
+
+  @override
+  String get weatherNotSet => 'Not set';
+
+  @override
+  String get weatherNotifToggle => 'Weather where your partner is';
+
+  @override
+  String weatherNotifToggleSub(String time, String name) {
+    return 'At $time, only when it rains, gets very hot or turns cold where $name is. Up to 3 times a week.';
+  }
+
+  @override
+  String get weatherNotifNeedsCouple => 'Available once you\'re paired.';
+
+  @override
+  String weatherNotifPreviewCaption(String name) {
+    return 'On a rainy day where $name is, you\'ll get this:';
+  }
+
+  @override
+  String get weatherCareUmbrellaTitle => 'Take an umbrella';
+
+  @override
+  String weatherCareUmbrellaBody(String city) {
+    return 'It\'s rainy in $city. Grab an umbrella if you head out.';
+  }
+
+  @override
+  String get weatherCareWaterTitle => 'Stay hydrated';
+
+  @override
+  String weatherCareWaterBody(String city, int max) {
+    return '$city is hitting $max° today. Cover up in the sun and keep drinking water.';
+  }
+
+  @override
+  String get weatherCareWarmTitle => 'Dress warm';
+
+  @override
+  String weatherCareWarmBody(String city, int min) {
+    return '$city is dropping to $min°. Bring an extra layer when you go out.';
+  }
+
+  @override
+  String weatherMorningRainTitle(String city) {
+    return 'Rain in $city today';
+  }
+
+  @override
+  String weatherMorningRainBody(String name) {
+    return 'Remind $name to take an umbrella?';
+  }
+
+  @override
+  String weatherMorningHotTitle(String city, int max) {
+    return '$city hits $max° today';
+  }
+
+  @override
+  String weatherMorningHotBody(String name) {
+    return 'Remind $name to drink enough water?';
+  }
+
+  @override
+  String weatherMorningColdTitle(String city, int min) {
+    return '$city drops to $min° today';
+  }
+
+  @override
+  String weatherMorningColdBody(String name) {
+    return 'Remind $name to dress warm?';
+  }
+
+  @override
+  String get weatherSaveFailed => 'Couldn\'t save that. Please try again.';
+
+  @override
+  String get weatherLaneFailed => 'Couldn\'t load';
+
+  @override
+  String get weatherFeatureTourTitle => 'Weather here and there';
+
+  @override
+  String get weatherFeatureTourBody =>
+      'See if it\'s about to rain where your partner is. One tap reminds them to bring an umbrella.';
+
+  @override
+  String get arrivalCardTitle => 'Home yet?';
+
+  @override
+  String get arrivalOpenManageA11y => 'Open arrival settings';
+
+  @override
+  String arrivalPitch(String name) {
+    return 'When you get home, your phone tells $name. No texting from the road.';
+  }
+
+  @override
+  String get arrivalEnableCta => 'Turn on arrivals';
+
+  @override
+  String get arrivalManualHome => 'I\'m home';
+
+  @override
+  String get arrivalManualOther => 'I\'ve arrived';
+
+  @override
+  String get arrivalHomeName => 'Home';
+
+  @override
+  String get arrivalEnterHome => 'Got home';
+
+  @override
+  String get arrivalExitHome => 'Left home';
+
+  @override
+  String arrivalEnterPlace(String place) {
+    return 'Arrived at $place';
+  }
+
+  @override
+  String arrivalExitPlace(String place) {
+    return 'Left $place';
+  }
+
+  @override
+  String arrivalYesterdayAt(String time) {
+    return 'yesterday $time';
+  }
+
+  @override
+  String arrivalBattery(int pct) {
+    return '$pct%';
+  }
+
+  @override
+  String arrivalBatteryLow(int pct) {
+    return 'Battery at $pct%';
+  }
+
+  @override
+  String get arrivalManualTag => 'manual';
+
+  @override
+  String get arrivalPartnerOn => 'Arrivals are on';
+
+  @override
+  String arrivalPartnerOnSub(String name) {
+    return 'You\'ll see it here when $name arrives.';
+  }
+
+  @override
+  String get arrivalPartnerOff => 'Arrivals are off';
+
+  @override
+  String get arrivalCareCta => 'Say hi';
+
+  @override
+  String arrivalCareA11y(String name) {
+    return 'Say hi to $name';
+  }
+
+  @override
+  String get arrivalCareSuggestion => 'You made it. Get some rest';
+
+  @override
+  String get arrivalNoEventToday => 'Nothing yet today';
+
+  @override
+  String arrivalMineAuto(String places) {
+    return 'Auto: $places';
+  }
+
+  @override
+  String arrivalPlacesMany(int n) {
+    return 'Home and $n more';
+  }
+
+  @override
+  String get arrivalMineNeedAlways =>
+      'Can\'t send on its own yet: needs Always location';
+
+  @override
+  String get arrivalMineRemoteOff => 'Manual only for now';
+
+  @override
+  String get arrivalMineManual => 'Only when you tap';
+
+  @override
+  String get arrivalMineNoAddress => 'Home address not set';
+
+  @override
+  String get arrivalSetAddress => 'Set address';
+
+  @override
+  String get arrivalOpenSettings => 'Open Settings';
+
+  @override
+  String arrivalFirstDetected(String place) {
+    return 'The app recognized $place';
+  }
+
+  @override
+  String arrivalSent(String name) {
+    return 'Sent to $name';
+  }
+
+  @override
+  String arrivalQueued(String name) {
+    return 'Sends when you\'re back online. After 30 minutes, $name only sees it on the card, with no notification.';
+  }
+
+  @override
+  String arrivalSendFailed(String what) {
+    return 'Couldn\'t send “$what”.';
+  }
+
+  @override
+  String get arrivalRetry => 'Try again';
+
+  @override
+  String get arrivalPickTitle => 'Where did you just arrive?';
+
+  @override
+  String arrivalPickNote(String name, String me) {
+    return 'Tap and $name gets “$me arrived at …” right away. No location access needed.';
+  }
+
+  @override
+  String get arrivalAddPlace => 'Add a place';
+
+  @override
+  String arrivalSlotsLeft(int n) {
+    return '$n left';
+  }
+
+  @override
+  String get arrivalBadge => 'ARRIVALS';
+
+  @override
+  String get arrivalNewPlaceTitle => 'New place';
+
+  @override
+  String get arrivalNameLabel => 'Place name';
+
+  @override
+  String get arrivalNameHint => 'e.g. Work, Mom and Dad\'s';
+
+  @override
+  String get arrivalNameNote => 'Your partner sees this name when you arrive.';
+
+  @override
+  String get arrivalNameEmpty =>
+      'Type a name to continue. Up to 24 characters.';
+
+  @override
+  String get arrivalChipWork => 'Work';
+
+  @override
+  String get arrivalChipSchool => 'School';
+
+  @override
+  String get arrivalChipFamily => 'Mom and Dad\'s';
+
+  @override
+  String get arrivalChipGym => 'Gym';
+
+  @override
+  String get arrivalChipCafe => 'Usual spot';
+
+  @override
+  String get arrivalIconLabel => 'Icon';
+
+  @override
+  String get arrivalIconAuto =>
+      'Picking a suggestion picks its icon too. You can change it.';
+
+  @override
+  String get arrivalIconWork => 'Work';
+
+  @override
+  String get arrivalIconSchool => 'School';
+
+  @override
+  String get arrivalIconFamily => 'Family';
+
+  @override
+  String get arrivalIconGym => 'Workout';
+
+  @override
+  String get arrivalIconCafe => 'Café';
+
+  @override
+  String get arrivalIconShop => 'Shopping';
+
+  @override
+  String get arrivalIconPin => 'Other';
+
+  @override
+  String arrivalPreviewLead(String name) {
+    return '$name will see:';
+  }
+
+  @override
+  String get arrivalContinue => 'Continue';
+
+  @override
+  String arrivalWhereTitle(String place) {
+    return 'Where is $place?';
+  }
+
+  @override
+  String get arrivalWhereSub =>
+      'Include the house number, street and ward for the best match.';
+
+  @override
+  String get arrivalSearchHint => 'e.g. 12 Nguyen Trai, Thanh Xuan, Ha Noi';
+
+  @override
+  String get arrivalSearching => 'Searching…';
+
+  @override
+  String get arrivalSearchTip =>
+      'Tap Search on the keyboard if nothing shows up.';
+
+  @override
+  String get arrivalClearSearch => 'Clear';
+
+  @override
+  String get arrivalUseCurrentRow => 'Can\'t find it? Use current location';
+
+  @override
+  String get arrivalUseCurrentRowSub => 'Tap this while you\'re there';
+
+  @override
+  String get arrivalNoResults =>
+      'Couldn\'t find that address. Try adding the ward or province, or use your current location while you\'re there.';
+
+  @override
+  String get arrivalSearchOffline =>
+      'Finding an address needs internet. Try again when you\'re online, or use your current location while you\'re there.';
+
+  @override
+  String get arrivalSearchError =>
+      'Couldn\'t search right now. Try again in a bit, or use your current location while you\'re there.';
+
+  @override
+  String get arrivalNoGeocoder =>
+      'This phone can\'t look up addresses. Save the place with your current location while you\'re there.';
+
+  @override
+  String get arrivalUseCurrent => 'Use current location';
+
+  @override
+  String get arrivalNameOnly => 'Save the name, tap manually';
+
+  @override
+  String arrivalCurrentTitle(String place) {
+    return 'Are you at $place now?';
+  }
+
+  @override
+  String get arrivalCurrentBody =>
+      'The app reads your location once to save this spot. Coordinates stay on your phone.';
+
+  @override
+  String get arrivalCurrentHint =>
+      'The first time, your phone asks for location access. Choose “While Using the App” and keep Precise Location on.';
+
+  @override
+  String get arrivalReadLocation => 'Read location';
+
+  @override
+  String get arrivalReading => 'Reading location…';
+
+  @override
+  String get arrivalBackToSearch => 'Back to search';
+
+  @override
+  String get arrivalReadTimeout =>
+      'Couldn\'t get your location. Move somewhere more open and try again.';
+
+  @override
+  String get arrivalPreciseTitle => 'Turn on Precise Location';
+
+  @override
+  String get arrivalPreciseBody =>
+      'With approximate location, the app can\'t tell your door from a few streets away.';
+
+  @override
+  String get arrivalConfirmTitle => 'Is this the right spot?';
+
+  @override
+  String get arrivalFromAddress => 'From the address';
+
+  @override
+  String arrivalFromCurrent(int m) {
+    return 'Your current location, within about $m m';
+  }
+
+  @override
+  String arrivalRadiusLine(int m) {
+    return 'The app lets them know when you\'re within about $m m of here.';
+  }
+
+  @override
+  String get arrivalNoHouseNumber =>
+      'This address has no house number, so the alert may come a little early or late.';
+
+  @override
+  String get arrivalConfirmAlleyWarn =>
+      'Alley addresses usually only resolve to the alley entrance, so the alert may come a little early or late.';
+
+  @override
+  String get arrivalSave => 'Save';
+
+  @override
+  String get arrivalWrongSpot =>
+      'Wrong spot? Use your current location while you\'re there';
+
+  @override
+  String get arrivalReread => 'Read location again';
+
+  @override
+  String arrivalSaved(String place) {
+    return '$place saved';
+  }
+
+  @override
+  String arrivalEditTitle(String place) {
+    return 'Edit $place';
+  }
+
+  @override
+  String get arrivalRenameNote => 'A new name applies from your next arrival.';
+
+  @override
+  String get arrivalLocationLabel => 'Location';
+
+  @override
+  String arrivalSavedFromAddress(String date) {
+    return 'Saved from address · $date';
+  }
+
+  @override
+  String arrivalSavedFromCurrent(String date) {
+    return 'Saved from current location · $date';
+  }
+
+  @override
+  String get arrivalNoAddressManual => 'No address yet, manual only';
+
+  @override
+  String get arrivalPaused => 'Paused';
+
+  @override
+  String get arrivalDeletePlace => 'Delete this place';
+
+  @override
+  String get arrivalDeletePlaceSub => 'You\'ll be asked to confirm.';
+
+  @override
+  String arrivalDeletePlaceTitle(String place) {
+    return 'Delete $place?';
+  }
+
+  @override
+  String get arrivalDeletePlaceBody =>
+      'You\'ll stop sending arrivals for it. Updates already sent keep the old name.';
+
+  @override
+  String get arrivalHomeEditBody =>
+      'Home always stays on the card. You can only change where it is.';
+
+  @override
+  String get arrivalDeleteHomeAddress => 'Remove address';
+
+  @override
+  String get arrivalDeleteHomeAddressSub =>
+      'Home goes back to tapping “I\'m home”.';
+
+  @override
+  String get arrivalDeleteHomeAddressTitle => 'Remove Home\'s address?';
+
+  @override
+  String get arrivalDeleteHomeAddressBody =>
+      'Home stays on the card. Tap “I\'m home” each time you get back.';
+
+  @override
+  String get arrivalDelete => 'Delete';
+
+  @override
+  String get arrivalCancel => 'Cancel';
+
+  @override
+  String arrivalDeleted(String place) {
+    return '$place deleted';
+  }
+
+  @override
+  String get arrivalHomeAddressDeleted => 'Home\'s address removed';
+
+  @override
+  String get arrivalUndo => 'Undo';
+
+  @override
+  String get arrivalNeedPlaceTitle => 'First, where\'s home?';
+
+  @override
+  String get arrivalNeedPlaceBody =>
+      'Your phone needs to know where Home is to send on its own. Typing the address is enough, no permissions yet.';
+
+  @override
+  String get arrivalNoAddressYet => 'No address yet';
+
+  @override
+  String get arrivalSetHomeAddress => 'Set Home address';
+
+  @override
+  String get arrivalLater => 'Not now';
+
+  @override
+  String arrivalDisclosureTitle(String name) {
+    return '$name knows when you arrive';
+  }
+
+  @override
+  String get arrivalDisclosureBody =>
+      'Dear Embeiu uses your location to let your partner know when you get to or leave Home or a place you saved, even when the app is closed or not in use. Addresses and coordinates stay on your phone. Your partner only sees the place name, when you arrived or left, and your battery level. You can turn this off anytime.';
+
+  @override
+  String arrivalPreviewLabel(String name) {
+    return '$name will get';
+  }
+
+  @override
+  String get arrivalPushBody => 'Send a quick hello';
+
+  @override
+  String get arrivalAgree => 'Agree and continue';
+
+  @override
+  String get arrivalPrivacyLink => 'Privacy policy';
+
+  @override
+  String arrivalAlwaysTitle(String label) {
+    return 'Choose “$label”';
+  }
+
+  @override
+  String arrivalAlwaysBody(String label) {
+    return 'To send it even when the app is closed, choose “$label” on the next screen.';
+  }
+
+  @override
+  String get arrivalAlwaysLabelIos => 'Always';
+
+  @override
+  String get arrivalAlwaysLabelAndroid => 'Allow all the time';
+
+  @override
+  String get arrivalNextLooksLike => 'The next screen looks like this';
+
+  @override
+  String get arrivalOsNever => 'Never';
+
+  @override
+  String get arrivalOsAskNext => 'Ask Next Time';
+
+  @override
+  String get arrivalOsWhileUsing => 'While Using the App';
+
+  @override
+  String get arrivalOsAndroidWhileUsing => 'Allow only while using the app';
+
+  @override
+  String get arrivalOsAndroidAsk => 'Ask every time';
+
+  @override
+  String get arrivalOsAndroidDeny => 'Don\'t allow';
+
+  @override
+  String get arrivalSwipeHint =>
+      'Don\'t swipe Dear Embeiu away in the app switcher, or your iPhone may not send arrivals.';
+
+  @override
+  String get arrivalAutostartHint =>
+      'On Xiaomi, Oppo or Vivo, also turn on Autostart for Dear Embeiu so arrivals aren\'t blocked.';
+
+  @override
+  String get arrivalOpenPermission => 'Open permissions';
+
+  @override
+  String get arrivalLaterManual => 'Later, I\'ll tap manually';
+
+  @override
+  String get arrivalSetupDone => 'Done';
+
+  @override
+  String get arrivalDoneTitle => 'Arrivals are on';
+
+  @override
+  String arrivalDoneBody(String name) {
+    return 'From now on, $name knows when you get home. To turn it off, go to Settings → Arrivals. Turning it off deletes your latest update, and $name gets no notification.';
+  }
+
+  @override
+  String get arrivalDoneRow => 'Sends when you reach Home';
+
+  @override
+  String get arrivalDoneRowSub => 'Add work, the gym… to cover those too';
+
+  @override
+  String get arrivalPartialTitle => 'You\'ll send it manually for now';
+
+  @override
+  String arrivalPartialBody(String name) {
+    return 'Each time you get home, tap “I\'m home” on the Home card. $name gets the same message. Your saved places stay.';
+  }
+
+  @override
+  String get arrivalBackHome => 'Back to Home';
+
+  @override
+  String arrivalSeesLabel(String name) {
+    return 'What $name sees';
+  }
+
+  @override
+  String arrivalShareTitle(String name) {
+    return 'Share with $name';
+  }
+
+  @override
+  String arrivalShareSub(String name) {
+    return 'Turning this off deletes your latest update from the server. $name gets no notification.';
+  }
+
+  @override
+  String arrivalShareOffSub(String name) {
+    return 'Turn it back on to let $name know when you arrive.';
+  }
+
+  @override
+  String get arrivalAutoTitle => 'Send automatically';
+
+  @override
+  String arrivalAutoSub(String places) {
+    return 'Your phone sends it when you reach $places.';
+  }
+
+  @override
+  String get arrivalAutoNeedPlace =>
+      'Set an address for Home or another place first.';
+
+  @override
+  String get arrivalAutoNeedAlways =>
+      'Can\'t send on its own yet: needs Always location.';
+
+  @override
+  String get arrivalAutoRemoteOff =>
+      'Manual only for now. You can still tap “I\'m home” on the Home card.';
+
+  @override
+  String get arrivalPlacesTitle => 'Places';
+
+  @override
+  String get arrivalPlacesSub =>
+      'Home is always there. Add up to 4 more. Addresses stay on this phone.';
+
+  @override
+  String get arrivalPermTitle => 'Location access';
+
+  @override
+  String get arrivalPermAlways => 'Location: Always';
+
+  @override
+  String get arrivalPermAlwaysSub =>
+      'Enough to send even when the app is closed.';
+
+  @override
+  String get arrivalPermWhileUsing => 'Location: While Using';
+
+  @override
+  String get arrivalPermWhileUsingSub =>
+      'Needs “Always” to send while the app is closed.';
+
+  @override
+  String get arrivalPermNone => 'Location: Not allowed';
+
+  @override
+  String get arrivalPermPreciseOn => 'Precise Location: On';
+
+  @override
+  String get arrivalPermPreciseOff => 'Precise Location: Off';
+
+  @override
+  String get arrivalPermPreciseSub =>
+      'So it knows you\'re at the door, not the end of the street.';
+
+  @override
+  String get arrivalPermOpenSettings => 'Open phone Settings';
+
+  @override
+  String get arrivalTurnOffTitle => 'Turn off arrivals?';
+
+  @override
+  String arrivalTurnOffBody(String name, String me) {
+    return 'Your latest update is deleted from the server right away. $name will see that $me\'s arrivals are off and won\'t get a notification.';
+  }
+
+  @override
+  String arrivalTurnOffAlsoPlaces(int n) {
+    return 'Also delete the saved addresses of $n places on this phone';
+  }
+
+  @override
+  String get arrivalTurnOff => 'Turn off';
+
+  @override
+  String get arrivalSettingsPushTitle => 'When your partner arrives';
+
+  @override
+  String arrivalSettingsPushSub(String name) {
+    return 'Get notified when $name gets home or reaches a saved place. The Home card still shows it when this is off.';
+  }
+
+  @override
+  String get arrivalSettingsTitle => 'Arrivals';
+
+  @override
+  String arrivalSettingsSharing(String name, String places) {
+    return 'Sharing with $name: $places';
+  }
+
+  @override
+  String get arrivalSettingsOff => 'Off';
+
+  @override
+  String arrivalWidgetHome(String name) {
+    return '$name got home';
+  }
+
+  @override
+  String arrivalWidgetHomeShort(String name) {
+    return '$name is home';
+  }
+
+  @override
+  String arrivalWidgetPlace(String name, String place) {
+    return '$name arrived at $place';
+  }
+
+  @override
+  String arrivalWidgetPlaceShort(String name, String place) {
+    return '$name at $place';
+  }
+
+  @override
+  String get arrivalTourTitle => 'Home yet?';
+
+  @override
+  String get arrivalTourBody =>
+      'Got home? Tap “I\'m home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.';
+
+  @override
+  String arrivalSaveFailed(String place) {
+    return 'Couldn\'t save $place. Please try again.';
+  }
+
+  @override
+  String get arrivalPlacesFull =>
+      'You already have 4 places. Delete one, then add this again.';
+
+  @override
+  String get arrivalUndoFailed =>
+      'Couldn\'t undo: that spot was just used for another place.';
+
+  @override
+  String get moneyCatFood => 'Food & drink';
+
+  @override
+  String get moneyCatFoodOut => 'Eating out';
+
+  @override
+  String get moneyCatFoodMarket => 'Groceries';
+
+  @override
+  String get moneyCatFoodCoffee => 'Coffee & bubble tea';
+
+  @override
+  String get moneyCatFoodSnack => 'Snacks';
+
+  @override
+  String get moneyCatDate => 'Dates';
+
+  @override
+  String get moneyCatDateMovie => 'Movies';
+
+  @override
+  String get moneyCatDateOut => 'Going out';
+
+  @override
+  String get moneyCatDateGift => 'Gifts for my love';
+
+  @override
+  String get moneyCatMove => 'Getting around';
+
+  @override
+  String get moneyCatMoveFuel => 'Fuel';
+
+  @override
+  String get moneyCatMoveParking => 'Parking';
+
+  @override
+  String get moneyCatMoveGrab => 'Grab & taxi';
+
+  @override
+  String get moneyCatMoveRepair => 'Repairs';
+
+  @override
+  String get moneyCatHome => 'Home';
+
+  @override
+  String get moneyCatHomeRent => 'Rent';
+
+  @override
+  String get moneyCatHomePower => 'Electricity';
+
+  @override
+  String get moneyCatHomeWater => 'Water';
+
+  @override
+  String get moneyCatHomeNet => 'Internet';
+
+  @override
+  String get moneyCatHomeGoods => 'Household items';
+
+  @override
+  String get moneyCatBill => 'Bills & subscriptions';
+
+  @override
+  String get moneyCatBillPhone => 'Phone plan';
+
+  @override
+  String get moneyCatBillStream => 'Streaming';
+
+  @override
+  String get moneyCatBillSoft => 'Software';
+
+  @override
+  String get moneyCatShop => 'Shopping';
+
+  @override
+  String get moneyCatShopClothes => 'Clothes';
+
+  @override
+  String get moneyCatShopBeauty => 'Beauty';
+
+  @override
+  String get moneyCatShopTech => 'Electronics';
+
+  @override
+  String get moneyCatHealth => 'Health';
+
+  @override
+  String get moneyCatHealthMed => 'Medicine';
+
+  @override
+  String get moneyCatHealthDoctor => 'Doctor';
+
+  @override
+  String get moneyCatHealthSport => 'Sport';
+
+  @override
+  String get moneyCatEdu => 'Learning';
+
+  @override
+  String get moneyCatEduFee => 'Tuition';
+
+  @override
+  String get moneyCatEduBooks => 'Books & courses';
+
+  @override
+  String get moneyCatGift => 'Gifts & occasions';
+
+  @override
+  String get moneyCatGiftPresent => 'Presents';
+
+  @override
+  String get moneyCatGiftWedding => 'Weddings & funerals';
+
+  @override
+  String get moneyCatGiftLixi => 'Lucky money';
+
+  @override
+  String get moneyCatFamily => 'Family';
+
+  @override
+  String get moneyCatFamilyParents => 'For my parents';
+
+  @override
+  String get moneyCatFamilyPet => 'Pets';
+
+  @override
+  String get moneyCatTravel => 'Travel';
+
+  @override
+  String get moneyCatTravelTicket => 'Tickets';
+
+  @override
+  String get moneyCatTravelStay => 'Stays';
+
+  @override
+  String get moneyCatTravelFun => 'Fun';
+
+  @override
+  String get moneyCatOther => 'Other';
+
+  @override
+  String get moneyWalletCash => 'Cash';
+
+  @override
+  String get moneyJointWallet => 'Shared wallet';
+
+  @override
+  String get moneyTitle => 'Money book';
+
+  @override
+  String get moneyBadge => 'MONEY BOOK';
+
+  @override
+  String get moneyTabMine => 'Mine';
+
+  @override
+  String get moneyTabShared => 'Shared';
+
+  @override
+  String moneyHomeShared(String month) {
+    return 'Shared book · $month';
+  }
+
+  @override
+  String moneyHomeSpent(String amount, String percent) {
+    return 'Spent $amount · $percent% of budget';
+  }
+
+  @override
+  String moneyHomeSpentNoBudget(String amount) {
+    return 'Spent $amount this month';
+  }
+
+  @override
+  String moneyHomeSpentOnly(String amount) {
+    return 'Spent $amount';
+  }
+
+  @override
+  String moneyHomeOverPart(String over) {
+    return '$over over';
+  }
+
+  @override
+  String moneyHomeZero(String amount) {
+    return 'Spent $amount · nothing yet';
+  }
+
+  @override
+  String moneyHomeStale(String amount, String time) {
+    return '$amount · as of $time';
+  }
+
+  @override
+  String get moneyHomeError => 'Couldn\'t load the shared book';
+
+  @override
+  String get moneyHomeLoading => 'Loading the shared book';
+
+  @override
+  String get moneyHomeMine => 'My money book';
+
+  @override
+  String moneyHomeTodayCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n entries today',
+      one: '1 entry today',
+      zero: 'Nothing logged today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyHomeFirst => 'Type 50k, pick a category, done';
+
+  @override
+  String get moneyAddTx => 'Add entry';
+
+  @override
+  String get moneyRetry => 'Try again';
+
+  @override
+  String get moneyMoreLabel => 'Wallets, categories, budgets';
+
+  @override
+  String get moneyPrevMonth => 'Previous month';
+
+  @override
+  String get moneyNextMonth => 'Next month';
+
+  @override
+  String get moneyMonthSpentMine => 'Spent';
+
+  @override
+  String get moneyMonthSpentShared => 'We spent';
+
+  @override
+  String get moneyBudgetLeftLabel => 'Left in budget';
+
+  @override
+  String get moneyBudgetNone => 'No budget yet';
+
+  @override
+  String moneyBudgetUsed(String percent) {
+    return '$percent% used';
+  }
+
+  @override
+  String moneyBudgetOfShort(String amount) {
+    return 'of $amount';
+  }
+
+  @override
+  String get moneyToday => 'Today';
+
+  @override
+  String moneyBudgetSemantics(String percent, String left) {
+    return '$percent% of budget used, $left left';
+  }
+
+  @override
+  String moneyFindingPerDay(
+    String passed,
+    String total,
+    String percent,
+    String perDay,
+  ) {
+    return 'The month is $passed/$total days in and $percent% of the budget is gone. That leaves about $perDay a day until month end.';
+  }
+
+  @override
+  String moneyFindingOver(String over) {
+    return 'This month is $over over budget.';
+  }
+
+  @override
+  String moneyFindingCategory(
+    String category,
+    String percent,
+    String left,
+    String days,
+  ) {
+    return 'Shared $category is at $percent% of budget, $left left for $days days.';
+  }
+
+  @override
+  String get moneyMe => 'Me';
+
+  @override
+  String get moneyRecent => 'Recent';
+
+  @override
+  String moneyRecentEmpty(String month, String prev) {
+    return 'Nothing in $month yet. Tap ‹ above to look back at $prev.';
+  }
+
+  @override
+  String moneyEmptyMonth(String month) {
+    return 'Nothing in $month yet. Use the pink button below to add the first entry.';
+  }
+
+  @override
+  String moneyDaySpent(String amount) {
+    return 'Spent $amount';
+  }
+
+  @override
+  String moneyDayToday(String date) {
+    return 'Today, $date';
+  }
+
+  @override
+  String moneyDayYesterday(String date) {
+    return 'Yesterday, $date';
+  }
+
+  @override
+  String get moneyWhere => 'Where it went';
+
+  @override
+  String moneyBudgetPercentShort(String percent) {
+    return '$percent% of budget';
+  }
+
+  @override
+  String moneyOverPercent(String percent) {
+    return '$percent% over';
+  }
+
+  @override
+  String get moneyWallets => 'Wallets';
+
+  @override
+  String get moneyTotalAssets => 'Total money';
+
+  @override
+  String moneyTotalAssetsValue(String amount) {
+    return 'Total money $amount';
+  }
+
+  @override
+  String get moneyManageWallets => 'Manage wallets';
+
+  @override
+  String moneyGoalProgress(String percent, String target) {
+    return '$percent% of $target';
+  }
+
+  @override
+  String moneyPaidByNoSplit(String name) {
+    return '$name paid';
+  }
+
+  @override
+  String get moneyPaidFromJoint => 'Paid from shared wallet';
+
+  @override
+  String moneyEditedBy(String name, String time) {
+    return 'Edited by $name $time';
+  }
+
+  @override
+  String get moneyPending => 'waiting for signal';
+
+  @override
+  String moneyOffline(String time, int n) {
+    return 'Offline. Balances are from $time plus $n entries waiting to send.';
+  }
+
+  @override
+  String moneyOfflineNoTime(int n) {
+    return 'Offline. $n entries waiting to send.';
+  }
+
+  @override
+  String moneyLoadError(String time) {
+    return 'Couldn\'t load new entries. Figures are from $time.';
+  }
+
+  @override
+  String get moneyLoadErrorNoTime => 'Couldn\'t load new entries.';
+
+  @override
+  String get moneyWaitingCard =>
+      'When they join, we also get a shared book for who paid, splitting costs and a trip fund.';
+
+  @override
+  String get moneySendInvite => 'Send invite';
+
+  @override
+  String get moneyAdjustRow => 'Balance fix';
+
+  @override
+  String moneyAdjustSub(String wallet) {
+    return '$wallet · not spending';
+  }
+
+  @override
+  String moneyTransferSub(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String moneyContribSub(String name) {
+    return '$name put in';
+  }
+
+  @override
+  String moneyContribOwnSub(String wallet) {
+    return '$wallet → shared book';
+  }
+
+  @override
+  String get moneyLinkedBadge => 'Also in the shared book';
+
+  @override
+  String get moneyFirstEntryTitle => 'Your first entry';
+
+  @override
+  String get moneyFirstEntryBody =>
+      'What did you pay for today? Tap one, type the amount, then Save.';
+
+  @override
+  String get moneyFirstEntryFoot =>
+      'Log a few days and you\'ll see where the money goes, then set a budget for next month.';
+
+  @override
+  String get moneyNegWallet =>
+      'Negative balance. Was something logged to the wrong wallet?';
+
+  @override
+  String get moneyCategories => 'Categories';
+
+  @override
+  String get moneyEditTx => 'Edit entry';
+
+  @override
+  String get moneyClose => 'Close';
+
+  @override
+  String get moneyBookShared => 'Shared book';
+
+  @override
+  String moneySwitchBook(String book) {
+    return 'Switch book, now $book';
+  }
+
+  @override
+  String get moneyTypeExpense => 'Expense';
+
+  @override
+  String get moneyTypeTransfer => 'Transfer';
+
+  @override
+  String get moneyAmountLabel => 'Amount';
+
+  @override
+  String get moneyAmountHint => '50K, 1.2M or 1 million all work';
+
+  @override
+  String moneyAmountEcho(String raw) {
+    return 'You typed “$raw”';
+  }
+
+  @override
+  String get moneyAmountInvalid =>
+      'Can\'t read that number. Try 120k or 120000.';
+
+  @override
+  String get moneyAmountTooBig => '10 billion max per entry. Check the zeros.';
+
+  @override
+  String get moneyWalletCapHit =>
+      'That would push the wallet past 100 billion. Check the amount.';
+
+  @override
+  String get moneyQuickRepeat => 'Log a usual one again';
+
+  @override
+  String get moneyCategory => 'Category';
+
+  @override
+  String get moneyAllCategories => 'All';
+
+  @override
+  String get moneyWallet => 'Wallet';
+
+  @override
+  String get moneyDeductMine => 'Take it from my wallet';
+
+  @override
+  String get moneyFromWallet => 'From';
+
+  @override
+  String get moneyAddNote => 'Add a note';
+
+  @override
+  String get moneyDate => 'Date';
+
+  @override
+  String get moneyNote => 'Note';
+
+  @override
+  String get moneyNoteHint => 'Lunch, birthday gift…';
+
+  @override
+  String moneySaveAmount(String amount) {
+    return 'Save $amount';
+  }
+
+  @override
+  String get moneySaveNeedAmount => 'Enter an amount to save';
+
+  @override
+  String get moneySaveFixAmount => 'Fix the amount to save';
+
+  @override
+  String get moneySaveNeedWallet => 'Pick a wallet to save';
+
+  @override
+  String moneySaved(String amount, String category) {
+    return 'Saved $amount · $category';
+  }
+
+  @override
+  String get moneySavedEdit => 'Changes saved';
+
+  @override
+  String get moneySavedOffline =>
+      'Waiting for signal. It\'ll sync to the shared book once you\'re online.';
+
+  @override
+  String get moneySavedOfflineMine =>
+      'Waiting for signal, it\'ll sync when you\'re back online';
+
+  @override
+  String moneyOverBudgetToast(String category, String amount) {
+    return 'Shared $category is $amount over this month\'s budget';
+  }
+
+  @override
+  String moneyNearBudgetToast(String category, String percent) {
+    return 'Shared $category is at $percent% of this month\'s budget';
+  }
+
+  @override
+  String moneyOverBudgetToastMine(String category, String amount) {
+    return '$category is $amount over this month\'s budget';
+  }
+
+  @override
+  String moneyNearBudgetToastMine(String category, String percent) {
+    return '$category is at $percent% of this month\'s budget';
+  }
+
+  @override
+  String moneyOverTotalToast(String amount) {
+    return 'The month is $amount over budget';
+  }
+
+  @override
+  String moneyNearTotalToast(String percent) {
+    return 'The month is at $percent% of budget';
+  }
+
+  @override
+  String moneyConflictTitle(String name) {
+    return 'Not saved: $name just edited this entry';
+  }
+
+  @override
+  String get moneyConflictBody =>
+      'Showing the latest version. Edit again if needed.';
+
+  @override
+  String get moneyWriteFailed => 'Couldn\'t save this. Try again.';
+
+  @override
+  String get moneyDeleteTx => 'Delete entry';
+
+  @override
+  String moneyDeleted(String note, String amount) {
+    return 'Deleted $note · $amount';
+  }
+
+  @override
+  String get moneyUndo => 'Undo';
+
+  @override
+  String get moneyLinkedAskTitle => 'Change it in my book too?';
+
+  @override
+  String moneyLinkedAskBody(
+    String note,
+    String old,
+    String wallet,
+    String amount,
+  ) {
+    return '“$note” also takes $old from $wallet. Change both books to $amount?';
+  }
+
+  @override
+  String get moneyLinkedBoth => 'Change both';
+
+  @override
+  String get moneyLinkedSharedOnly => 'Shared book only';
+
+  @override
+  String moneyLinkedChanged(String name, String amount) {
+    return '$name changed the shared entry to $amount';
+  }
+
+  @override
+  String get moneyLinkedUpdate => 'Update';
+
+  @override
+  String moneyLinkedLocked(String name) {
+    return 'Only $name can change the amount because it\'s also in their own book';
+  }
+
+  @override
+  String get moneyDeleteBothTitle => 'Delete from both books?';
+
+  @override
+  String moneyDeleteBothBody(String note, String amount, String wallet) {
+    return '“$note” $amount is in the shared book and also comes out of my $wallet. Deleting both puts $amount back in $wallet.';
+  }
+
+  @override
+  String get moneyDeleteBoth => 'Delete both';
+
+  @override
+  String get moneyDeleteSharedOnly => 'Only the shared book';
+
+  @override
+  String get moneyCancel => 'Cancel';
+
+  @override
+  String get moneyDiscardTitle => 'Discard this entry?';
+
+  @override
+  String moneyDiscardBody(String amount, String category) {
+    return '$amount · $category isn\'t saved yet.';
+  }
+
+  @override
+  String get moneyKeepEditing => 'Keep editing';
+
+  @override
+  String get moneyDiscard => 'Discard';
+
+  @override
+  String get moneyPickCategory => 'Pick a category';
+
+  @override
+  String get moneyEditCategoriesShort => 'Edit';
+
+  @override
+  String get moneyCategorySearchHint => 'Find a category, e.g. “coffee”';
+
+  @override
+  String get moneyCategoryNoMatch => 'No category matches.';
+
+  @override
+  String get moneyKeyDelete => 'Delete one character';
+
+  @override
+  String get moneyKeyBillion => 'billion';
+
+  @override
+  String moneyAmountTooBigFor(String max) {
+    return '$max max per entry.';
+  }
+
+  @override
+  String moneyWalletTooBigFor(String max) {
+    return '$max max per wallet.';
+  }
+
+  @override
+  String get moneyAddSource => 'Add source';
+
+  @override
+  String get moneyCurrencyTitle => 'Currency';
+
+  @override
+  String get moneyTypeSave => 'Save';
+
+  @override
+  String moneySavedContribution(String amount, String fund) {
+    return 'Put $amount into $fund';
+  }
+
+  @override
+  String get moneySaveInto => 'Into';
+
+  @override
+  String get moneyPaidFrom => 'Paid from';
+
+  @override
+  String get moneyMyMoney => 'My own money';
+
+  @override
+  String get moneyGoalsTitle => 'Savings goals';
+
+  @override
+  String get moneyChTplNoCoffee7 => '7 days without bubble tea or coffee';
+
+  @override
+  String get moneyChTplNoSnack7 => '7 days without snacks';
+
+  @override
+  String get moneyChTplNoGrab7 => '7 days without ride-hailing';
+
+  @override
+  String get moneyChTplNoShop7 => '7 days without shopping';
+
+  @override
+  String get moneyChTplNoClothes14 => '14 days without new clothes';
+
+  @override
+  String get moneyChTplCookHome14 => '14 days cooking at home';
+
+  @override
+  String get moneyChTplNoTech30 => '30 days without gadgets';
+
+  @override
+  String moneyChTplEatOutCap7(String amount) {
+    return 'Eat out under $amount this week';
+  }
+
+  @override
+  String moneyChTplDateCap7(String amount) {
+    return 'Dates under $amount this week';
+  }
+
+  @override
+  String moneyChTplAllCap7(String amount) {
+    return 'Spend under $amount this week';
+  }
+
+  @override
+  String get moneyChallengesTitle => 'Saving challenges';
+
+  @override
+  String get moneyChallengeNew => 'New challenge';
+
+  @override
+  String get moneyChallengeCustom => 'Make your own';
+
+  @override
+  String moneyChallengeDaysLeft(String n) {
+    return '$n days left';
+  }
+
+  @override
+  String moneyChallengeCleanDays(String done, String total) {
+    return '$done/$total days';
+  }
+
+  @override
+  String moneyChallengeSpentOf(String spent, String limit) {
+    return '$spent of $limit';
+  }
+
+  @override
+  String get moneyChallengeWon => 'Done';
+
+  @override
+  String get moneyChallengeLost => 'Try again next time';
+
+  @override
+  String get moneyChallengeStop => 'Stop challenge';
+
+  @override
+  String get moneyChallengeStart => 'Start';
+
+  @override
+  String get moneyChallengeKindNoSpend => 'No spending';
+
+  @override
+  String get moneyChallengeKindCap => 'Spend under';
+
+  @override
+  String get moneyChallengeLimit => 'Limit';
+
+  @override
+  String get moneyChallengeAll => 'All spending';
+
+  @override
+  String moneyChallengeDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String get moneyChallengeMax => '3 challenges are running';
+
+  @override
+  String get moneyChallengeLastDayTitle => 'Last day of your challenge';
+
+  @override
+  String moneyChallengeStarted(String title) {
+    return 'Started: $title';
+  }
+
+  @override
+  String moneyRecapTitle(String month) {
+    return '$month in review';
+  }
+
+  @override
+  String get moneyRecapKeptBudget => 'Stayed within the monthly limit';
+
+  @override
+  String moneyRecapSpentLess(String amount, String month) {
+    return 'Spent $amount less than $month';
+  }
+
+  @override
+  String moneyRecapSaved(String amount) {
+    return 'Saved $amount into funds';
+  }
+
+  @override
+  String moneyRecapChallenges(String n) {
+    return 'Finished $n challenges';
+  }
+
+  @override
+  String moneyRecapLogged(String n, String total) {
+    return 'Logged spending on $n of $total days';
+  }
+
+  @override
+  String get moneyRecapEmpty => 'A new month. Set a limit for it?';
+
+  @override
+  String get moneyChallengeLength => 'Length';
+
+  @override
+  String get moneyKeyThousand => 'thousand';
+
+  @override
+  String get moneyKeyMillion => 'million';
+
+  @override
+  String get moneyKeyCu => 'million (củ)';
+
+  @override
+  String get moneyShowKeypad => 'Show number pad';
+
+  @override
+  String get moneyFirstRunTitle => 'Where\'s my money right now?';
+
+  @override
+  String get moneyFirstRunBody =>
+      'Turn on the wallets you use and enter today\'s balance. You can skip this: a Cash wallet is already set up.';
+
+  @override
+  String get moneyFirstRunDone => 'Done, open my book';
+
+  @override
+  String get moneySkip => 'Skip';
+
+  @override
+  String get moneyBuiltIn => 'Built in';
+
+  @override
+  String get moneyWalletBank => 'Bank';
+
+  @override
+  String get moneyWalletEwallet => 'E-wallet';
+
+  @override
+  String get moneyWalletCredit => 'Credit card';
+
+  @override
+  String get moneyWalletGoal => 'Goal';
+
+  @override
+  String get moneyCreditOwed => 'How much you owe on it';
+
+  @override
+  String moneyBalanceOf(String name) {
+    return '$name balance';
+  }
+
+  @override
+  String get moneyWalletTooBig => '100 billion max per wallet.';
+
+  @override
+  String get moneyWalletsBadge => 'WALLETS';
+
+  @override
+  String get moneyAddWallet => 'Add wallet';
+
+  @override
+  String moneyAssetsNote(int n) {
+    return 'Adds up $n wallets in use, with card debt taken off. Goal savings are counted separately below.';
+  }
+
+  @override
+  String get moneyInUse => 'In use';
+
+  @override
+  String moneyWalletCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n wallets',
+      one: '1 wallet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyGoals => 'Goals';
+
+  @override
+  String get moneyNotInTotal => 'not in the total';
+
+  @override
+  String moneyGoalPerMonthShort(String amount) {
+    return 'About $amount a month';
+  }
+
+  @override
+  String get moneyArchivedSection => 'Archived';
+
+  @override
+  String moneyArchived(String date) {
+    return 'Archived $date, history kept';
+  }
+
+  @override
+  String get moneyArchivedPlain => 'Archived, history kept';
+
+  @override
+  String get moneyOwingCard => 'card debt';
+
+  @override
+  String get moneyCurrentBalance => 'Current balance';
+
+  @override
+  String moneyWalletInTotal(String type) {
+    return '$type · counts in total money';
+  }
+
+  @override
+  String moneyWalletNotInTotal(String type) {
+    return '$type · not in the total';
+  }
+
+  @override
+  String moneyInMonth(String month) {
+    return 'In · $month';
+  }
+
+  @override
+  String moneyOutMonth(String month) {
+    return 'Out · $month';
+  }
+
+  @override
+  String get moneyFixBalance => 'Fix balance';
+
+  @override
+  String moneyEntryCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyEditWallet => 'Edit wallet';
+
+  @override
+  String get moneyWalletNoEntries => 'No entries in this wallet this month.';
+
+  @override
+  String get moneyNewWallet => 'New wallet';
+
+  @override
+  String get moneyNewGoal => 'New goal';
+
+  @override
+  String get moneyName => 'Name';
+
+  @override
+  String get moneyPickEmoji => 'Pick an icon';
+
+  @override
+  String get moneyBalanceNow => 'Balance now';
+
+  @override
+  String get moneyIncludeInTotal => 'Count in total money';
+
+  @override
+  String get moneyCreateWallet => 'Create wallet';
+
+  @override
+  String get moneyCreateGoal => 'Create goal';
+
+  @override
+  String get moneyGoalTarget => 'Target';
+
+  @override
+  String get moneyGoalDeadline => 'Deadline (optional)';
+
+  @override
+  String moneyGoalPerMonth(String amount, int n) {
+    return 'Save about $amount a month for the next $n months.';
+  }
+
+  @override
+  String get moneyNotSet => 'Not set';
+
+  @override
+  String get moneySave => 'Save';
+
+  @override
+  String get moneyArchiveWallet => 'Archive wallet';
+
+  @override
+  String get moneyArchiveAskTitle => 'Archive this wallet?';
+
+  @override
+  String get moneyArchiveAskBody =>
+      'It stops showing when you add entries and keeps its history. You can bring it back any time.';
+
+  @override
+  String get moneyUnarchiveWallet => 'Use this wallet again';
+
+  @override
+  String get moneyNameNeeded => 'Add a name to save';
+
+  @override
+  String get moneyFixTitle => 'Match the real balance';
+
+  @override
+  String moneyFixInBook(String wallet, String amount) {
+    return '$wallet · the book says $amount';
+  }
+
+  @override
+  String get moneyAdjustReal => 'What you actually have';
+
+  @override
+  String moneyFixMore(String amount) {
+    return 'The app shows $amount more than you really have. It adds one “balance fix” line to match, which doesn\'t count as spending.';
+  }
+
+  @override
+  String moneyFixLess(String amount) {
+    return 'The app shows $amount less than you really have. It adds one “balance fix” line to match, which doesn\'t count as income.';
+  }
+
+  @override
+  String get moneyFixSame => 'Already matches, nothing to fix.';
+
+  @override
+  String get moneyAdjustSave => 'Update balance';
+
+  @override
+  String moneyFixedToast(String wallet) {
+    return '$wallet balance fixed';
+  }
+
+  @override
+  String moneyWalletCreated(String name) {
+    return 'Created $name';
+  }
+
+  @override
+  String get moneyCategoriesBadge => 'CATEGORIES';
+
+  @override
+  String get moneyCategoryScope => 'My book · each book has its own categories';
+
+  @override
+  String get moneyCategoryScopeShared =>
+      'Shared book · each book has its own categories';
+
+  @override
+  String moneySubCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n subcategories',
+      one: '1 subcategory',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyAddSub => 'Add subcategory';
+
+  @override
+  String moneyRenamedFrom(String name) {
+    return 'Renamed from “$name”';
+  }
+
+  @override
+  String get moneyCustom => 'Added by you';
+
+  @override
+  String get moneyHidden => 'Hidden';
+
+  @override
+  String get moneyHiddenNote => 'not shown when adding';
+
+  @override
+  String get moneyHiddenSub => 'Old entries keep the name';
+
+  @override
+  String get moneyShowAgain => 'Show again';
+
+  @override
+  String get moneyHideCategory => 'Hide this category';
+
+  @override
+  String get moneyEditCategory => 'Edit category';
+
+  @override
+  String get moneyNewCategory => 'New group';
+
+  @override
+  String get moneyNewSub => 'New subcategory';
+
+  @override
+  String moneyOriginalName(String name) {
+    return 'Original name: $name. Renaming only changes this book.';
+  }
+
+  @override
+  String get moneyInGroup => 'Under';
+
+  @override
+  String get moneyDeleteCategory => 'Delete category';
+
+  @override
+  String moneyDeleteCategoryAsk(String name) {
+    return 'Delete “$name”?';
+  }
+
+  @override
+  String get moneyDeleteCategoryBody => 'Old entries in it move to “Other”.';
+
+  @override
+  String get moneyDelete => 'Delete';
+
+  @override
+  String get moneyAddCategory => 'Add category';
+
+  @override
+  String get moneyCategoryLimit =>
+      'This book already has 80 custom categories.';
+
+  @override
+  String get moneyNotSpending => 'not spending';
+
+  @override
+  String get moneyBudgets => 'Budgets';
+
+  @override
+  String get moneyBudgetsBadge => 'BUDGETS';
+
+  @override
+  String get moneyReport => 'Report';
+
+  @override
+  String get moneyReportBadge => 'REPORT';
+
+  @override
+  String get moneySearchBadge => 'FIND ENTRIES';
+
+  @override
+  String get moneySearchLabel => 'Find entries';
+
+  @override
+  String get moneySeeAll => 'All';
+
+  @override
+  String get moneyBudgetSetLink => 'Set';
+
+  @override
+  String get moneyAddBudget => 'Set a budget';
+
+  @override
+  String moneyBudgetScopeShared(String month) {
+    return '$month · whole shared book';
+  }
+
+  @override
+  String moneyBudgetScopeMine(String month) {
+    return '$month · my whole book';
+  }
+
+  @override
+  String moneyBudgetDaysLeft(String n) {
+    return '$n days left';
+  }
+
+  @override
+  String moneyBudgetDailyLeft(String left, String perDay) {
+    return '$left left, about $perDay a day until month end.';
+  }
+
+  @override
+  String moneyBudgetUsedOf(String budget) {
+    return 'of $budget';
+  }
+
+  @override
+  String get moneyBudgetByCategory => 'By category';
+
+  @override
+  String moneyBudgetOverOf(String amount, String budget) {
+    return '$amount over $budget';
+  }
+
+  @override
+  String moneyBudgetLeftOf(String amount, String budget) {
+    return '$amount left of $budget';
+  }
+
+  @override
+  String get moneyBudgetNoCategory =>
+      'No category has its own budget yet. Set one for a group you spend a lot on and the app will alert you at 80% and 100%.';
+
+  @override
+  String get moneyBudgetUnset =>
+      'No budget yet. Set one number for the month and the app will alert you at 80% and 100%.';
+
+  @override
+  String get moneySetBudget => 'Set monthly budget';
+
+  @override
+  String get moneyBudgetPushNote =>
+      'At 80% and 100% of the total budget, the other person gets a notice with the percentage only, no amounts.';
+
+  @override
+  String get moneyBudgetSheetTitle => 'Monthly budget';
+
+  @override
+  String get moneyBudgetWholeBook => 'Whole book';
+
+  @override
+  String get moneyBudgetAmountLabel => 'Monthly limit';
+
+  @override
+  String get moneyBudgetResets => 'It starts again from 0 every month.';
+
+  @override
+  String get moneyBudgetSave => 'Save budget';
+
+  @override
+  String get moneyBudgetRemove => 'Remove this budget';
+
+  @override
+  String moneyBudgetSaved(String name, String amount) {
+    return 'Budget set for $name: $amount';
+  }
+
+  @override
+  String moneyBudgetRemoved(String name) {
+    return 'Removed the $name budget';
+  }
+
+  @override
+  String moneyReportUpTo(String date) {
+    return 'up to $date';
+  }
+
+  @override
+  String moneyReportTopCategory(String category, String percent) {
+    return '$category was the biggest spend, $percent% of the month.';
+  }
+
+  @override
+  String moneyReportTopShared(String category, String percent) {
+    return '$category is $percent% of shared spending.';
+  }
+
+  @override
+  String moneyReportTopChild(String sub, String amount) {
+    return 'Most of it was $sub, $amount.';
+  }
+
+  @override
+  String get moneyReportByCategory => 'By category';
+
+  @override
+  String get moneyReportTapHint => 'tap for subcategories';
+
+  @override
+  String get moneyReportByMonth => 'Spending per month';
+
+  @override
+  String get moneyReport6 => '6 months';
+
+  @override
+  String get moneyReport12 => '12 months';
+
+  @override
+  String moneyReportBudgetLine(String amount) {
+    return 'Budget $amount';
+  }
+
+  @override
+  String moneyReportPartial(String month, String date) {
+    return '$month counts up to $date. The dashed line is the current total budget.';
+  }
+
+  @override
+  String moneyReportPartialNoBudget(String month, String date) {
+    return '$month counts up to $date.';
+  }
+
+  @override
+  String moneyReportNewBook(String month) {
+    return 'The shared book started in $month, so earlier months are empty.';
+  }
+
+  @override
+  String moneyReportNewBookMine(String month) {
+    return 'My book started in $month, so earlier months are empty.';
+  }
+
+  @override
+  String get moneyReportMissing =>
+      'Some months didn\'t load, so their bars are empty. They\'ll come back once you\'re online.';
+
+  @override
+  String get moneyReportTet => 'Tết';
+
+  @override
+  String moneyReportChartLabel(String n, String values) {
+    return 'Spending per month, last $n months: $values';
+  }
+
+  @override
+  String get moneyReportByWallet => 'By wallet';
+
+  @override
+  String moneyReportNoSpend(String month) {
+    return 'No spending in $month yet.';
+  }
+
+  @override
+  String get moneySearchHint => 'Search notes and categories';
+
+  @override
+  String get moneySearchClear => 'Clear text';
+
+  @override
+  String get moneySearchAccent =>
+      'Accents optional: “bun cha” finds “Bún chả”.';
+
+  @override
+  String moneySearchCount(String n) {
+    return '$n entries';
+  }
+
+  @override
+  String moneySearchRange(String n) {
+    return 'Last $n months';
+  }
+
+  @override
+  String moneySearchEmpty(String q, String n) {
+    return 'Nothing matches “$q” in the last $n months.';
+  }
+
+  @override
+  String moneySearchEmptyAll(String n) {
+    return 'No entries in the last $n months with these filters.';
+  }
+
+  @override
+  String get moneySearch12 => 'Search 12 months';
+
+  @override
+  String get moneySearchCap =>
+      'Only the latest 2,000 entries in this range are searched. Narrow the dates to be sure.';
+
+  @override
+  String get moneySearchError =>
+      'Couldn\'t search. Check your connection and try again.';
+
+  @override
+  String get moneySearchAmount => 'Amount';
+
+  @override
+  String get moneySearchPerson => 'Person';
+
+  @override
+  String get moneySearchFrom => 'From';
+
+  @override
+  String get moneySearchTo => 'To';
+
+  @override
+  String moneySearchFromOnly(String amount) {
+    return 'From $amount';
+  }
+
+  @override
+  String moneySearchToOnly(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String get moneySearchApply => 'Apply';
+
+  @override
+  String get moneySearchClearFilter => 'Clear filter';
+
+  @override
+  String moneySearchPickedCount(String label, String n) {
+    return '$label · $n';
+  }
+
+  @override
+  String get moneySearchPeriod => 'Date range';
+
+  @override
+  String get moneyGoalSaved => 'We\'ve saved';
+
+  @override
+  String get moneyGoalSavedMine => 'Saved';
+
+  @override
+  String moneyGoalTargetOf(String amount) {
+    return 'Goal $amount';
+  }
+
+  @override
+  String moneyGoalLeft(String left, String date, String perMonth) {
+    return '$left to go. To make $date, we need about $perMonth a month.';
+  }
+
+  @override
+  String moneyGoalLeftMine(String left, String date, String perMonth) {
+    return '$left to go. To make $date, I need about $perMonth a month.';
+  }
+
+  @override
+  String moneyGoalLeftOnly(String left) {
+    return '$left to go.';
+  }
+
+  @override
+  String get moneyGoalNoDeadline =>
+      'No deadline yet. Add one to see how much to save each month.';
+
+  @override
+  String moneyGoalReachedOn(String date) {
+    return 'Full on $date';
+  }
+
+  @override
+  String moneyGoalReached(String trip) {
+    return 'Goal reached. Time to plan $trip. Log trip costs straight from this fund.';
+  }
+
+  @override
+  String get moneyGoalHistory => 'Contributions';
+
+  @override
+  String moneyGoalTimes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyGoalHistoryEmpty =>
+      'Nothing put in yet. Start with as little as 50k.';
+
+  @override
+  String get moneyGoalHistoryPartial =>
+      'Couldn\'t load older history. Showing recent contributions.';
+
+  @override
+  String get moneyContribute => 'Add to fund';
+
+  @override
+  String get moneySpendFromFund => 'Spend from fund';
+
+  @override
+  String moneyContributeTitle(String wallet) {
+    return 'Add to $wallet';
+  }
+
+  @override
+  String get moneyContributeFrom => 'From wallet';
+
+  @override
+  String moneyContributeSave(String amount) {
+    return 'Put in $amount';
+  }
+
+  @override
+  String moneyContributed(String amount, String wallet) {
+    return 'Put $amount into $wallet';
+  }
+
+  @override
+  String moneyContributedFull(String wallet) {
+    return '$wallet is full';
+  }
+
+  @override
+  String get moneyContributeHint => 'Amount to put in';
+
+  @override
+  String get moneyLogFromDecision => 'Log the cost';
+
+  @override
+  String get moneyReminderBody1 => 'Anything from today you haven\'t logged?';
+
+  @override
+  String get moneyReminderBody2 =>
+      'Log the rest of today\'s spending. It takes under a minute.';
+
+  @override
+  String get moneyReminderBody3 =>
+      'It\'s evening. Take a look at what went out today';
+
+  @override
+  String get moneyReminderSettingTitle => 'Evening spending reminder';
+
+  @override
+  String get moneyReminderSettingSubtitle =>
+      'Once an evening. Skipped on days you\'ve already logged something.';
+
+  @override
+  String get moneyMenuReminder => 'Evening reminder';
+
+  @override
+  String get moneyProfileSub => 'Wallets, spending and shared funds';
+
+  @override
+  String moneyNotifGoal(String name, String percent) {
+    return '$name just chipped in. The fund is at $percent%';
+  }
+
+  @override
+  String moneyNotifGoalReached(String wallet) {
+    return '$wallet is full!';
+  }
+
+  @override
+  String get moneyNotifGoalReachedSub =>
+      'We hit the goal together. Time to make plans.';
+
+  @override
+  String get moneyNotifBudget80 => 'We\'ve used 80% of this month\'s budget';
+
+  @override
+  String get moneyNotifBudget100 => 'We\'ve used up this month\'s budget';
+
+  @override
+  String moneyNotifBudgetSub(String month) {
+    return 'Shared book · $month';
+  }
+
+  @override
+  String get moneyLinkedPayerLocked =>
+      'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.';
+
+  @override
+  String get moneyUndoTooLate => 'That one\'s already deleted.';
+
+  @override
+  String get moneyOwingCardDetail =>
+      'That\'s what you owe on this card. Pay it before the due date.';
+
+  @override
+  String moneyReminderTimeA11y(String time) {
+    return 'Reminder time, $time';
+  }
+
+  @override
+  String moneyAmountSpoken(String amount) {
+    return '$amount dong';
+  }
+
+  @override
+  String moneyAmountSpokenNeg(String amount) {
+    return 'minus $amount dong';
+  }
+
+  @override
+  String arrivalShareFirstSub(String name) {
+    return 'Turn it on to let $name know when you arrive.';
+  }
+
+  @override
+  String get arrivalSetAddressCta => 'Tap to set the address';
+
+  @override
+  String get rateAppTitle => 'How\'s Dear Embeiu treating you?';
+
+  @override
+  String get rateAppSubtitle => 'It only takes a few seconds.';
+
+  @override
+  String get rateAppStar1 => 'Not great';
+
+  @override
+  String get rateAppStar2 => 'Needs work';
+
+  @override
+  String get rateAppStar3 => 'It\'s okay';
+
+  @override
+  String get rateAppStar4 => 'Pretty good';
+
+  @override
+  String get rateAppStar5 => 'Love it';
+
+  @override
+  String get rateAppCtaDefault => 'Pick a rating';
+
+  @override
+  String get rateAppCtaIos => 'Rate on the App Store';
+
+  @override
+  String get rateAppCtaAndroid => 'Rate on Google Play';
+
+  @override
+  String get rateAppCtaLow => 'Write feedback';
+
+  @override
+  String get rateAppLater => 'Not now';
+
+  @override
+  String rateAppStarSemantics(int count) {
+    return '$count stars';
+  }
+
+  @override
+  String get rateAppStarsGroupSemantics => 'Rate Dear Embeiu';
+
+  @override
+  String get settingsRateAppTitle => 'Rate Dear Embeiu';
+
+  @override
+  String get settingsRateAppSubtitle => 'Leave a rating on the app store';
+
+  @override
+  String get settingsFeedbackTitle => 'Feedback & bug reports';
+
+  @override
+  String get settingsFeedbackSubtitle =>
+      'What\'s off, or what would you like to see?';
+
+  @override
+  String get feedbackBadge => 'FEEDBACK';
+
+  @override
+  String get feedbackTypeSuggestion => 'Suggestion';
+
+  @override
+  String get feedbackTypeBug => 'Bug report';
+
+  @override
+  String get feedbackFieldLabel => 'Message';
+
+  @override
+  String get feedbackHintSuggestion =>
+      'What should the app add, or make easier to use?';
+
+  @override
+  String get feedbackHintBug =>
+      'What happened? What did you tap, on which screen, and what did you expect?';
+
+  @override
+  String get feedbackHintLowRating =>
+      'What let you down? A single line is fine.';
+
+  @override
+  String feedbackRatedLabel(int count) {
+    return 'You rated $count/5';
+  }
+
+  @override
+  String feedbackCounter(int count) {
+    return '$count/2000';
+  }
+
+  @override
+  String get feedbackAttachCta => 'Attach a screenshot';
+
+  @override
+  String get feedbackPhotoLabel => 'Attached screenshot';
+
+  @override
+  String get feedbackPhotoRemove => 'Remove screenshot';
+
+  @override
+  String get feedbackPhotoError => 'Couldn\'t open that image. Try another.';
+
+  @override
+  String get feedbackPhotoTooLarge => 'That image is too large (10 MB max).';
+
+  @override
+  String get feedbackDeviceNote =>
+      'Your app version, OS and device model are included to help track down issues faster.';
+
+  @override
+  String get feedbackSendCta => 'Send';
+
+  @override
+  String get feedbackRetryCta => 'Try again';
+
+  @override
+  String get feedbackErrorBanner =>
+      'Couldn\'t send. Check your connection and try again. Your message is still here.';
+
+  @override
+  String get feedbackSuccessTitle => 'Thank you';
+
+  @override
+  String get feedbackSuccessBody => 'Your feedback has been sent.';
+
+  @override
+  String get feedbackDoneCta => 'Done';
 }

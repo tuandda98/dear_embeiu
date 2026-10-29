@@ -1,0 +1,57 @@
+# 08 (iOS, Thảo) — bật "Tự báo khi mình đến nơi": (đặt Nhà nếu chưa có) → giải thích D12 → WhenInUse → "Luôn luôn" → Xong.
+# TRƯỚC KHI CHẠY đặt vị trí simulator ở NHÀ (README, bước 08). Hộp quyền hệ thống bấm optional (simctl privacy grant
+# cũng được, xem README). Chạy sau 05 (Thảo đang chia sẻ). Kiểm: QV-02, QV-05, QV-11, NN-01.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- tapOn: '(?s).*Mở cài đặt Về đến nhà.*'
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Tự báo khi đến nơi.*'
+    centerElement: true
+    timeout: 40000
+- tapOn: 'Tự báo khi đến nơi'
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: '(?s).*Trước hết, nhà bạn ở đâu\?.*'
+    commands:
+      - tapOn: 'Đặt địa chỉ Nhà'
+      - waitForAnimationToEnd
+      - runFlow: _sub/save_by_current_location.yaml
+- extendedWaitUntil:
+    visible: '(?s).*Đồng ý, tiếp tục.*'
+    timeout: 30000
+- assertVisible: '(?s).*kể cả khi app đã đóng hoặc không dùng.*'
+- takeScreenshot: 08_disclosure
+- tapOn: 'Đồng ý, tiếp tục'
+- tapOn:
+    text: '(?s)Allow While Using App|Cho phép khi dùng ứng dụng|Khi dùng ứng dụng.*'
+    optional: true
+# Bước xin "Luôn luôn" chỉ hiện khi chưa có quyền đó (simctl privacy grant location
+# trên simulator đã cấp sẵn ⇒ app đi thẳng tới "Đã bật").
+- runFlow:
+    when:
+      visible: '(?s).*Chọn “Luôn luôn”.*'
+    commands:
+      - tapOn: 'Tiếp tục'
+      - tapOn:
+          text: '(?s).*Change to Always Allow|Always Allow|Đổi thành Luôn cho phép|Luôn cho phép.*'
+          optional: true
+- extendedWaitUntil:
+    visible: '(?s).*(Đã bật báo về nhà|Tạm thời bạn báo bằng tay).*'
+    timeout: 20000
+# Kỳ vọng "Đã bật báo về nhà"; nếu sim không cấp được Luôn luôn thì thấy "Tạm thời…" và flow dừng ở đây.
+- assertVisible: '(?s).*Đã bật báo về nhà.*'
+- takeScreenshot: 08_done
+# Mở từ màn Quản lý ⇒ nút cuối là "Xong" và quay về Quản lý (2026-10-24).
+- tapOn: 'Xong'
+- assertVisible: 'VỀ ĐẾN NHÀ'
+- tapOn: 'Quay lại'
+- runFlow: _sub/scroll_to_card.yaml
+- assertVisible: '(?s).*Tự báo:.*'

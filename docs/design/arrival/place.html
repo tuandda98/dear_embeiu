@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arrival · thêm / sửa nơi · mock bấm thử</title>
+<link rel="stylesheet" href="app.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+<style>
+  .frame { padding: 16px 16px 32px; }
+  .frame + .frame { border-top: 8px solid rgba(255,255,255,.35); }
+  .lbl { font-size: 13px; font-weight: 700; margin: 0 4px 8px; }
+  .cta { margin-top: 24px; }
+  .cta .btn.text { width: 100%; height: 44px; margin-top: 4px; }
+  .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; flex: none; }
+  @media (prefers-reduced-motion: no-preference) { .spin { animation: r .8s linear infinite; } @keyframes r { to { transform: rotate(360deg); } } }
+  .preview { margin-top: 16px; background: rgba(255,255,255,.72); border-radius: 16px; padding: 12px 14px; font-size: 14px; font-weight: 600; }
+  .preview b { font-weight: 700; }
+  .card.rows { padding: 4px 20px; }
+  .dim { background: rgba(26,26,46,.40); border-radius: 24px; padding: 48px 20px; }
+</style>
+</head>
+<body>
+<header class="doc">
+  <h1>Thêm và sửa nơi</h1>
+  <p>Đặt tên, chọn biểu tượng, tìm địa chỉ (iPhone gợi ý khi gõ, Android tìm khi ngừng gõ), xác nhận bằng chữ, không bản đồ. Lưu bằng địa chỉ không cần quyền vị trí.</p>
+</header>
+<main id="m"></main>
+<script>
+const { I, placeIcon } = UI; const me = D.people.me.name, pn = D.people.partner.name;
+const head = (chip = 'Về đến nhà') => `<div class="ssh"><button class="back" aria-label="Quay lại">${I.back()}</button><span class="chip">${I.home(13)}${chip}</span></div>`;
+const CHIP_ICON = { 'Công ty': 'work', 'Trường': 'school', 'Nhà bố mẹ': 'family', 'Phòng gym': 'gym', 'Quán quen': 'cafe' };
+const iconLbl = { work: 'Công việc', school: 'Trường', family: 'Gia đình', gym: 'Tập luyện', cafe: 'Quán', shop: 'Mua sắm', pin: 'Chỗ khác' };
+const icons = (sel) => `<div class="icons7" role="radiogroup" aria-label="Biểu tượng">${D.ICONS.map((k) => `<button role="radio" aria-checked="${k === sel}" aria-label="${iconLbl[k]}">${placeIcon[k](20)}</button>`).join('')}</div>`;
+const field = (val, opt = {}) => `<div class="field ${opt.focus ? 'focus' : ''}">${opt.icon || ''}${!val && opt.focus ? '<i class="caret" style="margin:0 -6px 0 0"></i>' : ''}${val ? `<span>${val}</span>` : `<span class="ph">${opt.ph}</span>`}${opt.focus && val ? '<i class="caret"></i>' : ''}${opt.clear ? `<span style="margin-left:auto;display:flex;color:var(--tertiary)">${I.close(18)}</span>` : ''}</div>`;
+const res = (a, b, mark) => `<div class="res" role="button" tabindex="0"><span class="ic">${I.loc(18)}</span><div><p class="a">${mark ? a.replace(mark, `<mark>${mark}</mark>`) : a}</p><p class="b">${b}</p></div></div>`;
+const cur = `<div class="res cur" role="button" tabindex="0"><span class="ic">${I.gps(18)}</span><div><p class="a">Không thấy địa chỉ? Dùng vị trí hiện tại</p><p class="b">Hãy bấm khi bạn đang đứng ở đó</p></div></div>`;
+const searchHead = (title) => `${head()}<h2 class="hero-title">${title}</h2><p class="body" style="margin-top:8px">Gõ số nhà, tên đường và phường cho chuẩn nhất.</p><div style="margin-top:16px"></div>`;
+const R = (q) => [
+  ['54 Liễu Giai', 'Phường Ngọc Hà, Hà Nội'],
+  ['54A Liễu Giai', 'Phường Ngọc Hà, Hà Nội'],
+  ['Liễu Giai', 'Phường Ngọc Hà, Hà Nội'],
+  ['54 Liễu Giai', 'Phường Giảng Võ, Hà Nội'],
+].map(([a, b]) => res(a, b, q)).join('');
+const confirm = (o) => `${head()}<h2 class="hero-title">Đúng chỗ này chưa?</h2>
+  <div class="card pad20" style="margin-top:16px"><div class="srow" style="padding-top:0"><span class="badge navy">${placeIcon[o.icon](20)}</span><div class="tx"><p class="tt">${o.name}</p><p class="ts">${o.src}</p></div></div>
+  ${o.addr ? `<p class="addr" style="margin-top:12px">${o.addr}</p>` : ''}
+  <p class="body" style="margin-top:12px">App báo khi bạn vào trong khoảng ${o.r} m quanh đây.</p>
+  ${o.warn ? `<div class="warnbox">${I.err(16)}<span>Địa chỉ này chưa có số nhà, app có thể báo hơi sớm hoặc hơi muộn.</span></div>` : ''}</div>
+  <div class="cta"><button class="btn primary lg">Lưu</button>${o.addr ? '<button class="btn text wrap">Không đúng chỗ? Dùng vị trí hiện tại khi bạn đang ở đó</button>' : '<button class="btn text muted">Đọc lại vị trí</button>'}</div>`;
+const F = [
+  ['name', 'Thêm nơi: tên và biểu tượng', `${head()}<h2 class="hero-title">Nơi mới</h2>
+    <p class="lbl" style="margin-top:20px">Tên nơi</p>${field('Phòng gym', { focus: true })}
+    <div class="fieldmeta"><span>Người ấy sẽ thấy tên này khi bạn đến.</span><span class="num">9/24</span></div>
+    <div class="chips">${D.NAME_CHIPS.map((c) => `<button class="chipbtn ${c === 'Phòng gym' ? 'on' : ''}">${c}</button>`).join('')}</div>
+    <p class="lbl" style="margin-top:24px">Biểu tượng</p>${icons('gym')}<p class="fine" style="margin:8px 4px 0">Chọn chip gợi ý thì biểu tượng tự chọn theo, đổi được.</p>
+    <div class="preview" aria-live="polite">${pn} sẽ thấy: <b>${me} đã đến Phòng gym</b></div>
+    <div class="cta"><button class="btn primary lg" data-go="ios-typing">Tiếp tục</button></div>`],
+  ['name-empty', 'Tên trống hoặc chỉ có khoảng trắng', `${head()}<h2 class="hero-title">Nơi mới</h2><p class="lbl" style="margin-top:20px">Tên nơi</p>${field('', { ph: 'Vd: Công ty, Nhà bố mẹ', focus: true })}
+    <div class="fieldmeta"><span>Người ấy sẽ thấy tên này khi bạn đến.</span><span class="num">0/24</span></div>
+    <div class="cta"><button class="btn primary lg" disabled style="background:rgba(26,26,46,.12);color:rgba(26,26,46,.6)">Tiếp tục</button></div><p class="fine" style="margin:8px 4px 0">Gõ tên để tiếp tục. Tối đa 24 ký tự.</p>`],
+  ['ios-typing', 'iPhone: gợi ý ngay khi đang gõ', `${searchHead('Phòng gym ở đâu?')}${field('54 Liễu Gi', { focus: true, icon: I.search(20), clear: true })}
+    <div class="results" role="listbox" aria-label="Gợi ý địa chỉ">${R('54 Liễu Gi')}${cur}</div>`],
+  ['and-searching', 'Android: ngừng gõ 800 ms rồi mới tìm', `${searchHead('Phòng gym ở đâu?')}${field('54 Liễu Giai', { focus: true, icon: I.search(20), clear: true })}
+    <div class="results"><div class="res" role="status"><span class="spin dark" style="margin-top:2px"></span><div><p class="a">Đang tìm…</p></div></div>${cur}</div>`],
+  ['and-results', 'Android: tối đa 5 kết quả', `${searchHead('Phòng gym ở đâu?')}${field('54 Liễu Giai', { icon: I.search(20), clear: true })}
+    <div class="results" role="listbox">${R()}${cur}</div><p class="fine" style="margin:8px 4px 0">Gõ xong bấm Tìm trên bàn phím nếu chưa thấy kết quả.</p>`],
+  ['none', 'Không tìm thấy', `${searchHead('Phòng gym ở đâu?')}${field('Gym Hoàng Hoa Thám', { icon: I.search(20), clear: true })}
+    <div class="results"><p class="empty" role="status">Không tìm thấy địa chỉ này. Thử thêm tên phường hoặc tỉnh, hoặc dùng vị trí hiện tại khi bạn đang ở đó.</p></div>
+    <div class="cta"><button class="btn primary lg" data-go="current">${I.gps(18)}Dùng vị trí hiện tại</button></div>`],
+  ['offline', 'Mất mạng', `${searchHead('Phòng gym ở đâu?')}${field('54 Liễu Giai', { icon: I.search(20) })}
+    <div class="results"><p class="empty" role="alert">${'Cần mạng để tìm địa chỉ.'} Có mạng lại thì gõ tiếp, hoặc dùng vị trí hiện tại khi bạn đang ở đó.</p></div>
+    <div class="cta"><button class="btn primary lg">${I.gps(18)}Dùng vị trí hiện tại</button></div>`],
+  ['no-geocoder', 'Máy không có dịch vụ tìm địa chỉ (vd Huawei không có Google Play)', `${head()}<h2 class="hero-title">Phòng gym ở đâu?</h2>
+    <p class="body" style="margin-top:8px">Máy này không tìm được địa chỉ. Bạn lưu bằng vị trí hiện tại lúc đang đứng ở đó.</p>
+    <div class="cta"><button class="btn primary lg">${I.gps(18)}Dùng vị trí hiện tại</button><button class="btn text muted">Lưu tên, chỉ bấm tay</button></div>`],
+  ['current', 'Dùng vị trí hiện tại: giải thích ngắn trước hộp xin quyền', `${head()}<h2 class="hero-title">Bạn đang ở Phòng gym?</h2>
+    <p class="body" style="margin-top:8px">App đọc vị trí một lần để lưu chỗ này. Toạ độ chỉ nằm trên máy bạn.</p>
+    <div class="hint">${I.info(16)}<span>Lần đầu, máy sẽ hỏi quyền vị trí. Chọn “Cho phép khi dùng ứng dụng” và để Vị trí chính xác bật.</span></div>
+    <div class="cta"><button class="btn primary lg">${I.gps(18)}Đọc vị trí</button><button class="btn text muted">Quay lại tìm địa chỉ</button></div>`],
+  ['reading', 'Đang đọc vị trí', `${head()}<h2 class="hero-title">Bạn đang ở Phòng gym?</h2><div class="cta"><button class="btn primary lg" aria-busy="true" disabled style="color:#fff"><span class="spin"></span>Đang đọc vị trí…</button></div>`, 'Từ chối quyền thì quay về ô địa chỉ, app không hỏi lại tự động.'],
+  ['confirm', 'Xác nhận: địa chỉ có số nhà (250 m)', confirm({ name: 'Công ty', icon: 'work', src: 'Từ địa chỉ', addr: '54 Liễu Giai, Phường Ngọc Hà, Hà Nội', r: D.R_ADDRESS })],
+  ['confirm-street', 'Xác nhận: địa chỉ chưa có số nhà', confirm({ name: 'Công ty', icon: 'work', src: 'Từ địa chỉ', addr: 'Liễu Giai, Phường Ngọc Hà, Hà Nội', r: D.R_ADDRESS, warn: true })],
+  ['confirm-current', 'Xác nhận: vị trí hiện tại (150 m)', confirm({ name: 'Phòng gym', icon: 'gym', src: 'Vị trí hiện tại của bạn, lệch khoảng 12 m', r: D.R_CURRENT })],
+  ['edit', 'Sửa một nơi tự đặt', `${head()}<h2 class="hero-title">Sửa Công ty</h2>
+    <p class="lbl" style="margin-top:20px">Tên nơi</p>${field('Công ty')}<div class="fieldmeta"><span>Đổi tên chỉ áp cho lần đến sau.</span><span class="num">7/24</span></div>
+    <p class="lbl" style="margin-top:24px">Biểu tượng</p>${icons('work')}
+    <p class="lbl" style="margin-top:24px">Vị trí</p><div class="card rows"><div class="srow" role="button" tabindex="0"><span class="badge navy">${I.loc(20)}</span><div class="tx"><p class="tt">54 Liễu Giai, P. Ngọc Hà</p><p class="ts">Lưu từ địa chỉ · 13/10</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
+    <div class="card rows" style="margin-top:24px"><div class="srow" role="button" tabindex="0"><span class="badge navy" style="color:var(--error)">${I.trash(20)}</span><div class="tx"><p class="tt">Xoá nơi này</p><p class="ts">App hỏi lại trước khi xoá.</p></div></div></div>
+    <div class="cta"><button class="btn primary lg">Lưu</button></div>`],
+  ['edit-home', 'Sửa Nhà (không đổi tên, không xoá; chạm dòng Vị trí để đổi địa chỉ)', `${head()}<h2 class="hero-title">Nhà</h2>
+    <p class="body" style="margin-top:8px">Nhà luôn có trên thẻ. Bạn chỉ đổi được chỗ của nó.</p>
+    <p class="lbl" style="margin-top:20px">Vị trí</p><div class="card rows"><div class="srow" role="button" tabindex="0"><span class="badge navy">${I.home(20)}</span><div class="tx"><p class="tt">Ngõ 72 Nguyễn Trãi, P. Thanh Xuân</p><p class="ts">Lưu từ địa chỉ · 12/10</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
+    <div class="card rows" style="margin-top:24px"><div class="srow" role="button" tabindex="0"><span class="badge navy" style="color:var(--error)">${I.trash(20)}</span><div class="tx"><p class="tt">Xoá địa chỉ</p><p class="ts">Nhà chỉ còn bấm tay “Về nhà rồi”. App hỏi lại trước khi xoá.</p></div></div></div>`],
+  ['delete', 'Xoá nơi: hỏi lại', `<div class="dim"><div class="dialog" role="alertdialog" aria-labelledby="t-del"><h3 id="t-del">Xoá Phòng gym?</h3><p>App thôi báo khi bạn đến đây. Tin đã gửi trước đó vẫn giữ tên cũ.</p><div class="actions"><button class="btn text">Huỷ</button><button class="btn primary" style="min-width:96px">Xoá</button></div></div></div>`],
+];
+document.getElementById('m').innerHTML = F.map(([id, h, html, note]) => `<section class="frame${html.includes('class="cta"') ? ' ph' : ''}" id="${id}"><h2 class="lbl" style="margin-bottom:14px">${h}</h2>${html}${note ? `<p class="fine" style="margin:10px 4px 0">${note}</p>` : ''}</section>`).join('');
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-go]'); if (b) document.getElementById(b.dataset.go).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  const r = ev.target.closest('[role="radio"]'); if (r) { r.parentElement.querySelectorAll('[role="radio"]').forEach((x) => x.setAttribute('aria-checked', x === r)); }
+  const c = ev.target.closest('.chipbtn'); if (c) { c.parentElement.querySelectorAll('.chipbtn').forEach((x) => x.classList.toggle('on', x === c)); const k = CHIP_ICON[c.textContent]; const sec = c.closest('section'); sec.querySelectorAll('[role="radio"]').forEach((x, i) => x.setAttribute('aria-checked', D.ICONS[i] === k)); const f = sec.querySelector('.field span'); if (f) f.textContent = c.textContent; const pv = sec.querySelector('.preview b'); if (pv) pv.textContent = `${me} đã đến ${c.textContent}`; }
+});
+</script>
+</body>
+</html>

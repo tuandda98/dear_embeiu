@@ -1,0 +1,32 @@
+# Đăng nhập từ trạng thái sạch (sau pm clear / cài lại). Dùng: maestro test -e EMAIL=test3@gmail.com maestro/_common/login.yaml
+# Android: trước đó ép app tiếng Việt: adb shell cmd locale set-app-locales com.tony.dearembeiu.dev --locales vi-VN
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '(Bỏ qua|Đăng nhập bằng email)'
+    timeout: 20000
+- tapOn:
+    text: 'Bỏ qua'
+    optional: true
+- extendedWaitUntil:
+    visible: 'Đăng nhập bằng email'
+    timeout: 15000
+- tapOn: 'Đăng nhập bằng email'
+- extendedWaitUntil:
+    visible: 'you@example.com'
+    timeout: 15000
+- tapOn: 'you@example.com'
+- inputText: ${EMAIL}
+- tapOn: 'Ít nhất 6 ký tự'
+- inputText: '12345678'
+- tapOn: 'CHÀO MỪNG TRỞ LẠI'
+- tapOn:
+    text: 'Đăng nhập'
+    index: -1
+- tapOn:
+    text: '(Cho phép|Allow)'
+    optional: true
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000

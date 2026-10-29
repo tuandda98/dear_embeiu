@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thời tiết hai nơi, sheet chi tiết · Dear Embeiu</title>
+<link rel="stylesheet" href="weather.css">
+<style>
+  .place { padding: 20px 0; }
+  .place + .place { border-top: 1px solid var(--rule); }
+  .phead { display: flex; align-items: flex-start; gap: 12px; margin-top: 6px; }
+  .phead h2 { flex: 1; margin: 0; font-size: 16px; font-weight: 800; line-height: 1.3; min-width: 0; }
+  .phead h2 span { font-size: 13px; font-weight: 500; color: var(--ink2); }
+  .phead .textbtn { margin-top: -12px; }
+  .lock { font-size: 12px; color: var(--ink2); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .big { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+  .big .ic { font-size: 24px; color: var(--ink2); }
+  .big .cond { margin: 0; font-size: 15px; }
+  .range { margin-top: 12px; }
+  .range .lbl { font-size: 13px; color: var(--ink2); font-weight: 500; }
+  .track { position: relative; height: 6px; border-radius: 3px; background: var(--soft); margin: 10px 0 4px; }
+  .fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+  .knob { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 2px solid; }
+  .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink2); }
+  .hours { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 16px; text-align: center; }
+  .hours div { display: grid; gap: 6px; justify-items: center; }
+  .hours .h { font-size: 12px; color: var(--ink2); font-weight: 600; }
+  .hours .ic { font-size: 22px; color: var(--ink2); }
+  .hours .wet .ic { color: var(--ink); }
+  .hours .v { font-size: 15px; font-weight: 600; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div class="scrim" aria-hidden="true"></div>
+<main class="sheet" id="app" role="dialog" aria-modal="true" aria-labelledby="d-title"></main>
+<script>
+const { ic, I } = UI, X = WX.places, P = WX.people;
+const lo = Math.min(X.hcm.low, X.hn.low), hi = Math.max(X.hcm.high, X.hn.high); // thước chung của hai nơi
+const pct = (v) => ((v - lo) / (hi - lo)) * 100;
+console.assert(lo === 22 && hi === 33, 'Thước chung 22°–33°');
+function block(who, p, action) {
+  const color = who === 'me' ? P.me.color : P.partner.color;
+  const name = who === 'me' ? 'Bạn' : P.partner.name;
+  const region = p.city.regionVi ? ` <span>· ${p.city.regionVi}</span>` : '';
+  return `<section class="place" aria-labelledby="p-${who}">
+    <div class="who"><span class="dot ${who === 'me' ? 'me' : 'partner'}"></span><span class="name">${name}</span></div>
+    <div class="phead"><h2 id="p-${who}">${p.city.nameVi}${region}</h2>${action}</div>
+    <div class="big"><span class="temp">${p.temp}°</span>${ic(p.icon)}<p class="cond">${p.cond.vi}</p></div>
+    <div class="range" role="img" aria-label="Từ giờ tới khuya ${p.low} đến ${p.high} độ, bây giờ ${p.temp} độ">
+      <span class="lbl">Từ giờ tới khuya ${p.low}° – ${p.high}°</span>
+      <div class="track"><span class="fill" style="left:${pct(p.low)}%;width:${pct(p.high) - pct(p.low)}%;background:${color}"></span>
+        <span class="knob" style="left:${pct(p.temp)}%;border-color:${color}"></span></div>
+      <div class="ends" aria-hidden="true"><span>${lo}°</span><span>${hi}°</span></div>
+    </div>
+    ${who === 'partner' && WX.CTA[p.cond.kind] ? `<a class="btn" style="margin-top:16px" href="care.html?c=${p.cond.kind}">${ic(WX.CTA[p.cond.kind].icon)}${WX.CTA[p.cond.kind].full(P.partner.name)}</a>` : ''}
+    <div class="hours">${p.slots.map((s) => `<div class="${s.rain ? 'wet' : ''}" aria-label="${String(s.h).padStart(2, '0')}:00, ${s.temp} độ${s.rain ? ', có mưa' : ''}"><span class="h">${String(s.h).padStart(2, '0')}:00</span>${ic(s.icon)}<span class="v">${s.temp}°</span></div>`).join('')}</div>
+  </section>`;
+}
+document.getElementById('app').innerHTML = `
+  <div class="handle"></div>
+  <h1 id="d-title">Thời tiết hai nơi</h1>
+  <p class="sub">Cập nhật ${WX.hhmm(WX.fetched.fresh)}</p>
+  ${block('me', X.hn, `<a class="textbtn" href="picker.html">${ic(I.location)}Đổi thành phố</a>`)}
+  ${block('partner', X.hcm, `<span class="lock">${ic(I.tick)}Thảo tự chọn</span>`)}
+  <p class="source">Dữ liệu thời tiết: <a href="https://api.met.no/doc/License">MET Norway</a></p>`;
+</script>
+</body>
+</html>

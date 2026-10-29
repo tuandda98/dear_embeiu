@@ -1,0 +1,34 @@
+# 04 (iOS, Thảo) — thêm nơi "Công ty" bằng VỊ TRÍ HIỆN TẠI (150 m).
+# TRƯỚC KHI CHẠY đặt vị trí simulator ở Công ty (README, bước 04). Thảo bấm "Về nhà rồi" trước để bật chia sẻ.
+# Kiểm: DD-01, DD-12, BT-02 (phía iOS).
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- tapOn: 'Về nhà rồi'
+- extendedWaitUntil:
+    visible: '(?s).*Đã báo Tuấn.*'
+    timeout: 20000
+- tapOn: '(?s).*Mở cài đặt Về đến nhà.*'
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      text: '(?s).*Thêm nơi.*'
+    centerElement: true
+    timeout: 40000
+- tapOn: 'Thêm nơi'
+- waitForAnimationToEnd
+- assertVisible: '(?s).*Nơi mới.*'
+- tapOn: 'Công ty'
+- tapOn: 'Tiếp tục'
+- waitForAnimationToEnd
+- assertVisible: '(?s).*Công ty ở đâu\?.*'
+- runFlow: _sub/save_by_current_location.yaml
+- extendedWaitUntil:
+    visible: '(?s).*Đã lưu Công ty.*'
+    timeout: 10000
+- takeScreenshot: 04_add_place_ios
+- tapOn: 'Quay lại'

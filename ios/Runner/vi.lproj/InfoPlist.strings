@@ -13,3 +13,8 @@
 "NSHealthUpdateUsageDescription" = "Dear Embeiu không ghi gì vào app Sức khoẻ. App chỉ đọc giấc ngủ để hiện giờ ngủ và giờ dậy của bạn.";
 
 "NSMotionUsageDescription" = "Dear Embeiu xem điện thoại nằm yên lúc nào vào ban đêm để đoán giờ bạn ngủ và thức. Dữ liệu chuyển động thô chỉ nằm trên máy; giờ ngủ và giờ thức chỉ được gửi cho người ấy khi bạn bật chia sẻ.";
+
+/* ── arrival (đợt 2) ── overview D12 */
+"NSLocationWhenInUseUsageDescription" = "Dear Embeiu đọc vị trí khi bạn chọn “Dùng vị trí hiện tại” để lưu một nơi, và để nhận ra khi bạn đến hoặc rời nơi đó. Toạ độ chỉ nằm trên máy bạn.";
+
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Để báo người ấy khi bạn đến hoặc rời một nơi đã lưu, kể cả lúc app đang đóng. App chỉ gửi tên nơi, giờ đến, giờ rời và mức pin, không gửi toạ độ.";

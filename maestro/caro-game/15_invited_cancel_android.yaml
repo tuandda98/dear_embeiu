@@ -1,0 +1,28 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn nhận lời phục thù (1 quân trên bàn): "Để sau" => hộp xác nhận => huỷ ván.
+# CARO-CANCEL: Chơi tiếp giữ nguyên; Bỏ ván => màn "Ván này đã huỷ".
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. .* rủ bạn.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\. .* rủ bạn.*'
+- waitForAnimationToEnd
+- assertVisible: '.* rủ bạn chơi caro\. .*'
+- tapOn: '(?s)Để sau.*'
+- assertVisible: '(?s)Bỏ ván này\?.*'
+- tapOn: '(?s)Chơi tiếp.*'
+- waitForAnimationToEnd
+- assertVisible: '.* rủ bạn chơi caro\. .*'
+- tapOn: '(?s)Để sau.*'
+- tapOn: '(?s)Bỏ ván.*'
+- waitForAnimationToEnd
+- assertVisible: 'Ván này đã huỷ\. .*'
+- assertVisible: '(?s)Rủ .* ván mới.*'

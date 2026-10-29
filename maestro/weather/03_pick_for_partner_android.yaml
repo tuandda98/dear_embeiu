@@ -1,0 +1,27 @@
+# Case CH-05, CH-06, CH-10 (viết tắt), CT-01 (có điều kiện). Chạy sau 02. Android = test3.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 'Chọn giúp'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Chọn giúp'
+- assertVisible: '.*vẫn tự đổi được sau.*'
+- tapOn: 'Tìm thành phố.*'
+- inputText: 'hcm'
+- assertVisible: 'TP.HCM.*'
+- tapOn: 'TP.HCM.*'
+- waitForAnimationToEnd
+# Thẻ giờ có 2 làn
+- assertVisible: '.*Hà Nội.*'
+- assertVisible: '.*TP.HCM.*'
+- assertNotVisible: 'Chọn giúp'

@@ -1,4 +1,8 @@
 import '../l10n/app_localizations.dart';
+// ── caro-game (đợt 2) ──
+import '../models/caro_game.dart';
+// ── arrival (đợt 2) ──
+import '../models/arrival.dart';
 import '../models/decision.dart';
 import '../models/photo.dart';
 import '../utils/decision_suggester.dart' show decisionDisplayName;
@@ -41,6 +45,11 @@ abstract final class HomeWidgetStatus {
   static const String decisionEat = 'decision_eat';
   static const String decisionGo = 'decision_go';
   static const String decisionCustom = 'decision_custom';
+  // ── caro-game (đợt 2) ──
+  static const String caroTurn = 'caro_turn';
+  // ── arrival (đợt 2) ── the partner got Home / reached a named place.
+  static const String arrivalHome = 'arrival_home';
+  static const String arrivalPlace = 'arrival_place';
 
   /// `statusTarget` → Home tab index (mirrors HomeScreen's IndexedStack).
   static const Map<String, int> targetTabs = {
@@ -50,7 +59,15 @@ abstract final class HomeWidgetStatus {
   };
 
   /// Valid `statusFocus` values (HomeScreen._applyPendingFocus).
-  static const Set<String> focuses = {'daily_question', 'mood', 'decision'};
+  static const Set<String> focuses = {
+    'daily_question',
+    'mood',
+    'decision',
+    // ── caro-game (đợt 2) ──
+    'caro',
+    // ── arrival (đợt 2) ──
+    'arrival',
+  };
 
   /// Every kind, for whitelisting what comes back from a widget tap.
   static const Set<String> kinds = {
@@ -63,6 +80,11 @@ abstract final class HomeWidgetStatus {
     decisionEat,
     decisionGo,
     decisionCustom,
+    // ── caro-game (đợt 2) ──
+    caroTurn,
+    // ── arrival (đợt 2) ──
+    arrivalHome,
+    arrivalPlace,
   };
 
   /// No line today: the widget looks exactly like 1.9.1 (D12).
@@ -90,6 +112,10 @@ abstract final class HomeWidgetStatus {
     required bool questionReady,
     DateTime? partnerPhotoAt,
     WidgetDecision? decision,
+    // ── caro-game (đợt 2) ──
+    DateTime? caroTurnAt,
+    // ── arrival (đợt 2) ── `ArrivalProvider.partnerLast`.
+    ArrivalEvent? partnerArrival,
   }) {
     if (!active) {
       return none(now);
@@ -158,6 +184,26 @@ abstract final class HomeWidgetStatus {
         );
       }
     }
+    // ── caro-game (đợt 2) ──
+    if (caroTurnAt != null && _sameDay(caroTurnAt, now)) {
+      add(_status(l10n, caroTurn, caroTurnAt, now, name: name));
+    }
+    // ── arrival (đợt 2) ── only an arrival of today, never a departure (D4).
+    final arrival = partnerArrival;
+    if (arrival != null &&
+        arrival.type == ArrivalEventType.enter &&
+        _sameDay(arrival.at.toLocal(), now)) {
+      add(
+        _status(
+          l10n,
+          arrival.isHome ? arrivalHome : arrivalPlace,
+          arrival.at.toLocal(),
+          now,
+          name: name,
+          result: arrival.name ?? '',
+        ),
+      );
+    }
     if (candidates.isEmpty) {
       return none(now);
     }
@@ -169,6 +215,20 @@ abstract final class HomeWidgetStatus {
       }
     }
     return best;
+  }
+
+  // ── caro-game (đợt 2) ──
+  /// When the partner's move made it my turn in [open] (overview §7.1,
+  /// `statusAt = lastMoveAt`); null when it isn't my turn.
+  static DateTime? caroTurnAt(CaroGame? open, String? myUid) {
+    if (open == null || myUid == null || !open.isMyTurn(myUid)) {
+      return null;
+    }
+    final by = open.lastMoveBy;
+    if (by != null && by == myUid) {
+      return null;
+    }
+    return open.lastMoveAt;
   }
 
   /// The partner's newest photo of today ([photos] newest-first or not).
@@ -229,6 +289,22 @@ abstract final class HomeWidgetStatus {
       if (leftMs <= 0) return none(now);
       return {...none(now), 'statusAt': '$leftMs', 'clearIfOlder': '1'};
     }
+    // ── caro-game (đợt 2) ── A game ended by the other player (resign,
+    // cancel, end a stale game — CF wake, CARO-T4): the "đến lượt mình" line
+    // must go. Native keeps a line NEWER than the end, and `onlyIfKind`
+    // leaves any line that isn't the caro one (mood, chat…) alone.
+    if (v('type') == 'caro_ended' || v('type') == 'caro_result') {
+      final endMs =
+          int.tryParse(v('sentAt')) ??
+          sentAt?.millisecondsSinceEpoch ??
+          now.millisecondsSinceEpoch;
+      return {
+        ...none(now),
+        'statusAt': '$endMs',
+        'onlyIfNewer': '1',
+        'onlyIfKind': caroTurn,
+      };
+    }
     final sentMs = int.tryParse(v('sentAt'));
     final sent =
         (sentMs != null && sentMs > 0
@@ -241,7 +317,13 @@ abstract final class HomeWidgetStatus {
         return null; // a push about another day (queued while offline, D9)
       }
     } else if (sent == null || !_sameDay(sent, now)) {
-      return null;
+      // ── caro-game (đợt 2) ──
+      // Caro pushes carry no date on purpose (the CF's time zone isn't the
+      // user's): a wake push is handled as it arrives, so "now" is today.
+      final caro = v('type') == 'caro_turn' || v('type') == 'caro_invite';
+      if (!caro || (sent != null && !_sameDay(sent, now))) {
+        return null;
+      }
     }
     final at = sent ?? now;
     final name = v('actorName').isEmpty
@@ -273,6 +355,23 @@ abstract final class HomeWidgetStatus {
                 english: l10n.localeName.startsWith('en'),
               );
         s = _decision(l10n, v('kind'), result, v('question'), at, now);
+      // ── caro-game (đợt 2) ──
+      case 'caro_turn':
+      case 'caro_invite':
+        s = _status(l10n, caroTurn, at, now, name: name);
+      // ── arrival (đợt 2) ── CF notifyArrival: `place` slot, `placeName`.
+      case 'arrival':
+        final home = v('place') == 'home';
+        if (home || v('placeName').isNotEmpty) {
+          s = _status(
+            l10n,
+            home ? arrivalHome : arrivalPlace,
+            at,
+            now,
+            name: name,
+            result: v('placeName'),
+          );
+        }
     }
     return s == null ? null : {...s, 'onlyIfNewer': '1'};
   }
@@ -377,6 +476,26 @@ abstract final class HomeWidgetStatus {
         l10n.widgetStatusShortDecisionGo(result),
         'home',
         'decision',
+      ),
+      // ── caro-game (đợt 2) ──
+      caroTurn => (
+        l10n.caroWidgetTurn(name),
+        l10n.caroWidgetTurnShort,
+        'home',
+        'caro',
+      ),
+      // ── arrival (đợt 2) ── [result] carries the place name.
+      arrivalHome => (
+        l10n.arrivalWidgetHome(name),
+        l10n.arrivalWidgetHomeShort(name),
+        'home',
+        'arrival',
+      ),
+      arrivalPlace => (
+        l10n.arrivalWidgetPlace(name, result),
+        l10n.arrivalWidgetPlaceShort(name, result),
+        'home',
+        'arrival',
       ),
       _ => (
         l10n.widgetStatusDecisionCustom(question, result),

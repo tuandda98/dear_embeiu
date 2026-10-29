@@ -8,15 +8,20 @@ import '../models/auth_status.dart';
 import '../services/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/push_notification_service.dart';
+import '../services/user_service.dart';
+import 'money_provider.dart';
 
 /// Social sign-in providers (pairing-funnel PF1 Apple, PF14 Google). `name` is
 /// also the analytics `method`.
 enum SocialSignIn { apple, google }
 
 class AuthProvider extends ChangeNotifier {
-  AuthProvider({required AuthService authService}) : _authService = authService;
+  AuthProvider({required AuthService authService, UserService? userService})
+      : _authService = authService,
+        _userService = userService ?? UserService();
 
   final AuthService _authService;
+  final UserService _userService;
 
   AuthStatus _status = AuthStatus.unknown;
   AppUser? _currentUser;
@@ -195,6 +200,13 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
     await PushNotificationService.instance.syncForUser(_currentUser);
+  }
+
+  /// App back in the foreground → refresh users/{uid}.lastSeenAt (feature
+  /// last-seen). Fire-and-forget; UserService throttles to 1 write/hour.
+  void touchLastSeen() {
+    if (!isAuthenticated) return;
+    unawaited(_userService.touchLastSeen(_currentUser!.id));
   }
 
   Future<void> initialize() async {
@@ -410,6 +422,9 @@ class AuthProvider extends ChangeNotifier {
     } catch (_) {
       // Best-effort cleanup — never block the sign-out on it.
     }
+    // Sổ tiền: deletes still in their 5 s undo window go out while the
+    // account can still write (bounded, best effort).
+    await MoneyProvider.flushPendingDeletes();
 
     // We're intentionally ending the session — swallow the resulting `false`
     // emit on the liveness stream so it isn't read as an external revocation
@@ -426,6 +441,7 @@ class AuthProvider extends ChangeNotifier {
       _isInitialized = true;
       // Analytics — clear the user id (D2) and mark guest again. Fire-and-forget
       // so the analytics write can't delay returning to the auth gate.
+      AnalyticsService.instance.logSignOut();
       unawaited(AnalyticsService.instance.setUserId(null));
       AnalyticsService.instance.setIsGuest(true);
       return true;
@@ -557,6 +573,7 @@ class AuthProvider extends ChangeNotifier {
         return 'session-gone';
       }
       await _authService.setPassword(password, uid: uid);
+      AnalyticsService.instance.logPasswordSet();
       return null;
     } on AuthException catch (e) {
       _forgetSignedOutUser(e.message);
@@ -616,6 +633,7 @@ class AuthProvider extends ChangeNotifier {
     _clearError(notify: false);
     try {
       await _authService.resendEmailVerification();
+      AnalyticsService.instance.logVerificationEmailResent();
       return true;
     } on AuthException catch (e) {
       _errorMessage = e.message;

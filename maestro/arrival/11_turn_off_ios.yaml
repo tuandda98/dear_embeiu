@@ -1,0 +1,23 @@
+# 11 (iOS, Thảo) — tắt chia sẻ: hộp "Tắt báo về nhà?" → Tắt; thẻ về lời mời. Chạy sau 08/10.
+# Kiểm: BT-03, AY-03.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- tapOn: '(?s).*Mở cài đặt Về đến nhà.*'
+- waitForAnimationToEnd
+- tapOn: '(?s).*Tắt là xoá tin gần nhất.*'
+- extendedWaitUntil:
+    visible: '(?s).*Tắt báo về nhà\?.*'
+    timeout: 8000
+- assertVisible: '(?s).*Tin gần nhất của bạn bị xoá khỏi máy chủ ngay.*'
+- takeScreenshot: 11_turn_off_dialog
+- tapOn: 'Tắt'
+- waitForAnimationToEnd
+- assertVisible: '(?s).*Bật lại để báo cho Tuấn.*'
+- tapOn: 'Quay lại'
+- runFlow: _sub/scroll_to_card.yaml
+- assertVisible: '(?s).*Bật báo về nhà.*'

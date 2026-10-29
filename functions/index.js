@@ -470,6 +470,35 @@ exports.notifyPartnerLeft = onDocumentUpdated(
       ),
     );
 
+    // ── caro-game (đợt 2) ──
+    // D20: the old pair's open caro game ends, the score starts over.
+    await caroCleanupOnLeave(coupleId).catch((err) => {
+      logger.warn("Could not clean up caro state on partner left.", {
+        coupleId,
+        message: err && err.message,
+      });
+    });
+
+    // ── weather (đợt 2) ──
+    // The leaver's city goes too (feature weather D18): whoever joins next
+    // must not see where the previous partner lives.
+    await db
+      .collection("couples")
+      .doc(coupleId)
+      .collection("weather")
+      .doc(leaverUid)
+      .delete()
+      .catch((err) => {
+        logger.warn("Could not delete weather city on partner left.", {
+          coupleId,
+          leaverUid,
+          message: err && err.message,
+        });
+      });
+    // ── arrival (đợt 2) ── the leaver's doc goes; whoever stays stops sharing
+    // too, so a partner joining later sees nothing old.
+    await arrivalCleanupOnLeave(coupleId, [leaverUid, ...recipientIds]);
+
     // Leaver display name: prefer their user profile (still exists — they only
     // left the couple), fall back to "Người ấy" via normalizeActorName.
     let leaverName = "";
@@ -986,6 +1015,244 @@ exports.notifyPartnerMood = onDocumentWritten(
     });
   },
 );
+
+// ── arrival (đợt 2) ──
+// "Về đến nhà chưa?" (overview §7). couples/{c}/arrival/{uid} holds ONE latest
+// event (`last`, D3). A push goes to the partner only when someone ARRIVES
+// (D4), and never for: a bounce at the edge of a place (D6, flagged by the
+// sender's phone), an event older than 30' (sent late from the offline
+// queue), the same place pushed within 30', more than 6 pushes a day per
+// sender. Push only, no inbox (D15); muted per device by `pushArrival` (D16);
+// no time in the text (D17). The bookkeeping (lastPushAt.{slot}, pushDay,
+// pushCount) lives in couples/{c}/arrivalPush/{uid}, which no client reads
+// (rules): on the arrival doc the partner would see when each place was last
+// reached (D3/D11). It survives a switch-off so off/on can't reset the cap.
+const ARRIVAL_SLOTS = ["home", "p1", "p2", "p3", "p4"];
+const ARRIVAL_ICONS = ["work", "school", "family", "gym", "cafe", "shop", "pin"];
+const ARRIVAL_PUSH_COOLDOWN_MS = 30 * 60 * 1000;
+const ARRIVAL_STALE_MS = 30 * 60 * 1000;
+const ARRIVAL_DAILY_CAP = 6;
+const ARRIVAL_LOW_BATTERY = 20;
+
+const ARRIVAL_COPY = {
+  vi: {
+    partnerFallback: "Người ấy",
+    home: (n) => `${n} đã về đến nhà`,
+    place: (n, p) => `${n} đã đến ${p}`,
+    lowBattery: (b) => `Pin còn ${b}%`,
+    body: "Nhắn một câu hỏi thăm nhé",
+  },
+  en: {
+    partnerFallback: "Your partner",
+    home: (n) => `${n} got home`,
+    place: (n, p) => `${n} arrived at ${p}`,
+    lowBattery: (b) => `Battery at ${b}%`,
+    body: "Send a quick hello",
+  },
+};
+
+// Day bucket of the daily cap and of `data.date`: Vietnam time (UTC+7) for
+// everyone. Simple on purpose — the couples are in Vietnam, and the cap only
+// needs a stable "day".
+function arrivalVnDateKey(ms) {
+  return new Date(ms + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+// `last` normalised, or null when unusable. The name is cut at 24 again
+// (rules already do) — it is user text going into a push title.
+function arrivalEvent(raw) {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const place = `${raw.place || ""}`;
+  const atMs = rpsToMillis(raw.at);
+  if (!ARRIVAL_SLOTS.includes(place) || !atMs) {
+    return null;
+  }
+  const battery = Number.isInteger(raw.battery) && raw.battery >= 0 && raw.battery <= 100 ?
+    raw.battery : null;
+  return {
+    place,
+    name: place === "home" ? "" : `${raw.name || ""}`.trim().slice(0, 24),
+    icon: place !== "home" && ARRIVAL_ICONS.includes(raw.icon) ? raw.icon : "",
+    type: raw.type === "enter" || raw.type === "exit" ? raw.type : "",
+    atMs,
+    battery,
+    bounce: raw.bounce === true,
+  };
+}
+
+// What one write of arrival/{uid} asks for: {skip: reason} or {event}.
+function arrivalPushPlan(before, after, nowMs) {
+  if (!after) {
+    return {skip: "deleted"};
+  }
+  if (after.share !== true) {
+    return {skip: "not_shared"};
+  }
+  const event = arrivalEvent(after.last);
+  if (!event) {
+    return {skip: "no_event"};
+  }
+  const prev = arrivalEvent(before && before.last);
+  if (prev && prev.place === event.place && prev.type === event.type && prev.atMs === event.atMs) {
+    return {skip: "unchanged"}; // incl. our own bookkeeping write
+  }
+  if (event.type !== "enter") {
+    return {skip: "exit"};
+  }
+  if (event.bounce) {
+    return {skip: "bounce"};
+  }
+  if (nowMs - event.atMs > ARRIVAL_STALE_MS) {
+    return {skip: "stale"};
+  }
+  if (event.place !== "home" && !event.name) {
+    return {skip: "no_event"};
+  }
+  return {event};
+}
+
+// Cooldown per place + daily cap, against the doc's bookkeeping.
+// {ok:false, reason} or {ok:true, day, count} (count = the new total).
+function arrivalClaim(data, place, nowMs) {
+  const lastMs = rpsToMillis(data && data.lastPushAt && data.lastPushAt[place]);
+  if (lastMs && nowMs - lastMs < ARRIVAL_PUSH_COOLDOWN_MS) {
+    return {ok: false, reason: "cooldown"};
+  }
+  const day = arrivalVnDateKey(nowMs);
+  const count = data && data.pushDay === day && Number.isInteger(data.pushCount) ?
+    data.pushCount : 0;
+  if (count >= ARRIVAL_DAILY_CAP) {
+    return {ok: false, reason: "daily_cap"};
+  }
+  return {ok: true, day, count: count + 1};
+}
+
+// `actorName` may be empty: the fallback follows the RECIPIENT's language.
+// `{place}` is the sender's own text, never translated.
+function buildArrivalText(languageCode, actorName, event) {
+  const code = `${languageCode || ""}`.trim().toLowerCase();
+  const copy = ARRIVAL_COPY[code] || ARRIVAL_COPY.vi;
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {
+    title: event.place === "home" ? copy.home(name) : copy.place(name, event.name),
+    body: event.battery !== null && event.battery <= ARRIVAL_LOW_BATTERY ?
+      copy.lowBattery(event.battery) : copy.body,
+  };
+}
+
+// Core of notifyArrival, kept out of the trigger so functions/test can drive
+// it with fakes. `before`/`after` = doc data or null; `ref` = the arrival doc,
+// `pushRef` = its bookkeeping doc in arrivalPush.
+async function processArrivalWrite(coupleId, uid, before, after, ref, pushRef) {
+  const plan = arrivalPushPlan(before, after, Date.now());
+  if (plan.skip) {
+    return {skipped: plan.skip};
+  }
+  const event = plan.event;
+
+  const coupleSnap = await db.collection("couples").doc(coupleId).get();
+  if (!coupleSnap.exists) {
+    return {skipped: "no_couple"};
+  }
+  const memberIds = (Array.isArray(coupleSnap.get("memberIds")) ? coupleSnap.get("memberIds") : [])
+    .filter((id) => typeof id === "string" && id.trim());
+  if (`${coupleSnap.get("status") || ""}` !== "active" || !memberIds.includes(uid)) {
+    return {skipped: "inactive"};
+  }
+  const recipientIds = memberIds.filter((id) => id !== uid);
+  if (recipientIds.length === 0) {
+    return {skipped: "no_partner"};
+  }
+
+  const claim = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const book = await tx.get(pushRef);
+    // Re-read inside the transaction: sharing switched off (doc deleted) or a
+    // newer event since this trigger fired ⇒ this event no longer stands.
+    const now = snap.exists ? snap.data() : null;
+    const live = now && now.share === true ? arrivalEvent(now.last) : null;
+    if (!live || live.place !== event.place || live.atMs !== event.atMs) {
+      return {ok: false, reason: "superseded"};
+    }
+    const c = arrivalClaim(book.exists ? book.data() : null, event.place, Date.now());
+    if (c.ok) {
+      tx.set(pushRef, {
+        lastPushAt: {[event.place]: admin.firestore.FieldValue.serverTimestamp()},
+        pushDay: c.day,
+        pushCount: c.count,
+      }, {merge: true});
+    }
+    return c;
+  });
+  if (!claim.ok) {
+    return {skipped: claim.reason};
+  }
+
+  const actorName = await rpsLoadDisplayName(uid);
+  const sent = await sendToRecipientDevices(
+    recipientIds,
+    (languageCode) => buildArrivalText(languageCode, actorName, event),
+    {
+      type: "arrival",
+      coupleId,
+      place: event.place,
+      ...(event.name ? {placeName: event.name} : {}),
+      ...(event.icon ? {icon: event.icon} : {}),
+      ...(event.battery !== null ? {battery: `${event.battery}`} : {}),
+      // Widget-today line (§8): raw name (client falls back), the event's day
+      // (a push about another day is ignored by the background handler).
+      actorName,
+      date: arrivalVnDateKey(event.atMs),
+    },
+    // A newer arrival replaces the older banner of the same sender.
+    {wakeClients: true, collapseId: `arrival_${uid}`},
+  );
+  if (sent.failures.length > 0) {
+    logger.warn("Arrival push had delivery failures.", {coupleId, failures: sent.failures});
+  }
+  return {pushed: true, recipientIds, deviceCount: sent.deviceCount};
+}
+
+exports.notifyArrival = onDocumentWritten(
+  {document: "couples/{coupleId}/arrival/{uid}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    const before = change && change.before && change.before.exists ? change.before.data() : null;
+    const after = change && change.after && change.after.exists ? change.after.data() : null;
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const uid = `${event.params.uid || ""}`.trim();
+    const outcome = await processArrivalWrite(
+      coupleId, uid, before, after, change && change.after && change.after.ref,
+      db.collection("couples").doc(coupleId).collection("arrivalPush").doc(uid),
+    );
+    // Sent / skipped counts per reason = the auto-event metric (§9, §13).
+    logger.info("Processed arrival notification.", {coupleId, ...outcome});
+  },
+);
+
+// Someone left the couple: every listed member's arrival doc + push
+// bookkeeping goes (the one who stays then looks like "never turned on", and a
+// new partner sees nothing old). Missing docs are fine; errors are logged.
+async function arrivalCleanupOnLeave(coupleId, uids) {
+  const coupleRef = db.collection("couples").doc(coupleId);
+  await Promise.all(
+    uids.flatMap((uid) => [
+      coupleRef.collection("arrival").doc(uid),
+      coupleRef.collection("arrivalPush").doc(uid),
+    ]).map((ref) =>
+      db.recursiveDelete(ref).catch((err) => {
+        logger.warn("Could not clean up arrival data on partner left.", {
+          coupleId,
+          path: ref.path,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    ),
+  );
+}
 
 // ── Love Note → Chat auto-migration (2026-06-14) ───────────────────────────
 // The couple chat replaces the old two-way love notes. Users still on an older
@@ -1999,6 +2266,10 @@ async function rpsRecordMoveInTransaction(gameRef, memberIds) {
       return {ok: false, reason: "not_found"};
     }
     const game = gameSnap.data() || {};
+    // caro-game (đợt 2): only rps games (caro has no `moves`, belt and braces).
+    if ((game.type || "rps") !== "rps") {
+      return {ok: false, reason: "not_playing"};
+    }
     if (game.status === "finished") {
       return {ok: true, already: true, result: game.result || null};
     }
@@ -2487,6 +2758,10 @@ exports.nudgeRpsPlayer = onCall(
           return {ok: false, reason: "not_playing"};
         }
         const game = gameSnap.data() || {};
+        // caro-game (đợt 2): a caro game id is not an rps round to nudge.
+        if ((game.type || "rps") !== "rps") {
+          return {ok: false, reason: "not_playing"};
+        }
         if (game.status !== "playing") {
           return {ok: false, reason: "not_playing"};
         }
@@ -2569,6 +2844,628 @@ exports.nudgeRpsPlayer = onCall(
   },
 );
 
+// ── caro-game (đợt 2) ──
+// Cờ caro theo lượt (feature caro-game, overview §5–§6). A game is ONE doc in
+// the same `games` collection as rps, `type: 'caro'`, holding the whole board
+// (`cells` = squares `row * 15 + col` in play order, even index = X). No
+// `moves` subcollection, so resolveRpsGame never fires for it. Every change
+// goes through the `caroAction` callable — clients may only write their own
+// `presence` key (rules) — and `caroState/main` (CF-only) holds the open-game
+// pointer + all-time score, so two phones starting at once meet on that one
+// doc inside a transaction (a query can't lock "no open game yet").
+const CARO_SIZE = 15;
+const CARO_RULES = ["vn", "free"];
+const CARO_OPS = ["start", "move", "resign", "cancel", "expire", "nudge"];
+// The other player "is looking at the board" (client beats every 20s, D11):
+// no push, they see the move live.
+const CARO_PRESENCE_FRESH_MS = 45 * 1000;
+// D10: "Nhắc" only 1' (user 2026-10-24, was 30') after the later of my last move and the last nudge.
+const CARO_NUDGE_COOLDOWN_MS = 60 * 1000;
+// D9: at most one background wake per recipient per game per 30'.
+const CARO_WAKE_EVERY_MS = 30 * 60 * 1000;
+// D7: nobody moved for 7 days → either player may end the game.
+const CARO_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+// CARO-T3: a new invite < 2' after the same player's previous one (start →
+// cancel → start…) still makes the game, but only the inbox hears of it.
+const CARO_INVITE_QUIET_MS = 2 * 60 * 1000;
+
+// Copy = overview §6.3. `name` is the sender's RAW display name; empty → the
+// fallback in the RECIPIENT's language. `n` = moves on the board.
+const CARO_COPY = {
+  vi: {
+    partnerFallback: "Người ấy",
+    invite: {
+      title: (name) => `${name} rủ bạn chơi cờ caro`,
+      body: () => "Nước đầu đã đi rồi, giờ đến lượt bạn.",
+    },
+    turn: {
+      title: (name) => `${name} vừa đi một nước`,
+      body: (n) => `Đến lượt bạn. Ván đang ở nước ${n}.`,
+    },
+    nudge: {
+      title: (name) => `${name} đang đợi bạn đi`,
+      body: (n) => `Ván caro dừng ở nước ${n}. Vào đi một nước nhé.`,
+    },
+    won: {
+      title: (name) => `${name} thắng ván caro`,
+      body: (n) => `Năm quân liền một hàng ở nước ${n}. Phục thù không?`,
+    },
+    resigned: {
+      title: (name) => `${name} xin thua ván caro`,
+      body: () => "Ván này bạn thắng. Thêm ván nữa không?",
+    },
+    draw: {
+      title: () => "Ván caro hoà",
+      body: () => "Kín cả bàn mà chưa ai thắng.",
+    },
+  },
+  en: {
+    partnerFallback: "Your partner",
+    invite: {
+      title: (name) => `${name} started a game of caro`,
+      body: () => "They made the first move. Your turn.",
+    },
+    turn: {
+      title: (name) => `${name} made a move`,
+      body: (n) => `Your turn. The game is on move ${n}.`,
+    },
+    nudge: {
+      title: (name) => `${name} is waiting for your move`,
+      body: (n) => `Your caro game is paused at move ${n}.`,
+    },
+    won: {
+      title: (name) => `${name} won the caro game`,
+      body: (n) => `Five in a row on move ${n}. Rematch?`,
+    },
+    resigned: {
+      title: (name) => `${name} resigned`,
+      body: () => "You win this one. Another game?",
+    },
+    draw: {
+      title: () => "The caro game is a draw",
+      body: () => "The board filled up and nobody won.",
+    },
+  },
+};
+
+// kind: invite | turn | nudge | won | resigned | draw (recipient's view).
+function buildCaroText(languageCode, kind, actorName, moveNo) {
+  const code = `${languageCode || ""}`.trim().toLowerCase().split(/[-_]/)[0];
+  const copy = Object.prototype.hasOwnProperty.call(CARO_COPY, code) ?
+    CARO_COPY[code] : CARO_COPY.vi;
+  const name = `${actorName || ""}`.trim() || copy.partnerFallback;
+  return {title: copy[kind].title(name), body: copy[kind].body(moveNo)};
+}
+
+// HttpsError copy (shown as-is by the app), language like callableErrorCopy.
+const CARO_ERROR_COPY = {
+  vi: {
+    signIn: "Bạn cần đăng nhập để chơi cờ caro.",
+    badRequest: "Yêu cầu chưa đúng. Bạn thử lại nhé.",
+    noCouple: "Không tìm thấy cặp đôi của bạn.",
+    notMember: "Bạn không ở trong cặp đôi này.",
+    failed: "Chưa xong được. Bạn thử lại nhé.",
+  },
+  en: {
+    signIn: "Please sign in to play caro.",
+    badRequest: "Something was off with that request. Please try again.",
+    noCouple: "Couldn't find your couple.",
+    notMember: "You're not part of this couple.",
+    failed: "That didn't go through. Please try again.",
+  },
+};
+
+// Winner of the line(s) through the LAST move only (every earlier move was
+// already checked when it was played). Rule 'vn' ("Chặn hai đầu"): 5+ in a
+// row wins unless BOTH ends are the opponent's stones — the board edge is not
+// a block; 'free': any 5+ wins. 6+ wins too. Kín bàn without a winner = full.
+// cells: valid, distinct squares in play order (even index = X).
+// → {winner: 'x'|'o'|null, line: [squares of the winning run], full}
+function caroWinner(cells, size, rule) {
+  const n = Array.isArray(cells) ? cells.length : 0;
+  if (n === 0) {
+    return {winner: null, line: [], full: false};
+  }
+  const sideOf = new Map(cells.map((cell, i) => [cell, i % 2]));
+  const last = cells[n - 1];
+  const me = (n - 1) % 2;
+  const r0 = Math.floor(last / size);
+  const c0 = last % size;
+  const inside = (r, c) => r >= 0 && r < size && c >= 0 && c < size;
+  for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+    const line = [last];
+    let r = r0 + dr;
+    let c = c0 + dc;
+    while (inside(r, c) && sideOf.get(r * size + c) === me) {
+      line.push(r * size + c);
+      r += dr;
+      c += dc;
+    }
+    const blockedA = inside(r, c) && sideOf.get(r * size + c) === 1 - me;
+    r = r0 - dr;
+    c = c0 - dc;
+    while (inside(r, c) && sideOf.get(r * size + c) === me) {
+      line.unshift(r * size + c);
+      r -= dr;
+      c -= dc;
+    }
+    const blockedB = inside(r, c) && sideOf.get(r * size + c) === 1 - me;
+    if (line.length >= 5 && (rule === "free" || !(blockedA && blockedB))) {
+      return {winner: me === 0 ? "x" : "o", line, full: false};
+    }
+  }
+  return {winner: null, line: [], full: n >= size * size};
+}
+
+// A square index as sent by the client, or null (not an int / off the board).
+function caroCell(value) {
+  return Number.isInteger(value) && value >= 0 && value < CARO_SIZE * CARO_SIZE ?
+    value : null;
+}
+
+// Plain copies of the game's maps / list (missing or malformed → empty).
+function caroGameParts(game) {
+  const g = game || {};
+  const map = (v) => (v && typeof v === "object" && !Array.isArray(v)) ? {...v} : {};
+  return {
+    players: map(g.players),
+    cells: Array.isArray(g.cells) ? g.cells.slice() : [],
+    lastWakeAt: map(g.lastWakeAt),
+  };
+}
+
+// Why `uid` may NOT play `cell` as move number `moveNo` (= cells already on
+// the board, so a double tap or a stale screen is refused), or null when the
+// move is legal. memberIds = the couple's current members: a game whose
+// players aren't both still in the couple is dead (D7).
+function caroMoveError(game, memberIds, uid, cell, moveNo) {
+  if (!game || game.type !== "caro" || game.status !== "playing") {
+    return "not_playing";
+  }
+  const {players, cells} = caroGameParts(game);
+  if (!memberIds.includes(players.x) || !memberIds.includes(players.o)) {
+    return "not_playing";
+  }
+  if (uid !== players.x && uid !== players.o) {
+    return "not_player";
+  }
+  if (game.turnUid !== uid) {
+    return "not_your_turn";
+  }
+  if (moveNo !== cells.length) {
+    return "stale";
+  }
+  if (cell === null) {
+    return "out_of_range";
+  }
+  if (cells.includes(cell)) {
+    return "occupied";
+  }
+  return null;
+}
+
+// ms left before `uid` may nudge (0 = now). The waiting player's last move is
+// `lastMoveAt` (it is the partner's turn), so the clock starts from the later
+// of that and the previous nudge (D10).
+function caroNudgeWaitMs(game, nowMs) {
+  const since = Math.max(rpsToMillis(game.lastMoveAt) || 0, rpsToMillis(game.lastNudgeAt) || 0);
+  return Math.max(0, CARO_NUDGE_COOLDOWN_MS - (nowMs - since));
+}
+
+// D9: wake the recipient's app (widget line) unless it was woken for this
+// game < 30' ago.
+function caroShouldWake(lastWakeAt, recipientId, nowMs) {
+  const at = rpsToMillis(lastWakeAt && lastWakeAt[recipientId]);
+  return at === null || nowMs - at >= CARO_WAKE_EVERY_MS;
+}
+
+function caroPresenceFresh(presence, uid, nowMs) {
+  const at = rpsPresenceMillis(presence, uid);
+  return at !== null && nowMs - at < CARO_PRESENCE_FRESH_MS;
+}
+
+function caroGamesRef(coupleId) {
+  return db.collection("couples").doc(coupleId).collection("games");
+}
+
+function caroStateRef(coupleId) {
+  return db.collection("couples").doc(coupleId).collection("caroState").doc("main");
+}
+
+// One push (+ inbox for `caro_invite`) to the other player. All pushes of a
+// game share the tray slot `caro_{gameId}` (D8). Never throws.
+async function sendCaroPush(coupleId, gameId, push) {
+  const {type, kind, actorUid, recipientId, moveNo, wake, inboxOnly, silent} = push;
+  try {
+    const actorName = await rpsLoadDisplayName(actorUid);
+    if (type === "caro_invite") {
+      const inboxPayload = {type, coupleId, gameId, actorUserId: actorUid};
+      if (actorName) {
+        inboxPayload.actorName = actorName;
+      }
+      await writeInboxNotifications([recipientId], inboxPayload);
+    }
+    if (inboxOnly === true) {
+      // The partner is looking at the game already: the inbox keeps the
+      // invite, the phone stays quiet (review 2026-10-20 #1).
+      return;
+    }
+    const result = await sendToRecipientDevices(
+      [recipientId],
+      (languageCode) => buildCaroText(languageCode, kind, actorName, moveNo),
+      // `sentAt`: the widget orders a late (iOS background) wake by it.
+      {type, coupleId, gameId, moveNo: String(moveNo), actorName, sentAt: String(Date.now())},
+      // `silent` (caro_ended, CARO-T4): a wake only, no banner.
+      silent === true ?
+        {collapseId: `caro_${gameId}`, silent: true} :
+        {collapseId: `caro_${gameId}`, wakeClients: wake === true},
+    );
+    if (result.failures.length > 0) {
+      logger.warn("Caro push had delivery failures.", {coupleId, gameId, type, failures: result.failures});
+    }
+    logger.info("Processed caro push.", {
+      coupleId,
+      gameId,
+      type,
+      wake: wake === true,
+      attemptedTokens: result.deviceCount,
+      successCount: result.successCount,
+    });
+  } catch (err) {
+    logger.error("Caro push failed.", {coupleId, gameId, type, message: err && err.message});
+  }
+}
+
+// CARO-T4: a game cancelled / ended as stale, no banner — but if it was the
+// other player's turn their widget says "đến lượt mình": wake it silently so
+// the line goes. Their open screen sees the change live, no wake then.
+function caroEndedWake(game, uid, other, otherWatching) {
+  if (otherWatching || game.turnUid !== other) {
+    return null;
+  }
+  const {cells} = caroGameParts(game);
+  return {type: "caro_ended", actorUid: uid, recipientId: other, moveNo: cells.length, silent: true};
+}
+
+// Partner already opened the new game (a phone following the open-game
+// pointer): they see it, so inbox only — and the wake written in the
+// transaction did not happen (CARO-T7). Returns the push to send.
+async function caroQuietIfSeen(coupleId, gameId, partnerUid, push) {
+  try {
+    const ref = caroGamesRef(coupleId).doc(gameId);
+    const fresh = await ref.get();
+    if (!caroPresenceFresh(fresh.get("presence"), partnerUid, Date.now())) {
+      return push;
+    }
+    if (push.wake === true) {
+      await ref.update({[`lastWakeAt.${partnerUid}`]: admin.firestore.FieldValue.delete()});
+    }
+    return {...push, wake: false, inboxOnly: true};
+  } catch (err) {
+    logger.warn("caroAction: could not re-read the new game.", {coupleId, message: err && err.message});
+    return push;
+  }
+}
+
+// The transaction of one `caroAction` op. Resolves to
+// {reply: <what the client gets>, push?: <sendCaroPush args>}.
+async function caroRunOp(op, ctx) {
+  const {coupleId, uid, gameId, cell, moveNo, rule, rematchOf} = ctx;
+  const FieldValue = admin.firestore.FieldValue;
+  const stateRef = caroStateRef(coupleId);
+  const coupleRef = db.collection("couples").doc(coupleId);
+  return db.runTransaction(async (tx) => {
+    const nowMs = Date.now();
+    // Members read inside the transaction (review #5): a partner leaving
+    // between the caller's check and this op can't slip a move through.
+    const coupleSnap = await tx.get(coupleRef);
+    const rawMembers = coupleSnap.exists && Array.isArray(coupleSnap.get("memberIds")) ?
+      coupleSnap.get("memberIds") : [];
+    const memberIds = rawMembers.filter((id) => typeof id === "string" && id.trim());
+    const partnerUid = memberIds.find((id) => id !== uid);
+    if (!memberIds.includes(uid) || memberIds.length !== 2 || !partnerUid) {
+      return {reply: {ok: false, reason: "no_partner"}};
+    }
+    const stateSnap = await tx.get(stateRef);
+    const openGameId = stateSnap.exists ? stateSnap.get("openGameId") : null;
+
+    if (op === "start") {
+      if (cell === null) {
+        return {reply: {ok: false, reason: "out_of_range"}};
+      }
+      const prevRef = isDocId(rematchOf) ? caroGamesRef(coupleId).doc(rematchOf) : null;
+      const openRef = isDocId(openGameId) ? caroGamesRef(coupleId).doc(openGameId) : null;
+      const [openSnap, prevSnap] = await Promise.all([
+        openRef ? tx.get(openRef) : null,
+        prevRef ? tx.get(prevRef) : null,
+      ]);
+      const open = openSnap && openSnap.exists ? openSnap.data() : null;
+      if (open && open.type === "caro" && open.status === "playing") {
+        const {players} = caroGameParts(open);
+        if (memberIds.includes(players.x) && memberIds.includes(players.o)) {
+          return {reply: {ok: false, reason: "already_open", gameId: openRef.id}};
+        }
+        // A player left the couple since (D7): that game is over.
+        tx.update(openRef, {status: "expired", updatedAt: FieldValue.serverTimestamp()});
+      }
+      // Rematch while the partner still looks at the previous result: their
+      // screen follows the new game by itself, no push (D8).
+      const partnerOnPrev = !!prevSnap && prevSnap.exists &&
+        caroPresenceFresh(prevSnap.get("presence"), partnerUid, nowMs);
+      const lastInviteAt = stateSnap.exists ? stateSnap.get("lastInviteAt") : null;
+      const prevInviteMs = rpsToMillis(lastInviteAt && lastInviteAt[uid]);
+      const tooSoon = prevInviteMs !== null && nowMs - prevInviteMs < CARO_INVITE_QUIET_MS;
+      const quiet = partnerOnPrev || tooSoon;
+      const newRef = caroGamesRef(coupleId).doc();
+      const game = {
+        type: "caro",
+        rule,
+        size: CARO_SIZE,
+        createdBy: uid,
+        createdAt: FieldValue.serverTimestamp(),
+        players: {x: uid, o: partnerUid},
+        status: "playing",
+        cells: [cell],
+        turnUid: partnerUid,
+        lastMoveAt: FieldValue.serverTimestamp(),
+        lastMoveBy: uid,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      // Only an invite that really wakes counts as a wake (CARO-T7).
+      if (!quiet) {
+        game.lastWakeAt = {[partnerUid]: FieldValue.serverTimestamp()};
+      }
+      if (prevRef) {
+        game.rematchOf = prevRef.id;
+      }
+      tx.set(newRef, game);
+      const state = {
+        openGameId: newRef.id,
+        lastInviteAt: {[uid]: FieldValue.serverTimestamp()},
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (!stateSnap.exists) {
+        state.wins = {};
+        state.draws = 0;
+      }
+      tx.set(stateRef, state, {merge: true});
+      return {
+        reply: {ok: true, gameId: newRef.id, status: "playing", cellsLength: 1},
+        // Partner on the previous result: their screen follows the new game,
+        // so no push — but the inbox still records the invite (review #1).
+        // Same for an invite right after the previous one (CARO-T3).
+        push: {
+          type: "caro_invite", kind: "invite", actorUid: uid, recipientId: partnerUid, moveNo: 1,
+          wake: !quiet, inboxOnly: quiet,
+        },
+      };
+    }
+
+    // Every other op works on an existing game.
+    const gameRef = caroGamesRef(coupleId).doc(gameId);
+    const gameSnap = await tx.get(gameRef);
+    const game = gameSnap.exists ? (gameSnap.data() || {}) : null;
+    if (!game || game.type !== "caro" || game.status !== "playing") {
+      return {reply: {ok: false, reason: "not_playing"}};
+    }
+    const {players, cells, lastWakeAt} = caroGameParts(game);
+    if (uid !== players.x && uid !== players.o) {
+      return {reply: {ok: false, reason: "not_player"}};
+    }
+    // A game of an earlier pair is dead for every op, not only `move`
+    // (review #3): no nudge to an ex, no win counted on the new score.
+    if (!memberIds.includes(players.x) || !memberIds.includes(players.o)) {
+      return {reply: {ok: false, reason: "not_playing"}};
+    }
+    const other = uid === players.x ? players.o : players.x;
+    const clearOpen = openGameId === gameId ?
+      {openGameId: null, updatedAt: FieldValue.serverTimestamp()} : {updatedAt: FieldValue.serverTimestamp()};
+    const otherWatching = caroPresenceFresh(game.presence, other, nowMs);
+    const done = (status, extra) => ({ok: true, gameId, status, cellsLength: extra});
+
+    if (op === "move") {
+      const reason = caroMoveError(game, memberIds, uid, cell, moveNo);
+      if (reason) {
+        return {reply: {ok: false, reason}};
+      }
+      const next = [...cells, cell];
+      const outcome = caroWinner(next, CARO_SIZE, game.rule === "free" ? "free" : "vn");
+      const update = {
+        cells: next,
+        lastMoveAt: FieldValue.serverTimestamp(),
+        lastMoveBy: uid,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (outcome.winner || outcome.full) {
+        update.status = "finished";
+        update.finishedAt = FieldValue.serverTimestamp();
+        update.result = outcome.winner ?
+          {winnerUid: uid, reason: "five", line: outcome.line} :
+          {winnerUid: null, reason: "full", line: []};
+        tx.update(gameRef, update);
+        tx.set(stateRef, {
+          ...clearOpen,
+          ...(outcome.winner ? {wins: {[uid]: FieldValue.increment(1)}} : {draws: FieldValue.increment(1)}),
+        }, {merge: true});
+        return {
+          reply: done("finished", next.length),
+          push: otherWatching ? null : {
+            type: "caro_result", kind: outcome.winner ? "won" : "draw", actorUid: uid,
+            recipientId: other, moveNo: next.length, wake: false,
+          },
+        };
+      }
+      update.turnUid = other;
+      const wake = !otherWatching && caroShouldWake(lastWakeAt, other, nowMs);
+      if (wake) {
+        update.lastWakeAt = {...lastWakeAt, [other]: FieldValue.serverTimestamp()};
+      }
+      tx.update(gameRef, update);
+      return {
+        reply: done("playing", next.length),
+        push: otherWatching ? null : {
+          type: "caro_turn", kind: "turn", actorUid: uid, recipientId: other, moveNo: next.length, wake,
+        },
+      };
+    }
+
+    if (op === "resign") {
+      tx.update(gameRef, {
+        status: "finished",
+        result: {winnerUid: other, reason: "resign", line: []},
+        endedBy: uid,
+        finishedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      tx.set(stateRef, {...clearOpen, wins: {[other]: FieldValue.increment(1)}}, {merge: true});
+      return {
+        reply: done("finished", cells.length),
+        push: otherWatching ? null : {
+          // Their widget says "đến lượt mình" only on their turn (CARO-T4).
+          type: "caro_result", kind: "resigned", actorUid: uid, recipientId: other, moveNo: cells.length,
+          wake: game.turnUid === other,
+        },
+      };
+    }
+
+    if (op === "cancel") {
+      // "Để sau": only before the invited player has moved. A second stone
+      // means the caller's screen is behind.
+      if (cells.length > 1) {
+        return {reply: {ok: false, reason: "stale"}};
+      }
+      tx.update(gameRef, {status: "cancelled", endedBy: uid, updatedAt: FieldValue.serverTimestamp()});
+      tx.set(stateRef, clearOpen, {merge: true});
+      return {reply: done("cancelled", cells.length), push: caroEndedWake(game, uid, other, otherWatching)};
+    }
+
+    if (op === "expire") {
+      // Same fallback as the client's isStale (review #4): no lastMoveAt →
+      // createdAt; neither → very old, so it can end.
+      const idleMs = nowMs - (rpsToMillis(game.lastMoveAt) || rpsToMillis(game.createdAt) || 0);
+      if (idleMs < CARO_STALE_MS) {
+        return {reply: {ok: false, reason: "too_early", retryAfterMs: CARO_STALE_MS - idleMs}};
+      }
+      tx.update(gameRef, {status: "expired", endedBy: uid, updatedAt: FieldValue.serverTimestamp()});
+      tx.set(stateRef, clearOpen, {merge: true});
+      return {reply: done("expired", cells.length), push: caroEndedWake(game, uid, other, otherWatching)};
+    }
+
+    // nudge — only the player who is waiting (it is the other one's turn).
+    if (game.turnUid === uid) {
+      return {reply: {ok: false, reason: "stale"}};
+    }
+    const waitMs = caroNudgeWaitMs(game, nowMs);
+    if (waitMs > 0) {
+      return {reply: {ok: false, reason: "cooldown", retryAfterMs: waitMs}};
+    }
+    tx.update(gameRef, {lastNudgeAt: FieldValue.serverTimestamp()});
+    return {
+      reply: done("playing", cells.length),
+      push: {type: "caro_nudge", kind: "nudge", actorUid: uid, recipientId: other, moveNo: cells.length, wake: false},
+    };
+  });
+}
+
+// caroAction({coupleId, op, gameId?, cell?, moveNo?, rule?, rematchOf?, lang?})
+// → {ok:true, gameId, status, cellsLength} | {ok:false, reason, gameId?, retryAfterMs?}
+// reasons: not_playing · not_your_turn · stale · occupied · out_of_range ·
+// already_open · cooldown · too_early · not_player · no_partner. Business
+// outcomes are RETURNED (like nudgeRpsPlayer); only auth / bad input / system
+// failures throw, in the caller's language.
+exports.caroAction = onCall(
+  {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
+  async (request) => {
+    const copy = callableErrorCopy(request) === CALLABLE_ERROR_COPY.en ?
+      CARO_ERROR_COPY.en : CARO_ERROR_COPY.vi;
+    const uid = request.auth && request.auth.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", copy.signIn);
+    }
+    const data = request.data || {};
+    const coupleId = `${data.coupleId || ""}`.trim();
+    const op = `${data.op || ""}`.trim();
+    const gameId = `${data.gameId || ""}`.trim();
+    if (!isDocId(coupleId) || !CARO_OPS.includes(op) || (op !== "start" && !isDocId(gameId))) {
+      throw new HttpsError("invalid-argument", copy.badRequest);
+    }
+
+    const memberIds = await rpsLoadMemberIds(coupleId);
+    if (!memberIds) {
+      throw new HttpsError("not-found", copy.noCouple);
+    }
+    if (!memberIds.includes(uid)) {
+      throw new HttpsError("permission-denied", copy.notMember);
+    }
+    const partnerUid = memberIds.find((id) => id !== uid);
+    if (memberIds.length !== 2 || !partnerUid) {
+      return {ok: false, reason: "no_partner"};
+    }
+
+    const ctx = {
+      coupleId,
+      uid,
+      gameId,
+      cell: caroCell(data.cell),
+      moveNo: Number.isInteger(data.moveNo) ? data.moveNo : -1,
+      rule: CARO_RULES.includes(data.rule) ? data.rule : "vn",
+      rematchOf: `${data.rematchOf || ""}`.trim(),
+    };
+    let outcome;
+    try {
+      outcome = await caroRunOp(op, ctx);
+    } catch (err) {
+      logger.error("caroAction failed.", {coupleId, op, gameId, message: err && err.message});
+      throw new HttpsError("internal", copy.failed);
+    }
+    const reply = outcome.reply;
+    logger.info("caroAction processed.", {
+      coupleId,
+      op,
+      gameId: reply.gameId || gameId,
+      ok: reply.ok,
+      reason: reply.reason || null,
+    });
+
+    let push = outcome.push;
+    if (push && op === "start" && push.inboxOnly !== true) {
+      push = await caroQuietIfSeen(coupleId, reply.gameId, partnerUid, push);
+    }
+    if (push) {
+      // Awaited: gen2 CPU is throttled once the response is sent.
+      await sendCaroPush(coupleId, reply.gameId || gameId, push);
+    }
+    return reply;
+  },
+);
+
+// D20: when a partner leaves, the old pair's open game ends and the score
+// starts over for whoever joins next. Best-effort (the caller logs failures).
+async function caroCleanupOnLeave(coupleId) {
+  const stateRef = caroStateRef(coupleId);
+  const stateSnap = await stateRef.get();
+  if (!stateSnap.exists) {
+    return;
+  }
+  const openGameId = stateSnap.get("openGameId");
+  if (isDocId(openGameId)) {
+    // A failed expire must not keep the old score for the next pair
+    // (review #6): log it and still drop the state doc.
+    try {
+      const gameRef = caroGamesRef(coupleId).doc(openGameId);
+      const gameSnap = await gameRef.get();
+      if (gameSnap.exists && gameSnap.get("type") === "caro" && gameSnap.get("status") === "playing") {
+        await gameRef.update({status: "expired", updatedAt: admin.firestore.FieldValue.serverTimestamp()});
+      }
+    } catch (err) {
+      logger.warn("caroCleanupOnLeave: could not expire the open game.", {coupleId, message: err && err.message});
+    }
+  }
+  await stateRef.delete();
+}
+
+// ── /caro-game ──
+
 // Shared device-fan-out used by the partner-photo and partner-joined pushes.
 // Collects every notifications-enabled device token for the recipients, builds
 // one localized message per device (via `buildText(languageCode)`), sends them
@@ -2593,6 +3490,11 @@ exports.nudgeRpsPlayer = onCall(
 // (`apns-push-type: background`, priority 5, `content-available`, no alert /
 // sound / badge); Android: data-only, high priority. Off by default — callers
 // that pass no `silent` behave exactly as before.
+// `options.collapseId` (đợt 2, 2026-10-20) makes a new alert REPLACE the
+// previous one with the same id in the tray instead of stacking (caro: one
+// notification per game, not 15 "vừa đi một nước"). Android: `notification.tag`;
+// iOS: `apns-collapse-id` header (Apple caps it at 64 bytes, so it is cut).
+// Callers that pass no `collapseId` get exactly the old payload.
 // Per-type mute prefs (D-notif-4): maps a push `type` to the device-doc field
 // the user can switch off. Types not listed (love_note, partner_joined/left)
 // are always-on and never filtered. Absent field on a device → not muted.
@@ -2600,6 +3502,8 @@ const PUSH_TYPE_PREF_FIELD = {
   photo_posted: "pushPhoto",
   photo_reaction: "pushReaction",
   daily_question: "pushDailyQuestion",
+  // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16)
+  arrival: "pushArrival",
 };
 
 // `data.lang` = the recipient device's app language (vi/en), so a handler with
@@ -2612,6 +3516,8 @@ function langData(device) {
 
 async function sendToRecipientDevices(recipientIds, buildText, dataExtra, options = {}) {
   const muteField = PUSH_TYPE_PREF_FIELD[dataExtra && dataExtra.type];
+  // Ids are ASCII (`caro_<gameId>`…), so 64 chars = Apple's 64-byte cap.
+  const collapseId = options.collapseId ? `${options.collapseId}`.slice(0, 64) : "";
   const deviceDocs = [];
   // Real iOS app-icon badge (D-notif-2): per recipient, how many unread inbox
   // notifications they have right now. The inbox doc for THIS event was already
@@ -2645,8 +3551,11 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
 
       // Skip this device when the user muted this push type on it. Only the
       // PUSH is suppressed — the durable inbox record is still written, so the
-      // notification center stays a complete history.
-      if (muteField && doc.get(muteField) === false) {
+      // notification center stays a complete history. With `wakeClients` a
+      // muted device still gets the silent wake (no banner): its widget and
+      // local reminders must follow the event even when the banner is off.
+      const muted = Boolean(muteField && doc.get(muteField) === false);
+      if (muted && !options.wakeClients) {
         continue;
       }
 
@@ -2657,6 +3566,7 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
         platform: `${doc.get("platform") || "unknown"}`.trim().toLowerCase(),
         // Gap B — language of the recipient device, used to localize the push.
         languageCode: `${doc.get("languageCode") || ""}`.trim().toLowerCase(),
+        muted,
       });
     }
   }
@@ -2668,18 +3578,21 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // Each outgoing entry keeps its device so delivery failures can be attributed
   // (and dead tokens pruned) even after companion messages are appended — a bare
   // `messages[index] → deviceDocs[index]` mapping would break then.
-  const outgoing = options.silent ? deviceDocs.map((device) => ({
-    device,
-    message: {
-      token: device.token,
-      data: {...dataExtra, ...langData(device)},
-      android: {priority: "high"},
-      apns: {
-        headers: {"apns-priority": "5", "apns-push-type": "background"},
-        payload: {aps: {contentAvailable: true}},
-      },
-    },
-  })) : deviceDocs.map((device) => {
+  const outgoing = deviceDocs.map((device) => {
+    if (options.silent || device.muted) {
+      return {
+        device,
+        message: {
+          token: device.token,
+          data: {...dataExtra, ...langData(device)},
+          android: {priority: "high"},
+          apns: {
+            headers: {"apns-priority": "5", "apns-push-type": "background"},
+            payload: {aps: {contentAvailable: true}},
+          },
+        },
+      };
+    }
     const {title, body} = buildText(device.languageCode);
     return {
       device,
@@ -2696,12 +3609,14 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
           priority: "high",
           notification: {
             channelId: "partner_photo_updates",
+            ...(collapseId ? {tag: collapseId} : {}),
           },
         },
         apns: {
           headers: {
             "apns-priority": "10",
             "apns-push-type": "alert",
+            ...(collapseId ? {"apns-collapse-id": collapseId} : {}),
           },
           payload: {
             aps: {
@@ -2725,7 +3640,8 @@ async function sendToRecipientDevices(recipientIds, buildText, dataExtra, option
   // onMessage handler acts on the data, then bails before showing a banner.
   if (options.wakeClients && !options.silent) {
     for (const device of deviceDocs) {
-      if (device.platform !== "android") {
+      // A muted device already got the data-only wake above.
+      if (device.platform !== "android" || device.muted) {
         continue;
       }
       outgoing.push({
@@ -2935,6 +3851,21 @@ exports.deleteAccount = onCall(
       });
       return null;
     });
+
+    // ── expenses (đợt 2) ──
+    // 2c) Own money book (Sổ tiền D4): the user's alone, gone with the
+    //     account (mốc B collections included, so nothing written later can
+    //     outlive it). Shared-book entries stay for the partner.
+    await Promise.all([
+      "moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring", "moneyDebts",
+    ].map((name) => db.recursiveDelete(userRef.collection(name)).catch((err) => {
+      logger.warn("Failed to delete own money book during account deletion.", {
+        uid,
+        name,
+        message: err && err.message,
+      });
+      return null;
+    })));
 
     // 3) The invite_code pointer — only if it still points at this user, so we
     //    never clobber a code that has since been reassigned.
@@ -3154,6 +4085,18 @@ async function handleCoupleOnAccountDeletion(coupleId, uid) {
     });
     return null;
   });
+  // ── arrival (đợt 2) ── same reasoning: the leaver's arrival doc + push
+  // bookkeeping (the CF notifyPartnerLeft then switches off whoever stays).
+  for (const name of ["arrival", "arrivalPush"]) {
+    await db.recursiveDelete(coupleRef.collection(name).doc(uid)).catch((err) => {
+      logger.warn("Failed to delete the leaving member's arrival data.", {
+        coupleId,
+        uid,
+        message: err && err.message,
+      });
+      return null;
+    });
+  }
 
   // SECURITY (audit 2026-10-12): deleteAccount takes coupleId from
   // users/{uid}, which the client writes itself, and couple/invite codes are
@@ -3265,6 +4208,60 @@ async function deleteCoupleCompletely(coupleRef, coupleData) {
     }),
   );
 
+  // ── caro-game (đợt 2) ──
+  // Games (caro + rps — rps rounds used to stay behind as orphans) and the
+  // caro pointer/score doc.
+  for (const name of ["games", "caroState"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn(`Failed to recursively delete ${name} during couple teardown.`, {
+          coupleId: coupleRef.id,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
+
+  // ── expenses (đợt 2) ──
+  // Shared money book (Sổ tiền D4): the couple is gone, so is its book.
+  for (const name of ["moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn("Failed to recursively delete the money book during couple teardown.", {
+          coupleId: coupleRef.id,
+          name,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
+
+  // ── arrival (đợt 2) ── every member's arrival doc + push bookkeeping.
+  for (const name of ["arrival", "arrivalPush"]) {
+    tasks.push(
+      db.recursiveDelete(coupleRef.collection(name)).catch((err) => {
+        logger.warn("Failed to recursively delete arrival during couple teardown.", {
+          coupleId: coupleRef.id,
+          message: err && err.message,
+        });
+        return null;
+      }),
+    );
+  }
+  // ── weather (đợt 2) ──
+  // Weather (feature weather): each member's city (coarse location). The
+  // last member leaving never reaches notifyPartnerLeft's cleanup.
+  tasks.push(
+    db.recursiveDelete(coupleRef.collection("weather")).catch((err) => {
+      logger.warn("Failed to recursively delete weather during couple teardown.", {
+        coupleId: coupleRef.id,
+        message: err && err.message,
+      });
+      return null;
+    }),
+  );
   // Couple entry code (feature couple-code): the couple_codes/{code} pointer is
   // a TOP-LEVEL doc, not a subcollection, so recursiveDelete on the couple won't
   // touch it. Remove it explicitly or the 6-char code stays mapped to a dead
@@ -4070,3 +5067,581 @@ exports.generateDailyQuestion = onCall(
     }
   },
 );
+
+// ── weather (đợt 2) ──
+// Thời tiết hai nơi (feature weather, overview §5.3). One callable returns the
+// MET Norway forecast for 1–2 cities of the bundled list. MET's terms forbid
+// apps calling it directly: this is the caching proxy they ask for, so MET
+// traffic follows the number of cities in use, never the number of users
+// (D7). The client turns the raw numbers into text itself (D8). No push, no
+// inbox, no wakeClients (D14).
+
+// Same ids + coordinates as lib/data/weather_cities.dart (a Dart test compares
+// the two). Only these ids are accepted (D9): nobody can make us call MET for
+// arbitrary coordinates under our User-Agent.
+const WEATHER_CITIES = new Map(require("./weather_cities.json").map((c) => [c.id, c]));
+
+const WEATHER_CONFIG = {
+  // MET terms: identify the app + a contact, or get 403.
+  userAgent: "DearEmbeiu/1.0 (https://dearembeiu.com)",
+  baseUrl: "https://api.met.no/weatherapi/locationforecast/2.0/compact",
+  // Never refresh more often than this, whatever MET's Expires says (D7).
+  minTtlMs: 30 * 60 * 1000,
+  // After a failed MET call, serve the cache (stale) for this long before
+  // trying again — a MET outage must not turn every app open into a request.
+  retryMs: 10 * 60 * 1000,
+  // How long one caller holds the refresh of a city (see getWeatherForCity).
+  lockMs: 60 * 1000,
+  // A city's FIRST fetch is running in another call (both partners open the
+  // app at once): poll its result this often, this many times (MET answers in
+  // ~1–3 s; 10 × 800 ms stays well inside the callable timeout).
+  waitPollMs: 800,
+  waitPolls: 10,
+  timeoutMs: 8000,
+  hours: 36,
+};
+
+const WEATHER_ERROR_COPY = {
+  vi: {
+    signIn: "Bạn cần đăng nhập để xem thời tiết.",
+    badCities: "Thành phố này chưa có trong danh sách.",
+    unavailable: "Chưa tải được thời tiết. Bạn thử lại sau nhé.",
+  },
+  en: {
+    signIn: "Please sign in to see the weather.",
+    badCities: "That city isn't on the list.",
+    unavailable: "Couldn't load the weather. Please try again later.",
+  },
+};
+
+// Language rule of CALLABLE_ERROR_COPY (`lang` / `languageCode`, else vi).
+function weatherErrorCopy(request) {
+  return callableErrorCopy(request) === CALLABLE_ERROR_COPY.en ?
+    WEATHER_ERROR_COPY.en : WEATHER_ERROR_COPY.vi;
+}
+
+// `cityIds` → deduped list of 1–2 known ids, or null.
+function parseWeatherCityIds(raw) {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 2) {
+    return null;
+  }
+  const ids = [];
+  for (const id of raw) {
+    if (typeof id !== "string" || !WEATHER_CITIES.has(id)) {
+      return null;
+    }
+    if (!ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+// MET `/compact` body → up to 36 hours from the current hour:
+// [{t: epoch ms UTC, temp: °C, symbol: symbol_code, rain: mm in that hour}].
+// Hourly steps use next_1_hours; once MET switches to 6-hour steps the
+// 6-hour symbol is kept and its rain spread evenly over the 6 hours.
+function normalizeMetForecast(body, nowMs) {
+  const series = body && body.properties && Array.isArray(body.properties.timeseries) ?
+    body.properties.timeseries : [];
+  const from = Math.floor(nowMs / 3600000) * 3600000;
+  const until = from + WEATHER_CONFIG.hours * 3600000;
+  const hours = [];
+  for (const step of series) {
+    const t = Date.parse(step && step.time);
+    if (!Number.isFinite(t) || t < from) {
+      continue;
+    }
+    if (t >= until || hours.length >= WEATHER_CONFIG.hours) {
+      break;
+    }
+    const data = (step && step.data) || {};
+    const temp = data.instant && data.instant.details && data.instant.details.air_temperature;
+    const next = data.next_1_hours || data.next_6_hours;
+    if (typeof temp !== "number" || !Number.isFinite(temp) || !next) {
+      continue;
+    }
+    const span = data.next_1_hours ? 1 : 6;
+    const mm = next.details && next.details.precipitation_amount;
+    const symbol = next.summary && next.summary.symbol_code;
+    hours.push({
+      t,
+      temp: Math.round(temp * 10) / 10,
+      symbol: typeof symbol === "string" ? symbol : "",
+      rain: typeof mm === "number" && mm > 0 ? Math.round((mm / span) * 100) / 100 : 0,
+    });
+  }
+  return hours;
+}
+
+// MET's `Expires` header, but never sooner than minTtlMs from now.
+function weatherExpiresAt(expiresHeader, nowMs) {
+  const expires = Date.parse(expiresHeader || "");
+  return Math.max(Number.isFinite(expires) ? expires : 0, nowMs + WEATHER_CONFIG.minTtlMs);
+}
+
+function weatherSleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// One city: cache hit, or ask MET (If-Modified-Since), or fall back to the old
+// cache marked stale. Returns {fetchedAt, stale, hours} or null (no data at
+// all). weatherCache/{cityId} is Admin-SDK only — no rule matches it.
+async function getWeatherForCity(city, nowMs) {
+  const ref = db.collection("weatherCache").doc(city.id);
+  const snap = await ref.get();
+  const doc = (snap.exists && snap.data()) || {};
+  const cached = Array.isArray(doc.hours) ? doc : null;
+  const fromCache = (stale) => ({fetchedAt: cached.fetchedAt, stale, hours: cached.hours});
+  if (cached && cached.expiresAt > nowMs) {
+    return fromCache(false);
+  }
+  if (doc.retryAt > nowMs) {
+    return cached ? fromCache(true) : null;
+  }
+  // Soft lock: the first caller after expiry claims the refresh for
+  // lockMs; callers arriving meanwhile get the old copy instead of N MET
+  // calls + N writes for the same city.
+  const claim = await db.runTransaction(async (tx) => {
+    const cur = (await tx.get(ref)).data() || {};
+    if (cur.lockUntil > nowMs || (Array.isArray(cur.hours) && cur.expiresAt > nowMs)) {
+      return {claimed: false, cur};
+    }
+    tx.set(ref, {lockUntil: nowMs + WEATHER_CONFIG.lockMs}, {merge: true});
+    return {claimed: true, cur};
+  }).catch(() => ({claimed: true, cur: doc}));
+  if (!claim.claimed) {
+    // The doc read inside the transaction is the newest copy (another call
+    // may have just refreshed it).
+    if (Array.isArray(claim.cur.hours)) {
+      return {fetchedAt: claim.cur.fetchedAt, stale: false, hours: claim.cur.hours};
+    }
+    // No copy yet: this city's first fetch is running in another call
+    // (smoke 2026-10-20: both phones asked at once and one card said "Chưa
+    // tải được"). Wait for it instead of answering empty.
+    for (let i = 0; i < WEATHER_CONFIG.waitPolls; i++) {
+      await weatherSleep(WEATHER_CONFIG.waitPollMs);
+      const d = (await ref.get()).data() || {};
+      if (Array.isArray(d.hours)) {
+        return {fetchedAt: d.fetchedAt, stale: false, hours: d.hours};
+      }
+      if (!(d.lockUntil > Date.now()) || d.retryAt > Date.now()) {
+        break; // the other call gave up (MET failed) or its lock ran out
+      }
+    }
+    return null;
+  }
+
+  const headers = {"User-Agent": WEATHER_CONFIG.userAgent, "Accept": "application/json"};
+  if (cached && cached.lastModified) {
+    headers["If-Modified-Since"] = cached.lastModified;
+  }
+  const url = `${WEATHER_CONFIG.baseUrl}?lat=${city.lat}&lon=${city.lon}`;
+  try {
+    const res = await fetch(url, {headers, signal: AbortSignal.timeout(WEATHER_CONFIG.timeoutMs)});
+    const expiresAt = weatherExpiresAt(res.headers.get("expires"), nowMs);
+    if (res.status === 304 && cached) {
+      await ref.set({expiresAt}, {merge: true});
+      return fromCache(false);
+    }
+    if (!res.ok) {
+      throw new Error(`MET answered ${res.status}`);
+    }
+    const hours = normalizeMetForecast(await res.json(), nowMs);
+    if (hours.length === 0) {
+      throw new Error("MET answered without forecast hours");
+    }
+    await ref.set({
+      cityId: city.id,
+      fetchedAt: nowMs,
+      expiresAt,
+      lastModified: res.headers.get("last-modified") || "",
+      hours,
+    });
+    return {fetchedAt: nowMs, stale: false, hours};
+  } catch (err) {
+    logger.warn("MET forecast fetch failed.", {cityId: city.id, message: err && err.message});
+    await ref.set({retryAt: nowMs + WEATHER_CONFIG.retryMs}, {merge: true}).catch(() => null);
+    return cached ? fromCache(true) : null;
+  }
+}
+
+exports.getCityWeather = onCall(
+  {region: "us-central1", timeoutSeconds: 30, memory: "256MiB"},
+  async (request) => {
+    const copy = weatherErrorCopy(request);
+    // Signed-in is enough: the answer is public weather for a listed city, so
+    // couple membership adds nothing (overview §5.3).
+    if (!request.auth || !request.auth.uid) {
+      throw new HttpsError("unauthenticated", copy.signIn);
+    }
+    const ids = parseWeatherCityIds((request.data || {}).cityIds);
+    if (!ids) {
+      throw new HttpsError("invalid-argument", copy.badCities);
+    }
+    const nowMs = Date.now();
+    const results = await Promise.all(ids.map((id) => getWeatherForCity(WEATHER_CITIES.get(id), nowMs)));
+    const cities = {};
+    ids.forEach((id, i) => {
+      if (results[i]) {
+        cities[id] = results[i];
+      }
+    });
+    // One city failing with no cache is left out; the client keeps its own
+    // copy for it. Only "nothing at all" is an error.
+    if (Object.keys(cities).length === 0) {
+      throw new HttpsError("unavailable", copy.unavailable);
+    }
+    return {ok: true, cities};
+  },
+);
+
+// ── expenses (đợt 2) ──
+// Sổ tiền (feature expenses, 2026-10-20). Only the SHARED book ever pushes,
+// and never an amount (overview D17, §5): a contribution into a shared goal
+// wallet ("Tuấn vừa góp vào quỹ, giờ được 40%"), that goal reaching 100 %
+// (both, once — `goalReachedAt`), and this month's shared spending crossing
+// 80 % / 100 % of the whole-book budget (the one who did NOT log the entry,
+// once per level per month — `alerted.{YYYY-MM}`). No wakeClients, nothing for
+// the widget. Only entries of the couple's CURRENT pair count: an old pair's
+// entry edited after a split notifies nobody.
+const MONEY_COPY = {
+  vi: {
+    goalTitle: (emoji, name) => `${emoji} ${name}`.trim(),
+    goalBody: (actor, percent) => `${actor} vừa góp vào quỹ, giờ được ${percent}%`,
+    reachedTitle: (emoji, name) => `${emoji} ${name} đủ rồi!`.trim(),
+    reachedBody: () => "Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.",
+    budget80Title: () => "Tháng này chúng mình đã tiêu 80% ngân sách",
+    budget80Body: () => "Mở sổ chung xem còn lại bao nhiêu nhé.",
+    budget100Title: () => "Tháng này chúng mình tiêu hết ngân sách rồi",
+    budget100Body: (days) => days > 0 ?
+      `Chậm lại chút nhé, còn ${days} ngày nữa mới sang tháng.` :
+      "Chậm lại chút nhé, hôm nay là ngày cuối tháng rồi.",
+    partnerFallback: "Người ấy",
+  },
+  en: {
+    goalTitle: (emoji, name) => `${emoji} ${name}`.trim(),
+    goalBody: (actor, percent) => `${actor} just chipped in. The fund is at ${percent}%`,
+    reachedTitle: (emoji, name) => `${emoji} ${name} is full!`.trim(),
+    reachedBody: () => "We hit the goal together. Time to make plans.",
+    budget80Title: () => "We've used 80% of this month's budget",
+    budget80Body: () => "Open our shared book to see what's left.",
+    budget100Title: () => "We've used up this month's budget",
+    budget100Body: (days) => days > 1 ?
+      `Let's slow down a little. ${days} days to go this month.` :
+      days === 1 ?
+        "Let's slow down a little. One more day to go this month." :
+        "Let's slow down a little. Today is the last day of the month.",
+    partnerFallback: "Your person",
+  },
+};
+
+// kind: 'goal' {emoji, walletName, actorName, percent} · 'reached' {emoji,
+// walletName} · 'budget' {level, daysLeft}.
+function buildMoneyText(languageCode, kind, args) {
+  const code = `${languageCode || ""}`.trim().toLowerCase().slice(0, 2);
+  const copy = MONEY_COPY[code === "en" ? "en" : "vi"];
+  const a = args || {};
+  if (kind === "goal") {
+    return {
+      title: copy.goalTitle(a.emoji || "", a.walletName || ""),
+      body: copy.goalBody(a.actorName || copy.partnerFallback, a.percent),
+    };
+  }
+  if (kind === "reached") {
+    return {title: copy.reachedTitle(a.emoji || "", a.walletName || ""), body: copy.reachedBody()};
+  }
+  return a.level >= 100 ?
+    {title: copy.budget100Title(), body: copy.budget100Body(a.daysLeft)} :
+    {title: copy.budget80Title(), body: copy.budget80Body()};
+}
+
+// 0, 80 or 100 — same thresholds as the app's MoneyMath.budgetStatus.
+function moneyBudgetLevel(spent, budget) {
+  if (!(budget > 0)) {
+    return 0;
+  }
+  if (spent >= budget) {
+    return 100;
+  }
+  return spent * 100 >= budget * 80 ? 80 : 0;
+}
+
+// Today in Vietnam (the app's users), as {month: 'YYYY-MM', daysLeft}.
+function moneyMonthNow(nowMs) {
+  const d = new Date(nowMs + 7 * 60 * 60 * 1000);
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth();
+  const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return {month: `${y}-${`${m + 1}`.padStart(2, "0")}`, daysLeft: last - d.getUTCDate()};
+}
+
+async function moneySum(query) {
+  const snap = await query.aggregate({total: admin.firestore.AggregateField.sum("amount")}).get();
+  return Number(snap.data().total) || 0;
+}
+
+async function moneyGoalUpdate(coupleRef, walletId, memberIds, tx, isCreate) {
+  const walletRef = coupleRef.collection("moneyWallets").doc(walletId);
+  const walletSnap = await walletRef.get();
+  const wallet = walletSnap.exists ? walletSnap.data() || {} : null;
+  const target = wallet && Number(wallet.goalTarget);
+  if (!wallet || wallet.type !== "goal" || !(target > 0)) {
+    return {skipped: "not_goal"};
+  }
+  const txs = coupleRef.collection("moneyTx").where("memberUids", "==", memberIds);
+  const [sumIn, sumOut] = await Promise.all([
+    moneySum(txs.where("inWalletId", "==", walletId)),
+    moneySum(txs.where("outWalletId", "==", walletId)),
+  ]);
+  const balance = (Number(wallet.openingBalance) || 0) + sumIn - sumOut;
+  const percent = Math.max(0, Math.floor((balance * 100) / target));
+  const text = {emoji: `${wallet.emoji || ""}`, walletName: `${wallet.name || ""}`.slice(0, 30)};
+  const coupleId = coupleRef.id;
+
+  if (balance >= target && !wallet.goalReachedAt) {
+    const claimed = await db.runTransaction(async (t) => {
+      const fresh = await t.get(walletRef);
+      if (!fresh.exists || fresh.get("goalReachedAt")) {
+        return false;
+      }
+      t.update(walletRef, {goalReachedAt: admin.firestore.FieldValue.serverTimestamp()});
+      return true;
+    });
+    if (claimed) {
+      await writeInboxNotifications(memberIds, {
+        type: "money_goal_reached", coupleId, walletId, walletName: text.walletName, walletEmoji: text.emoji,
+      });
+      await sendToRecipientDevices(
+        memberIds,
+        (lang) => buildMoneyText(lang, "reached", text),
+        {type: "money_goal_reached", coupleId, walletId},
+      );
+      return {pushed: "reached", recipientIds: memberIds};
+    }
+  }
+
+  const payer = `${tx.payer || ""}`;
+  if (!isCreate || tx.type !== "contribution" || !memberIds.includes(payer)) {
+    return {skipped: "no_contribution_push"};
+  }
+  const recipientIds = memberIds.filter((id) => id !== payer);
+  const actorName = await rpsLoadDisplayName(payer);
+  await writeInboxNotifications(recipientIds, {
+    type: "money_goal", coupleId, walletId, actorName, percent,
+    walletName: text.walletName, walletEmoji: text.emoji,
+  });
+  await sendToRecipientDevices(
+    recipientIds,
+    (lang) => buildMoneyText(lang, "goal", {...text, actorName, percent}),
+    {type: "money_goal", coupleId, walletId},
+  );
+  return {pushed: "goal", recipientIds, percent};
+}
+
+async function moneyBudgetUpdate(coupleRef, memberIds, tx, nowMs) {
+  const {month, daysLeft} = moneyMonthNow(nowMs);
+  if (`${tx.date || ""}`.slice(0, 7) !== month) {
+    return {skipped: "other_month"};
+  }
+  // The whole-book budget has the fixed id 'total' (rules), one per couple.
+  const budgetRef = coupleRef.collection("moneyBudgets").doc("total");
+  const budget = await budgetRef.get();
+  if (!budget.exists) {
+    return {skipped: "no_budget"};
+  }
+  const spent = await moneySum(coupleRef.collection("moneyTx")
+    .where("memberUids", "==", memberIds)
+    .where("type", "==", "expense")
+    .where("date", ">=", `${month}-01`)
+    .where("date", "<=", `${month}-31`));
+  const level = moneyBudgetLevel(spent, Number(budget.get("amount")) || 0);
+  if (level === 0) {
+    return {skipped: "under_80"};
+  }
+  const claimed = await db.runTransaction(async (t) => {
+    const fresh = await t.get(budgetRef);
+    const alerted = (fresh.exists && fresh.get("alerted")) || {};
+    if (!fresh.exists || (Number(alerted[month]) || 0) >= level) {
+      return false;
+    }
+    t.update(budgetRef, new admin.firestore.FieldPath("alerted", month), level);
+    return true;
+  });
+  if (!claimed) {
+    return {skipped: "already_alerted", level};
+  }
+  const actor = `${tx.updatedBy || tx.createdBy || ""}`;
+  const recipientIds = memberIds.filter((id) => id !== actor);
+  const coupleId = coupleRef.id;
+  await writeInboxNotifications(recipientIds, {type: "money_budget", coupleId, month, level});
+  await sendToRecipientDevices(
+    recipientIds,
+    (lang) => buildMoneyText(lang, "budget", {level, daysLeft}),
+    {type: "money_budget", coupleId, month, level: `${level}`},
+  );
+  return {pushed: "budget", level, recipientIds};
+}
+
+// Core of notifyMoney, free of the trigger wrapper so functions/test can
+// drive it with fakes. `before`/`after` = doc data or null.
+async function processMoneyTxWrite(coupleId, before, after, nowMs) {
+  if (!after) {
+    return {skipped: "deleted"};
+  }
+  if (!isDocId(coupleId)) {
+    return {skipped: "invalid"};
+  }
+  const memberIds = await rpsLoadMemberIds(coupleId);
+  const pair = Array.isArray(after.memberUids) ? after.memberUids : [];
+  if (!memberIds || memberIds.length !== 2 || pair.length !== 2 ||
+      pair[0] !== memberIds[0] || pair[1] !== memberIds[1]) {
+    return {skipped: "not_current_pair"};
+  }
+  const coupleRef = db.collection("couples").doc(coupleId);
+  const out = {};
+  // Anything that brings money INTO a wallet may fill a goal: a contribution,
+  // a transfer from Ví chung into "Quỹ Đà Lạt", an adjustment. moneyGoalUpdate
+  // skips non-goal wallets and only pushes "vừa góp" for a new contribution.
+  const walletId = `${after.inWalletId || ""}`;
+  if (isDocId(walletId)) {
+    out.goal = await moneyGoalUpdate(coupleRef, walletId, memberIds, after, !before);
+  }
+  if (after.type === "expense") {
+    out.budget = await moneyBudgetUpdate(coupleRef, memberIds, after, nowMs);
+  }
+  return out;
+}
+
+exports.notifyMoney = onDocumentWritten(
+  {document: "couples/{coupleId}/moneyTx/{txId}", region: "us-central1"},
+  async (event) => {
+    const change = event.data;
+    const before = change && change.before && change.before.exists ? change.before.data() : null;
+    const after = change && change.after && change.after.exists ? change.after.data() : null;
+    const coupleId = `${event.params.coupleId || ""}`.trim();
+    const outcome = await processMoneyTxWrite(coupleId, before, after, Date.now());
+    logger.info("Processed money notification.", {coupleId, txId: event.params.txId, ...outcome});
+  },
+);
+
+// ── hết expenses (đợt 2) ──
+
+// ── feedback (đánh giá · góp ý · báo lỗi) ──
+// App ghi doc `feedback/{id}` (rules: create-only). Hàm này gửi email về hộp
+// thư của dev qua Resend. Mọi lỗi chỉ log, không throw (doc đã lưu, Console
+// vẫn xem được).
+const FEEDBACK_EMAIL_TO = "thesavior9820@gmail.com";
+const FEEDBACK_TYPE_LABEL = {idea: "Góp ý", bug: "Báo lỗi", rating: "Đánh giá"};
+
+function escapeFeedbackHtml(value) {
+  return `${value == null ? "" : value}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+exports.notifyFeedback = onDocumentCreated(
+  {document: "feedback/{feedbackId}", region: "us-central1", secrets: [RESEND_API_KEY]},
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.warn("Feedback email skipped because snapshot is missing.");
+      return;
+    }
+    const fb = snapshot.data() || {};
+    const id = event.params.feedbackId;
+    const type = `${fb.type || ""}`;
+    const label = FEEDBACK_TYPE_LABEL[type] || "Phản hồi";
+    const stars = Number.isInteger(fb.stars) ? fb.stars : null;
+    const ver = `${fb.appVersion || "?"} (${fb.buildNumber != null ? fb.buildNumber : "?"})`;
+    const platform = `${fb.platform || "?"}`;
+    const head = type === "rating" && stars ? `Đánh giá ${stars}★` : label;
+    const subject = `[Dear Embeiu] ${head} · ${ver} · ${platform}`;
+
+    // Email: ưu tiên field trong doc, thiếu thì hỏi Admin Auth (fail-soft).
+    const uid = `${fb.userId || ""}`;
+    let email = `${fb.email || ""}`.trim();
+    if (!email && uid) {
+      try {
+        const u = await admin.auth().getUser(uid);
+        email = `${u.email || ""}`.trim();
+      } catch (err) {
+        logger.warn("Feedback email: could not load Auth user.", {uid, message: err && err.message});
+      }
+    }
+
+    // Ảnh chụp màn hình: signed URL 7 ngày; lỗi thì ghi đường dẫn.
+    const path = `${fb.screenshotPath || ""}`.trim();
+    let shot = "";
+    if (path) {
+      try {
+        const [url] = await admin.storage().bucket().file(path).getSignedUrl({
+          action: "read",
+          expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        });
+        shot = url;
+      } catch (err) {
+        logger.warn("Feedback email: signed URL failed.", {path, message: err && err.message});
+        shot = `(không tạo được link) ${path}`;
+      }
+    }
+
+    const rows = [
+      ["Loại", label + (stars ? ` · ${stars}★` : "")],
+      ["Phiên bản", ver],
+      ["Nền tảng", `${platform} ${fb.osVersion || ""}`.trim()],
+      ["Máy", fb.deviceModel || ""],
+      ["Ngôn ngữ", fb.locale || ""],
+      ["User", uid],
+      ["Email", email],
+      ["Ảnh", shot],
+      ["Doc", `feedback/${id}`],
+    ].filter(([, v]) => `${v}`.trim() !== "");
+    const message = `${fb.message || ""}`;
+
+    const text = `${message || "(không có nội dung)"}\n\n` +
+      rows.map(([k, v]) => `${k}: ${v}`).join("\n");
+    const tableRows = rows.map(([k, v]) => {
+      const safe = escapeFeedbackHtml(v);
+      const cell = k === "Ảnh" && /^https:\/\//.test(`${v}`) ?
+        `<a href="${safe}">Xem ảnh (hết hạn sau 7 ngày)</a>` : safe;
+      return `<tr><td style="color:#888;padding:2px 12px 2px 0">${escapeFeedbackHtml(k)}</td><td>${cell}</td></tr>`;
+    }).join("");
+    const html = `<div style="font-family:-apple-system,Segoe UI,sans-serif;font-size:15px;color:#1A1A2E">` +
+      `<p style="white-space:pre-wrap">${escapeFeedbackHtml(message) || "<i>(không có nội dung)</i>"}</p>` +
+      `<table style="font-size:13px;border-collapse:collapse">${tableRows}</table></div>`;
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY.value()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: VERIFICATION_EMAIL_FROM,
+          to: [FEEDBACK_EMAIL_TO],
+          subject,
+          html,
+          text,
+          // Trả lời thẳng cho user nếu họ có email hợp lệ.
+          ...(/^[^@\s]+@[^@\s]+$/.test(email) ? {reply_to: email} : {}),
+        }),
+      });
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        logger.error("Feedback email: Resend returned an error.", {
+          id, status: response.status, detail: detail.slice(0, 500),
+        });
+        return;
+      }
+      logger.info("Feedback email sent.", {id, type});
+    } catch (err) {
+      logger.error("Feedback email: Resend request threw.", {id, message: err && err.message});
+    }
+  },
+);
+// ── hết feedback ──

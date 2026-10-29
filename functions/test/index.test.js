@@ -63,7 +63,11 @@ test("account deletion: an outsider pointing at a couple only loses their own sl
   const f = fakeCouple({...active});
   await f.handle("C", "mallory");
   assert.deepStrictEqual(f.couple(), active);
-  assert.deepStrictEqual(f.calls, ["recursiveDelete couples/C/sleep/mallory"]);
+  assert.deepStrictEqual(f.calls, [
+    "recursiveDelete couples/C/sleep/mallory",
+    "recursiveDelete couples/C/arrival/mallory",
+    "recursiveDelete couples/C/arrivalPush/mallory",
+  ]);
 });
 
 test("account deletion: one of two members leaves → partner waits, leaver's sleep goes", async () => {
@@ -75,7 +79,12 @@ test("account deletion: one of two members leaves → partner waits, leaver's sl
     status: "waiting_partner",
     updatedAt: "SERVER_TS",
   });
-  assert.deepStrictEqual(f.calls, ["recursiveDelete couples/C/sleep/alice", "set couples/C"]);
+  assert.deepStrictEqual(f.calls, [
+    "recursiveDelete couples/C/sleep/alice",
+    "recursiveDelete couples/C/arrival/alice",
+    "recursiveDelete couples/C/arrivalPush/alice",
+    "set couples/C",
+  ]);
 });
 
 test("account deletion: the only member leaves → the couple is torn down", async () => {
@@ -83,6 +92,8 @@ test("account deletion: the only member leaves → the couple is torn down", asy
   await f.handle("C", "alice");
   assert.deepStrictEqual(f.calls, [
     "recursiveDelete couples/C/sleep/alice",
+    "recursiveDelete couples/C/arrival/alice",
+    "recursiveDelete couples/C/arrivalPush/alice",
     "deleteCoupleCompletely couples/C",
   ]);
 });
@@ -278,6 +289,25 @@ test("deleteAccount: a profile with a malformed inviteCode can still be deleted"
   assert.ok(b.log.includes("auth delete u"));
 });
 
+test("deleteAccount: a couple member's arrival doc + push bookkeeping go (arrival)", async () => {
+  const b = fakeBackend({
+    "couples/C": {memberIds: ["alice", "bob"], memberCount: 2, status: "active"},
+    "users/alice": {coupleId: "C"},
+  });
+  const chain = teardownChain(b);
+  const deleteAccount = callable("deleteAccount", {
+    db: b.db,
+    admin: b.admin,
+    isDocId: chain.isDocId,
+    handleCoupleOnAccountDeletion: chain.handleCoupleOnAccountDeletion,
+    callableErrorCopy: load("callableErrorCopy", ["const CALLABLE_ERROR_COPY", "function callableErrorCopy"]),
+  });
+  assert.deepStrictEqual(await deleteAccount({auth: {uid: "alice"}, data: {}}), {success: true});
+  assert.ok(b.log.includes("recursiveDelete couples/C/arrival/alice"), b.log.join("\n"));
+  assert.ok(b.log.includes("recursiveDelete couples/C/arrivalPush/alice"));
+  assert.ok(!b.log.some((l) => /arrival(Push)?\/bob/.test(l)));
+});
+
 test("N1 leaveCoupleCleanup: a path as coupleId is rejected before anything is read", async () => {
   const b = attackScene();
   const chain = teardownChain(b);
@@ -334,6 +364,13 @@ test("N2 teardown: the couple's own code pointer is still removed", async () => 
   await deleteCoupleCompletely(b.db.collection("couples").doc("M"), b.store.get("couples/M"));
   assert.ok(b.log.includes("delete couple_codes/MCODE1"));
   assert.ok(!b.store.has("couple_codes/MCODE1"));
+});
+
+test("teardown also removes every member's weather city (feature weather)", async () => {
+  const b = fakeBackend({"couples/M": {memberIds: ["mallory"], memberCount: 1}});
+  const {deleteCoupleCompletely} = teardownChain(b);
+  await deleteCoupleCompletely(b.db.collection("couples").doc("M"), b.store.get("couples/M"));
+  assert.ok(b.log.includes("recursiveDelete couples/M/weather"));
 });
 
 // ---- notifyDecision (feature decision-wheel, 2026-10-19) ---------------------
@@ -526,4 +563,543 @@ test("default callers unchanged: alert per device + Android companion only with 
   assert.strictEqual(wake.sent.length, 3);
   assert.strictEqual(wake.sent[2].token, "and1");
   assert.strictEqual(wake.sent[2].notification, undefined);
+});
+
+// ---- notifyArrival (arrival, đợt 2) -------------------------------------------
+
+// `declaration()` runs to the first column-0 `}`, so this one head lifts every
+// ARRIVAL_* constant through ARRIVAL_COPY.
+const ARRIVAL_HEADS = [
+  "const ARRIVAL_SLOTS",
+  "function arrivalVnDateKey",
+  "function arrivalEvent",
+  "function arrivalPushPlan",
+  "function arrivalClaim",
+  "function buildArrivalText",
+  "function rpsToMillis",
+];
+
+// `book` = the arrivalPush doc (cooldown / daily cap); `live` = the arrival
+// doc as the transaction re-reads it (default: the `after` being processed);
+// `couple` = the couple doc.
+function fakeArrival({book = {}, live, couple = {memberIds: ["alice", "bob"], status: "active"}} = {}) {
+  const pushes = [];
+  const stamps = [];
+  const ref = {path: "couples/C/arrival/alice"};
+  const pushRef = {path: "couples/C/arrivalPush/alice"};
+  let current = null;
+  const run = load("processArrivalWrite", [
+    ...ARRIVAL_HEADS,
+    "async function processArrivalWrite",
+  ], {
+    db: {
+      collection: () => ({doc: () => ({get: async () => ({
+        exists: true,
+        get: (k) => couple[k],
+      })})}),
+      runTransaction: async (fn) => fn({
+        get: async (r) => {
+          const data = r === pushRef ? book : current;
+          return {exists: data !== null && data !== undefined, data: () => data};
+        },
+        set: (r, data, opts) => {
+          assert.strictEqual(r, pushRef); // never the doc the partner reads
+          assert.deepStrictEqual(opts, {merge: true});
+          stamps.push(data);
+        },
+      }),
+    },
+    admin: {firestore: {FieldValue: {serverTimestamp: () => "SERVER_TS", delete: () => "DELETE"}}},
+    logger: {warn: () => {}},
+    rpsLoadDisplayName: async (uid) => (uid === "alice" ? "Thảo" : ""),
+    sendToRecipientDevices: async (ids, buildText, data, options) => {
+      pushes.push({ids, vi: buildText("vi"), en: buildText("en"), data, options});
+      return {deviceCount: 1, failures: []};
+    },
+  });
+  const process = (c, u, before, after) => {
+    current = live === undefined ? after : live;
+    return run(c, u, before, after, ref, pushRef);
+  };
+  return {process, pushes, stamps, ref};
+}
+
+const MINUTE = 60 * 1000;
+const arrivalDoc = (last = {}, over = {}) => ({
+  share: true,
+  auto: true,
+  last: {place: "home", type: "enter", at: Date.now() - MINUTE, battery: 60, source: "auto", ...last},
+  ...over,
+});
+
+test("arrival: Home enter → one wake push to the partner, slot stamped, no inbox", async () => {
+  const f = fakeArrival();
+  const out = await f.process("C", "alice", null, arrivalDoc(), f.ref);
+  assert.strictEqual(out.pushed, true);
+  assert.strictEqual(f.pushes.length, 1);
+  const p = f.pushes[0];
+  assert.deepStrictEqual(p.ids, ["bob"]);
+  assert.deepStrictEqual(p.vi, {title: "Thảo đã về đến nhà", body: "Nhắn một câu hỏi thăm nhé"});
+  assert.deepStrictEqual(p.en, {title: "Thảo got home", body: "Send a quick hello"});
+  assert.deepStrictEqual(p.options, {wakeClients: true, collapseId: "arrival_alice"});
+  assert.strictEqual(p.data.type, "arrival");
+  assert.strictEqual(p.data.place, "home");
+  assert.strictEqual(p.data.battery, "60"); // FCM data values are strings
+  assert.strictEqual(p.data.actorName, "Thảo");
+  assert.match(p.data.date, /^\d{4}-\d{2}-\d{2}$/);
+  assert.strictEqual(p.data.placeName, undefined);
+  assert.strictEqual(f.stamps.length, 1);
+  assert.deepStrictEqual(f.stamps[0].lastPushAt, {home: "SERVER_TS"});
+  assert.strictEqual(f.stamps[0].pushCount, 1);
+});
+
+test("arrival: custom place uses its name verbatim + low battery line", async () => {
+  const f = fakeArrival();
+  await f.process("C", "alice", null,
+    arrivalDoc({place: "p2", name: "Phòng gym", icon: "gym", battery: 15}), f.ref);
+  assert.deepStrictEqual(f.pushes[0].vi, {title: "Thảo đã đến Phòng gym", body: "Pin còn 15%"});
+  assert.deepStrictEqual(f.pushes[0].en, {title: "Thảo arrived at Phòng gym", body: "Battery at 15%"});
+  assert.strictEqual(f.pushes[0].data.placeName, "Phòng gym");
+  assert.strictEqual(f.pushes[0].data.icon, "gym");
+  const edge = fakeArrival();
+  await edge.process("C", "alice", null, arrivalDoc({battery: 20}), edge.ref);
+  assert.strictEqual(edge.pushes[0].vi.body, "Pin còn 20%");
+  const none = fakeArrival();
+  const noBattery = arrivalDoc();
+  delete noBattery.last.battery;
+  await none.process("C", "alice", null, noBattery, none.ref);
+  assert.strictEqual(none.pushes[0].vi.body, "Nhắn một câu hỏi thăm nhé");
+  assert.strictEqual(none.pushes[0].data.battery, undefined);
+});
+
+test("arrival: no display name → fallback in the recipient's language", () => {
+  const text = load("buildArrivalText", ARRIVAL_HEADS);
+  const ev = {place: "home", name: "", battery: null};
+  assert.strictEqual(text("vi", "", ev).title, "Người ấy đã về đến nhà");
+  assert.strictEqual(text("en", " ", ev).title, "Your partner got home");
+  assert.strictEqual(text("fr", "Tuấn", ev).title, "Tuấn đã về đến nhà");
+});
+
+test("arrival: exit, bounce, stale, not shared, unchanged → no push", async () => {
+  const cases = [
+    [null, arrivalDoc({type: "exit"}), "exit"],
+    [null, arrivalDoc({bounce: true}), "bounce"],
+    [null, arrivalDoc({at: Date.now() - 31 * MINUTE}), "stale"],
+    [null, {share: false}, "not_shared"],
+    [null, null, "deleted"],
+  ];
+  for (const [before, after, reason] of cases) {
+    const f = fakeArrival();
+    const out = await f.process("C", "alice", before, after, f.ref);
+    assert.strictEqual(out.skipped, reason, reason);
+    assert.strictEqual(f.pushes.length, 0, reason);
+  }
+  // A write that leaves `last` alone (e.g. flipping `auto`).
+  const doc = arrivalDoc();
+  const f = fakeArrival();
+  const out = await f.process("C", "alice", doc, {...doc, auto: false}, f.ref);
+  assert.strictEqual(out.skipped, "unchanged");
+});
+
+test("arrival: same place within 30' → cooldown; another place still pushes", async () => {
+  const book = {lastPushAt: {home: Date.now() - 29 * MINUTE}};
+  const f = fakeArrival({book});
+  assert.strictEqual((await f.process("C", "alice", null, arrivalDoc(), f.ref)).skipped, "cooldown");
+  const g = fakeArrival({book});
+  await g.process("C", "alice", null, arrivalDoc({place: "p1", name: "Công ty", icon: "work"}), g.ref);
+  assert.strictEqual(g.pushes.length, 1);
+  const later = fakeArrival({book: {lastPushAt: {home: Date.now() - 31 * MINUTE}}});
+  await later.process("C", "alice", null, arrivalDoc(), later.ref);
+  assert.strictEqual(later.pushes.length, 1);
+});
+
+test("arrival: at most 6 pushes a day; the count resets on a new day", async () => {
+  const today = load("arrivalVnDateKey", ARRIVAL_HEADS)(Date.now());
+  const full = fakeArrival({book: {pushDay: today, pushCount: 6}});
+  assert.strictEqual((await full.process("C", "alice", null, arrivalDoc(), full.ref)).skipped, "daily_cap");
+  const fifth = fakeArrival({book: {pushDay: today, pushCount: 5}});
+  await fifth.process("C", "alice", null, arrivalDoc(), fifth.ref);
+  assert.strictEqual(fifth.stamps[0].pushCount, 6);
+  const yesterday = fakeArrival({book: {pushDay: "2000-01-01", pushCount: 6}});
+  await yesterday.process("C", "alice", null, arrivalDoc(), yesterday.ref);
+  assert.strictEqual(yesterday.stamps[0].pushCount, 1);
+  assert.strictEqual(yesterday.stamps[0].pushDay, today);
+});
+
+test("arrival: day bucket is Vietnam time", () => {
+  const key = load("arrivalVnDateKey", ARRIVAL_HEADS);
+  assert.strictEqual(key(Date.UTC(2026, 9, 20, 16, 59)), "2026-10-20"); // 23:59 VN
+  assert.strictEqual(key(Date.UTC(2026, 9, 20, 17, 0)), "2026-10-21"); // 00:00 VN
+});
+
+test("arrival: waiting couple / ex-member / never to the sender", async () => {
+  const waiting = fakeArrival({couple: {memberIds: ["alice"], status: "waiting_partner"}});
+  assert.strictEqual((await waiting.process("C", "alice", null, arrivalDoc(), waiting.ref)).skipped, "inactive");
+  const left = fakeArrival({couple: {memberIds: ["bob", "carol"], status: "active"}});
+  assert.strictEqual((await left.process("C", "alice", null, arrivalDoc(), left.ref)).skipped, "inactive");
+  assert.strictEqual(waiting.pushes.length + left.pushes.length, 0);
+});
+
+test("arrival: switched off or superseded before the claim → no push, no stamp", async () => {
+  // Sharing off = the owner deletes the doc between the trigger and the claim.
+  const off = fakeArrival({live: null});
+  assert.strictEqual((await off.process("C", "alice", null, arrivalDoc(), off.ref)).skipped, "superseded");
+  const shareFalse = fakeArrival({live: {share: false}});
+  assert.strictEqual(
+    (await shareFalse.process("C", "alice", null, arrivalDoc(), shareFalse.ref)).skipped, "superseded");
+  // A newer event already replaced this one.
+  const newer = fakeArrival({live: arrivalDoc({at: Date.now()})});
+  assert.strictEqual(
+    (await newer.process("C", "alice", null, arrivalDoc({at: Date.now() - 2 * MINUTE}), newer.ref)).skipped,
+    "superseded");
+  const elsewhere = fakeArrival({live: arrivalDoc({place: "p1", name: "Công ty"})});
+  assert.strictEqual(
+    (await elsewhere.process("C", "alice", null, arrivalDoc(), elsewhere.ref)).skipped, "superseded");
+  for (const f of [off, shareFalse, newer, elsewhere]) {
+    assert.strictEqual(f.pushes.length + f.stamps.length, 0);
+  }
+});
+
+test("arrival: pushArrival mutes only arrival pushes on that device", async () => {
+  const muted = [
+    {token: "a", platform: "ios", languageCode: "vi", notificationsEnabled: true, pushArrival: false},
+    {token: "b", platform: "ios", languageCode: "vi", notificationsEnabled: true},
+  ];
+  const f = fakeSend(muted);
+  await f.send(["bob"], () => ({title: "T", body: "B"}), {type: "arrival"});
+  assert.deepStrictEqual(f.sent.map((m) => m.token), ["b"]);
+  const g = fakeSend(muted);
+  await g.send(["bob"], () => ({title: "T", body: "B"}), {type: "partner_mood"});
+  assert.deepStrictEqual(g.sent.map((m) => m.token), ["a", "b"]);
+});
+
+function fakeLeaveCleanup(failOn = "") {
+  const calls = [];
+  const ref = (p) => ({
+    path: p,
+    collection: (name) => ({doc: (id) => ref(`${p}/${name}/${id}`)}),
+  });
+  const cleanup = load("arrivalCleanupOnLeave", ["async function arrivalCleanupOnLeave"], {
+    db: {
+      collection: (name) => ({doc: (id) => ref(`${name}/${id}`)}),
+      // Like Admin recursiveDelete: a missing doc is not an error.
+      recursiveDelete: async (r) => {
+        calls.push(r.path);
+        if (r.path === failOn) throw new Error("boom");
+      },
+    },
+    logger: {warn: () => {}},
+  });
+  return {cleanup, calls};
+}
+
+test("arrival: partner left → arrival doc + push bookkeeping of leaver AND stayer go", async () => {
+  const f = fakeLeaveCleanup();
+  await f.cleanup("C", ["alice", "bob"]);
+  assert.deepStrictEqual(f.calls.sort(), [
+    "couples/C/arrival/alice",
+    "couples/C/arrival/bob",
+    "couples/C/arrivalPush/alice",
+    "couples/C/arrivalPush/bob",
+  ]);
+  // Run twice (retried trigger) / stayer never had a doc: no throw.
+  await f.cleanup("C", ["alice", "bob"]);
+  // One failing delete is logged; the others still run.
+  const g = fakeLeaveCleanup("couples/C/arrival/alice");
+  await g.cleanup("C", ["alice", "bob"]);
+  assert.strictEqual(g.calls.length, 4);
+  const left = SRC.slice(SRC.indexOf("exports.notifyPartnerLeft"));
+  assert.match(left.slice(0, left.indexOf("\nexports.")),
+    /arrivalCleanupOnLeave\(coupleId, \[leaverUid, \.\.\.recipientIds\]\)/);
+  const teardown = declaration("async function deleteCoupleCompletely");
+  assert.match(teardown, /for \(const name of \["arrival", "arrivalPush"\]\)/);
+});
+
+// ---- sendToRecipientDevices: collapseId + muted devices (đợt 2, 2026-10-20) ---
+
+test("collapseId: alert replaces the previous one (Android tag, iOS apns-collapse-id)", async () => {
+  const f = fakeSend(DEVICES);
+  await f.send(["alice"], () => ({title: "T", body: "B"}), DATA, {collapseId: "caro_G1"});
+  const ios = f.sent.find((m) => m.token === "ios1");
+  const and = f.sent.find((m) => m.token === "and1");
+  assert.strictEqual(ios.apns.headers["apns-collapse-id"], "caro_G1");
+  assert.strictEqual(and.android.notification.tag, "caro_G1");
+  const plain = fakeSend(DEVICES);
+  await plain.send(["alice"], () => ({title: "T", body: "B"}), DATA);
+  assert.strictEqual(plain.sent[0].apns.headers["apns-collapse-id"], undefined);
+  assert.strictEqual(plain.sent[1].android.notification.tag, undefined);
+});
+
+const MUTED = [
+  {token: "ios1", platform: "ios", languageCode: "en", pushPhoto: false},
+  {token: "and1", platform: "android", languageCode: "vi", pushPhoto: false},
+  {token: "and2", platform: "android", languageCode: "vi"},
+];
+const PHOTO = {type: "photo_posted", photoId: "p1"};
+
+test("muted type: no push at all without wakeClients", async () => {
+  const f = fakeSend(MUTED);
+  await f.send(["alice"], () => ({title: "T", body: "B"}), PHOTO);
+  assert.deepStrictEqual(f.sent.map((m) => m.token), ["and2"]);
+});
+
+test("muted type + wakeClients: silent wake only (no banner), others unchanged", async () => {
+  const f = fakeSend(MUTED);
+  await f.send(["alice"], () => ({title: "T", body: "B"}), PHOTO, {wakeClients: true});
+  const by = (t) => f.sent.filter((m) => m.token === t);
+  for (const t of ["ios1", "and1"]) {
+    assert.strictEqual(by(t).length, 1, t); // no second Android companion
+    assert.strictEqual(by(t)[0].notification, undefined, t);
+    assert.strictEqual(by(t)[0].data.title, undefined, t);
+    assert.strictEqual(by(t)[0].data.photoId, "p1", t);
+  }
+  assert.strictEqual(by("ios1")[0].apns.headers["apns-push-type"], "background");
+  // The unmuted Android phone: alert + data-only companion, as before.
+  assert.strictEqual(by("and2").length, 2);
+  assert.strictEqual(by("and2")[0].notification.title, "T");
+  assert.strictEqual(by("and2")[1].notification, undefined);
+});
+
+// ---- notifyMoney (feature expenses, 2026-10-20) ------------------------------
+
+class MoneyFieldPath {
+  constructor(...segments) {
+    this.segments = segments;
+  }
+}
+
+// In-memory couple C = [alice, bob] with whatever money docs the test needs.
+function fakeMoney(docs) {
+  const store = new Map(Object.entries({"couples/C": {memberIds: ["alice", "bob"]}, ...docs}));
+  const inbox = [];
+  const pushes = [];
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const snap = (p) => ({exists: store.has(p), data: () => store.get(p), get: (f) => (store.get(p) || {})[f]});
+  const query = (p, filters = [], lim = Infinity) => ({
+    where: (f, op, v) => query(p, [...filters, [f, op, v]], lim),
+    limit: (n) => query(p, filters, n),
+    rows() {
+      return [...store.entries()]
+        .filter(([k]) => k.startsWith(`${p}/`) && !k.slice(p.length + 1).includes("/"))
+        .filter(([, d]) => filters.every(([f, op, v]) =>
+          op === "==" ? same(d[f], v) : op === ">=" ? d[f] >= v : d[f] <= v))
+        .slice(0, lim);
+    },
+    async get() {
+      const docs = this.rows().map(([k]) => ({...snap(k), ref: ref(k)}));
+      return {empty: docs.length === 0, docs};
+    },
+    aggregate() {
+      const rows = this.rows();
+      return {get: async () => ({data: () => ({total: rows.reduce((s, [, d]) => s + d.amount, 0)})})};
+    },
+  });
+  const ref = (p) => ({
+    path: p,
+    id: p.split("/").pop(),
+    get: async () => snap(p),
+    collection: (name) => ({...query(`${p}/${name}`), doc: (id) => ref(`${p}/${name}/${id}`)}),
+  });
+  const db = {
+    collection: (name) => ({doc: (id) => ref(`${name}/${id}`)}),
+    runTransaction: async (fn) => fn({
+      get: (r) => r.get(),
+      update: (r, a, b) => {
+        const d = {...store.get(r.path)};
+        if (a instanceof MoneyFieldPath) {
+          d[a.segments[0]] = {...(d[a.segments[0]] || {}), [a.segments[1]]: b};
+        } else {
+          Object.assign(d, a);
+        }
+        store.set(r.path, d);
+      },
+    }),
+  };
+  const process = load("processMoneyTxWrite", [
+    "function isDocId",
+    "const MONEY_COPY",
+    "function buildMoneyText",
+    "function moneyBudgetLevel",
+    "function moneyMonthNow",
+    "async function moneySum",
+    "async function moneyGoalUpdate",
+    "async function moneyBudgetUpdate",
+    "async function processMoneyTxWrite",
+  ], {
+    db,
+    admin: {firestore: {
+      FieldValue: {serverTimestamp: () => "SERVER_TS"},
+      AggregateField: {sum: (f) => ({sum: f})},
+      FieldPath: MoneyFieldPath,
+    }},
+    rpsLoadMemberIds: async (id) => (store.get(`couples/${id}`) || {}).memberIds || null,
+    rpsLoadDisplayName: async (uid) => ({alice: "Tuấn", bob: "Thảo"})[uid] || "",
+    writeInboxNotifications: async (ids, payload) => inbox.push({ids, ...payload}),
+    sendToRecipientDevices: async (ids, buildText, data) => {
+      pushes.push({ids, vi: buildText("vi"), en: buildText("en"), data});
+      return {deviceCount: ids.length, failures: []};
+    },
+  });
+  // Writes the entry, then runs the trigger the way Firestore would.
+  const write = async (id, data, nowMs = MONEY_OCT_20) => {
+    const p = `couples/C/moneyTx/${id}`;
+    const before = store.get(p) || null;
+    store.set(p, data);
+    return process("C", before, data, nowMs);
+  };
+  return {store, inbox, pushes, write, process};
+}
+
+const MONEY_OCT_20 = Date.UTC(2026, 9, 20, 5); // 12:00 in Vietnam
+const MONEY_PAIR = ["alice", "bob"];
+const moneyContribution = (payer, amount, extra = {}) => ({
+  type: "contribution", amount, inWalletId: "dalat", outWalletId: "", payer, memberUids: MONEY_PAIR,
+  date: "2026-10-20", createdBy: payer, ...extra,
+});
+const moneySpend = (by, amount, extra = {}) => ({
+  type: "expense", amount, inWalletId: "", outWalletId: "", payer: by, memberUids: MONEY_PAIR,
+  date: "2026-10-20", createdBy: by, splitMode: "equal", payerShare: Math.ceil(amount / 2), ...extra,
+});
+const MONEY_DALAT = {"couples/C/moneyWallets/dalat": {
+  type: "goal", name: "Quỹ Đà Lạt", emoji: "🏔️", goalTarget: 5000000, openingBalance: 0, memberUids: MONEY_PAIR,
+}};
+
+test("money: a contribution pushes the other one the fund %, never the amount", async () => {
+  const f = fakeMoney(MONEY_DALAT);
+  const out = await f.write("c1", moneyContribution("alice", 2000000));
+  assert.deepStrictEqual(out.goal, {pushed: "goal", recipientIds: ["bob"], percent: 40});
+  assert.strictEqual(f.pushes.length, 1);
+  assert.deepStrictEqual(f.pushes[0].vi, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn vừa góp vào quỹ, giờ được 40%"});
+  assert.deepStrictEqual(f.pushes[0].en, {title: "🏔️ Quỹ Đà Lạt", body: "Tuấn just chipped in. The fund is at 40%"});
+  assert.doesNotMatch(JSON.stringify(f.pushes), /2[.,]?000[.,]?000|2tr|2M/);
+  assert.strictEqual(f.inbox[0].type, "money_goal");
+  assert.deepStrictEqual(f.inbox[0].ids, ["bob"]);
+  assert.strictEqual(f.pushes[0].data.type, "money_goal");
+});
+
+test("money: reaching 100 % tells both, exactly once", async () => {
+  const f = fakeMoney(MONEY_DALAT);
+  await f.write("c1", moneyContribution("alice", 2000000));
+  const out = await f.write("c2", moneyContribution("bob", 3000000));
+  assert.deepStrictEqual(out.goal, {pushed: "reached", recipientIds: MONEY_PAIR});
+  assert.strictEqual(f.store.get("couples/C/moneyWallets/dalat").goalReachedAt, "SERVER_TS");
+  assert.deepStrictEqual(f.pushes[1].vi, {title: "🏔️ Quỹ Đà Lạt đủ rồi!", body: "Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi."});
+  assert.strictEqual(f.inbox[1].type, "money_goal_reached");
+  // Later top-ups are plain contribution pushes again, no second "đủ rồi".
+  const again = await f.write("c3", moneyContribution("alice", 100000));
+  assert.strictEqual(again.goal.pushed, "goal");
+  assert.strictEqual(f.pushes.filter((p) => p.data.type === "money_goal_reached").length, 1);
+});
+
+test("money: plain entries never push (no budget, not a goal, edits of a contribution)", async () => {
+  const f = fakeMoney({...MONEY_DALAT, "couples/C/moneyWallets/joint": {type: "cash", name: "Ví chung", memberUids: MONEY_PAIR}});
+  await f.write("e1", moneySpend("alice", 480000));
+  await f.write("j1", moneyContribution("bob", 1000000, {inWalletId: "joint"}));
+  await f.write("c1", moneyContribution("alice", 1000000));
+  await f.write("c1", moneyContribution("alice", 1500000)); // edit
+  assert.strictEqual(f.pushes.length, 1); // only the create of c1
+  assert.deepStrictEqual(await f.process("C", moneySpend("alice", 1), null, MONEY_OCT_20), {skipped: "deleted"});
+});
+
+test("money: budget 80 % then 100 %, once each per month, never to the one who logged it", async () => {
+  const f = fakeMoney({"couples/C/moneyBudgets/total": {categoryId: "", amount: 5000000}});
+  assert.deepStrictEqual((await f.write("e1", moneySpend("alice", 3900000))).budget, {skipped: "under_80"});
+  const at80 = await f.write("e2", moneySpend("alice", 100000));
+  assert.deepStrictEqual(at80.budget, {pushed: "budget", level: 80, recipientIds: ["bob"]});
+  assert.deepStrictEqual(f.pushes[0].vi, {title: "Tháng này chúng mình đã tiêu 80% ngân sách", body: "Mở sổ chung xem còn lại bao nhiêu nhé."});
+  assert.deepStrictEqual((await f.write("e3", moneySpend("bob", 500000))).budget, {skipped: "already_alerted", level: 80});
+  const at100 = await f.write("e4", moneySpend("bob", 500000));
+  assert.deepStrictEqual(at100.budget, {pushed: "budget", level: 100, recipientIds: ["alice"]});
+  assert.deepStrictEqual(f.pushes[1].vi, {title: "Tháng này chúng mình tiêu hết ngân sách rồi", body: "Chậm lại chút nhé, còn 11 ngày nữa mới sang tháng."});
+  assert.strictEqual(f.pushes[1].en.body, "Let's slow down a little. 11 days to go this month.");
+  assert.deepStrictEqual((await f.write("e5", moneySpend("bob", 1))).budget, {skipped: "already_alerted", level: 100});
+  assert.deepStrictEqual(f.store.get("couples/C/moneyBudgets/total").alerted, {"2026-10": 100});
+  assert.strictEqual(f.inbox.filter((i) => i.type === "money_budget").length, 2);
+  assert.doesNotMatch(JSON.stringify(f.pushes), /5[.,]?000[.,]?000|5tr/);
+  // An edit by bob that pushes it over counts bob as the actor.
+  const g = fakeMoney({"couples/C/moneyBudgets/total": {categoryId: "", amount: 1000000}});
+  await g.write("e1", moneySpend("alice", 100000));
+  const edited = await g.write("e1", moneySpend("alice", 900000, {updatedBy: "bob"}));
+  assert.deepStrictEqual(edited.budget.recipientIds, ["alice"]);
+});
+
+test("money: a new month starts over; old months and category budgets stay quiet", async () => {
+  const f = fakeMoney({
+    "couples/C/moneyBudgets/total": {categoryId: "", amount: 1000000, alerted: {"2026-09": 100}},
+    "couples/C/moneyBudgets/food": {categoryId: "food", amount: 1},
+  });
+  assert.deepStrictEqual((await f.write("old", moneySpend("alice", 2000000, {date: "2026-09-30"}))).budget, {skipped: "other_month"});
+  assert.strictEqual((await f.write("new", moneySpend("alice", 900000))).budget.level, 80);
+});
+
+test("money: an old pair's entry (partner left, someone new joined) notifies nobody", async () => {
+  const f = fakeMoney({...MONEY_DALAT, "couples/C": {memberIds: ["alice", "dave"]}});
+  assert.deepStrictEqual(await f.write("c1", moneyContribution("alice", 5000000)), {skipped: "not_current_pair"});
+  const g = fakeMoney({"couples/C": {memberIds: ["alice"]}});
+  assert.deepStrictEqual(await g.write("c1", moneyContribution("alice", 1)), {skipped: "not_current_pair"});
+  assert.strictEqual(f.pushes.length + g.pushes.length, 0);
+});
+
+test("money: a transfer or adjustment that fills a goal tells both once; only contributions push \"vừa góp\"", async () => {
+  const f = fakeMoney({...MONEY_DALAT, "couples/C/moneyWallets/joint": {type: "cash", name: "Ví chung", memberUids: MONEY_PAIR}});
+  const transfer = (amount, extra = {}) => ({
+    type: "transfer", amount, outWalletId: "joint", inWalletId: "dalat", payer: "wallet", memberUids: MONEY_PAIR,
+    date: "2026-10-20", createdBy: "alice", splitMode: "none", payerShare: 0, ...extra,
+  });
+  assert.deepStrictEqual((await f.write("t1", transfer(2000000))).goal, {skipped: "no_contribution_push"});
+  assert.strictEqual(f.pushes.length, 0);
+  const full = await f.write("t2", transfer(3000000));
+  assert.deepStrictEqual(full.goal, {pushed: "reached", recipientIds: MONEY_PAIR});
+  assert.strictEqual(f.store.get("couples/C/moneyWallets/dalat").goalReachedAt, "SERVER_TS");
+  // An adjustment into a goal reaches it too (another fund).
+  const g = fakeMoney(MONEY_DALAT);
+  const adjust = {type: "adjust", amount: 5000000, outWalletId: "", inWalletId: "dalat", payer: "bob",
+    memberUids: MONEY_PAIR, date: "2026-10-20", createdBy: "bob", splitMode: "none", payerShare: 0};
+  assert.strictEqual((await g.write("a1", adjust)).goal.pushed, "reached");
+  assert.deepStrictEqual(g.pushes.map((p) => p.data.type), ["money_goal_reached"]);
+});
+
+test("money: a budget not at the fixed id `total` is not the whole-book budget", async () => {
+  const f = fakeMoney({"couples/C/moneyBudgets/auto": {categoryId: "", amount: 1}});
+  assert.deepStrictEqual((await f.write("e1", moneySpend("alice", 900000))).budget, {skipped: "no_budget"});
+});
+
+test("money: the last day of the month gets its own line, not \"còn 0 ngày\"", () => {
+  const text = load("buildMoneyText", ["const MONEY_COPY", "function buildMoneyText"]);
+  assert.strictEqual(text("vi", "budget", {level: 100, daysLeft: 0}).body, "Chậm lại chút nhé, hôm nay là ngày cuối tháng rồi.");
+  assert.strictEqual(text("en", "budget", {level: 100, daysLeft: 0}).body, "Let's slow down a little. Today is the last day of the month.");
+  assert.strictEqual(text("en", "budget", {level: 100, daysLeft: 1}).body, "Let's slow down a little. One more day to go this month.");
+  assert.strictEqual(text("vi", "budget", {level: 100, daysLeft: 1}).body, "Chậm lại chút nhé, còn 1 ngày nữa mới sang tháng.");
+});
+
+test("money: month / days left follow Vietnam time", () => {
+  const monthNow = load("moneyMonthNow", ["function moneyMonthNow"]);
+  assert.deepStrictEqual(monthNow(Date.UTC(2026, 9, 31, 18)), {month: "2026-11", daysLeft: 29});
+  assert.deepStrictEqual(monthNow(Date.UTC(2026, 1, 1, 0)), {month: "2026-02", daysLeft: 27});
+  const level = load("moneyBudgetLevel", ["function moneyBudgetLevel"]);
+  assert.deepStrictEqual([level(3999999, 5e6), level(4e6, 5e6), level(5e6, 5e6), level(1, 0)], [0, 80, 100, 0]);
+});
+
+test("money cleanup: account deletion erases the own book, couple teardown the shared one", async () => {
+  const b = fakeBackend({"users/u": {}, "couples/M": {memberIds: ["u"], memberCount: 1}});
+  const chain = teardownChain(b);
+  const deleteAccount = callable("deleteAccount", {
+    db: b.db,
+    admin: b.admin,
+    isDocId: chain.isDocId,
+    handleCoupleOnAccountDeletion: chain.handleCoupleOnAccountDeletion,
+    callableErrorCopy: load("callableErrorCopy", ["const CALLABLE_ERROR_COPY", "function callableErrorCopy"]),
+  });
+  await deleteAccount({auth: {uid: "u"}, data: {}});
+  for (const c of ["moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring", "moneyDebts"]) {
+    assert.ok(b.log.includes(`recursiveDelete users/u/${c}`), c);
+  }
+  await chain.deleteCoupleCompletely(b.db.collection("couples").doc("M"), b.store.get("couples/M"));
+  for (const c of ["moneyWallets", "moneyTx", "moneyBudgets", "moneyMeta", "moneyRecurring"]) {
+    assert.ok(b.log.includes(`recursiveDelete couples/M/${c}`), c);
+  }
+  // A member leaving a 2-person couple leaves the shared book for the partner.
+  const k = fakeBackend({"couples/K": {memberIds: ["u", "p"], memberCount: 2}});
+  await teardownChain(k).handleCoupleOnAccountDeletion("K", "u");
+  assert.deepStrictEqual(k.log.filter((l) => /money/.test(l)), []);
 });

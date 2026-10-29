@@ -1,0 +1,41 @@
+# Danh mục: thêm danh mục tự thêm "MTC<run>", thấy trong danh sách, rồi xoá (nhấn giữ -> Xoá danh mục).
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ví, danh mục, ngân sách'
+- tapOn: 'Danh mục'
+- extendedWaitUntil:
+    visible: '(?s).*DANH MỤC.*'
+    timeout: 8000
+- assertVisible: 'Ăn uống.*'
+- tapOn: 'Thêm danh mục'
+- extendedWaitUntil:
+    visible: '(?s).*Nhóm mới.*'
+    timeout: 8000
+- tapOn: 'Tên'
+- inputText: MTC${output.run}
+- tapOn: 'Lưu'
+# Danh mục tự thêm nằm cuối danh sách ⇒ cuộn tới (chậm, tránh fling).
+- scrollUntilVisible:
+    element:
+      text: '.*MTC${output.run}.*'
+    timeout: 20000
+    speed: 20
+- longPressOn: '.*MTC${output.run}.*'
+- extendedWaitUntil:
+    visible: '(?s).*Sửa danh mục.*'
+    timeout: 8000
+- tapOn: 'Xoá danh mục'
+- extendedWaitUntil:
+    visible: '(?s).*Xoá .MTC${output.run}.\?.*'
+    timeout: 8000
+- tapOn: 'Xoá'
+- extendedWaitUntil:
+    notVisible: '.*MTC${output.run}.*'
+    timeout: 8000

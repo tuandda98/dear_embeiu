@@ -1,0 +1,20 @@
+appId: com.tony.dearembeiu.dev
+---
+# Thảo, nước 6: O hàng 10, cột 9.
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. Đến lượt bạn.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\. Đến lượt bạn.*'
+- waitForAnimationToEnd
+- runFlow: _lib_zoom_out.yaml
+- tapOn: '(?s)Hàng 10, cột 9, trống.*'
+- waitForAnimationToEnd
+- assertVisible: 'Hàng 10, cột 9, quân O của .*'

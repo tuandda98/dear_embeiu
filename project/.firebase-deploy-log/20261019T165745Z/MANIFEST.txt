@@ -1,0 +1,15 @@
+command : cd /Users/dodaoanhtuan/AndroidStudioProjects/dear_embeiu-daily && cat project/.firebase-deploy-log/20261019T162238Z-decision-wheel/MANIFEST.txt; D=project/.firebase-deploy-log/20261019T165553Z-daily-open; mkdir -p $D && git show f0096a3:firestore.rules > $D/firestore.rules && git show f0096a3:storage.rules > $D/storage.rules && cat > $D/MANIFEST.txt <<'EOF'
+time_utc=2026-10-19T16:55:53Z (xong 16:57:28Z)
+project=tonyembeiu-dev
+head=f0096a3 branch=feature/daily-open dirty=0 (code; chỉ docs PO đang sửa)
+cmd=NODE_OPTIONS=--dns-result-order=ipv4first npx firebase-tools deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft --non-interactive
+exit=0 (rules released, 6/6 functions "Successful update operation")
+restore: git checkout 0b92594 -- firestore.rules functions && redeploy cùng danh sách
+EOF
+echo '- [20261019T165553Z] head=f0096a3 branch=feature/daily-open dirty=0 exit=0 · DEV `deploy --project tonyembeiu-dev --only firestore:rules,functions:notifyDecision,functions:notifyDailyAnswer,functions:notifyPartnerMood,functions:sendPartnerPhotoNotification,functions:notifyChatMessage,functions:notifyPartnerLeft` · vá Tester vòng 1 widget-today + decision-wheel (code gộp): rules decisions (lastPushBy CF-only, mỗi lựa chọn 1..40, custom không chiếm id {date}_eat|_go) + 6 CF (cooldown theo người quay, data.resultId/sentAt, partner_left wakeClients) · (manual trace từ worktree; dòng hook 20261019T165728Z ở checkout chính chụp nhầm HEAD) · snapshot `20261019T165553Z-daily-open/` · **PROD chưa deploy**' >> project/.firebase-deploy-log/HISTORY.md; ls $D
+time_utc: 20261019T165745Z
+git_head: f45f423 (feature/launch-film)
+dirty   : 12 file thay đổi ngoài commit (0 = sạch → restore bằng git checkout f45f423)
+exit    : ?
+snapshot: firestore.rules / storage.rules (nếu có) trong folder này
+functions: restore bằng `git checkout f45f423 -- functions` rồi redeploy

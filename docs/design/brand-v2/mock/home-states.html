@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trang chủ v2, các trạng thái khối — Dear Embeiu</title>
+<link rel="stylesheet" href="v2.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const { I } = UI; const P = D.people.partner;
+const sk = (w, h = 20) => `<span class="skeleton" style="width:${w}px;height:${h}px"></span>`;
+const head = `<div class="who"><span class="av thao">T</span>Thảo</div><div></div><div class="who me">Mình <span class="av tuan">T</span></div>`;
+const rows = (cells) => cells.map(([l, m, r]) => `<div class="row"><div class="cell">${l}</div><div class="cell mid">${m}</div><div class="cell me">${r}</div></div>`).join('');
+
+document.getElementById('app').innerHTML = `
+${UI.topbar({ scope: 'Dear Embeiu', actions: `<button class="icon-btn" aria-label="Thông báo">${I.bell}</button>` })}
+<main class="canvas">
+  <section class="title">
+    <h1>Các trạng thái của khối Hôm nay</h1>
+    <p class="sub">Cùng một khung, chỉ đổi giá trị. Không có khối nào biến mất khi lỗi.</p>
+  </section>
+
+  <p class="state-label">Đang tải lần đầu: thanh xám đúng cỡ, nhãn hiện ngay</p>
+  <section class="panel" aria-labelledby="h-load">
+    <header><h2 id="h-load">Hôm nay</h2>${sk(96, 16)}</header>
+    <div class="lanes">${head}
+      ${rows([[sk(80) + sk(40, 12), '<span class="lbl">Tâm trạng</span>', sk(80) + sk(40, 12)], [sk(64) + sk(72, 12), '<span class="lbl">Đêm qua</span>', sk(64) + sk(72, 12)], [sk(48) + sk(90, 12), '<span class="lbl">Thời tiết</span>', sk(48) + sk(90, 12)]])}
+    </div>
+  </section>
+
+  <p class="state-label">Ngày mới lúc 00:05: số không in ra là 0, chưa có thì gạch</p>
+  <section class="panel" aria-labelledby="h-zero">
+    <header><h2 id="h-zero">Hôm nay</h2><span class="meta num">0/6 sao</span></header>
+    <div class="lanes">${head}
+      ${rows([['<span class="v">Chưa trả lời</span>', '<span class="lbl">Câu hỏi</span>', '<button class="btn primary sm">Trả lời</button>'],
+              ['<span class="v fig num">0 lần</span>', `<button class="heart" aria-label="Chạm tim">${I.heart}</button><span class="s num">0 lần hôm nay</span>`, '<span class="v fig num">0 lần</span>'],
+              ['<span class="v none">—</span><span class="s">chưa dậy</span>', '<span class="lbl">Đêm qua</span>', '<span class="v none">—</span><span class="s">đang ngủ</span>']])}
+    </div>
+  </section>
+
+  <p class="state-label">Lỗi một nguồn: câu báo lỗi nằm trong đúng hàng hỏng</p>
+  <section class="panel" aria-labelledby="h-err">
+    <header><h2 id="h-err">Hôm nay</h2><span class="meta num">4/6 sao</span></header>
+    <div class="lanes">${head}
+      ${rows([['<span class="v">Hơi mệt</span><span class="s">07:55</span>', '<span class="lbl">Tâm trạng</span>', '<button class="btn sm">Chọn</button>']])}
+      <div class="error-line" style="grid-column:1/-1"><span>Chưa lấy được thời tiết. Lần cuối đúng lúc 09:40.</span><button class="link">Thử lại</button></div>
+    </div>
+  </section>
+
+  <p class="state-label">Mất mạng: giữ số cũ, ghi rõ giờ, chạm tim vẫn xếp hàng</p>
+  <section class="panel" aria-labelledby="h-off">
+    <header><h2 id="h-off">Hôm nay</h2><span class="meta num">4/6 sao</span></header>
+    <p class="notice">Đang mất mạng. Số liệu lúc 11:58, có mạng sẽ tự cập nhật.</p>
+    <div class="lanes">${head}
+      ${rows([['<span class="v fig num">5 lần</span>', `<button class="heart" aria-label="Chạm tim">${I.heart}</button><span class="s">sẽ gửi khi có mạng</span>`, '<span class="v fig num">8 lần</span>'],
+              ['<span class="v">Đến chỗ làm</span><span class="s">08:05</span>', '<span class="lbl">Ở đâu</span>', '<span class="v">Về nhà rồi</span><span class="s">sẽ báo khi có mạng</span>']])}
+    </div>
+  </section>
+
+  <p class="state-label">Chưa ai chọn thành phố, người ấy chưa bật báo về nhà</p>
+  <section class="panel" aria-labelledby="h-empty">
+    <header><h2 id="h-empty">Hôm nay</h2><span class="meta num">4/6 sao</span></header>
+    <div class="lanes">${head}
+      ${rows([['<span class="v none">—</span><span class="s">Thảo chưa bật</span>', '<span class="lbl">Ở đâu</span>', '<button class="link">Bật báo về nhà</button>'],
+              ['<button class="link">Chọn giúp</button>', '<span class="lbl">Thời tiết</span>', '<button class="link">Mình ở đâu?</button>']])}
+    </div>
+  </section>
+
+  <p class="state-label">Các khối khác khi trống</p>
+  <section class="panel" aria-labelledby="h-g0">
+    <header><h2 id="h-g0">Chơi cùng nhau</h2><span class="meta">không có ván nào chờ</span></header>
+    <ul class="list">
+      <li><div><div class="t">Oẳn tù tì</div><div class="s">Thảo thắng ván hôm qua</div></div><button class="btn sm">Rủ chơi</button></li>
+      <li><div><div class="t">Cờ caro</div><div class="s">Chưa có ván nào</div></div><button class="btn sm">Rủ chơi</button></li>
+    </ul>
+  </section>
+  <section class="panel" aria-labelledby="h-m0">
+    <ul class="list"><li><div><h2 id="h-m0" class="s" style="font-weight:400">Sổ chung tháng này</h2><div class="amount num">0đ</div><div class="s">Chưa ghi khoản nào tháng này</div></div><button class="btn sm">${I.plus}Ghi khoản</button></li></ul>
+  </section>
+  <section class="panel" aria-labelledby="h-m1">
+    <ul class="list"><li><div><h2 id="h-m1" class="s" style="font-weight:400">Sổ chung tháng này</h2><div class="s" style="color:var(--text)">Không tải được sổ. Lần cuối đúng lúc 11:02.</div></div><button class="link">Thử lại</button></li></ul>
+  </section>
+</main>
+${UI.tabbar('home')}`;
+</script>
+</body>
+</html>

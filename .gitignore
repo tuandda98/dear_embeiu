@@ -81,3 +81,8 @@ figma_screenshots/
 
 # superpowers SDD scratch (ledger/briefs/reports) — không commit
 .superpowers/
+
+# tasteskill: bảng hướng + ảnh chụp soát giao diện
+.taste-skill/
+# ảnh chụp soát giao diện của Designer (tasteskill inspect) — không commit
+docs/design/*/shots/

@@ -1,0 +1,32 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn mở lịch sử từ Hồ sơ rồi xem lại ván 9 nước.
+# CARO-HIST: dòng ván, xem lại chỉ đọc (chip "VÁN dd/MM", không có nút chơi), Quay lại.
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- tapOn: '(?s)Hồ sơ.*'
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: '(?s).*Chơi cùng nhau.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: '(?s).*Chơi cùng nhau.*'
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\..*'
+- waitForAnimationToEnd
+- assertVisible: '(?s)LỊCH SỬ CARO.*'
+- assertVisible: '.* thắng\. Năm quân liền, 9 nước\. .*'
+- tapOn: '.* thắng\. Năm quân liền, 9 nước\. .*'
+- waitForAnimationToEnd
+- assertVisible: '(?s)VÁN \d\d/\d\d.*'
+- assertVisible: '(?s)Hàng 12, cột 8, quân X của .*, nước vừa đi, trong đường thắng.*'
+- assertNotVisible: '(?s)Phục thù.*'
+- assertNotVisible: '(?s)Xin thua.*'
+- tapOn: '(?s)Quay lại.*'
+- waitForAnimationToEnd
+- assertVisible: '(?s)LỊCH SỬ CARO.*'

@@ -17,6 +17,7 @@ import '../providers/photo_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/ai_question_source.dart';
+import '../services/reminder_service.dart' show kDailyQuestionRemindersEnabled;
 import '../services/home_prefs_service.dart';
 import '../theme/app_colors.dart';
 import '../utils/lunar_calendar.dart';
@@ -24,6 +25,8 @@ import '../widgets/blocking_loading_overlay.dart';
 import '../widgets/content_card.dart';
 import '../widgets/entrance_reveal.dart';
 import '../widgets/feature_tour_sheet.dart';
+import '../widgets/rating_sheet.dart';
+import 'feedback_screen.dart';
 import '../widgets/icon_badge.dart';
 import '../widgets/language_toggle_button.dart';
 import '../widgets/app_time_picker.dart';
@@ -34,6 +37,15 @@ import 'chat_bg_screen.dart';
 import 'counter_bg_screen.dart';
 import 'lunar_calendar_screen.dart';
 import 'reminders_screen.dart';
+// ── weather (đợt 2) ──
+import '../widgets/weather/weather_sheets.dart' show WeatherSettingsSection;
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
+import '../widgets/arrival/arrival_settings_tiles.dart';
+import 'arrival_manage_screen.dart';
+// ── expenses (đợt 2) ──
+import '../services/money_service.dart';
+import '../widgets/money/money_reminder_tile.dart';
 
 /// The app-wide Settings screen (feature: settings — v2 redesign 2026-06-11).
 ///
@@ -209,6 +221,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               order: 1,
                               child: _buildNotificationsSection(context),
                             ),
+                            // ── weather (đợt 2) ──
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 1,
+                              child: WeatherSettingsSection(
+                                couple: coupleProvider.couple!,
+                              ),
+                            ),
                             if (showLunar) ...[
                               const SizedBox(height: 24),
                               EntranceReveal(
@@ -220,6 +240,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             EntranceReveal(
                               order: 2,
                               child: _buildGeneralSection(context),
+                            ),
+                          ],
+                          if (!hasCouple) ...[
+                            const SizedBox(height: 24),
+                            EntranceReveal(
+                              order: 2,
+                              child: ContentCard(child: _feedbackRow(context)),
                             ),
                           ],
                           if (!hideDataManagement) ...[
@@ -506,14 +533,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 children: [
                   // Daily-question nudge (b2): toggle + multi-time editor.
-                  const _DailyQuestionReminderTile(),
-                  _rowDivider(),
+                  if (kDailyQuestionRemindersEnabled) ...[
+                    const _DailyQuestionReminderTile(),
+                    _rowDivider(),
+                  ],
                   // Meal-pick nudge (decision-wheel D10) — hidden while the
                   // couple still waits for the partner (no nudge then).
                   if (context.select<CoupleProvider, bool>(
                     (p) => p.couple != null && !p.couple!.isWaitingForPartner,
                   )) ...[
                     const _DecisionReminderTile(),
+                    _rowDivider(),
+                  ],
+                  // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16), paired only.
+                  if (context.select<ArrivalProvider, bool>(
+                    (a) => a.visible,
+                  )) ...[
+                    const ArrivalPushTile(),
+                    _rowDivider(),
+                  ],
+                  // ── expenses (đợt 2) ── Sổ tiền evening reminder (D18):
+                  // solo couples too; hidden without Firebase (no book).
+                  if (MoneyService.isAvailable) ...[
+                    const MoneyReminderTile(),
                     _rowDivider(),
                   ],
                   // AI-personalised daily questions (endless-questions,
@@ -674,6 +716,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _feedbackRow(BuildContext context) {
+    final l10n = context.l10n;
+    return _navRow(
+      icon: IconsaxPlusLinear.message_question,
+      title: l10n.settingsFeedbackTitle,
+      subtitle: l10n.settingsFeedbackSubtitle,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: 'Feedback'),
+          builder: (_) => const FeedbackScreen(),
+        ),
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Group: General — language, analytics opt-out (D1c) and the privacy-policy
   // link (promoted from the old 12px footer link: a compliance touchpoint
@@ -759,6 +816,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               _rowDivider(),
+              // ── arrival (đợt 2) ── "Về đến nhà", paired couples only (D9).
+              if (context.watch<ArrivalProvider>().visible) ...[
+                _navRow(
+                  icon: IconsaxPlusLinear.home_2,
+                  title: l10n.arrivalSettingsTitle,
+                  subtitle: arrivalSettingsSubtitle(context),
+                  onTap: () => openArrivalManage(context, from: 'settings'),
+                ),
+                _rowDivider(),
+              ],
               // Counter-card background picker (2026-06-14): choose which
               // photos may back the Home hero card.
               _navRow(
@@ -804,6 +871,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mode: LaunchMode.externalApplication,
                 ),
               ),
+              _rowDivider(),
+              // Đánh giá + góp ý (feature: feedback, D4).
+              _navRow(
+                icon: IconsaxPlusLinear.star_1,
+                title: l10n.settingsRateAppTitle,
+                subtitle: l10n.settingsRateAppSubtitle,
+                onTap: () => RatingSheet.show(context, source: 'settings'),
+              ),
+              _rowDivider(),
+              _feedbackRow(context),
               _rowDivider(),
               // "What's new" — replays the version feature tour on demand
               // (feature: onboarding, 2026-09-05).
@@ -2035,10 +2112,7 @@ class _AiQuestionsTileState extends State<_AiQuestionsTile> {
 
     setState(() => _pending = value);
     final seq = ++_toggleSeq;
-    AnalyticsService.instance.logEvent(
-      'ai_questions_toggle',
-      params: <String, Object?>{'enabled': value},
-    );
+    AnalyticsService.instance.logAiQuestionsToggle(enabled: value);
     final ok = await _prefs.setAiQuestionsEnabled(coupleId, value);
     // A newer toggle superseded this one — its handler owns `_pending` now.
     if (seq != _toggleSeq) {

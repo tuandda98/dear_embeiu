@@ -369,3 +369,21 @@
 - Còn nợ (CẦN TEST runtime, máy thật): iOS hộp xin quyền Motion sau Health + 1 đêm thật xem `confidence`; Android API 29+ và 28, sau reboot / force-stop / cập nhật app; thông số `SleepRules.motion` (10'/2'/3h/60' trong 00–06h) chỉnh sau smoke-test; P3 ROM Xiaomi/Huawei tự force-stop app.
 - Hướng 1 (iPhone tự ghi "Trên giường"): logic đọc inBed có test (`sleep_calculator_test.dart` "falls back to in bed"); việc iPhone iOS 18+ còn ghi hay không phải kiểm bằng máy thật qua 1 đêm.
 - [2026-10-13] [Tester] Nguồn chuyển động: vòng 1 FAIL (3 P1) → vòng 2 PASS có điều kiện; Lead vá 3 P2 còn lại.
+
+## Smoke 2 máy ảo · 2026-10-22 · Lead (Maestro + adb) — PASS, còn phần cần máy thật
+Bản `feature/daily-open-2` @ `311b719`, DEV, cặp test3 (Tuấn, Android emulator Pixel_10, tiếng Anh) ↔ test4 (Thảo, iPhone 17 Pro simulator, tiếng Việt). Test đơn vị giấc ngủ: 212 pass, 2 skip.
+- **Bật trên Android:** thẻ "Last night" → sheet 2 bước. Máy đã có Usage access nên bỏ qua bước mở Cài đặt, sang thẳng bước chia sẻ. Bấm chia sẻ → `sleep/{uid}.share = true`.
+- **Ghi tay (Android):** "Log it" → 23:00→07:00, nhãn "Manual", thống kê tháng 8h/đêm. Firestore: `nights/2026-10-22` `source: manual`, `tz: 420`.
+- **Bật trên iOS (HealthKit):** nhập 1 mẫu "Ngủ" 21/10 23:21 → 22/10 06:21 trong app Sức khoẻ của simulator. Hộp quyền chỉ hỏi đọc mục Ngủ, câu giải thích tiếng Việt. Bước 2 hiện đúng đêm đọc được: "23:21 – 6:21, 7g". Lên Firestore `source: health`.
+- **Đồng bộ 2 chiều:** thẻ Home iOS hiện cả hai đêm + "Ngủ cùng lúc 7g · Tuấn ngủ trước 21p". Màn Giấc ngủ Android nhận realtime: 2 làn, dải chung, "Asleep together 7h", thống kê 2 người.
+- **Sửa đêm (iOS):** nút Lưu mờ khi chưa đổi gì. Đổi giờ dậy 6:21 → 7:21 → nhãn "Đã sửa", ngủ cùng lúc 7g39p. Android hiện "Edited", 7h 39m, `source: edited`.
+- **Màu trăng:** mỗi máy khoá màu của người kia và màu quá giống (C1).
+- **Tắt chia sẻ (iOS):** `share: false`, Firestore xoá hết `nights` của Thảo. Android chuyển "Thảo isn't sharing sleep". iOS vẫn giữ đêm trên máy. **Bật lại:** đêm đã sửa tự đẩy lên lại.
+- Log 2 máy không có exception/assert.
+- **Chưa test được trên máy ảo:**
+  - (1) Android tự đo qua sự kiện màn hình: không giả được khoảng tắt màn ≥ 3 tiếng. Đổi giờ hệ thống không dùng được vì UsageStats tự bù mốc sự kiện theo `elapsedRealtime`: tắt lúc "23:20", chỉnh sang 06:45 thì sự kiện ghi 06:44.
+  - (2) Lần thức giấc trong đêm và Apple Watch.
+  - (3) Nguồn chuyển động (Core Motion / Activity Recognition).
+  - Ba mục này cần 1 đêm trên máy thật.
+- **Ghi chú (P3, không vá):** app đang mở mà đồng hồ máy bị chỉnh lùi (ở đây tương lai 23/10 → về 22/10) thì sheet "Ghi tay" vẫn giữ ngày cũ "22 → 23/10" cho tới khi mở lại app. Người dùng thật hầu như không gặp. Không ghi đêm sai nào lên Firestore.
+- [2026-10-22] [Lead] Smoke 2 máy ảo: PASS các luồng bật, ghi tay, HealthKit, đồng bộ, sửa, tắt/bật chia sẻ, màu. Còn tự đo Android + thức giấc + chuyển động chờ máy thật.

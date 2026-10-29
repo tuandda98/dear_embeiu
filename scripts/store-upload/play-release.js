@@ -8,6 +8,7 @@
 //   node scripts/store-upload/play-release.js --version 1.11.0 --dry-run       # làm hết rồi validate, KHÔNG commit (xoá edit)
 //   node scripts/store-upload/play-release.js --version 1.10.0 --version-code 29 --dry-run   # bỏ upload, dùng bundle đã có
 // Tuỳ chọn: --aab <path> (mặc định build/app/outputs/bundle/release/app-release.aab) · --notes <file> · --track production
+//   · --status draft: commit thành bản NHÁP (không gửi duyệt) — dùng khi Play đòi khai báo quyền mới: có bản nháp chứa AAB thì Console mới mở form khai báo.
 // ⚠️ Khai báo chính sách mới (vd quyền nhạy cảm, Ứng dụng sức khoẻ) API không làm được → commit sẽ báo lỗi, xử lý trên Play Console.
 const fs = require('fs');
 const path = require('path');
@@ -27,6 +28,7 @@ const track = opt('track', 'production');
 const existingVc = opt('version-code');
 const aab = opt('aab', 'build/app/outputs/bundle/release/app-release.aab');
 const notesFile = opt('notes', `RELEASE_NOTES_${version}.md`);
+const status = opt('status', 'completed');
 
 function readNotes() {
   const blocks = [...fs.readFileSync(notesFile, 'utf8').matchAll(/```\n([\s\S]*?)```/g)].map((m) => m[1].trim());
@@ -60,9 +62,9 @@ function readNotes() {
     }
     await req({
       url: `${BASE}/edits/${edit}/tracks/${track}`, method: 'PUT',
-      data: { track, releases: [{ name: `${vc} (${version})`, versionCodes: [vc], status: 'completed', releaseNotes }] },
+      data: { track, releases: [{ name: `${vc} (${version})`, versionCodes: [vc], status, releaseNotes }] },
     });
-    console.log(`✓ track ${track}: ${vc} (${version}) phát hành đầy đủ, ghi chú vi + en-US`);
+    console.log(`✓ track ${track}: ${vc} (${version}) ${status === 'draft' ? 'bản nháp' : 'phát hành đầy đủ'}, ghi chú vi + en-US`);
 
     if (dryRun) {
       await req({ url: `${BASE}/edits/${edit}:validate`, method: 'POST' });
@@ -71,7 +73,7 @@ function readNotes() {
       return;
     }
     await req({ url: `${BASE}/edits/${edit}:commit`, method: 'POST' });
-    console.log('✓ commit — đã gửi duyệt (Play chạy kiểm tra nhanh rồi xem xét)');
+    console.log(status === 'draft' ? '✓ commit — đã lưu bản nháp, CHƯA gửi duyệt' : '✓ commit — đã gửi duyệt (Play chạy kiểm tra nhanh rồi xem xét)');
   } catch (e) {
     await req({ url: `${BASE}/edits/${edit}`, method: 'DELETE' }).catch(() => {});
     throw e;

@@ -47,7 +47,8 @@ class AnalyticsEvents {
   static const String rpsGameFinished = 'rps_game_finished';
 
   // Home-screen widget (feature home-widget)
-  static const String widgetTap = 'widget_tap'; // home-screen widget opened the app
+  static const String widgetTap =
+      'widget_tap'; // home-screen widget opened the app
 
   // Features 2026-06 → 2026-10 (chat, mood, care-message, sleep, love-tree,
   // onboarding). Same privacy rules: no text, no times, no mood value.
@@ -60,6 +61,13 @@ class AnalyticsEvents {
   static const String loveTreeOpened = 'love_tree_opened';
   static const String introFinished = 'intro_finished';
   static const String featureTourShown = 'feature_tour_shown';
+
+  // Đánh giá + góp ý (feature `feedback`). Chỉ số sao / loại / nguồn — không
+  // bao giờ nội dung tin nhắn.
+  static const String ratePromptShown = 'rate_prompt_shown';
+  static const String rateStars = 'rate_stars';
+  static const String feedbackSent = 'feedback_sent';
+  static const String pStars = 'stars'; // rate_stars (int 1..5)
 
   // Auth failures + forgot password (2026-10-14). `reason` = Firebase error
   // code (e.g. wrong-password), never the message or the email.
@@ -79,19 +87,54 @@ class AnalyticsEvents {
   static const String decisionPhotoCta = 'decision_photo_cta';
   static const String decisionHistoryOpen = 'decision_history_open';
 
+  // Home "Lúc rảnh" (Home D, 2026-10-29): which entry a tap came from — the
+  // two game tiles and the compact "Phân vân gì không?" card.
+  static const String homeEntryTap = 'home_entry_tap';
+  // home_entry_tap: caro / rps / decide_eat / decide_go / decide_custom /
+  // decide_pick (today's pick row).
+  static const String pEntry = 'entry';
+  static const String pUrgent =
+      'urgent'; // home_entry_tap (bool: partner waits on me)
+
+  // ── caro-game (đợt 2) ──
+  // Turn-based caro (overview §8). Never a square, a name, a uid or a game id.
+  static const String caroOpen = 'caro_open';
+  static const String caroGameStarted = 'caro_game_started';
+  static const String caroMove = 'caro_move';
+  static const String caroGameEnded = 'caro_game_ended';
+  static const String caroNudgeSent = 'caro_nudge_sent';
+  static const String caroHistoryOpen = 'caro_history_open';
+  static const String pCaroRule = 'rule'; // caro_game_started: vn / free
+  static const String pMoveNo = 'move_no'; // caro_move (int)
+  static const String pPartnerWatching = 'partner_watching'; // caro_move (bool)
+  static const String pMoves = 'moves'; // caro_game_ended (int)
+  static const String pSpanHours = 'span_hours'; // caro_game_ended (int)
+  // ── expenses (đợt 2) ── Sổ tiền D27, stage 3A (budgets / report / search).
+  // Never an amount, a wallet name, a note or a custom category name.
+  static const String moneyBudgetSet = 'money_budget_set';
+  static const String moneyReportOpen = 'money_report_open';
+  static const String moneySearch = 'money_search';
+  static const String pBook = 'book'; // money_*: own / shared
+  static const String pScope = 'scope'; // money_budget_set: total / category
+  static const String pView = 'view'; // money_report_open: month / trend
+  static const String pFilterCount = 'filter_count'; // money_search (count)
+
   // --- Param keys ---
   static const String pMethod = 'method'; // sign_up/login/invite_shared
   static const String pResult = 'result'; // couple_join_attempt
   static const String pIsFirst = 'is_first'; // photo_posted
   static const String pAction = 'action'; // love_note_set / reaction_set
-  static const String pSurface = 'surface'; // reaction_set: photo / daily_answer
+  static const String pSurface =
+      'surface'; // reaction_set: photo / daily_answer
   static const String pRepeat = 'repeat'; // reminder_created
   static const String pType = 'type'; // notification_opened
   static const String pLocale = 'locale'; // language_changed
   static const String pRematch = 'rematch'; // rps_invite_sent (bool)
   static const String pFamily = 'family'; // widget_tap: small / medium
-  static const String pTarget = 'target'; // widget_tap: home / chat / gallery / none
-  static const String pStatusKind = 'status_kind'; // widget_tap: widget-today kind / none
+  static const String pTarget =
+      'target'; // widget_tap: home / chat / gallery / none
+  static const String pStatusKind =
+      'status_kind'; // widget_tap: widget-today kind / none
   static const String pHasNote = 'has_note'; // mood_set (bool)
   static const String pQueued = 'queued'; // care_message_sent (bool, offline)
   static const String pMode = 'mode'; // sleep_enabled: auto / health / manual
@@ -105,6 +148,68 @@ class AnalyticsEvents {
   static const String pSpins = 'spins'; // decision_commit (count)
   static const String pVia = 'via'; // decision_commit: spin / manual
   static const String pPreset = 'preset'; // decision_commit: who / which
+
+  // ── arrival (đợt 2) ──
+  // "Về đến nhà chưa?" (overview §9). Never coordinates, addresses, search
+  // text, names or a battery %.
+  static const String arrivalSetupOpen = 'arrival_setup_open';
+  static const String arrivalPermission = 'arrival_permission';
+  static const String arrivalPlaceSaved = 'arrival_place_saved';
+  static const String arrivalAddressSearch = 'arrival_address_search';
+  static const String arrivalPlaceDeleted = 'arrival_place_deleted';
+  static const String arrivalShareToggled = 'arrival_share_toggled';
+  static const String arrivalManual = 'arrival_manual';
+  static const String arrivalCardAction = 'arrival_card_action';
+  static const String pFrom = 'from';
+  static const String pStep = 'step';
+  static const String pSlot = 'slot';
+  static const String pIcon = 'icon';
+  static const String pHasHouseNumber = 'has_house_number';
+  static const String pPlatform = 'platform';
+  static const String pOn = 'on';
+  static const String pAuto = 'auto';
+
+  // ── analytics-coverage ── (2026-10-25) actions that had no event. Same
+  // privacy rule: only enums / bools / counts, never text, names, times,
+  // coordinates, cities or mood values.
+  static const String photoCaptionEdited = 'photo_caption_edited';
+  static const String photoReplaced = 'photo_replaced';
+  static const String photoReported = 'photo_reported'; // reason: stable code
+  static const String chatBgSet = 'chat_bg_set'; // cleared (bool)
+  static const String counterBgSet = 'counter_bg_set'; // count (0 = show all)
+  static const String reminderUpdated =
+      'reminder_updated'; // action, notify_partner
+  static const String milestoneToggled = 'milestone_toggled'; // type, on
+  static const String milestoneTimeSet = 'milestone_time_set'; // type
+  static const String dqReminderChanged =
+      'dq_reminder_changed'; // enabled, count
+  static const String lunarReminderChanged =
+      'lunar_reminder_changed'; // enabled, count
+  static const String decisionReminderChanged =
+      'decision_reminder_changed'; // enabled
+  static const String notificationMarkAllRead = 'notification_mark_all_read';
+  static const String notificationRemoved = 'notification_removed';
+  static const String notificationClearedAll = 'notification_cleared_all';
+  static const String signOut = 'sign_out';
+  static const String verificationEmailResent = 'verification_email_resent';
+  static const String passwordSet = 'password_set';
+  static const String coupleUpdated = 'couple_updated'; // field
+  static const String rpsNudgeSent = 'rps_nudge_sent';
+  static const String rpsCancelled = 'rps_cancelled';
+  static const String rpsChoiceMade = 'rps_choice_made';
+  static const String sleepColorSet = 'sleep_color_set';
+  static const String sleepNightDeleted = 'sleep_night_deleted';
+  static const String sleepCardHidden = 'sleep_card_hidden';
+  static const String weatherCardHidden = 'weather_card_hidden';
+  static const String coupleLeft = 'couple_left';
+  static const String loveTreeShared = 'love_tree_shared';
+  static const String forceUpdateStoreTap = 'force_update_store_tap';
+  static const String inviteClipboardUsed = 'invite_clipboard_used';
+  static const String aiQuestionsToggle = 'ai_questions_toggle'; // enabled
+  static const String pCleared = 'cleared';
+  static const String pCount = 'count';
+  static const String pField = 'field';
+  static const String pNotifyPartner = 'notify_partner';
 
   // --- User property names ---
   static const String upCoupleStatus = 'couple_status';
@@ -210,6 +315,10 @@ class AnalyticsService {
       : FirebaseAnalyticsObserver(
           analytics: _analytics!,
           nameExtractor: (settings) => _screenNameFor(settings.name),
+          // Also log NAMED non-page routes (content bottom sheets / dialogs
+          // that set `routeSettings`). Unnamed ones (confirm dialogs, time
+          // pickers) stay skipped.
+          routeFilter: (route) => route?.settings.name != null,
         );
 
   /// Maps a route name to a friendly, GA4-standard screen label so DebugView /
@@ -228,6 +337,12 @@ class AnalyticsService {
         return 'Register';
       case AppRoutes.setup:
         return 'CoupleSetup';
+      case AppRoutes.forgotPassword:
+        return 'ForgotPassword';
+      case AppRoutes.verifyEmail:
+        return 'VerifyEmail';
+      case AppRoutes.forceUpdate:
+        return 'ForceUpdate';
       case AppRoutes.home:
         return 'Home';
       case AppRoutes.authGate:
@@ -274,10 +389,15 @@ class AnalyticsService {
   // Low-level logging — all helpers funnel through here.
   // ---------------------------------------------------------------------------
 
+  /// Test seam: sees every event (before the SDK / opt-out checks).
+  @visibleForTesting
+  static void Function(String name, Map<String, Object?>? params)? debugOnEvent;
+
   /// Logs [name] with [params]. No-op when the SDK isn't bound or the user
   /// opted out. Strips null param values and (defensively) drops any value
   /// that isn't an allowed scalar type so a stray object can't leak through.
   void logEvent(String name, {Map<String, Object?>? params}) {
+    debugOnEvent?.call(name, params);
     final analytics = _analytics;
     if (analytics == null || !_enabled) {
       return;
@@ -315,39 +435,43 @@ class AnalyticsService {
   // Typed event helpers (one per contract event). 🔒 None take free text.
   // ---------------------------------------------------------------------------
 
-  void logSignUp({String method = 'email'}) =>
-      logEvent(AnalyticsEvents.signUp, params: {AnalyticsEvents.pMethod: method});
+  void logSignUp({String method = 'email'}) => logEvent(
+    AnalyticsEvents.signUp,
+    params: {AnalyticsEvents.pMethod: method},
+  );
 
-  void logLogin({String method = 'email'}) =>
-      logEvent(AnalyticsEvents.login, params: {AnalyticsEvents.pMethod: method});
+  void logLogin({String method = 'email'}) => logEvent(
+    AnalyticsEvents.login,
+    params: {AnalyticsEvents.pMethod: method},
+  );
 
   void logCoupleCreated() => logEvent(AnalyticsEvents.coupleCreated);
 
   void logInviteShared(String method) => logEvent(
-        AnalyticsEvents.inviteShared,
-        params: {AnalyticsEvents.pMethod: method},
-      );
+    AnalyticsEvents.inviteShared,
+    params: {AnalyticsEvents.pMethod: method},
+  );
 
   /// [result] must be one of [AnalyticsJoinResult].
   void logCoupleJoinAttempt(String result) => logEvent(
-        AnalyticsEvents.coupleJoinAttempt,
-        params: {AnalyticsEvents.pResult: result},
-      );
+    AnalyticsEvents.coupleJoinAttempt,
+    params: {AnalyticsEvents.pResult: result},
+  );
 
   void logCoupleJoined() => logEvent(AnalyticsEvents.coupleJoined);
 
   void logPhotoPosted({required bool isFirst}) => logEvent(
-        AnalyticsEvents.photoPosted,
-        params: {AnalyticsEvents.pIsFirst: isFirst},
-      );
+    AnalyticsEvents.photoPosted,
+    params: {AnalyticsEvents.pIsFirst: isFirst},
+  );
 
   void logPhotoDeleted() => logEvent(AnalyticsEvents.photoDeleted);
 
   /// [action] is `create` or `update` (NOT the note text).
   void logLoveNoteSet(String action) => logEvent(
-        AnalyticsEvents.loveNoteSet,
-        params: {AnalyticsEvents.pAction: action},
-      );
+    AnalyticsEvents.loveNoteSet,
+    params: {AnalyticsEvents.pAction: action},
+  );
 
   /// [action] is `add` / `change` / `remove` (NOT which emoji or whose photo).
   /// [action] is `add` / `change` / `remove`; [surface] says WHICH thing was
@@ -355,12 +479,12 @@ class AnalyticsService {
   /// so the two reaction surfaces stay separable in the funnel. Never carries
   /// the emoji or any content.
   void logReactionSet(String action, {String surface = 'photo'}) => logEvent(
-        AnalyticsEvents.reactionSet,
-        params: {
-          AnalyticsEvents.pAction: action,
-          AnalyticsEvents.pSurface: surface,
-        },
-      );
+    AnalyticsEvents.reactionSet,
+    params: {
+      AnalyticsEvents.pAction: action,
+      AnalyticsEvents.pSurface: surface,
+    },
+  );
 
   void logDailyQuestionAnswered() =>
       logEvent(AnalyticsEvents.dailyQuestionAnswered);
@@ -369,17 +493,21 @@ class AnalyticsService {
       logEvent(AnalyticsEvents.dailyQuestionRevealed);
 
   /// [repeat] is the recurrence enum name (once/daily/weekly/monthly/yearly).
-  void logReminderCreated(String repeat) => logEvent(
+  void logReminderCreated(String repeat, {bool notifyPartner = false}) =>
+      logEvent(
         AnalyticsEvents.reminderCreated,
-        params: {AnalyticsEvents.pRepeat: repeat},
+        params: {
+          AnalyticsEvents.pRepeat: repeat,
+          AnalyticsEvents.pNotifyPartner: notifyPartner,
+        },
       );
 
   /// [type] is the normalised push type
   /// (photo_posted/partner_joined/love_note/daily_question).
   void logNotificationOpened(String type) => logEvent(
-        AnalyticsEvents.notificationOpened,
-        params: {AnalyticsEvents.pType: type},
-      );
+    AnalyticsEvents.notificationOpened,
+    params: {AnalyticsEvents.pType: type},
+  );
 
   /// [locale] is `en`, `vi` or `system`.
   /// Swiped the home counter-card background photo (feature home).
@@ -388,74 +516,127 @@ class AnalyticsService {
   /// The app was opened by tapping the home-screen widget (feature home-widget).
   /// [family] is `small` or `medium`; [target] (`home`/`chat`/`gallery`) and
   /// [statusKind] (widget-today D2 kind) are `none` when no line was showing.
-  void logWidgetTap(String family, {String target = '', String statusKind = ''}) =>
-      logEvent(
-        AnalyticsEvents.widgetTap,
-        params: {
-          AnalyticsEvents.pFamily: family,
-          AnalyticsEvents.pTarget: target.isEmpty ? 'none' : target,
-          AnalyticsEvents.pStatusKind: statusKind.isEmpty ? 'none' : statusKind,
-        },
-      );
+  void logWidgetTap(
+    String family, {
+    String target = '',
+    String statusKind = '',
+  }) => logEvent(
+    AnalyticsEvents.widgetTap,
+    params: {
+      AnalyticsEvents.pFamily: family,
+      AnalyticsEvents.pTarget: target.isEmpty ? 'none' : target,
+      AnalyticsEvents.pStatusKind: statusKind.isEmpty ? 'none' : statusKind,
+    },
+  );
 
   /// Opened the Memory Cinema viewer on Home (feature home).
-  void logMemoryCinemaOpened() =>
-      logEvent(AnalyticsEvents.memoryCinemaOpened);
+  void logMemoryCinemaOpened() => logEvent(AnalyticsEvents.memoryCinemaOpened);
 
   /// Opened (unsealed) an unread love-note envelope on Home (feature home).
   void logLoveNoteEnvelopeOpened() =>
       logEvent(AnalyticsEvents.loveNoteEnvelopeOpened);
 
   void logLanguageChanged(String locale) => logEvent(
-        AnalyticsEvents.languageChanged,
-        params: {AnalyticsEvents.pLocale: locale},
-      );
+    AnalyticsEvents.languageChanged,
+    params: {AnalyticsEvents.pLocale: locale},
+  );
 
   void logAccountDeleted() => logEvent(AnalyticsEvents.accountDeleted);
 
   /// Rock-paper-scissors invite created (feature rps-game). [rematch] = it
   /// was a "Chơi lại" from a result screen. No ids, no content.
   void logRpsInviteSent({bool rematch = false}) => logEvent(
-        AnalyticsEvents.rpsInviteSent,
-        params: {AnalyticsEvents.pRematch: rematch},
-      );
+    AnalyticsEvents.rpsInviteSent,
+    params: {AnalyticsEvents.pRematch: rematch},
+  );
 
   /// A rock-paper-scissors game reached `finished`. [result] is the outcome
   /// from THIS user's side: `win` / `lose` / `draw` (enum name, never content).
   void logRpsGameFinished(String result) => logEvent(
-        AnalyticsEvents.rpsGameFinished,
-        params: {AnalyticsEvents.pResult: result},
+    AnalyticsEvents.rpsGameFinished,
+    params: {AnalyticsEvents.pResult: result},
+  );
+
+  // ── caro-game (đợt 2) ──
+  /// Caro game screen opened. [source]: home · profile · push · inbox · widget
+  /// · tour.
+  void logCaroOpen(String source) => logEvent(
+    AnalyticsEvents.caroOpen,
+    params: {AnalyticsEvents.pSource: source},
+  );
+
+  void logCaroGameStarted({required bool rematch, required String rule}) =>
+      logEvent(
+        AnalyticsEvents.caroGameStarted,
+        params: {
+          AnalyticsEvents.pRematch: rematch,
+          AnalyticsEvents.pCaroRule: rule,
+        },
       );
+
+  void logCaroMove({required int moveNo, required bool partnerWatching}) =>
+      logEvent(
+        AnalyticsEvents.caroMove,
+        params: {
+          AnalyticsEvents.pMoveNo: moveNo,
+          AnalyticsEvents.pPartnerWatching: partnerWatching,
+        },
+      );
+
+  /// [result]: win · lose · draw · resign_me · resign_partner · cancel ·
+  /// expired (from THIS user's side).
+  void logCaroGameEnded({
+    required String result,
+    required int moves,
+    required int spanHours,
+  }) => logEvent(
+    AnalyticsEvents.caroGameEnded,
+    params: {
+      AnalyticsEvents.pResult: result,
+      AnalyticsEvents.pMoves: moves,
+      AnalyticsEvents.pSpanHours: spanHours,
+    },
+  );
+
+  void logCaroNudgeSent() => logEvent(AnalyticsEvents.caroNudgeSent);
+
+  void logCaroHistoryOpen() => logEvent(AnalyticsEvents.caroHistoryOpen);
 
   void logChatMessageSent() => logEvent(AnalyticsEvents.chatMessageSent);
 
   /// Never the mood itself — only whether a note was added.
   void logMoodSet({required bool hasNote}) => logEvent(
-        AnalyticsEvents.moodSet,
-        params: {AnalyticsEvents.pHasNote: hasNote},
-      );
+    AnalyticsEvents.moodSet,
+    params: {AnalyticsEvents.pHasNote: hasNote},
+  );
 
-  void logCareMessageSent({required bool queued}) => logEvent(
+  /// [source]: where the composer was opened from (`manual` · `weather` ·
+  /// `arrival`), never the text.
+  void logCareMessageSent({required bool queued, String source = 'manual'}) =>
+      logEvent(
         AnalyticsEvents.careMessageSent,
-        params: {AnalyticsEvents.pQueued: queued},
+        params: {
+          AnalyticsEvents.pQueued: queued,
+          AnalyticsEvents.pSource: source,
+        },
       );
 
   /// [mode] is the [SleepMode] name.
   void logSleepEnabled(String mode) => logEvent(
-        AnalyticsEvents.sleepEnabled,
-        params: {AnalyticsEvents.pMode: mode},
-      );
+    AnalyticsEvents.sleepEnabled,
+    params: {AnalyticsEvents.pMode: mode},
+  );
 
   void logSleepShareChanged(bool enabled) => logEvent(
-        AnalyticsEvents.sleepShareChanged,
-        params: {AnalyticsEvents.pEnabled: enabled},
-      );
+    AnalyticsEvents.sleepShareChanged,
+    params: {AnalyticsEvents.pEnabled: enabled},
+  );
 
   /// [source] is `manual` (new night) or `edited`. Never the times.
   void logSleepNightSaved(String source) => logEvent(
-        AnalyticsEvents.sleepNightSaved,
-        params: {AnalyticsEvents.pSource: source},
-      );
+    AnalyticsEvents.sleepNightSaved,
+    params: {AnalyticsEvents.pSource: source},
+  );
 
   void logLoveTreeOpened() => logEvent(AnalyticsEvents.loveTreeOpened);
 
@@ -493,16 +674,40 @@ class AnalyticsService {
   void logDecisionHistoryOpen() =>
       logEvent(AnalyticsEvents.decisionHistoryOpen);
 
+  /// Home "Lúc rảnh" tap. [entry] caro · rps · decide_eat · decide_go ·
+  /// decide_custom · decide_pick; [urgent] = the partner waits on me (C6).
+  void logHomeEntryTap(String entry, {bool urgent = false}) => logEvent(
+    AnalyticsEvents.homeEntryTap,
+    params: {AnalyticsEvents.pEntry: entry, AnalyticsEvents.pUrgent: urgent},
+  );
+
   void logIntroFinished({required bool skipped}) => logEvent(
-        AnalyticsEvents.introFinished,
-        params: {AnalyticsEvents.pSkipped: skipped},
-      );
+    AnalyticsEvents.introFinished,
+    params: {AnalyticsEvents.pSkipped: skipped},
+  );
+
+  /// [source]: `settings` · `reveal` · `photo`.
+  void logRatePromptShown({required String source}) => logEvent(
+    AnalyticsEvents.ratePromptShown,
+    params: {AnalyticsEvents.pSource: source},
+  );
+
+  void logRateStars(int stars) => logEvent(
+    AnalyticsEvents.rateStars,
+    params: {AnalyticsEvents.pStars: stars},
+  );
+
+  /// [type]: `idea` · `bug` · `rating`.
+  void logFeedbackSent(String type) => logEvent(
+    AnalyticsEvents.feedbackSent,
+    params: {AnalyticsEvents.pType: type},
+  );
 
   /// [manual] = opened from Settings → "Có gì mới".
   void logFeatureTourShown({required bool manual}) => logEvent(
-        AnalyticsEvents.featureTourShown,
-        params: {AnalyticsEvents.pManual: manual},
-      );
+    AnalyticsEvents.featureTourShown,
+    params: {AnalyticsEvents.pManual: manual},
+  );
 
   /// [reason] is an error code (`wrong-password`, `canceled`, `unknown`…).
   void logLoginFailed({String method = 'email', required String reason}) =>
@@ -528,22 +733,227 @@ class AnalyticsService {
       logEvent(AnalyticsEvents.passwordResetRequested);
 
   void logPasswordResetFailed(String reason) => logEvent(
-        AnalyticsEvents.passwordResetFailed,
-        params: {AnalyticsEvents.pReason: reason},
-      );
+    AnalyticsEvents.passwordResetFailed,
+    params: {AnalyticsEvents.pReason: reason},
+  );
 
   /// Every failed join, with the precise [reason] (CoupleErrorCode name,
   /// `unknown` for an unexpected throw). `couple_join_attempt` keeps its
   /// coarse 4-bucket `result` for the old funnel.
   void logCoupleJoinFailed(String reason) => logEvent(
-        AnalyticsEvents.coupleJoinFailed,
-        params: {AnalyticsEvents.pReason: reason},
-      );
+    AnalyticsEvents.coupleJoinFailed,
+    params: {AnalyticsEvents.pReason: reason},
+  );
 
   void logCoupleCreateFailed(String reason) => logEvent(
-        AnalyticsEvents.coupleCreateFailed,
-        params: {AnalyticsEvents.pReason: reason},
+    AnalyticsEvents.coupleCreateFailed,
+    params: {AnalyticsEvents.pReason: reason},
+  );
+
+  // ── arrival (đợt 2) ──
+  /// [from] `home_card` · `settings`.
+  void logArrivalSetupOpen(String from) => logEvent(
+    AnalyticsEvents.arrivalSetupOpen,
+    params: {AnalyticsEvents.pFrom: from},
+  );
+
+  /// [step] `when_in_use` · `always`; [result] `granted` · `denied` ·
+  /// `approximate`.
+  void logArrivalPermission({required String step, required String result}) =>
+      logEvent(
+        AnalyticsEvents.arrivalPermission,
+        params: {AnalyticsEvents.pStep: step, AnalyticsEvents.pResult: result},
       );
+
+  void logArrivalPlaceSaved({
+    required String slot,
+    required String source,
+    required String icon,
+    required bool hasHouseNumber,
+  }) => logEvent(
+    AnalyticsEvents.arrivalPlaceSaved,
+    params: {
+      AnalyticsEvents.pSlot: slot,
+      AnalyticsEvents.pSource: source,
+      AnalyticsEvents.pIcon: icon,
+      AnalyticsEvents.pHasHouseNumber: hasHouseNumber,
+    },
+  );
+
+  /// [result] `picked` · `not_found` · `offline` · `unavailable` · `error`.
+  void logArrivalAddressSearch({
+    required String result,
+    required String platform,
+  }) => logEvent(
+    AnalyticsEvents.arrivalAddressSearch,
+    params: {
+      AnalyticsEvents.pResult: result,
+      AnalyticsEvents.pPlatform: platform,
+    },
+  );
+
+  /// [slot] `custom` · `home_address`.
+  void logArrivalPlaceDeleted(String slot) => logEvent(
+    AnalyticsEvents.arrivalPlaceDeleted,
+    params: {AnalyticsEvents.pSlot: slot},
+  );
+
+  void logArrivalShareToggled({required bool on, required bool auto}) =>
+      logEvent(
+        AnalyticsEvents.arrivalShareToggled,
+        params: {AnalyticsEvents.pOn: on, AnalyticsEvents.pAuto: auto},
+      );
+
+  /// [slot] `home` · `custom`.
+  void logArrivalManual(String slot) => logEvent(
+    AnalyticsEvents.arrivalManual,
+    params: {AnalyticsEvents.pSlot: slot},
+  );
+
+  /// [action] `care_message` · `open_settings`.
+  void logArrivalCardAction(String action) => logEvent(
+    AnalyticsEvents.arrivalCardAction,
+    params: {AnalyticsEvents.pAction: action},
+  );
+
+  // ── expenses (đợt 2) ── Sổ tiền stage 3A. [book] = 'own' / 'shared'.
+  void logMoneyBudgetSet({required String book, required bool total}) =>
+      logEvent(
+        AnalyticsEvents.moneyBudgetSet,
+        params: {
+          AnalyticsEvents.pBook: book,
+          AnalyticsEvents.pScope: total ? 'total' : 'category',
+        },
+      );
+
+  /// [view]: 'month' when the report opens, 'trend' on the 6/12 switch.
+  void logMoneyReportOpen({required String book, required String view}) =>
+      logEvent(
+        AnalyticsEvents.moneyReportOpen,
+        params: {AnalyticsEvents.pBook: book, AnalyticsEvents.pView: view},
+      );
+
+  /// One per search actually run (after the typing pause); the query text
+  /// itself is never sent.
+  void logMoneySearch(int filterCount) => logEvent(
+    AnalyticsEvents.moneySearch,
+    params: {AnalyticsEvents.pFilterCount: filterCount},
+  );
+
+  // ── analytics-coverage ── (2026-10-25)
+  void logPhotoCaptionEdited() => logEvent(AnalyticsEvents.photoCaptionEdited);
+
+  void logPhotoReplaced() => logEvent(AnalyticsEvents.photoReplaced);
+
+  /// [reason] is the stable report code (`inappropriate` / `spam` / `other`).
+  void logPhotoReported(String reason) => logEvent(
+    AnalyticsEvents.photoReported,
+    params: {AnalyticsEvents.pReason: reason},
+  );
+
+  void logChatBgSet({required bool cleared}) => logEvent(
+    AnalyticsEvents.chatBgSet,
+    params: {AnalyticsEvents.pCleared: cleared},
+  );
+
+  /// [count] = photos allowed as counter background, 0 = all shown.
+  void logCounterBgSet(int count) => logEvent(
+    AnalyticsEvents.counterBgSet,
+    params: {AnalyticsEvents.pCount: count},
+  );
+
+  /// [action]: edit · toggle_on · toggle_off · delete · restore.
+  void logReminderUpdated(String action, {required bool notifyPartner}) =>
+      logEvent(
+        AnalyticsEvents.reminderUpdated,
+        params: {
+          AnalyticsEvents.pAction: action,
+          AnalyticsEvents.pNotifyPartner: notifyPartner,
+        },
+      );
+
+  /// [type] is the MilestoneType name.
+  void logMilestoneToggled(String type, {required bool on}) => logEvent(
+    AnalyticsEvents.milestoneToggled,
+    params: {AnalyticsEvents.pType: type, AnalyticsEvents.pOn: on},
+  );
+
+  void logMilestoneTimeSet(String type) => logEvent(
+    AnalyticsEvents.milestoneTimeSet,
+    params: {AnalyticsEvents.pType: type},
+  );
+
+  /// [count] = number of reminder times now set.
+  void logDqReminderChanged({required bool enabled, required int count}) =>
+      logEvent(
+        AnalyticsEvents.dqReminderChanged,
+        params: {
+          AnalyticsEvents.pEnabled: enabled,
+          AnalyticsEvents.pCount: count,
+        },
+      );
+
+  void logLunarReminderChanged({required bool enabled, int? count}) => logEvent(
+    AnalyticsEvents.lunarReminderChanged,
+    params: {AnalyticsEvents.pEnabled: enabled, AnalyticsEvents.pCount: count},
+  );
+
+  void logDecisionReminderChanged({required bool enabled}) => logEvent(
+    AnalyticsEvents.decisionReminderChanged,
+    params: {AnalyticsEvents.pEnabled: enabled},
+  );
+
+  void logNotificationMarkAllRead() =>
+      logEvent(AnalyticsEvents.notificationMarkAllRead);
+
+  void logNotificationRemoved() =>
+      logEvent(AnalyticsEvents.notificationRemoved);
+
+  void logNotificationClearedAll() =>
+      logEvent(AnalyticsEvents.notificationClearedAll);
+
+  void logSignOut() => logEvent(AnalyticsEvents.signOut);
+
+  void logVerificationEmailResent() =>
+      logEvent(AnalyticsEvents.verificationEmailResent);
+
+  void logPasswordSet() => logEvent(AnalyticsEvents.passwordSet);
+
+  /// [field]: anniversary · names · photo (which field, never the value).
+  void logCoupleUpdated(String field) => logEvent(
+    AnalyticsEvents.coupleUpdated,
+    params: {AnalyticsEvents.pField: field},
+  );
+
+  void logRpsNudgeSent() => logEvent(AnalyticsEvents.rpsNudgeSent);
+
+  void logRpsCancelled() => logEvent(AnalyticsEvents.rpsCancelled);
+
+  /// Never which choice — only that a move was made.
+  void logRpsChoiceMade() => logEvent(AnalyticsEvents.rpsChoiceMade);
+
+  void logSleepColorSet() => logEvent(AnalyticsEvents.sleepColorSet);
+
+  void logSleepNightDeleted() => logEvent(AnalyticsEvents.sleepNightDeleted);
+
+  void logSleepCardHidden() => logEvent(AnalyticsEvents.sleepCardHidden);
+
+  void logWeatherCardHidden() => logEvent(AnalyticsEvents.weatherCardHidden);
+
+  void logCoupleLeft() => logEvent(AnalyticsEvents.coupleLeft);
+
+  void logLoveTreeShared() => logEvent(AnalyticsEvents.loveTreeShared);
+
+  void logForceUpdateStoreTap() =>
+      logEvent(AnalyticsEvents.forceUpdateStoreTap);
+
+  void logInviteClipboardUsed() =>
+      logEvent(AnalyticsEvents.inviteClipboardUsed);
+
+  void logAiQuestionsToggle({required bool enabled}) => logEvent(
+    AnalyticsEvents.aiQuestionsToggle,
+    params: {AnalyticsEvents.pEnabled: enabled},
+  );
 
   // ---------------------------------------------------------------------------
   // User id + properties. D2 — user_id = Firebase uid while authed (an id, not

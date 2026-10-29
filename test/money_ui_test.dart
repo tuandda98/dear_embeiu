@@ -1,0 +1,1048 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+
+import 'package:dear_embeiu/l10n/app_l10n.dart';
+import 'package:dear_embeiu/l10n/app_localizations.dart';
+import 'package:dear_embeiu/models/money.dart';
+import 'package:dear_embeiu/providers/money_provider.dart';
+import 'package:dear_embeiu/screens/money/money_categories_screen.dart';
+import 'package:dear_embeiu/screens/money/money_screen.dart';
+import 'package:dear_embeiu/screens/money/money_wallets_screen.dart';
+import 'package:dear_embeiu/services/money_service.dart';
+import 'package:dear_embeiu/utils/money_math.dart';
+import 'package:dear_embeiu/widgets/money/add_transaction_sheet.dart';
+import 'package:dear_embeiu/widgets/money/money_home_entry.dart';
+import 'package:dear_embeiu/widgets/money/money_ui.dart';
+import 'package:dear_embeiu/widgets/segmented_pill.dart';
+
+/// Sổ tiền stage 2 (feature expenses): keypad + hints, chips, "khoản quen"
+/// in 2 taps, smart defaults, the linked-entry lock, undo delete, the Home
+/// entry states, first run (credit card stored negative).
+
+// ── Firestore stand-ins: only `collection().doc()` paths are touched ───────
+
+int _ids = 0;
+
+// ignore: subtype_of_sealed_class
+class _FakeDoc extends Fake implements DocumentReference<Map<String, dynamic>> {
+  _FakeDoc(this.id);
+
+  @override
+  final String id;
+
+  @override
+  CollectionReference<Map<String, dynamic>> collection(String path) =>
+      _FakeCol();
+}
+
+// ignore: subtype_of_sealed_class
+class _FakeCol extends Fake
+    implements CollectionReference<Map<String, dynamic>> {
+  @override
+  DocumentReference<Map<String, dynamic>> doc([String? path]) =>
+      _FakeDoc(path ?? 'gen${_ids++}');
+}
+
+class _FakeDb extends Fake implements FirebaseFirestore {
+  @override
+  CollectionReference<Map<String, dynamic>> collection(String path) =>
+      _FakeCol();
+}
+
+class _Money extends MoneyProvider {
+  final List<({MoneyBookKind kind, MoneyTx tx, String? own})> added = [];
+  final List<({MoneyBookKind kind, List<MoneyWallet> extra, int start})>
+  ensured = [];
+
+  @override
+  Future<MoneyWriteOutcome> addTx(
+    MoneyBookKind kind,
+    MoneyTx draft, {
+    String? ownWalletId,
+  }) async {
+    added.add((kind: kind, tx: draft, own: ownWalletId));
+    return MoneyWriteOutcome.saved;
+  }
+
+  // The own window never moves in a test (no Firestore to re-listen to).
+  @override
+  void refreshDay() {}
+
+  @override
+  Future<void> ensureDefaultWallet(
+    MoneyBookKind kind, {
+    List<MoneyWallet> extra = const <MoneyWallet>[],
+    int starterBalance = 0,
+  }) async {
+    ensured.add((kind: kind, extra: extra, start: starterBalance));
+  }
+}
+
+final _db = _FakeDb();
+String get _today => MoneyMath.dateKey(DateTime.now());
+String _daysAgo(int n) =>
+    MoneyMath.dateKey(DateTime.now().subtract(Duration(days: n)));
+String get _month => MoneyMath.monthKey(DateTime.now());
+
+const _wallets = <MoneyWallet>[
+  MoneyWallet(
+    id: 'cash',
+    name: 'Tiền mặt',
+    type: MoneyWalletType.cash,
+    emoji: '💵',
+    order: 0,
+  ),
+  MoneyWallet(
+    id: 'momo',
+    name: 'MoMo',
+    type: MoneyWalletType.ewallet,
+    emoji: '📱',
+    order: 1,
+  ),
+];
+
+MoneyBookState _own({
+  List<MoneyTx> txs = const [],
+  List<MoneyWallet> wallets = _wallets,
+  bool fromServer = true,
+  bool? everLogged,
+}) {
+  final s = MoneyBookState(MoneyService.own('me', firestore: _db));
+  s.wallets = wallets;
+  s.walletsFromServer = fromServer;
+  s.txs = txs;
+  s.txLoaded = true;
+  s.everLogged = everLogged ?? txs.isNotEmpty;
+  s.windowFrom = _daysAgo(60);
+  s.netSumsAt = DateTime.now();
+  return s;
+}
+
+MoneyBookState _shared({
+  List<MoneyTx> txs = const [],
+  List<MoneyBudget> budgets = const [],
+  bool loaded = true,
+}) {
+  final s = MoneyBookState(
+    MoneyService.shared('c1', const ['her', 'me'], firestore: _db),
+  );
+  s.wallets = const [
+    MoneyWallet(
+      id: 'joint',
+      name: 'Ví chung',
+      type: MoneyWalletType.cash,
+      emoji: '👛',
+      memberUids: ['her', 'me'],
+    ),
+  ];
+  s.walletsFromServer = true;
+  s.txs = txs;
+  s.txLoaded = loaded;
+  s.everLogged = loaded ? txs.isNotEmpty : null;
+  s.budgets = budgets;
+  // Balances come from the server aggregates now (review #4), not from txs.
+  s.windowFrom = _daysAgo(60);
+  s.netSums = const {'joint': 0};
+  s.netSumsAt = loaded ? DateTime.now() : null;
+  return s;
+}
+
+MoneyTx _exp(
+  String id,
+  int amount, {
+  String cat = 'food_out',
+  String wallet = 'momo',
+  String? date,
+  String note = '',
+}) => MoneyTx(
+  id: id,
+  type: MoneyTxType.expense,
+  amount: amount,
+  date: date ?? _today,
+  outWalletId: wallet,
+  categoryId: cat,
+  note: note,
+);
+
+MoneyTx _sharedExp(
+  String id,
+  int amount, {
+  String payer = 'me',
+  String? linkId,
+  String createdBy = 'me',
+}) => MoneyTx(
+  id: id,
+  type: MoneyTxType.expense,
+  amount: amount,
+  date: _today,
+  categoryId: 'food_out',
+  note: 'Lẩu Thái',
+  payer: payer,
+  memberUids: const ['her', 'me'],
+  linkId: linkId,
+  createdBy: createdBy,
+);
+
+Widget _app(MoneyProvider money, Widget home) =>
+    ChangeNotifierProvider<MoneyProvider>.value(
+      value: money,
+      child: MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MoneyPeopleScope(
+          people: const MoneyPeople(myName: 'Tuấn', partnerName: 'Thảo'),
+          child: child!,
+        ),
+        home: Scaffold(body: home),
+      ),
+    );
+
+/// A button that opens the sheet, so the sheet gets a real route.
+class _Opener extends StatelessWidget {
+  const _Opener({required this.book, this.editing});
+
+  final MoneyBookKind book;
+  final MoneyTx? editing;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: TextButton(
+      onPressed: () =>
+          AddTransactionSheet.show(context, book: book, editing: editing),
+      child: const Text('open'),
+    ),
+  );
+}
+
+Future<void> _open(
+  WidgetTester tester,
+  _Money money, {
+  MoneyBookKind book = MoneyBookKind.own,
+  MoneyTx? editing,
+}) async {
+  tester.view.physicalSize = const Size(1170, 2532);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(_app(money, _Opener(book: book, editing: editing)));
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _keys(WidgetTester tester, List<String> keys) async {
+  for (final k in keys) {
+    await tester.tap(find.text(k).last);
+    await tester.pump();
+  }
+}
+
+_Money _withOwn({List<MoneyTx> txs = const []}) => _Money()
+  ..debugSetBooks(
+    uid: 'me',
+    own: _own(txs: txs),
+  );
+
+void main() {
+  setUp(() => AppL10n.setLocale(const Locale('vi')));
+
+  group('MoneyAmountInput', () {
+    test('keys build "1tr2" = 1.200.000, one unit right after a digit', () {
+      final i = MoneyAmountInput();
+      for (final k in ['tr', '1', 'tr', 'k', '2']) {
+        i.press(k);
+      }
+      expect(i.raw, '1tr2');
+      expect(i.parsed.value, 1200000);
+      expect(i.parsed.hasUnit, isTrue);
+      i.backspace();
+      i.backspace(); // drops the whole unit
+      expect(i.raw, '1');
+    });
+
+    test('a digit after "k" is dropped; "tr" keeps its tail', () {
+      final i = MoneyAmountInput();
+      for (final k in ['5', '0', 'k', '0', '000', '5']) {
+        i.press(k);
+      }
+      expect(i.raw, '50k');
+      expect(i.parsed.value, 50000);
+      final t = MoneyAmountInput();
+      for (final k in ['2', 'tr', '0', '5']) {
+        t.press(k);
+      }
+      expect(t.parsed.value, 2050000);
+    });
+
+    test('leading zeros are ignored, chips add up, a digit starts over', () {
+      final i = MoneyAmountInput();
+      i.press('0');
+      i.press('000');
+      expect(i.raw, '');
+      i.addChip(50000);
+      i.addChip(100000);
+      expect(i.parsed.value, 150000);
+      i.press('7');
+      expect(i.raw, '7');
+    });
+  });
+
+  group('AddTransactionSheet', () {
+    testWidgets('hints: empty, "Bạn gõ “1tr2”", không hiểu, quá 10 tỷ', (
+      tester,
+    ) async {
+      await _open(tester, _withOwn());
+      expect(find.text('Gõ 50k, 1tr2 hay 1 củ đều được'), findsOneWidget);
+      expect(find.text('Nhập số tiền để lưu'), findsOneWidget);
+
+      await _keys(tester, ['1', 'tr', '2']);
+      expect(find.text('Bạn gõ “1tr2”'), findsOneWidget);
+      expect(find.text('Lưu 1.200.000\u00a0₫'), findsOneWidget);
+
+      for (var i = 0; i < 4; i++) {
+        await tester.tap(find.bySemanticsLabel('Xoá một ký tự'));
+        await tester.pump();
+      }
+      await _keys(tester, ['1', ',']);
+      expect(
+        find.text('Chưa hiểu số này. Thử 120k hoặc 120000.'),
+        findsOneWidget,
+      );
+      expect(find.text('Sửa số tiền để lưu'), findsOneWidget);
+
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(find.bySemanticsLabel('Xoá một ký tự'));
+        await tester.pump();
+      }
+      await _keys(tester, ['2', '000', '000', '000', '0']);
+      expect(
+        find.text('Tối đa 10 tỷ một khoản. Kiểm tra lại số 0 nhé.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('50k then 100k adds up to 150.000\u00a0₫', (tester) async {
+      await _open(tester, _withOwn());
+      await tester.tap(find.text('50k'));
+      await tester.pump();
+      await tester.tap(find.text('100k'));
+      await tester.pump();
+      expect(find.text('Lưu 150.000\u00a0₫'), findsOneWidget);
+    });
+
+    testWidgets('"Ghi lại khoản quen": chip + Lưu = 2 taps', (tester) async {
+      final money = _withOwn(
+        txs: [
+          _exp('a', 120000, note: 'Cơm trưa', date: _daysAgo(1)),
+          _exp('b', 110000, note: 'Cơm trưa', date: _daysAgo(2)),
+          _exp(
+            'c',
+            35000,
+            cat: 'food_coffee',
+            wallet: 'cash',
+            date: _daysAgo(3),
+          ),
+        ],
+      );
+      await _open(tester, money);
+      await tester.tap(find.text('Cơm trưa · 120k'));
+      await tester.pump();
+      await tester.tap(find.text('Lưu 120.000\u00a0₫'));
+      await tester.pumpAndSettle();
+      expect(money.added, hasLength(1));
+      final tx = money.added.single.tx;
+      expect(tx.amount, 120000);
+      expect(tx.categoryId, 'food_out');
+      expect(tx.outWalletId, 'momo');
+      expect(tx.note, 'Cơm trưa');
+      expect(find.text('Đã ghi 120.000\u00a0₫ · Ăn ngoài'), findsOneWidget);
+    });
+
+    testWidgets('defaults: most used category in 14 days + its last wallet', (
+      tester,
+    ) async {
+      final money = _withOwn(
+        txs: [
+          _exp('w', 20000, cat: 'home_water', date: _today),
+          for (var i = 1; i <= 3; i++)
+            _exp(
+              'c$i',
+              35000,
+              cat: 'food_coffee',
+              wallet: 'cash',
+              date: _daysAgo(i),
+            ),
+        ],
+      );
+      await _open(tester, money);
+      await _keys(tester, ['3', '5', 'k']);
+      await tester.tap(find.text('Lưu 35.000\u00a0₫'));
+      await tester.pumpAndSettle();
+      final tx = money.added.single.tx;
+      expect(tx.categoryId, 'food_coffee');
+      expect(tx.outWalletId, 'cash');
+    });
+
+    testWidgets('shared, I paid: deducts my own wallet', (tester) async {
+      final money = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(), shared: _shared());
+      await _open(tester, money, book: MoneyBookKind.shared);
+      await _keys(tester, ['7', '5', '0', '0', '1']);
+      await tester.tap(find.text('Lưu 75.001\u00a0₫'));
+      await tester.pumpAndSettle();
+      final r = money.added.single;
+      expect(r.kind, MoneyBookKind.shared);
+      expect(r.tx.payer, 'me');
+      expect(r.own, isNotNull);
+    });
+
+    testWidgets('linked entry made by the partner: amount + delete locked', (
+      tester,
+    ) async {
+      final tx = _sharedExp(
+        's1',
+        480000,
+        payer: 'her',
+        linkId: 'L1',
+        createdBy: 'her',
+      );
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
+      expect(
+        find.text(
+          'Chỉ Thảo sửa được số tiền, vì khoản này nằm trong sổ riêng của Thảo',
+        ),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Xoá một ký tự'), findsNothing);
+      expect(find.text('Xoá khoản'), findsNothing);
+      expect(find.text('50k'), findsNothing);
+    });
+
+    testWidgets('delete waits 5 s and Hoàn tác brings the entry back', (
+      tester,
+    ) async {
+      final tx = _exp('d1', 480000, note: 'Lẩu Thái Phố Huế');
+      final money = _withOwn(txs: [tx]);
+      await _open(tester, money, editing: tx);
+      await tester.tap(find.text('Xoá khoản'));
+      await tester.pumpAndSettle();
+      expect(money.isDeleting('d1'), isTrue);
+      expect(money.visibleTxs(MoneyBookKind.own), isEmpty);
+      expect(
+        find.text('Đã xoá Lẩu Thái Phố Huế · 480.000\u00a0₫'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Hoàn tác'));
+      await tester.pump();
+      expect(money.isDeleting('d1'), isFalse);
+      expect(money.visibleTxs(MoneyBookKind.own), hasLength(1));
+      await tester.pump(const Duration(seconds: 6));
+    });
+  });
+
+  group('vòng vá đợt 2', () {
+    testWidgets('delete snackbar ends before the delete goes out', (
+      tester,
+    ) async {
+      final tx = _exp('d1', 480000, note: 'Lẩu Thái Phố Huế');
+      final money = _withOwn(txs: [tx]);
+      await _open(tester, money, editing: tx);
+      await tester.tap(find.text('Xoá khoản'));
+      await tester.pumpAndSettle();
+      final bar = tester.widget<SnackBar>(find.byType(SnackBar));
+      expect(bar.duration, lessThan(MoneyProvider.deleteDelay));
+      // The delete already left (timer fired) yet "Hoàn tác" is tapped.
+      expect(money.undoDelete('d1'), isTrue);
+      await tester.tap(find.text('Hoàn tác'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.text('Khoản này đã xoá rồi.'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('credit card: "đang nợ thẻ" only below zero', (tester) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      MoneyWallet card(String id, int balance) => MoneyWallet(
+        id: id,
+        name: 'Thẻ $id',
+        type: MoneyWalletType.credit,
+        emoji: '💳',
+        openingBalance: balance,
+      );
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(
+            wallets: [card('am', -2458000), card('khong', 0), card('du', 300000)],
+          ),
+        );
+      await tester.pumpWidget(_app(money, const MoneyWalletsScreen()));
+      await tester.pump();
+      expect(find.textContaining('đang nợ thẻ'), findsOneWidget);
+      await tester.pumpWidget(
+        _app(
+          money,
+          const MoneyWalletScreen(book: MoneyBookKind.own, walletId: 'am'),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.text('Đang nợ thẻ chừng này, nhớ trả trước hạn nhé.'),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(
+        _app(
+          money,
+          const MoneyWalletScreen(book: MoneyBookKind.own, walletId: 'du'),
+        ),
+      );
+      await tester.pump();
+      expect(find.textContaining('Đang nợ thẻ'), findsNothing);
+    });
+
+    testWidgets('spoken amounts + month / weekday from the locale', (
+      tester,
+    ) async {
+      late BuildContext vi;
+      await tester.pumpWidget(
+        _app(
+          _withOwn(),
+          Builder(
+            builder: (c) {
+              vi = c;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      expect(vndSpoken(vi, 120000), '120.000 đồng');
+      expect(vndSpoken(vi, -5000), 'âm 5.000 đồng');
+      expect(moneyMonthLabel(vi, '2026-10'), 'Tháng 10, 2026');
+      // 2026-10-18 is a Sunday; not today / yesterday.
+      expect(
+        moneyDayLabel(vi, '2026-10-18', now: DateTime(2026, 10, 25)),
+        startsWith('Chủ'),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (c) {
+              vi = c;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      expect(vndSpoken(vi, -5000), 'minus 5,000 dong');
+      expect(moneyMonthLabel(vi, '2026-10'), 'October 2026');
+      expect(
+        moneyDayLabel(vi, '2026-10-18', now: DateTime(2026, 10, 25)),
+        'Sunday, Oct 18',
+      );
+    });
+
+    testWidgets('Home entry at 360dp ×1.3 keeps the amount (2 lines)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 1920);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final m = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(
+            txs: [_sharedExp('s1', 3574000)],
+            budgets: const [
+              MoneyBudget(id: 'b', categoryId: '', amount: 5000000),
+            ],
+          ),
+        );
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(360, 640),
+            textScaler: TextScaler.linear(1.3),
+          ),
+          child: _app(m, const MoneyHomeEntry(waiting: false)),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final sub = find.textContaining('71% ngân sách', findRichText: true);
+      final text = tester.widget<RichText>(sub.first);
+      expect(text.maxLines, 2);
+      final painter = TextPainter(
+        text: text.text,
+        textDirection: TextDirection.ltr,
+        textScaler: text.textScaler,
+        maxLines: text.maxLines,
+      )..layout(maxWidth: tester.getSize(sub.first).width);
+      expect(painter.didExceedMaxLines, isFalse);
+    });
+
+    testWidgets('segmented pill: each segment takes taps the full 44 tall', (
+      tester,
+    ) async {
+      var picked = 'a';
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 300,
+                child: StatefulBuilder(
+                  builder: (context, setState) => SegmentedPill<String>(
+                    values: const ['a', 'b'],
+                    selected: picked,
+                    height: 44,
+                    labelOf: (v) => v.toUpperCase(),
+                    onChanged: (v) => setState(() => picked = v),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final pill = tester.getRect(find.byType(SegmentedPill<String>));
+      // 2 px from the top edge: inside the old 4 inset, outside the 36 cell.
+      await tester.tapAt(Offset(pill.right - 2, pill.top + 2));
+      await tester.pump();
+      expect(picked, 'b');
+      final cell = tester.getSize(find.byType(InkWell).last);
+      expect(cell.height, greaterThanOrEqualTo(44));
+    });
+  });
+
+  group('MoneyHomeEntry', () {
+    MoneyHomeEntryKind kind(MoneyProvider m, {bool waiting = false}) =>
+        MoneyHomeEntry.kindOf(m, waiting: waiting);
+    MoneyBudget total(int amount) =>
+        MoneyBudget(id: 'b', categoryId: '', amount: amount);
+    MoneyProvider withShared(MoneyBookState shared, {List<MoneyTx>? own}) =>
+        _Money()..debugSetBooks(
+          uid: 'me',
+          own: _own(txs: own ?? []),
+          shared: shared,
+        );
+
+    test('states', () {
+      final spend = [_sharedExp('s1', 3574000)];
+      expect(
+        kind(withShared(_shared(txs: spend, budgets: [total(5000000)]))),
+        MoneyHomeEntryKind.normal,
+      );
+      expect(
+        kind(withShared(_shared(txs: spend))),
+        MoneyHomeEntryKind.noBudget,
+      );
+      expect(
+        kind(
+          withShared(
+            _shared(txs: [_sharedExp('s', 5240000)], budgets: [total(5000000)]),
+          ),
+        ),
+        MoneyHomeEntryKind.over,
+      );
+      final lastMonth = MoneyTx(
+        id: 'old',
+        type: MoneyTxType.expense,
+        amount: 100000,
+        date: '${MoneyMath.addMonths(_month, -1)}-15',
+        categoryId: 'food_out',
+        payer: 'me',
+        memberUids: const ['her', 'me'],
+      );
+      expect(
+        kind(withShared(_shared(txs: [lastMonth]))),
+        MoneyHomeEntryKind.monthEmpty,
+      );
+      expect(
+        kind(withShared(_shared(loaded: false))),
+        MoneyHomeEntryKind.loading,
+      );
+      expect(kind(withShared(_shared())), MoneyHomeEntryKind.neverLogged);
+      final waitingOwn = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(txs: [_exp('a', 1000)]),
+        );
+      expect(kind(waitingOwn, waiting: true), MoneyHomeEntryKind.waiting);
+      final neverOwn = _Money()..debugSetBooks(uid: 'me', own: _own());
+      expect(kind(neverOwn, waiting: true), MoneyHomeEntryKind.neverLogged);
+    });
+
+    testWidgets('normal row reads the shared month + budget %', (tester) async {
+      final m = withShared(
+        _shared(txs: [_sharedExp('s1', 3574000)], budgets: [total(5000000)]),
+      );
+      await tester.pumpWidget(_app(m, const MoneyHomeEntry(waiting: false)));
+      await tester.pump();
+      expect(
+        find.textContaining('71% ngân sách', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Ghi khoản'), findsOneWidget);
+    });
+
+    testWidgets('waiting couple: own book, only today\'s count', (
+      tester,
+    ) async {
+      final m = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(
+            txs: [
+              _exp('a', 1000),
+              _exp('b', 2000),
+              _exp('c', 3000, date: _daysAgo(1)),
+            ],
+          ),
+        );
+      await tester.pumpWidget(_app(m, const MoneyHomeEntry(waiting: true)));
+      await tester.pump();
+      expect(find.text('Sổ tiền của mình'), findsOneWidget);
+      expect(find.text('Hôm nay đã ghi 2 khoản'), findsOneWidget);
+      expect(find.textContaining('₫'), findsNothing);
+    });
+
+    testWidgets('over budget shows "vượt …"', (tester) async {
+      final m = withShared(
+        _shared(txs: [_sharedExp('s', 5240000)], budgets: [total(5000000)]),
+      );
+      await tester.pumpWidget(_app(m, const MoneyHomeEntry(waiting: false)));
+      await tester.pump();
+      expect(
+        find.textContaining('vượt 240.000\u00a0₫', findRichText: true),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('First run', () {
+    testWidgets('credit card owed 2.458.000 is stored negative', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(wallets: const []),
+        );
+      expect(money.needsFirstRun, isTrue);
+      await tester.pumpWidget(_app(money, const MoneyScreen()));
+      await tester.pump();
+      expect(find.text('Tiền của mình đang nằm ở đâu?'), findsOneWidget);
+      final switches = find.byType(Switch);
+      await tester.tap(switches.last); // Thẻ tín dụng
+      await tester.pump();
+      await tester.enterText(find.byType(TextField).last, '2458000');
+      await tester.pump();
+      await tester.ensureVisible(find.text('Xong, vào sổ'));
+      await tester.pump();
+      await tester.tap(find.text('Xong, vào sổ'));
+      await tester.pump();
+      final call = money.ensured.single;
+      expect(call.kind, MoneyBookKind.own);
+      final card = call.extra.single;
+      expect(card.type, MoneyWalletType.credit);
+      expect(card.openingBalance, -2458000);
+    });
+  });
+
+  group('Screens render', () {
+    void big(WidgetTester tester) {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+    }
+
+    testWidgets('own overview: month card, recent, where, wallets', (
+      tester,
+    ) async {
+      big(tester);
+      final own = _own(
+        txs: [
+          _exp('a', 120000, note: 'Cơm trưa với team'),
+          _exp(
+            'b',
+            4500000,
+            cat: 'home_rent',
+            wallet: 'cash',
+            date: _daysAgo(1),
+          ),
+          MoneyTx(
+            id: 'i',
+            type: MoneyTxType.adjust,
+            amount: 20500000,
+            date: _today,
+            inWalletId: 'cash',
+          ),
+        ],
+      );
+      own.budgets = const [
+        MoneyBudget(id: 't', categoryId: '', amount: 11000000),
+      ];
+      final money = _Money()..debugSetBooks(uid: 'me', own: own);
+      await tester.pumpWidget(
+        _app(money, const MoneyScreen(initialBook: MoneyBookKind.own)),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Còn trong ngân sách'), findsOneWidget);
+      expect(find.text('Cơm trưa với team'), findsOneWidget);
+      expect(find.text('Thu trừ chi'), findsNothing);
+      await tester.scrollUntilVisible(find.text('Tiêu vào đâu'), 200);
+      expect(find.text('Tiêu vào đâu'), findsOneWidget);
+    });
+
+    testWidgets('shared overview builds: no lanes, no balance strip', (
+      tester,
+    ) async {
+      big(tester);
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(
+            txs: [
+              _sharedExp('s1', 480000),
+              _sharedExp('s2', 70000, payer: 'her'),
+            ],
+          ),
+        );
+      await tester.pumpWidget(
+        _app(money, const MoneyScreen(initialBook: MoneyBookKind.shared)),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Ai trả tháng này'), findsNothing);
+      expect(find.text('Mình đang ứng nhiều hơn'), findsNothing);
+    });
+
+    testWidgets('newcomer card only when the own book never had an entry', (
+      tester,
+    ) async {
+      big(tester);
+      final fresh = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(everLogged: false));
+      await tester.pumpWidget(
+        _app(fresh, const MoneyScreen(initialBook: MoneyBookKind.own)),
+      );
+      await tester.pump();
+      expect(find.text('Ghi khoản đầu tiên'), findsOneWidget);
+      // Stopped logging long ago: nothing in the 45-day window, but not new.
+      final stopped = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(everLogged: true));
+      await tester.pumpWidget(
+        _app(stopped, const MoneyScreen(initialBook: MoneyBookKind.own)),
+      );
+      await tester.pump();
+      expect(find.text('Ghi khoản đầu tiên'), findsNothing);
+      expect(find.text('Gần đây'), findsOneWidget);
+    });
+
+    testWidgets('shared "Góp quỹ" goes from my pocket into the fund', (
+      tester,
+    ) async {
+      final shared = _shared();
+      shared.wallets = [
+        ...shared.wallets,
+        const MoneyWallet(
+          id: 'fund',
+          name: 'Quỹ Đà Lạt',
+          type: MoneyWalletType.goal,
+          emoji: '🏔️',
+          goalTarget: 5000000,
+          memberUids: ['her', 'me'],
+        ),
+      ];
+      final money = _Money()
+        ..debugSetBooks(uid: 'me', own: _own(), shared: shared);
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _app(
+          money,
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => AddTransactionSheet.show(
+                context,
+                book: MoneyBookKind.shared,
+                type: MoneyTxType.contribution,
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await _keys(tester, ['5', '0', '0', 'k']);
+      await tester.tap(find.text('Quỹ Đà Lạt'));
+      await tester.pump();
+      await tester.tap(find.text('Lưu 500.000 ₫'));
+      await tester.pumpAndSettle();
+      final r = money.added.single;
+      expect(r.tx.type, MoneyTxType.contribution);
+      expect(r.tx.payer, 'me');
+      expect(r.tx.outWalletId, isEmpty);
+      expect(r.tx.inWalletId, 'fund');
+      expect(r.own, isNotNull); // the money leaves my own wallet
+      expect(r.tx.isWellFormed, isTrue);
+    });
+
+    testWidgets('wallets + categories screens build', (tester) async {
+      big(tester);
+      final money = _Money()..debugSetBooks(uid: 'me', own: _own());
+      await tester.pumpWidget(_app(money, const MoneyWalletsScreen()));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Tổng tiền đang có'), findsOneWidget);
+      await tester.pumpWidget(
+        _app(money, const MoneyCategoriesScreen(book: MoneyBookKind.own)),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Ăn uống'), findsOneWidget);
+    });
+  });
+
+  // ── Sửa theo Tester 2026-10-22 ──
+  group('Linked entries + undo windows (Tester 2026-10-22)', () {
+    // The "Tiền từ đâu" chips: shared wallets and "Tiền riêng" (D34).
+    VoidCallback? chipTap(WidgetTester tester, String label) =>
+        tester.widget<MoneyChip>(find.widgetWithText(MoneyChip, label)).onTap;
+
+    testWidgets('my linked shared entry: source chips locked, with a line', (
+      tester,
+    ) async {
+      final tx = _sharedExp('s1', 480000, linkId: 'L1');
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
+      expect(chipTap(tester, 'Tiền riêng'), isNull);
+      expect(chipTap(tester, 'Ví chung'), isNull);
+      // The explanation sits in the detail panel, under the summary row.
+      await tester.tap(find.textContaining('Lẩu Thái'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Khoản này đã trừ vào ví của mình nên không đổi người trả được. '
+          'Muốn đổi thì xoá rồi ghi lại nhé.',
+        ),
+        findsOneWidget,
+      );
+      // Not the partner's lock: the amount stays mine to change.
+      expect(find.textContaining('Chỉ Thảo sửa được'), findsNothing);
+    });
+
+    testWidgets('a shared entry without a link: source chips stay open', (
+      tester,
+    ) async {
+      final tx = _sharedExp('s2', 480000);
+      final money = _Money()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      await _open(tester, money, book: MoneyBookKind.shared, editing: tx);
+      expect(chipTap(tester, 'Tiền riêng'), isNotNull);
+      expect(chipTap(tester, 'Ví chung'), isNotNull);
+    });
+
+    test('updateTx refuses a new payer / wallet on a linked entry', () async {
+      final tx = _sharedExp('s1', 480000, linkId: 'L1');
+      final p = MoneyProvider()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(txs: [tx]),
+        );
+      addTearDown(p.dispose);
+      await expectLater(
+        p.updateTx(
+          MoneyBookKind.shared,
+          tx,
+          tx.copyWith(payer: kMoneyPayerWallet, outWalletId: 'joint'),
+        ),
+        throwsStateError,
+      );
+    });
+
+    test(
+      'deleting both halves hides the own half and gives its money back',
+      () {
+        final shared = _sharedExp('s1', 480000, linkId: 'L1');
+        final mine = MoneyTx(
+          id: 'o1',
+          type: MoneyTxType.expense,
+          amount: 480000,
+          date: _today,
+          outWalletId: 'cash',
+          categoryId: 'food_out',
+          linkId: 'L1',
+          createdBy: 'me',
+        );
+        final own = _own(txs: [mine])..netSums = const {'cash': -480000};
+        final p = MoneyProvider()
+          ..debugSetBooks(
+            uid: 'me',
+            own: own,
+            shared: _shared(txs: [shared]),
+          );
+        addTearDown(p.dispose);
+        expect(p.balances(MoneyBookKind.own)['cash'], -480000);
+        p.scheduleDelete(MoneyBookKind.shared, shared, alsoLinked: mine);
+        expect(p.visibleTxs(MoneyBookKind.shared), isEmpty);
+        expect(p.visibleTxs(MoneyBookKind.own), isEmpty);
+        expect(p.balances(MoneyBookKind.own)['cash'], 0);
+        p.undoDelete('s1');
+        expect(p.visibleTxs(MoneyBookKind.own), [mine]);
+        expect(p.balances(MoneyBookKind.own)['cash'], -480000);
+      },
+    );
+
+    test('"Bỏ ngân sách" → Hoàn tác keeps the same budget (alerted)', () {
+      const budget = MoneyBudget(
+        id: 'total',
+        categoryId: '',
+        amount: 5000000,
+        alerted: {'2026-10': 80},
+      );
+      final p = MoneyProvider()
+        ..debugSetBooks(
+          uid: 'me',
+          own: _own(),
+          shared: _shared(budgets: const [budget]),
+        );
+      addTearDown(p.dispose);
+      p.scheduleBudgetDelete(MoneyBookKind.shared, budget);
+      expect(p.budgetFor(MoneyBookKind.shared, ''), isNull);
+      expect(p.undoBudgetDelete(MoneyBookKind.shared, 'total'), isTrue);
+      expect(p.budgetFor(MoneyBookKind.shared, ''), same(budget));
+      expect(p.undoBudgetDelete(MoneyBookKind.shared, 'total'), isFalse);
+    });
+  });
+}

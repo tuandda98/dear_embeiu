@@ -1,0 +1,7 @@
+# Cuộn Home tới thẻ "Về đến nhà chưa?" (cả thẻ nằm gọn trong màn). Xem _common/scroll_to.yaml.
+appId: com.tony.dearembeiu.dev
+---
+- runFlow:
+    file: ../../_common/scroll_to.yaml
+    env:
+      TITLE: '(?s).*Về đến nhà chưa\?'

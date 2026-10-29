@@ -1,0 +1,19 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn vẫn ở màn ván (flow 17) => thấy đối phương xin thua ngay.
+# CARO-RESIGN: "<tên> xin thua", "Ván này bạn thắng, ở nước 2."; sau đó thẻ Home ghi thắng.
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: '(?s).* xin thua\. Ván này bạn thắng, ở nước 2\..*'
+    timeout: 15000
+- assertVisible: '(?s)Ván mới.*'
+- tapOn: '(?s)Quay lại.*'
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: 'Cờ caro\. Bạn thắng ván vừa rồi.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- assertVisible: 'Cờ caro\. Bạn thắng ván vừa rồi.*'

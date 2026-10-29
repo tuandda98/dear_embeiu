@@ -24,6 +24,8 @@ import com.tony.dearembeiu.sleep.MotionStore
 import com.tony.dearembeiu.sleep.MotionTracker
 import com.tony.dearembeiu.widget.DayCounterWidget
 import com.tony.dearembeiu.widget.WidgetStore
+// ── arrival (đợt 2) ──
+import com.tony.dearembeiu.arrival.ArrivalChannel
 
 private const val MOTION_REQ = 4711
 
@@ -78,7 +80,14 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+        // ── arrival (đợt 2) ── location permission, one fix, address search
+        // (`dear_embeiu/arrival`). Main engine only: geofence events run in
+        // native_geofence's own engine and never call it.
+        arrivalChannel = ArrivalChannel(this, flutterEngine.dartExecutor.binaryMessenger)
     }
+
+    // ── arrival (đợt 2) ──
+    private var arrivalChannel: ArrivalChannel? = null
 
     private var pendingMotionResult: MethodChannel.Result? = null
 
@@ -101,6 +110,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // ── arrival (đợt 2) ──
+        if (arrivalChannel?.onPermissionResult(requestCode) == true) return
         if (requestCode != MOTION_REQ) return
         val ok = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
         pendingMotionResult?.success(ok)

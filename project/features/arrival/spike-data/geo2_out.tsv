@@ -1,0 +1,44 @@
+id	grp	era	api	n	lat	lon	dist_m	label
+1	HN	cũ	CL	1	21.0026181	105.8429284	293	78 Ngõ 75 Giải Phóng | Ngõ 75 Giải Phóng | P. Bạch Mai
+1	HN	cũ	MK	1	21.0026181	105.8429284	293	78 Ngõ 75 Giải Phóng | 78 Ngõ 75 Giải Phóng, P. Bạch Mai, Thành Phố Hà Nội, Việt Nam | best5=293
+2	HN	mới	CL	1	21.0075077	105.8427374	128	1 Đại Cồ Việt | Đại Cồ Việt | P. Bạch Mai
+2	HN	mới	MK	1	21.0075077	105.8427374	128	1 Đại Cồ Việt | 1 Đại Cồ Việt, P. Bạch Mai, Thành Phố Hà Nội, Việt Nam | best5=128
+3	HN	cũ	CL	1	21.0249	105.8595273	199	1 Tràng Tiền | Tràng Tiền | P. Hoàn Kiếm
+3	HN	cũ	MK	1	21.0249	105.8595273	199	1 Tràng Tiền | 1 Tràng Tiền, P. Hoàn Kiếm, Thành Phố Hà Nội, Việt Nam | best5=199
+4	HN	mới	CL	1	21.02697275486351	105.83616754840291	192	Quốc Tử Giám | Quốc Tử Giám | P. Văn Miếu - Quốc Tử Giám
+4	HN	mới	MK	1	21.02697275486351	105.83616754840291	192	Quốc Tử Giám | Quốc Tử Giám, P. Văn Miếu - Quốc Tử Giám, Thành Phố Hà Nội, Việt Nam | best5=192
+5	HN	cũ	CL	1	21.0275187	105.846336	119	40 Tràng Thi | Tràng Thi | P. Hoàn Kiếm
+5	HN	cũ	MK	1	21.0275187	105.846336	119	40 Tràng Thi | 40 Tràng Thi, P. Hoàn Kiếm, Thành Phố Hà Nội, Việt Nam | best5=119
+6	HN	mới	CL	1	21.036786	105.7823835	395	144 Xuân Thủy | Xuân Thủy | P. Cầu Giấy
+6	HN	mới	MK	1	21.036786	105.7823835	395	144 Xuân Thủy | 144 Xuân Thủy, P. Cầu Giấy, Thành Phố Hà Nội, Việt Nam | best5=395
+7	HN	cũ	CL	1	20.9728135	105.8461918	7482	54 Ngõ 42 Thịnh Liệt | Ngõ 42 Thịnh Liệt | P. Hoàng Mai
+7	HN	cũ	MK	1	21.03466486574585	105.81439925972376	318	Liễu Giai | Liễu Giai, P. Ngọc Hà, Thành Phố Hà Nội, Việt Nam | best5=318
+8	HN	mới	CL	1	21.0243552	105.8413498	28	120 Lê Duẩn | Lê Duẩn | P. Văn Miếu - Quốc Tử Giám
+8	HN	mới	MK	1	21.0243552	105.8413498	28	120 Lê Duẩn | 120 Lê Duẩn, P. Văn Miếu - Quốc Tử Giám, Thành Phố Hà Nội, Việt Nam | best5=28
+9	HCM	cũ	CL	1	10.7781778	106.6964579	188	135 Nam Kỳ Khởi Nghĩa | Nam Kỳ Khởi Nghĩa | P. Bến Thành
+9	HCM	cũ	MK	1	10.7781778	106.6964579	188	135 Nam Kỳ Khởi Nghĩa | 135 Nam Kỳ Khởi Nghĩa, P. Bến Thành, Thành Phố Hồ Chí Minh, Việt Nam | best5=188
+10	HCM	cũ	CL	1	10.7791656	106.6992965	63	1 Công Trường Công Xã Paris | Công Trường Công Xã Paris | P. Sài Gòn
+10	HCM	cũ	MK	1	10.7791656	106.6992965	63	1 Công Trường Công Xã Paris | 1 Công Trường Công Xã Paris, P. Sài Gòn, Thành Phố Hồ Chí Minh, Việt Nam | best5=63
+11	HCM	mới	CL	1	10.7796436	106.6997321	35	2 Công Trường Công Xã Paris | Công Trường Công Xã Paris | P. Sài Gòn
+11	HCM	mới	MK	1	10.7796436	106.6997321	35	2 Công Trường Công Xã Paris | 2 Công Trường Công Xã Paris, P. Sài Gòn, Thành Phố Hồ Chí Minh, Việt Nam | best5=35
+12	HCM	mới	CL	1	10.855728	106.665838	9897	Cầu Bến Phân | Cầu Bến Phân | P. An Hội Tây
+12	HCM	mới	MK	1	10.7724714	106.6980332	5	Chợ Bến Thành | Lê Lợi
+P. Bến Thành
+Thành Phố Hồ Chí Minh
+Việt Nam | best5=5
+13	HCM	cũ	CL	1	10.7579277	106.6596187	88	201B Nguyễn Chí Thanh | Nguyễn Chí Thanh | P. Chợ Lớn
+13	HCM	cũ	MK	1	10.7579277	106.6596187	88	201B Nguyễn Chí Thanh | 201B Nguyễn Chí Thanh, P. Chợ Lớn, Thành Phố Hồ Chí Minh, Việt Nam | best5=88
+14	HCM	cũ	CL	1	10.7724062	106.6576442	230	268 Lý Thường Kiệt | Lý Thường Kiệt | P. Hòa Hưng
+14	HCM	cũ	MK	1	10.7724062	106.6576442	230	268 Lý Thường Kiệt | 268 Lý Thường Kiệt, P. Hòa Hưng, Thành Phố Hồ Chí Minh, Việt Nam | best5=230
+15	HCM	mới	CL	1	10.7690453	106.6752607	5855	720 Điện Biên Phủ | Điện Biên Phủ | P. Vườn Lài
+15	HCM	mới	MK	1	10.7690453	106.6752607	5855	720 Điện Biên Phủ | 720 Điện Biên Phủ, P. Vườn Lài, Thành Phố Hồ Chí Minh, Việt Nam | best5=5855
+16	HCM	mới	CL	1	10.79428	106.6333113	7882	7 Trương Văn Lĩnh | Trương Văn Lĩnh | P. Tân Sơn Nhì
+16	HCM	mới	MK	1	10.7771134	106.7039271	89	7 Công Trường Lam Sơn | 7 Công Trường Lam Sơn, P. Sài Gòn, Thành Phố Hồ Chí Minh, Việt Nam | best5=89
+17	DN	mới	CL	1	16.0720678	108.2156373	72	124 Hải Phòng | Hải Phòng | P. Hải Châu
+17	DN	mới	MK	1	16.0720678	108.2156373	72	124 Hải Phòng | 124 Hải Phòng, P. Hải Châu, Thành Phố Đà Nẵng, Việt Nam | best5=72
+18	Huế	cũ	CL	1	16.4622498	107.5849177	130	16 Lê Lợi | Lê Lợi | P. Thuận Hóa
+18	Huế	cũ	MK	1	16.4622498	107.5849177	130	16 Lê Lợi | 16 Lê Lợi, P. Thuận Hóa, Thành Phố Huế, Việt Nam | best5=130
+19	CT	mới	CL	1	9.923662218762512	105.63003435354659	19361	Đường 3 Tháng 2 | Đường 3 Tháng 2 | X. Tân Hòa
+19	CT	mới	MK	1	10.0206293	105.7600965	1572	2 Đường Số 3 | 2 Đường Số 3, P. Tân An, Thành Phố Cần Thơ, Việt Nam | best5=1572
+20	HP	cũ	CL	1	20.8563221	106.6868155	79	75 Lương Khánh Thiện | Lương Khánh Thiện | P. Gia Viên
+20	HP	cũ	MK	1	20.8563221	106.6868155	79	75 Lương Khánh Thiện | 75 Lương Khánh Thiện, P. Gia Viên, Thành Phố Hải Phòng, Việt Nam | best5=79

@@ -1,0 +1,14 @@
+# Subflow: từ Home cuộn tới dòng "Cờ caro" của thẻ "Chơi cùng nhau" rồi chạm.
+# Nhãn semantics của dòng = "<tiêu đề>. <phụ đề>" => regex cần .* ở cuối.
+appId: com.tony.dearembeiu.dev
+---
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: 'Cờ caro\..*'
+    timeout: 40000
+    speed: 30
+    visibilityPercentage: 60
+    centerElement: true
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\..*'
+- waitForAnimationToEnd

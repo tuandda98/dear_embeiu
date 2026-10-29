@@ -19,6 +19,7 @@ import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'home_widget_bridge.dart';
 import 'home_widget_status.dart';
+import 'money_service.dart' show kMoneyFeatureEnabled;
 import 'notification_settings_service.dart';
 import 'reminder_service.dart';
 import 'user_service.dart';
@@ -38,6 +39,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   await _cancelStaleDailyQuestionNudges(message);
   await _cancelInviteFollowUpsIfPartnerJoined(message);
+  await _cancelWeatherNoticeIfPartnerLeft(message);
   await _updateWidgetStatus(message);
   await _cancelMealReminderIfDecided(message);
 }
@@ -85,6 +87,34 @@ Future<void> _cancelMealReminderIfDecided(RemoteMessage message) async {
   await ReminderService.instance.cancelDecisionReminder();
 }
 
+// ── caro-game (đợt 2) ──
+/// A `caro_*` push about the game that is on screen right now.
+@visibleForTesting
+bool isCaroPushForVisibleGame(Map<String, dynamic> data) {
+  final type = '${data['type'] ?? ''}';
+  final gameId = '${data['gameId'] ?? ''}'.trim();
+  return type.startsWith('caro_') &&
+      gameId.isNotEmpty &&
+      gameId == NotificationTapRouter.caroGameOnScreen;
+}
+
+/// Id of the in-app banner for a foreground push. Caro pushes of one game
+/// share an id, so a new one replaces the last instead of stacking (CARO-T2,
+/// same idea as the tray's `collapseId`). Others get a fresh 31-bit id.
+@visibleForTesting
+int foregroundBannerId(
+  Map<String, dynamic> data,
+  String? messageId,
+  int nowMs,
+) {
+  final type = '${data['type'] ?? ''}';
+  final gameId = '${data['gameId'] ?? ''}'.trim();
+  if (type.startsWith('caro_') && gameId.isNotEmpty) {
+    return 'caro_$gameId'.hashCode & 0x7FFFFFFF;
+  }
+  return (messageId.hashCode ^ nowMs) & 0x7FFFFFFF;
+}
+
 /// Whether a push says the partner just joined (`type == 'partner_joined'`,
 /// from the `notifyPartnerJoined` CF). Both the alert push and its Android
 /// data-only wake companion carry it.
@@ -102,11 +132,23 @@ bool isPartnerJoinedPush(Map<String, dynamic> data) =>
 ///
 /// ⚠️ An iOS app the user force-quit gets no wake; the band is then cleared on
 /// the next launch, when Home sees the couple active.
-Future<void> _cancelInviteFollowUpsIfPartnerJoined(RemoteMessage message) async {
+Future<void> _cancelInviteFollowUpsIfPartnerJoined(
+  RemoteMessage message,
+) async {
   if (!isPartnerJoinedPush(message.data)) {
     return;
   }
   await ReminderService.instance.cancelInviteFollowUps();
+}
+
+/// Partner left: the 07:30 weather notice (id 1160) names their city — drop it
+/// even with no UI alive. Needs a wake (iOS content-available / data message);
+/// otherwise `WeatherProvider.clear` does it on next launch.
+Future<void> _cancelWeatherNoticeIfPartnerLeft(RemoteMessage message) async {
+  if (message.data['type'] != 'partner_left') {
+    return;
+  }
+  await ReminderService.instance.cancelWeatherMorning();
 }
 
 /// Drops today's local daily-question nudges when a push reports the pair is now
@@ -167,8 +209,9 @@ class NotificationTapRouter {
   /// fullscreen (deep-link to the exact item, not just the tab). null = none.
   /// [GalleryScreen] consumes it when it builds and the photo is loaded; if the
   /// photo is gone (deleted) it's simply cleared and the user lands on the grid.
-  static final ValueNotifier<String?> pendingPhotoId =
-      ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> pendingPhotoId = ValueNotifier<String?>(
+    null,
+  );
 
   /// Marks the current request as handled so it won't be reapplied later.
   static void consumeHomeTabRequest() {
@@ -188,8 +231,9 @@ class NotificationTapRouter {
   /// view (deep-link within Home). Carries the notification `type` string
   /// (e.g. 'daily_question'); [HomeScreen] scrolls that card into view. null =
   /// no focus request (just land on the tab).
-  static final ValueNotifier<String?> pendingHomeFocus =
-      ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> pendingHomeFocus = ValueNotifier<String?>(
+    null,
+  );
 
   /// Marks the pending Home-focus request as handled.
   static void consumeHomeFocusRequest() {
@@ -212,11 +256,17 @@ class NotificationTapRouter {
   /// HomeScreen scrolls the "Phân vân gì không?" card into view.
   static const String focusDecision = 'decision';
 
+  // ── arrival (đợt 2) ──
+  /// [pendingHomeFocus] value for a tapped `arrival` push: HomeScreen scrolls
+  /// "Về đến nhà chưa?" into view. No inbox item exists for it (D15).
+  static const String focusArrival = 'arrival';
+
   /// Game id that accompanies a [focusRpsGame] focus request. Set BEFORE the
   /// focus value (cold-start: both are set in `initialize()` before HomeScreen
   /// mounts, so its initState can read them together). null = none.
-  static final ValueNotifier<String?> pendingRpsGameId =
-      ValueNotifier<String?>(null);
+  static final ValueNotifier<String?> pendingRpsGameId = ValueNotifier<String?>(
+    null,
+  );
 
   /// Marks the pending game deep-link as handled.
   static void consumeRpsGameRequest() {
@@ -224,6 +274,31 @@ class NotificationTapRouter {
       pendingRpsGameId.value = null;
     }
   }
+
+  // ── caro-game (đợt 2) ──
+  /// [pendingHomeFocus] value for a tapped `caro_*` push / `caro_invite` inbox
+  /// item / `caro_turn` widget line: HomeScreen opens the caro game whose id
+  /// is in [pendingCaroGameId] (null = the couple's open game).
+  static const String focusCaroGame = 'caro';
+
+  /// Game id for a [focusCaroGame] request, set BEFORE the focus value.
+  static final ValueNotifier<String?> pendingCaroGameId =
+      ValueNotifier<String?>(null);
+
+  /// Where a [focusCaroGame] request came from (`push` / `inbox`); null =
+  /// the home-screen widget (analytics `caro_open.source`).
+  static String? pendingCaroSource;
+
+  static void consumeCaroGameRequest() {
+    pendingCaroSource = null;
+    if (pendingCaroGameId.value != null) {
+      pendingCaroGameId.value = null;
+    }
+  }
+
+  /// The caro game visible right now (app in front, screen uncovered) — a
+  /// foreground push about it shows no in-app banner. Set by CaroGameScreen.
+  static String? caroGameOnScreen;
 
   /// A request to open the Gallery's add-photo composer (the Love Tree
   /// "Thêm một kỷ niệm" shortcut, 2026-06-17). true = open the multi-image
@@ -236,6 +311,55 @@ class NotificationTapRouter {
     if (pendingCompose.value) {
       pendingCompose.value = false;
     }
+  }
+
+  // ── expenses (đợt 2) ── stage 3B
+  /// [pendingHomeFocus] value for a tapped `money_goal` /
+  /// `money_goal_reached` / `money_budget` push or inbox item: HomeScreen
+  /// opens Sổ tiền on the shared book (+ the fund in [pendingMoney]).
+  static const String focusMoney = 'money';
+
+  /// The fund to open (`money_goal*`; null for `money_budget`) and where the
+  /// tap came from (`push` / `inbox`, for `money_screen_open`). Set BEFORE
+  /// the focus value, like [pendingRpsGameId].
+  /// `own` = open the own book (evening nudge), else the shared one.
+  static final ValueNotifier<({String? walletId, String from, bool own})?>
+      pendingMoney =
+      ValueNotifier<({String? walletId, String from, bool own})?>(null);
+
+  static void consumeMoneyRequest() {
+    if (pendingMoney.value != null) {
+      pendingMoney.value = null;
+    }
+  }
+
+  /// The ONE money route, used by the push tap AND the notification center
+  /// (CLAUDE.md §6: the two maps must agree). Returns false for any other
+  /// type. Sổ tiền sits on top of Home, so the tab is Home (0).
+  static bool routeMoney(
+    String? type, {
+    String? walletId,
+    required String from,
+  }) {
+    if (!kMoneyFeatureEnabled) return false;
+    // `money_evening` = the local evening nudge (1210/1211): my own book.
+    final own = type == 'money_evening';
+    if (!own &&
+        type != 'money_goal' &&
+        type != 'money_goal_reached' &&
+        type != 'money_budget') {
+      return false;
+    }
+    pendingMoney.value = (
+      walletId: own || type == 'money_budget' || (walletId ?? '').isEmpty
+          ? null
+          : walletId,
+      from: from,
+      own: own,
+    );
+    pendingHomeTab.value = 0;
+    pendingHomeFocus.value = focusMoney;
+    return true;
   }
 }
 
@@ -291,7 +415,9 @@ class PushNotificationService {
       // user's real choices (not defaults) from the first sync (D-notif-4).
       await NotificationSettingsService.instance.ensureLoaded();
 
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -305,12 +431,13 @@ class PushNotificationService {
         ),
         // Tap on a banner we showed ourselves in the foreground → deep-link the
         // same way a real push tap does (reuses the type/photoId routing).
-        onDidReceiveNotificationResponse: _handleLocalNotificationResponse,
+        onDidReceiveNotificationResponse: handleLocalNotificationTap,
       );
 
-      final androidPlugin =
-          _localNotifications.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await androidPlugin?.createNotificationChannel(_photoChannel);
 
       // We render the foreground banner OURSELVES via a local notification (see
@@ -320,11 +447,12 @@ class PushNotificationService {
       // here made iOS show NOTHING while the app was open. Turn alert/sound off
       // to defer entirely to our manual show (keeps a single banner on every
       // platform, no duplicates); badge stays on for the app-icon count.
-      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-        alert: false,
-        badge: true,
-        sound: false,
-      );
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: false,
+            badge: true,
+            sound: false,
+          );
 
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
@@ -334,22 +462,21 @@ class PushNotificationService {
 
       // Cold path: app was terminated and launched by tapping a push. Runs
       // before runApp, so the pending tab is set before HomeScreen mounts.
-      final initialMessage =
-          await FirebaseMessaging.instance.getInitialMessage();
+      final initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage();
       if (initialMessage != null) {
         _handleNotificationTap(initialMessage);
       }
 
-      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh.listen(
-        (token) async {
-          final userId = _activeUserId;
-          if (userId == null || token.trim().isEmpty) {
-            return;
-          }
+      _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh
+          .listen((token) async {
+            final userId = _activeUserId;
+            if (userId == null || token.trim().isEmpty) {
+              return;
+            }
 
-          await _saveDeviceToken(userId: userId, token: token.trim());
-        },
-      );
+            await _saveDeviceToken(userId: userId, token: token.trim());
+          });
     } catch (e) {
       _isInitialized = false;
       debugPrint('Push notification bootstrap failed: $e');
@@ -431,7 +558,15 @@ class PushNotificationService {
     _activeUserId = null;
   }
 
+  /// Robot quay video quảng cáo (`--dart-define=PROMO_ROBOT=true`, chỉ
+  /// integration_test/promo_robot_test.dart): không mở hộp xin quyền của iOS
+  /// vì test không bấm được UI hệ thống. Build thường: hằng false, không đổi gì.
+  static const bool _promoRobot = bool.fromEnvironment('PROMO_ROBOT');
+
   Future<NotificationSettings> _requestPermissionStatus() async {
+    if (_promoRobot) {
+      return FirebaseMessaging.instance.getNotificationSettings();
+    }
     try {
       return await FirebaseMessaging.instance.requestPermission(
         alert: true,
@@ -475,7 +610,10 @@ class PushNotificationService {
         pushTypePrefs: NotificationSettingsService.instance.currentOrDefault(),
       );
       // Keep this user's device list from accumulating stale registrations.
-      await _userService.pruneStaleDevices(userId: userId, keepDeviceId: deviceId);
+      await _userService.pruneStaleDevices(
+        userId: userId,
+        keepDeviceId: deviceId,
+      );
     } catch (e) {
       debugPrint('Push token sync failed: $e');
     }
@@ -549,7 +687,30 @@ class PushNotificationService {
       message.data['type'] as String?,
       (message.data['photoId'] as String?)?.trim(),
       gameId: (message.data['gameId'] as String?)?.trim(),
+      // ── expenses (đợt 2) ──
+      walletId: (message.data['walletId'] as String?)?.trim(),
     );
+  }
+
+  // ── caro-game (đợt 2) ──
+  /// Test hook: routes a tapped push's `data` exactly like a real tap.
+  @visibleForTesting
+  void routeTapForTest(Map<String, dynamic> data) => _applyRoute(
+    data['type'] as String?,
+    (data['photoId'] as String?)?.trim(),
+    gameId: (data['gameId'] as String?)?.trim(),
+  );
+
+  /// The ONE tap callback for every local notification. The plugin keeps only
+  /// the callback of the LAST `initialize`, and [ReminderService] initialises
+  /// after us — before đợt 2 that silently dropped every tap on a foreground
+  /// push banner. Both services now pass this: the weather morning notice
+  /// routes itself, anything else is a push banner we showed.
+  static void handleLocalNotificationTap(NotificationResponse response) {
+    if (ReminderService.routeWeatherTap(response.payload)) {
+      return;
+    }
+    instance._handleLocalNotificationResponse(response);
   }
 
   /// Tap handler for a banner WE showed in the foreground via
@@ -567,16 +728,28 @@ class PushNotificationService {
         data['type'] as String?,
         (data['photoId'] as String?)?.toString().trim(),
         gameId: data['gameId']?.toString().trim(),
+        // ── expenses (đợt 2) ──
+        walletId: data['walletId']?.toString().trim(),
       );
     } catch (_) {
       _applyRoute(payload, null);
     }
   }
 
+  // ── arrival (đợt 2) ──
+  /// Test seam for the tap routing below (no Firebase needed).
+  @visibleForTesting
+  void applyRouteForTest(String? type) => _applyRoute(type, null);
+
   /// Routes a notification (push tap OR a foreground banner tap) to the home tab
   /// / deep-link target for its [type]. Unknown/absent types are ignored (no tab
   /// change, no malformed analytics event).
-  void _applyRoute(String? type, String? photoId, {String? gameId}) {
+  void _applyRoute(
+    String? type,
+    String? photoId, {
+    String? gameId,
+    String? walletId,
+  }) {
     switch (type) {
       case 'photo_posted':
         NotificationTapRouter.pendingHomeTab.value = _galleryTabIndex;
@@ -655,11 +828,50 @@ class PushNotificationService {
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusDecision;
         break;
+      // ── caro-game (đợt 2) ──
+      case 'caro_invite':
+      case 'caro_turn':
+      case 'caro_nudge':
+      case 'caro_result':
+        // Caro (feature caro-game): open that game — a result shows on the
+        // same screen. Keep in sync with AppNotification.targetHomeTab + the
+        // notification center tap.
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingCaroSource = 'push';
+        if (gameId != null && gameId.isNotEmpty) {
+          NotificationTapRouter.pendingCaroGameId.value = gameId;
+        }
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusCaroGame;
+        break;
+      // ── arrival (đợt 2) ──
+      case 'arrival':
+        // The partner got home / reached a place (CF notifyArrival) → Home,
+        // scrolled to the card. Push only, no inbox (D15).
+        NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
+        NotificationTapRouter.pendingHomeFocus.value =
+            NotificationTapRouter.focusArrival;
+        break;
       case 'rps_result':
         // Game settled while I was away → the history (score + that game).
         NotificationTapRouter.pendingHomeTab.value = _homeTabIndex;
         NotificationTapRouter.pendingHomeFocus.value =
             NotificationTapRouter.focusRpsHistory;
+        break;
+      // ── expenses (đợt 2) ── Sổ tiền, shared book (+ the fund). Same
+      // helper as the notification center.
+      case 'money_goal':
+      case 'money_goal_reached':
+      case 'money_budget':
+        NotificationTapRouter.routeMoney(
+          type,
+          walletId: walletId,
+          from: 'push',
+        );
+        break;
+      // The local evening nudge 1210/1211 (warm tap) → own book.
+      case 'money_evening':
+        NotificationTapRouter.routeMoney(type, from: 'reminder');
         break;
       default:
         // Unknown or absent type — leave the current tab untouched and don't
@@ -694,6 +906,14 @@ class PushNotificationService {
     // (it's the listener that would otherwise re-evaluate the schedule).
     await _cancelStaleDailyQuestionNudges(message);
     await _cancelInviteFollowUpsIfPartnerJoined(message);
+    await _cancelWeatherNoticeIfPartnerLeft(message);
+
+    // ── caro-game (đợt 2) ──
+    // The caro game this push is about is on screen: the board already shows
+    // the move, no banner.
+    if (isCaroPushForVisibleGame(message.data)) {
+      return;
+    }
 
     final notification = message.notification;
     final title = notification?.title ?? message.data['title'] as String?;
@@ -706,9 +926,11 @@ class PushNotificationService {
     // (validateId). millisecondsSinceEpoch (~1.7e12) overflows that, so mask the
     // combined value down to a non-negative 31-bit int (0..2^31-1). Stays well
     // clear of the reminder id ranges (1001–1099 / 2000–2999).
-    final notificationId =
-        (message.messageId.hashCode ^ DateTime.now().millisecondsSinceEpoch) &
-            0x7FFFFFFF;
+    final notificationId = foregroundBannerId(
+      message.data,
+      message.messageId,
+      DateTime.now().millisecondsSinceEpoch,
+    );
 
     // Carry the full FCM data map so a tap on this foreground banner deep-links
     // exactly like a background push tap (routed in _handleLocalNotificationResponse).
@@ -742,4 +964,3 @@ class PushNotificationService {
     );
   }
 }
-

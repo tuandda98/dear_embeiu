@@ -20,6 +20,7 @@ import 'providers/chat_provider.dart';
 import 'providers/couple_provider.dart';
 import 'providers/custom_reminders_provider.dart';
 import 'providers/daily_question_provider.dart';
+import 'widgets/feature_tour_sheet.dart';
 import 'services/ai_question_source.dart';
 import 'services/revisit_question_source.dart';
 import 'providers/decision_provider.dart';
@@ -32,8 +33,18 @@ import 'providers/answer_reaction_provider.dart';
 import 'providers/reaction_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/rps_game_provider.dart';
+// ── caro-game (đợt 2) ──
+import 'providers/caro_game_provider.dart';
 import 'providers/sleep_provider.dart';
+// ── weather (đợt 2) ──
+import 'providers/weather_provider.dart';
 import 'providers/streak_provider.dart';
+// ── arrival (đợt 2) ──
+import 'providers/arrival_provider.dart';
+// ── arrival (đợt 2) ──
+import 'services/arrival_platform_native.dart';
+// ── expenses (đợt 2) ──
+import 'providers/money_provider.dart';
 import 'screens/force_update_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/guest_counter_screen.dart';
@@ -118,7 +129,10 @@ void main() async {
   // resolves a route, so it stays on the pre-runApp path.
   InstallStateService.isFreshInstallLaunch =
       await InstallStateService().handleFreshInstall(
-        onFreshInstall: () => authService.purgePersistedSession(),
+        onFreshInstall: () async {
+          await authService.purgePersistedSession();
+          await FeatureTour.rememberFreshInstall();
+        },
       );
 
   runApp(MyApp(
@@ -282,6 +296,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // therefore the partner's notifications) silently unregistered.
     if (state == AppLifecycleState.resumed) {
       _authProvider.refreshPushRegistration();
+      _authProvider.touchLastSeen();
       HomeWidgetBridge.consumeLaunch();
     }
   }
@@ -323,8 +338,28 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         // Rock-paper-scissors (feature rps-game, 2026-09-13) — watch wired in
         // SessionResolver like mood/chat.
         ChangeNotifierProvider(create: (_) => RpsGameProvider()),
+        // ── caro-game (đợt 2) ──
+        // Turn-based caro — watch wired in SessionResolver like rps.
+        ChangeNotifierProvider(create: (_) => CaroGameProvider()),
         // Sleep (feature sleep, 2026-10-10) — watch wired in SessionResolver.
         ChangeNotifierProvider(create: (_) => SleepProvider()),
+        // ── weather (đợt 2) ──
+        // Weather (feature weather) — watch wired in SessionResolver.
+        ChangeNotifierProvider(create: (_) => WeatherProvider()),
+        // ── arrival (đợt 2) ── watch wired in SessionResolver.
+        ChangeNotifierProvider(
+          create: (_) => ArrivalProvider(
+            geofence: NativeArrivalGeofence(),
+            battery: const PluginBatteryReader(),
+            placeSearch: const NativePlaceSearch(),
+            permissions: const NativeArrivalPermissions(),
+            location: const NativeCurrentLocationReader(),
+          ),
+        ),
+        // ── expenses (đợt 2) ──
+        // Sổ tiền — own book wired at sign-in, shared book while the couple
+        // is active (SessionResolver).
+        ChangeNotifierProvider(create: (_) => MoneyProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {

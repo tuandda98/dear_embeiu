@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · trạng thái các màn phụ · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const sk = (w, h = 15) => `<span class="sk" style="width:${w}px;height:${h}px"></span>`;
+const W = D.own.wallets;
+const S = (label, body) => `<h2 class="state-label">${label}</h2>${body}`;
+const card = (title, inner, right = '') => `<section class="card"><div class="card-h"><h3>${title}</h3>${right}</div>${inner}</section>`;
+const zeroChart = `<svg viewBox="0 0 318 120" width="100%" role="img" aria-label="Chưa có khoản chi nào tháng 11"><line x1="34" x2="314" y1="98" y2="98" stroke="rgba(26,26,46,.25)"/><text x="28" y="102" text-anchor="end" class="tk">0</text><line x1="34" x2="314" y1="40" y2="40" stroke="var(--navy)" stroke-dasharray="4 3"/><text x="314" y="34" text-anchor="end" class="tk ink">Ngân sách 11tr</text>${['T6','T7','T8','T9','T10','T11'].map((m, i) => `<text x="${34 + 280 / 6 * (i + .5)}" y="116" text-anchor="middle" class="tk">${m}</text>`).join('')}</svg>`;
+document.getElementById('app').innerHTML = `
+  <h1 class="sheet-h1">Trạng thái các màn phụ</h1>
+  <p class="sheet-sub">Khối hỏng thì báo lỗi ngay trong khối đó, khung và tiêu đề giữ nguyên. Đang tải là thanh xám đúng cỡ số thật, không nhấp nháy.</p>
+  <main><div class="chart">
+  ${S('Ví · đang tải', card('Đang dùng', `<div class="rows">${W.slice(0, 3).map((w) => `<div class="row"><span class="emo" aria-hidden="true">${w.emoji}</span><div class="mid"><div class="t">${w.name}</div></div>${sk(90)}</div>`).join('')}</div>`))}
+  ${S('Ví · lỗi tính số dư (giữ số cũ, ghi giờ)', card('Đang dùng', `<p class="err">${icon('warning_2', 18)}<span>Chưa tính lại được số dư. Số dưới đây đúng lúc 09:14.</span></p><button class="btn sm outline" style="margin-top:10px">Thử lại</button><div class="rows">${D.UIrows || ''}${W.slice(0, 2).map((w) => UI.walletRow(w, D.own.balances[w.id])).join('')}</div>`))}
+  ${S('Ví thường bị âm (thẻ tín dụng âm là bình thường, không báo)', card('Đang dùng', `<div class="rows"><button class="row"><span class="emo" aria-hidden="true">${W[0].emoji}</span><div class="mid"><div class="t">Tiền mặt</div><div class="s">Số dư âm, có khoản nào ghi nhầm ví không?</div></div><div class="amt num"><span class="pill warn">−${fmt(50000)}</span></div></button></div>`))}
+  ${S('Ngân sách · chưa đặt', card('Tháng 10 · sổ của mình', `<p class="empty">Chưa đặt ngân sách. Đặt một con số cho cả tháng, app sẽ báo khi dùng tới 80% và 100%.</p><button class="btn sm outline" style="margin-top:12px">Đặt ngân sách tháng</button>`))}
+  ${S('Ngân sách · một danh mục vượt (màu chỉ trên dòng vượt)', card('Theo danh mục', `<div class="brow"><div class="brow-h"><span class="emo" aria-hidden="true">${D.cat('food').emoji}</span><span class="t">Ăn uống</span><span class="pill neg">Vượt 3%</span><span class="num v">${fmt(2062000)}</span></div>${UI.plan(2062000, 2000000)}<p class="meta num" style="margin-top:6px">Vượt ${fmt(62000)} của ${fmt(2000000)}</p></div>`))}
+  ${S('Báo cáo · tháng chưa có khoản (vẫn vẽ trục 0)', card('Chi mỗi tháng', `${zeroChart}<p class="meta">Tháng 11 chưa có khoản chi nào. Các cột tháng trước hiện khi có dữ liệu.</p>`))}
+  ${S('Tìm kiếm · đang tìm', card('Đang tìm…', `<div class="rows">${[1, 2, 3].map(() => `<div class="row"><span class="emo"></span><div class="mid">${sk(160)}<br>${sk(100, 12)}</div>${sk(80)}</div>`).join('')}</div>`))}
+  ${S('Tìm kiếm · khoảng quá dài', `<p class="notice">${icon('info_circle', 18)}<span>Chỉ tìm trong 2.000 khoản gần nhất của 12 tháng này. Thu hẹp ngày để chắc không sót.</span></p>`)}
+  ${S('Mục tiêu · chưa đặt hạn', card('Mua laptop', `<div class="goalbar"><span style="width:30%"></span></div><div class="plan-ends meta num"><span>30%</span><span>Mục tiêu ${fmt(25000000)}</span></div><p class="finding">Chưa đặt hạn. Thêm hạn để biết mỗi tháng cần để dành bao nhiêu.</p>`))}
+  ${S('Thanh toán · đã cân bằng (0 in ra là 0, ẩn nút)', card('Ai trả tháng này', `<div class="bal" style="box-shadow:none;padding-top:0"><div><p class="label">Hai bên đang ngang nhau</p><p>${UI.money(0, 'fig-l')}</p><p class="meta">Thảo thanh toán lúc 21:40 hôm nay</p></div></div>`))}
+  ${S('Sổ chung · mất mạng', `<p class="notice">${icon('cloud_cross', 20)}<span>Đang mất mạng. Khoản mới vẫn ghi được, sẽ hiện ở máy Thảo khi có mạng.</span></p>`)}
+  ${S('Sổ chung · người ấy đã rời', card('Sổ chung', `<p class="empty">Tab Chung ẩn khi không còn ghép đôi. Các khoản chung cũ vẫn giữ trong máy chủ, chưa xem được ở bản này.</p>`))}
+  </div></main>`;
+</script>
+</body>
+</html>

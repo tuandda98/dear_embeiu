@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.11.0+32
+version: 1.12.0+33
 
 environment:
   sdk: ^3.11.4
@@ -119,9 +119,18 @@ dependencies:
   # Đăng nhập với Google (feature pairing-funnel, PF14): Android dùng Credential
   # Manager, iOS dùng GoogleSignIn SDK; ID token → Firebase signInWithCredential.
   google_sign_in: ^7.2.0
+  # ── arrival (đợt 2) ── OS geofences (MIT; spike §6.1) + battery % at an
+  # event (BSD-3). Location permission / one-shot fix / address search use the
+  # app channel `dear_embeiu/arrival` (no extra plugin).
+  native_geofence: ^1.3.1
+  battery_plus: ^7.1.2
+  in_app_review: ^2.0.12
+  device_info_plus: ^12.4.0
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!--
+    Dear Embeiu — Master app icon
+    Concept: single white heart on the app's "Sunset Romance" gradient.
+    Palette is locked to lib/theme/app_colors.dart:
+      sunset1 #FF6B9D · sunset2 #FF8FA3 · sunset3 #FFB6C1
+      accentLove #FF4D6D · accentLoveDeep #E63956 · accentLavender #A78BFA
+    Corner radius 230 (= 22.5%) matches iOS/Android adaptive masking.
+  -->
+  <defs>
+    <!-- Background: Sunset Romance (sunset1 -> sunset2) -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#FF6B9D"/>
+      <stop offset="55%"  stop-color="#FF7E9C"/>
+      <stop offset="100%" stop-color="#FF8FA3"/>
+    </linearGradient>
+
+    <!-- Soft light source, top-left (sunset3 highlight) -->
+    <radialGradient id="shineTL" cx="30%" cy="22%" r="58%">
+      <stop offset="0%"   stop-color="#FFB6C1" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#FFB6C1" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Subtle lavender ambient depth, bottom-right (brand accent) -->
+    <radialGradient id="lavBR" cx="84%" cy="86%" r="46%">
+      <stop offset="0%"   stop-color="#A78BFA" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Heart fill: white with a whisper of blush at the base for form -->
+    <linearGradient id="heart" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF0F4"/>
+    </linearGradient>
+
+    <!-- Outer gloss sheen on the tile -->
+    <radialGradient id="gloss" cx="38%" cy="24%" r="50%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Hue-matched soft shadow under the heart -->
+    <filter id="heartShadow" x="-32%" y="-32%" width="164%" height="164%">
+      <feDropShadow dx="0" dy="22" stdDeviation="36" flood-color="#E63956" flood-opacity="0.30"/>
+      <feDropShadow dx="0" dy="6"  stdDeviation="12" flood-color="#C2185B" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <!-- Tile + atmosphere -->
+  <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="230" fill="url(#lavBR)"/>
+  <rect width="1024" height="1024" rx="230" fill="url(#shineTL)"/>
+
+  <!-- Whisper-faint concentric rings for depth -->
+  <circle cx="512" cy="470" r="392" fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="2"/>
+  <circle cx="512" cy="470" r="312" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1.5"/>
+
+  <!-- The heart -->
+  <path d="M 512 752
+           C 512 752 182 566 182 338
+           C 182 240 256 166 346 166
+           C 410 166 467 199 512 250
+           C 557 199 614 166 678 166
+           C 768 166 842 240 842 338
+           C 842 566 512 752 512 752 Z"
+    fill="url(#heart)" filter="url(#heartShadow)"/>
+
+  <!-- Single, restrained sparkle (top-right) -->
+  <path d="M 762 250
+           C 764 274 772 284 796 286
+           C 772 288 764 298 762 322
+           C 760 298 752 288 728 286
+           C 752 284 760 274 762 250 Z"
+    fill="#FFFFFF" fill-opacity="0.60"/>
+
+  <!-- Tile gloss on top -->
+  <rect width="1024" height="1024" rx="230" fill="url(#gloss)"/>
+</svg>

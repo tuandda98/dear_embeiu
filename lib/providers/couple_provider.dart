@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import '../l10n/app_l10n.dart';
 import '../models/app_user.dart';
 import '../models/couple.dart';
+import '../models/money.dart';
 import '../services/analytics_service.dart';
 import '../services/couple_service.dart';
 import '../services/storage_service.dart';
+import 'money_provider.dart';
 
 class CoupleProvider extends ChangeNotifier {
   CoupleProvider({CoupleService? coupleService})
@@ -252,6 +254,18 @@ class CoupleProvider extends ChangeNotifier {
       );
       _couple = result.couple;
       notifyListeners();
+      // Analytics — which fields changed (never the values).
+      final analytics = AnalyticsService.instance;
+      if (result.couple.anniversaryDate != existingCouple.anniversaryDate) {
+        analytics.logCoupleUpdated('anniversary');
+      }
+      if (result.couple.person1Name != existingCouple.person1Name ||
+          result.couple.person2Name != existingCouple.person2Name) {
+        analytics.logCoupleUpdated('names');
+      }
+      if (photoPath != null) {
+        analytics.logCoupleUpdated('photo');
+      }
       return result;
     } on CoupleException catch (e) {
       _errorMessage = e.message;
@@ -272,13 +286,18 @@ class CoupleProvider extends ChangeNotifier {
     _isLeaving = true;
 
     try {
+      // Sổ tiền: shared deletes in their undo window go out while still a
+      // member (bounded, best effort).
+      await MoneyProvider.flushPendingDeletes(MoneyBookKind.shared);
       final updatedUser = await _coupleService.leaveCouple(currentUser: currentUser);
       await _coupleSubscription?.cancel();
       _coupleSubscription = null;
       _couple = null;
       notifyListeners();
       // Analytics — back to single after leaving the couple.
-      AnalyticsService.instance.setCoupleStatus('single');
+      AnalyticsService.instance
+        ..logCoupleLeft()
+        ..setCoupleStatus('single');
       return updatedUser;
     } on CoupleException catch (e) {
       _errorMessage = e.message;

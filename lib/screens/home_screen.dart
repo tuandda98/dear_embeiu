@@ -26,6 +26,9 @@ import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
 import '../providers/sleep_provider.dart';
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
+import '../widgets/arrival/arrival_card.dart';
 import '../providers/streak_provider.dart';
 import '../services/analytics_service.dart';
 import '../services/catchup_service.dart';
@@ -56,7 +59,10 @@ import '../providers/mood_provider.dart';
 import '../widgets/decision_card.dart';
 import '../widgets/decision_parts.dart';
 import '../widgets/mood_card.dart';
-import '../widgets/rps_invite_card.dart';
+// ── caro-game (đợt 2) ──
+import '../providers/caro_game_provider.dart';
+import '../widgets/play_together_card.dart';
+import 'caro_game_screen.dart' show CaroGameScreen, openCaroGame;
 import '../widgets/sleep/sleep_card.dart';
 import '../widgets/today_constellation.dart';
 import '../widgets/today_ritual_card.dart';
@@ -69,6 +75,21 @@ import 'care_message_screen.dart';
 import 'notification_center_screen.dart';
 import 'rps_game_screen.dart' show RpsGameScreen, openRpsGame;
 import 'rps_history_screen.dart' show openRpsHistory;
+// ── weather (đợt 2) ──
+import 'dart:convert' as weather_json;
+import '../providers/weather_provider.dart';
+import '../services/reminder_service.dart' as weather_notice;
+import '../utils/weather_logic.dart' show WeatherCta, weatherCityById;
+import '../widgets/sleep/sleep_format.dart' as weather_names;
+import '../widgets/weather/weather_card.dart';
+// ── expenses (đợt 2) ──
+import '../models/money.dart';
+import '../providers/money_provider.dart';
+import '../services/money_service.dart' show kMoneyFeatureEnabled;
+import '../widgets/money/money_home_entry.dart';
+import '../services/rating_prompt_service.dart';
+import '../utils/money_flows.dart' show moneyLoggedToday;
+import 'money/money_screen.dart' show openMoneyScreen;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -416,6 +437,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Anchor for the decision card (a tapped `decision` push scrolls to it).
   final GlobalKey _decisionKey = GlobalKey();
 
+  // ── weather (đợt 2) ──
+  /// Anchor for the weather card (`pendingHomeFocus == 'weather'`).
+  final GlobalKey _weatherKey = GlobalKey();
+  // ── arrival (đợt 2) ──
+  /// Anchor for "Về đến nhà chưa?" (a tapped `arrival` push / widget line
+  /// scrolls to it); captured provider so dispose can detach the widget line.
+  final GlobalKey _arrivalKey = GlobalKey();
+  ArrivalProvider? _arrivalProvider;
+
   // Streak milestone celebration (feature streak): listen for a freshly-reached
   // milestone and auto-show the StreakSheet in celebration mode, once. The
   // provider's per-couple Hive guard prevents re-firing across launches; this
@@ -429,7 +459,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   DailyQuestionProvider? _dqProvider;
   MoodProvider? _moodProvider;
   DecisionProvider? _decisionProvider;
+  // ── expenses (đợt 2) ── stage 3B: evening reminder 1210–1211 follows it.
+  MoneyProvider? _moneyProvider;
   LocaleProvider? _localeProvider;
+  // ── caro-game (đợt 2) ──
+  CaroGameProvider? _caroProvider;
 
   /// Guards [FeatureTour.maybeShow] to one attempt per Home lifetime.
   bool _featureTourChecked = false;
@@ -525,6 +559,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _dqProvider = context.read<DailyQuestionProvider>();
     _chatProvider = context.read<ChatProvider>();
     _dqProvider!.addListener(_refreshDqSafetyNet);
+    _dqProvider!.addListener(_onDqForRating);
+    RatingPromptService.recordOpen();
     _streakProvider!.addListener(_refreshDqSafetyNet);
     _moodProvider = context.read<MoodProvider>();
     _moodProvider!.addListener(_refreshDqSafetyNet);
@@ -532,6 +568,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // today's picks change.
     _decisionProvider = context.read<DecisionProvider>();
     _decisionProvider!.addListener(_refreshDecisionReminder);
+    // ── expenses (đợt 2) ── stage 3B: Sổ tiền evening reminder (D18) — re-arm
+    // on open, drop today's slot once anything is logged today.
+    _moneyProvider = context.read<MoneyProvider>();
+    _moneyProvider!.addListener(_refreshMoneyEvening);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshMoneyEvening());
     WidgetsBinding.instance.addPostFrameCallback((_) => _refreshDqSafetyNet());
     // Home-screen widget "hôm nay" line (widget-today D5a): recomputed from the
     // same streams as the constellation whenever one of them changes.
@@ -544,9 +585,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _photoProvider!,
       _coupleProvider!,
       _decisionProvider!,
+      // ── caro-game (đợt 2) ──
+      _caroProvider = context.read<CaroGameProvider>(),
     ]) {
       p.addListener(_pushWidgetStatus);
     }
+    // ── arrival (đợt 2) ── the partner's arrival feeds the widget line too.
+    _arrivalProvider = context.read<ArrivalProvider>();
+    _arrivalProvider!.addListener(_pushWidgetStatus);
     // In-app language switch: the line is localized, re-send it once the new
     // locale reached this context (next frame) — widget-today B1.
     _localeProvider = context.read<LocaleProvider>();
@@ -558,6 +604,45 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       Future<void>.delayed(const Duration(milliseconds: 900), _tryFeatureTour);
     });
     RpsGameScreen.mountedCount.addListener(_onRpsScreensChanged);
+    // ── caro-game (đợt 2) ── same hold for a caro game screen.
+    CaroGameScreen.mountedCount.addListener(_onRpsScreensChanged);
+    // ── weather (đợt 2) ── tapped 07:30 notice → prefilled care screen.
+    weather_notice.ReminderService.pendingWeatherTap.addListener(
+      _onWeatherNoticeTap,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onWeatherNoticeTap());
+  }
+
+  // ── weather (đợt 2) ──
+  /// The morning notice was tapped (Lead: open the care screen straight
+  /// away, prefilled from what the notice said; Back returns to Home).
+  void _onWeatherNoticeTap() {
+    final raw = weather_notice.ReminderService.pendingWeatherTap.value;
+    if (raw == null || !mounted) {
+      return;
+    }
+    weather_notice.ReminderService.pendingWeatherTap.value = null;
+    try {
+      final data = weather_json.jsonDecode(raw) as Map<String, dynamic>;
+      final city = weatherCityById('${data['city']}');
+      final cta = WeatherCta.values
+          .where((c) => c.name == data['cta'])
+          .firstOrNull;
+      if (city == null || cta == null) {
+        _scrollToCard(_weatherKey);
+        return;
+      }
+      openWeatherCare(
+        context,
+        cta: cta,
+        city: city,
+        min: (data['min'] as num?)?.toInt() ?? 0,
+        max: (data['max'] as num?)?.toInt() ?? 0,
+        entry: 'notification',
+      );
+    } catch (_) {
+      _scrollToCard(_weatherKey);
+    }
   }
 
   /// One "Có gì mới" attempt — held (not recorded as seen) while a
@@ -590,6 +675,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         NotificationTapRouter.pendingRpsGameId.value != null ||
         NotificationTapRouter.pendingHomeFocus.value ==
             NotificationTapRouter.focusRpsGame) {
+      return true;
+    }
+    // ── caro-game (đợt 2) ── a caro game open or about to open.
+    if (CaroGameScreen.isOpen ||
+        NotificationTapRouter.pendingCaroGameId.value != null ||
+        NotificationTapRouter.pendingHomeFocus.value ==
+            NotificationTapRouter.focusCaroGame) {
       return true;
     }
     final requested = _rpsRouteRequestedAt;
@@ -632,9 +724,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _onNotificationFocusRequest,
     );
     RpsGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
+    // ── caro-game (đợt 2) ──
+    CaroGameScreen.mountedCount.removeListener(_onRpsScreensChanged);
+    // ── weather (đợt 2) ──
+    weather_notice.ReminderService.pendingWeatherTap.removeListener(
+      _onWeatherNoticeTap,
+    );
     _streakProvider?.removeListener(_onStreakChanged);
     _streakProvider?.removeListener(_refreshDqSafetyNet);
     _dqProvider?.removeListener(_refreshDqSafetyNet);
+    _dqProvider?.removeListener(_onDqForRating);
     _moodProvider?.removeListener(_refreshDqSafetyNet);
     for (final p in <ChangeNotifier?>[
       _dqProvider,
@@ -643,11 +742,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _photoProvider,
       _coupleProvider,
       _decisionProvider,
+      // ── caro-game (đợt 2) ──
+      _caroProvider,
     ]) {
       p?.removeListener(_pushWidgetStatus);
     }
+    // ── arrival (đợt 2) ──
+    _arrivalProvider?.removeListener(_pushWidgetStatus);
     _localeProvider?.removeListener(_onLocaleChangedForWidget);
     _decisionProvider?.removeListener(_refreshDecisionReminder);
+    // ── expenses (đợt 2) ──
+    _moneyProvider?.removeListener(_refreshMoneyEvening);
     _bgHintTimer?.cancel();
     _stopChatPresence();
     WidgetsBinding.instance.removeObserver(this);
@@ -667,6 +772,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Sleep: re-check Usage access (maybe just granted in Settings) and
       // re-scan last nights — the only time sleep is computed.
       context.read<SleepProvider>().onResume();
+      // ── arrival (đợt 2) ── re-read location permission + remote switch (D8).
+      context.read<ArrivalProvider>().onResume();
       _maybeRunCatchup(force: true);
       // A `bothAnswered` push handled while we were away may have cancelled
       // today's daily-question bands (or the day may have rolled over): drop
@@ -675,6 +782,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _refreshDqSafetyNet();
       context.read<DecisionProvider>().refreshDay();
       _refreshDecisionReminder();
+      // ── weather (đợt 2) ── refresh if this phone's copy is ≥ 30 min old.
+      context.read<WeatherProvider>().onResume();
+      // ── expenses (đợt 2) ──
+      context.read<MoneyProvider>().onResume();
+      _refreshMoneyEvening();
     }
     // Chat presence (presence-suppress 2026-06-19): only meaningful while the
     // chat tab is the active screen. Backgrounding clears presence so the
@@ -775,6 +887,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           now,
         ),
         decision: _latestWidgetDecision(),
+        // ── caro-game (đợt 2) ──
+        caroTurnAt: HomeWidgetStatus.caroTurnAt(_caroProvider?.openGame, myUid),
+        // ── arrival (đợt 2) ──
+        partnerArrival: _arrivalProvider?.partnerLast,
       ),
     );
   }
@@ -831,6 +947,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       decidedToday: decisions.todayEat != null,
       l10n: context.l10n,
     );
+  }
+
+  // ── expenses (đợt 2) ── stage 3B
+  /// Arms the Sổ tiền evening reminder (1210 today + 1211 tomorrow, D18);
+  /// today's slot goes once I logged anything dated today in either book.
+  /// The provider debounces, so firing on every money update is cheap.
+  void _refreshMoneyEvening() {
+    final money = _moneyProvider;
+    final uid = money?.uid;
+    if (!kMoneyFeatureEnabled) {
+      // Xoá lịch đã arm từ trước khi tắt (máy dev); provider dedupe nên rẻ.
+      if (mounted) context.read<ReminderProvider>().cancelMoneyReminders();
+      return;
+    }
+    if (!mounted || money == null || uid == null) {
+      return;
+    }
+    context.read<ReminderProvider>().refreshMoneyEvening(
+      loggedToday: moneyLoggedToday(
+        [
+          ...money.visibleTxs(MoneyBookKind.own),
+          ...money.visibleTxs(MoneyBookKind.shared),
+        ],
+        uid,
+        money.today,
+      ),
+      l10n: context.l10n,
+    );
+    // D34 §4: remind on the last day of each running challenge.
+    context.read<ReminderProvider>().refreshMoneyChallenges(
+      slots: [
+        for (final kind in MoneyBookKind.values)
+          for (final c in money.runningChallenges(kind))
+            (lastDay: money.challengeStatus(kind, c).lastDay, title: c.title),
+      ],
+      l10n: context.l10n,
+    );
+  }
+
+  /// Đã thấy câu hỏi hôm nay CHƯA mở khoá trong phiên này → lần chuyển sang
+  /// mở khoá kế tiếp là "vừa mở khoá" thật (không phải mở app khi đã xong sẵn).
+  bool _dqSawUnrevealed = false;
+
+  /// Khoảnh khắc vui #1 của thẻ chấm sao (feature feedback): cả hai vừa trả lời.
+  void _onDqForRating() {
+    final dq = _dqProvider;
+    if (dq == null || dq.isLoading) return;
+    if (!dq.hasRevealed) {
+      _dqSawUnrevealed = true;
+    } else if (_dqSawUnrevealed) {
+      _dqSawUnrevealed = false;
+      RatingPromptService.maybePrompt(context, source: 'reveal');
+    }
   }
 
   void _refreshDqSafetyNet() {
@@ -1090,6 +1259,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _scrollToCard(_moodCardKey);
       case NotificationTapRouter.focusDecision:
         _scrollToCard(_decisionKey);
+      // ── weather (đợt 2) ──
+      case 'weather':
+        _scrollToCard(_weatherKey);
+      // ── arrival (đợt 2) ──
+      case NotificationTapRouter.focusArrival:
+        _scrollToCard(_arrivalKey);
       case NotificationTapRouter.focusRpsGame:
         // gameId was published BEFORE the focus (push + notification center),
         // so it's readable here even on a cold start (initState).
@@ -1098,6 +1273,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _openRpsGameRoute(gameId);
       case NotificationTapRouter.focusRpsHistory:
         _openRpsHistoryRoute();
+      // ── caro-game (đợt 2) ──
+      case NotificationTapRouter.focusCaroGame:
+        // Push / inbox publish the game id first; a widget tap has none and
+        // opens the couple's open game.
+        final caroGameId = NotificationTapRouter.pendingCaroGameId.value;
+        final caroSource = NotificationTapRouter.pendingCaroSource ?? 'widget';
+        NotificationTapRouter.consumeCaroGameRequest();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            openCaroGame(context, gameId: caroGameId, source: caroSource);
+          }
+        });
+      // ── expenses (đợt 2) ── stage 3B: money_goal / money_goal_reached /
+      // money_budget → Sổ tiền, shared book (+ the fund for money_goal*);
+      // the evening nudge → own book.
+      case NotificationTapRouter.focusMoney:
+        if (!kMoneyFeatureEnabled) {
+          NotificationTapRouter.consumeMoneyRequest();
+          break;
+        }
+        final target = NotificationTapRouter.pendingMoney.value;
+        NotificationTapRouter.consumeMoneyRequest();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          openMoneyScreen(
+            context,
+            book: target?.own == true
+                ? MoneyBookKind.own
+                : MoneyBookKind.shared,
+            focusWalletId: target?.walletId,
+            from: target?.from ?? 'push',
+          );
+        });
       default:
         break;
     }
@@ -1228,6 +1436,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // the band as soon as the couple goes active, and for good once it was
       // (PA7 — a partner who leaves doesn't restart them).
       _refreshDecisionReminder();
+      // Sổ tiền evening nudge too: a language switch mid-session re-arms it
+      // in the new language (the key above carries the locale).
+      _refreshMoneyEvening();
       reminderProvider.refreshInviteFollowUps(
         coupleId: coupleId,
         waiting: !coupleActive,
@@ -1875,6 +2086,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
             partnerUid,
           );
+          // ── caro-game (đợt 2) ──
+          // Same partner rule: a partner joining mid-session unlocks caro.
+          context.read<CaroGameProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
+          );
           // Sleep (feature sleep) — same partner rule; a partner joining
           // mid-session starts streaming their shared nights.
           context.read<SleepProvider>().watchForCouple(
@@ -1882,6 +2100,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             myUid,
             partnerUid,
           );
+          // ── weather (đợt 2) ── same partner rule; the name feeds the 07:30
+          // notice; refresh() is throttled (30 min) so entering Home is cheap.
+          final weather = context.read<WeatherProvider>()
+            ..watchForCouple(couple.id, myUid, partnerUid)
+            ..setPartnerName(
+              weather_names.SleepFormat.partnerName(context, couple, myUid),
+            );
+          weather.refresh();
+          // ── arrival (đợt 2) ── same partner rule ('' while waiting = hidden).
+          context.read<ArrivalProvider>().watchForCouple(
+            couple.id,
+            myUid,
+            partnerUid,
+          );
+          // ── expenses (đợt 2) ──
+          // Sổ tiền: open the shared book the moment the partner joins
+          // mid-session (both calls no-op when unchanged).
+          final money = context.read<MoneyProvider>();
+          money.watchOwn(myUid);
+          if (!couple.isWaitingForPartner) {
+            money.watchShared(couple.id, couple.memberIds, myUid);
+          } else if (money.hasShared) {
+            money.clearShared();
+          }
           // Chat stream (feature chat) — must run from Home so the unread dot
           // works on every tab. watchForCouple no-ops when unchanged.
           context.read<ChatProvider>().watchForCouple(couple.id, myUid);
@@ -2048,6 +2290,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               const SizedBox(height: 16),
               _gutter(_entrance(2, _buildWaitingForPartnerBanner(couple))),
             ],
+            // Home D (2026-10-29): three groups, one question each — today's
+            // tasks (question, mood) · "{partner} thế nào rồi?" (arrival,
+            // weather, last night) · "Lúc rảnh" (play, decide) — then memories.
+            // Gaps: card 16 · group 28 · header→card 12. Every card is unchanged.
             // ── Nhóm 1: Hôm nay của chúng mình — daily actions first (habit loop).
             const SizedBox(height: 28),
             _gutter(
@@ -2085,31 +2331,45 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 _entrance(4, MoodCard(key: _moodCardKey, couple: couple)),
               ),
             ],
+            // ── Nhóm 2: "{người ấy} thế nào rồi?" — về nhà · thời tiết · đêm qua.
+            _buildPartnerStatusGroup(couple, myUid),
+            // ── Nhóm 3: Lúc rảnh — chơi cùng nhau · phân vân.
+            const SizedBox(height: 28),
+            _gutter(
+              _entrance(7, SectionHeader(title: l10n.homeFreeTimeSectionTitle)),
+            ),
+            const SizedBox(height: 12),
+            if (!couple.isWaitingForPartner) ...[
+              // ── caro-game (đợt 2) ──
+              // "Chơi cùng nhau" (design §3.1): caro + rock-paper-scissors in
+              // one card, replacing the old RpsInviteCard at the same spot.
+              _gutter(_entrance(7, const PlayTogetherCard())),
+              const SizedBox(height: 16),
+            ],
             // "Phân vân gì không?" (feature decision-wheel D6) — ăn gì · đi
             // đâu · phân vân khác. Shown while waiting too (solo picks keep).
-            const SizedBox(height: 16),
             KeyedSubtree(
               key: _decisionKey,
-              child: _gutter(_entrance(5, const DecisionCard())),
+              child: _gutter(_entrance(7, const DecisionCard())),
             ),
-            // Sleep "Đêm qua" (feature sleep) — under the mood card; shown
-            // while still waiting too (my own nights, full width — state A0).
-            Selector<SleepProvider, bool>(
-              selector: (_, sleep) => sleep.cardHidden,
-              builder: (_, hidden, _) => hidden
-                  ? const SizedBox.shrink()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: _gutter(_entrance(6, SleepCard(couple: couple))),
+            // ── expenses (đợt 2) ──
+            // Sổ tiền: shared book's month spending (own book while waiting).
+            // Brings its own 16 top gap (nothing at all without Firebase).
+            // Flag is off; it sits last so the gaps stay right in both couple
+            // states — PO picks its group when it comes back.
+            if (kMoneyFeatureEnabled)
+              _gutter(
+                _entrance(
+                  7,
+                  MoneyHomeEntry(
+                    waiting: couple.isWaitingForPartner,
+                    onRetry: () => context.read<MoneyProvider>().retry(
+                      MoneyBookKind.shared,
                     ),
-            ),
-            if (!couple.isWaitingForPartner) ...[
-              // Rock-paper-scissors entry (feature rps-game, design D1): a
-              // small card that also carries the "người ấy đang rủ" badge.
-              const SizedBox(height: 16),
-              _gutter(_entrance(7, const RpsInviteCard())),
-            ],
-            // ── Nhóm 2: Kỷ niệm — create + browse.
+                  ),
+                ),
+              ),
+            // ── Nhóm 4: Kỷ niệm — create + browse.
             const SizedBox(height: 28),
             _gutter(
               _entrance(
@@ -2141,6 +2401,74 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ],
         ),
       ),
+    );
+  }
+
+  /// Group 2 of Home D: arrival · weather · last night under
+  /// "{partner} thế nào rồi?". The header shows only once paired and while at
+  /// least one card is visible. While waiting there is no partner to ask
+  /// about, so weather + sleep (my lane only) carry on group 1 at the card gap.
+  Widget _buildPartnerStatusGroup(Couple couple, String? myUid) {
+    return Builder(
+      builder: (context) {
+        final waiting = couple.isWaitingForPartner;
+        final arrivalVisible = context.select<ArrivalProvider, bool>(
+          (a) => a.visible,
+        );
+        final weatherVisible = context.select<WeatherProvider, bool>(
+          (w) => w.cardVisible,
+        );
+        final sleepHidden = context.select<SleepProvider, bool>(
+          (s) => s.cardHidden,
+        );
+        final cards = <Widget>[
+          // ── arrival (đợt 2) ── only once paired.
+          if (!waiting && arrivalVisible)
+            KeyedSubtree(
+              key: _arrivalKey,
+              child: _gutter(_entrance(5, ArrivalCard(couple: couple))),
+            ),
+          // ── weather (đợt 2) ── shown while waiting too (my lane).
+          if (weatherVisible)
+            KeyedSubtree(
+              key: _weatherKey,
+              child: _gutter(_entrance(5, WeatherCard(couple: couple))),
+            ),
+          // Sleep "Đêm qua" (feature sleep) — shown while still waiting too
+          // (my own nights, full width — state A0).
+          if (!sleepHidden) _gutter(_entrance(6, SleepCard(couple: couple))),
+        ];
+        if (cards.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final String? title;
+        if (waiting) {
+          title = null;
+        } else {
+          final iAmCreator = myUid != null && myUid == couple.createdByUserId;
+          final name = (iAmCreator ? couple.person2Name : couple.person1Name)
+              .trim();
+          title = name.isEmpty
+              ? context.l10n.homePartnerSectionTitleFallback
+              : context.l10n.homePartnerSectionTitle(name);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title == null)
+              const SizedBox(height: 16)
+            else ...[
+              const SizedBox(height: 28),
+              _gutter(_entrance(5, SectionHeader(title: title))),
+              const SizedBox(height: 12),
+            ],
+            for (var i = 0; i < cards.length; i++) ...[
+              if (i > 0) const SizedBox(height: 16),
+              cards[i],
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -2745,6 +3073,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(context.l10n.photoAddedSuccess)));
+    RatingPromptService.maybePrompt(context, source: 'photo');
   }
 
   /// Compact milestone progress rendered INSIDE the hero CounterCard

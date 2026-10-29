@@ -1,0 +1,416 @@
+/* Bản ghép Home đợt 2. Mọi giá trị chép từ code app (lib/theme/app_colors.dart, app_theme.dart,
+   lib/widgets/*) và từ CSS mock của 5 feature (poke.css, weather.css, arrival/app.css, caro.css,
+   expenses/app.css). Không có token mới. Phông Quicksand + Iconsax thật của app (fonts/). */
+@font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Regular.ttf'); font-weight: 400; font-display: block; }
+@font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Medium.ttf'); font-weight: 500; font-display: block; }
+@font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-SemiBold.ttf'); font-weight: 600; font-display: block; }
+@font-face { font-family: 'Quicksand'; src: url('fonts/Quicksand-Bold.ttf'); font-weight: 700 800; font-display: block; } /* pubspec: w800 trỏ file Bold */
+@font-face { font-family: 'IconsaxL'; src: url('fonts/IconsaxPlusLinear.ttf'); font-display: block; }
+@font-face { font-family: 'IconsaxB'; src: url('fonts/IconsaxPlusBold.ttf'); font-display: block; }
+
+:root {
+  --dawn: linear-gradient(135deg, #FFC1CC, #E8B4D8, #C8A8E9);   /* dawnBlush: nền Home */ /* taste-skill-ignore: brand: dawnBlush/sunsetRomance */
+  --sunset: linear-gradient(135deg, #FF6B9D, #FF8FA3, #FFB6C1); /* sunsetRomance: CounterCard */ /* taste-skill-ignore: brand: dawnBlush/sunsetRomance */
+  --ink: #1A1A2E;       /* textPrimary, nút chính */
+  --ink2: #6B6B7B;      /* textSecondary 5,3:1 trên trắng */
+  --ink3: #A0A0B0;      /* textTertiary: chỉ chevron */
+  --card: #FFFFFF;      /* cardSurface */
+  --soft: #F5F0F5;      /* surfaceLight */
+  --rose: #FF4D6D;      /* accentLove */
+  --rose-deep: #E63956; /* accentLoveDeep */
+  --lav-deep: #7C5CD6;  /* accentLavenderDeep */
+  --rule: rgba(107, 107, 123, .10);   /* vạch trong card (sleep_card) */
+  --warn-bg: rgba(255, 167, 38, .18); /* warning α.18 (arrival _BatteryLowPill) */
+  --warn-ink: #8A4B00;  /* warningInk đề xuất ở arrival */
+  --me: #FF4D6D;        /* PersonPalette rose (Tuấn) */
+  --partner: #0E9384;   /* PersonPalette teal (Thảo) */
+  --rps: #F26D5B;       /* rpsMedalAccent */
+  --font: 'Quicksand', system-ui, sans-serif;
+  --ease: cubic-bezier(0.215, 0.61, 0.355, 1); /* AppMotion easeOutCubic */
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--font); color: var(--ink); font-size: 14px; line-height: 1.4; background: var(--dawn) fixed; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+p, h1, h2, h3 { margin: 0; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ic { font-family: 'IconsaxL'; font-style: normal; font-weight: normal; line-height: 1; display: inline-block; }
+.ic.b { font-family: 'IconsaxB'; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Khung một màn Home ---------- */
+.home { position: relative; max-width: 430px; margin: 0 auto; }
+.tabhead { position: sticky; top: 0; z-index: 3; display: flex; align-items: flex-start; gap: 12px; padding: 16px 16px 0; background: var(--dawn) fixed; } /* header pinned ngoài vùng cuộn */
+.tabhead .grow { flex: 1; min-width: 0; }
+.chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.65); box-shadow: 0 4px 10px rgba(255,77,109,.14); /* taste-skill-ignore: brand: EyebrowChip có bóng rose */
+  font-size: 11px; line-height: 13px; font-weight: 700; letter-spacing: 1.4px; color: rgba(26,26,46,.70); text-transform: uppercase; white-space: nowrap; overflow: hidden; } /* taste-skill-ignore: brand: EyebrowChip có bóng rose */
+.chip .ic { font-size: 13px; color: var(--rose-deep); }
+.hbtn { position: relative; width: 48px; height: 48px; display: grid; place-items: center; margin-top: -10px; }
+.hbtn .ic { font-size: 26px; color: var(--ink); }
+.hbtn .count { position: absolute; top: 6px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #EF5350; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; }
+.scroll { padding: 20px 16px 132px; } /* 132 = nav nổi 84 + lề 16 + home indicator */
+
+/* ---------- Thẻ đếm (CounterCard) + hàng tim poke ---------- */
+.counter { position: relative; overflow: hidden; border-radius: 28px; background: var(--sunset); border: 1.2px solid rgba(255,255,255,.30); color: #fff; text-align: center; padding: 28px 24px 26px;
+  box-shadow: 0 16px 36px rgba(255,107,157,.36), 0 24px 48px rgba(167,139,250,.18); } /* taste-skill-ignore: brand: bóng CounterCard có sẵn */
+.counter .aurora { position: absolute; border-radius: 50%; pointer-events: none; }
+.counter .a1 { width: 220px; height: 220px; left: -60px; top: -70px; background: radial-gradient(rgba(255,255,255,.42), rgba(255,255,255,0) 70%); } /* taste-skill-ignore: brand: aurora CounterCard */
+.counter .a2 { width: 220px; height: 220px; right: -70px; bottom: -80px; background: radial-gradient(rgba(167,139,250,.30), rgba(167,139,250,0) 70%); } /* taste-skill-ignore: brand: aurora CounterCard */
+.counter .inner { position: relative; }
+.poke-row { display: grid; grid-template-columns: 1fr 44px 1fr; align-items: center; column-gap: 12px; }
+.poke-row .nm { font-size: 20px; line-height: 26px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 8px rgba(0,0,0,.18); } /* taste-skill-ignore: brand: chữ trắng trên nền sáng = bóng tối */
+.poke-row .l { text-align: right; } .poke-row .r { text-align: left; }
+.heart-btn { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; background: rgba(255,255,255,.92); color: var(--rose-deep); transition: transform 100ms var(--ease); }
+.heart-btn .ic { font-size: 22px; }
+.heart-btn:active { transform: scale(.92); }
+.poke-cap { margin-top: 8px; min-height: 18px; font-size: 13px; line-height: 18px; font-weight: 700; text-shadow: 0 1px 8px rgba(0,0,0,.28); } /* taste-skill-ignore: brand: chữ trắng trên nền sáng = bóng tối */
+.names-plain { display: inline-flex; align-items: center; gap: 6px; font-size: 20px; line-height: 26px; font-weight: 700; text-shadow: 0 1px 8px rgba(0,0,0,.18); } /* taste-skill-ignore: brand: chữ trắng trên nền sáng = bóng tối */
+.names-plain .ic { font-size: 18px; }
+.names-plain svg { width: 18px; height: 18px; flex: none; }
+.counter .eb { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 14px; font-size: 12px; line-height: 15px; font-weight: 600; letter-spacing: 2.2px; color: rgba(255,255,255,.92); }
+.counter .eb i { width: 28px; height: 1px; background: rgba(255,255,255,.55); }
+.counter .big { margin-top: 18px; font-size: 76px; line-height: 76px; font-weight: 700; letter-spacing: -1.6px; text-shadow: 0 0 28px rgba(255,255,255,.45); } /* taste-skill-ignore: brand: số hero có halo */
+.counter .unit { margin-top: 6px; font-size: 12px; line-height: 15px; font-weight: 600; letter-spacing: 1.6px; color: rgba(255,255,255,.82); }
+.clock { display: inline-flex; align-items: flex-start; margin-top: 16px; padding: 10px 18px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); }
+.clock .seg { min-width: 40px; display: grid; justify-items: center; }
+.clock .v { font-size: 20px; line-height: 20px; font-weight: 700; }
+.clock .l { margin-top: 4px; font-size: 10px; line-height: 10px; font-weight: 600; letter-spacing: 1.1px; color: rgba(255,255,255,.70); }
+.clock .sep { padding: 2px 2px 0; font-size: 16px; line-height: 16px; font-weight: 700; color: rgba(255,255,255,.60); }
+.ms { margin-top: 18px; text-align: left; }
+.ms .row { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 17px; font-weight: 700; }
+.ms .row .ic { font-size: 15px; }
+.ms .row .left { margin-left: auto; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.85); }
+.ms .track { margin-top: 10px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.25); overflow: hidden; }
+.ms .track b { display: block; height: 100%; background: #fff; border-radius: 999px; }
+.streak { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.30); font-size: 13px; line-height: 17px; font-weight: 700; }
+.streak .ic { font-size: 14px; color: #FFE08A; }
+
+/* ---------- Tiêu đề nhóm (SectionHeader 22 w700) ---------- */
+.sec { display: flex; align-items: center; gap: 12px; margin: 28px 0 12px; }
+.sec h2 { flex: 1; min-width: 0; font-size: 22px; line-height: 26px; font-weight: 700; letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sec .link { font-size: 14px; font-weight: 700; min-height: 44px; display: inline-flex; align-items: center; }
+.pill-c { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 10px; border-radius: 999px; background: rgba(255,255,255,.72); box-shadow: inset 0 0 0 1px rgba(255,255,255,.65); font-size: 13px; font-weight: 700; } /* taste-skill-ignore: brand: ConstellationPill viền trắng */
+.pill-c svg { width: 20px; height: 20px; }
+
+/* ---------- ContentCard ---------- */
+.card { position: relative; background: var(--card); border-radius: 24px; box-shadow: 0 10px 16px rgba(0,0,0,.06); padding: 16px; } /* taste-skill-ignore: brand: bóng ContentCard chuẩn */
+.stack > * + * { margin-top: 16px; }
+.chead { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.chead h2, .chead h3 { flex: 1; min-width: 0; font-size: 16px; line-height: 20px; font-weight: 800; }
+.chead .sub { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); }
+.badge { position: relative; flex: none; width: 44px; height: 44px; border-radius: 16px; display: grid; place-items: center; background: rgba(255,77,109,.12); color: var(--rose); }
+.badge .ic { font-size: 20px; }
+.badge.sm { width: 40px; height: 40px; border-radius: 14px; }
+.badge.lav { background: rgba(124,92,214,.12); color: var(--lav-deep); }
+.badge.navy { background: rgba(26,26,46,.12); color: var(--ink); }
+.badge.rps { background: rgba(242,109,91,.12); color: #C2410C; }
+.badge.soft { background: var(--soft); }
+.badge .ping { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--rose); border: 1.5px solid #fff; }
+.chev { font-size: 18px; color: var(--ink3); }
+.textlink { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; font-size: 14px; font-weight: 700; }
+
+/* Nút (theme): navy pill · viền navy .18 · chữ */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 600; white-space: nowrap; }
+.btn .ic { font-size: 18px; }
+.btn.outline { background: transparent; color: var(--ink); border: 1.5px solid rgba(26,26,46,.18); }
+.btn.h40 { height: 40px; font-size: 14px; font-weight: 700; }
+.btn.sent { background: rgba(26,26,46,.06); border-color: transparent; }
+.btn:active { transform: scale(.98); }
+
+/* ---------- Câu hỏi hôm nay (TodayRitualCard, giữ nguyên) ---------- */
+.ritual { padding: 20px; }
+.ritual .q { font-size: 21px; line-height: 26px; font-weight: 600; letter-spacing: -0.2px; }
+.locked { margin-top: 14px; padding: 16px; border-radius: 14px; background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.18); }
+.locked .bar { height: 11px; border-radius: 999px; background: rgba(167,139,250,.22); }
+.locked .bar + .bar { margin-top: 9px; }
+.locked .who { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 13px; font-weight: 700; }
+.locked .who .ic { font-size: 15px; color: var(--rose-deep); }
+.compose { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; margin-top: 12px; padding: 0 18px; border-radius: 16px; background: var(--soft); color: var(--ink2); font-size: 14px; font-weight: 600; text-align: left; }
+.compose.em { background: var(--ink); color: #fff; }
+.compose .ic { font-size: 18px; }
+
+/* ---------- Bảng "Thảo hôm nay thế nào?" (MỚI: TodayBoard) ----------
+   Ba làn: Bạn (trái, căn trái) · nhãn chung (giữa 64) · người ấy (phải, căn phải).
+   390: thẻ 358, đệm 16 ⇒ lòng 326. Khe 8 giữa làn và nhãn để chữ hai bên không dính vào nhãn giữa. */
+.board .lanes-h, .board .brow { display: grid; grid-template-columns: minmax(0,1fr) 64px minmax(0,1fr); column-gap: 8px; } /* 390: 2×123 + 64 + 2×8 = 326 · 360: 2×108 + 64 + 16 = 296 */
+.board .lanes-h { margin-top: 12px; padding-bottom: 6px; }
+.person { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px; color: var(--ink2); text-transform: uppercase; }
+.person i { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.person.r { justify-content: flex-end; }
+.brow { align-items: center; min-height: 60px; padding: 10px 0; border-top: 1px solid var(--rule); border-radius: 0; }
+.brow.tap { cursor: pointer; }
+.brow.tap:active { background: rgba(255,77,109,.04); }
+.mid { display: grid; justify-items: center; gap: 3px; color: var(--ink2); text-align: center; }
+.mid .ic { font-size: 18px; }
+.mid span { font-size: 12px; line-height: 15px; font-weight: 600; }
+.mid.match .ic { color: var(--rose); }
+.cell { min-width: 0; }
+.cell.p { text-align: right; }
+.cell .main { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 15px; line-height: 20px; font-weight: 700; }
+.cell.p .main { justify-content: flex-end; }
+.cell .main .t { min-width: 0; }
+.cell .fig { font-size: 18px; line-height: 22px; font-weight: 800; letter-spacing: -0.2px; }
+.cell .fig small { font-size: 13px; font-weight: 700; color: var(--ink2); letter-spacing: 0; }
+.cell .main .ic { flex: none; font-size: 18px; color: var(--ink2); }
+.cell .glyph { flex: none; font-size: 24px; line-height: 1; } /* MoodGlyph 24 (Noto animated emoji của app) */
+.cell .sub { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; }
+.cell .sub.one { white-space: nowrap; }
+.cell .sub b { font-weight: 700; color: var(--ink); }
+.cell .sub .ic { font-size: 12px; vertical-align: -1px; }
+.cell .muted { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink2); }
+.cell .mini { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; margin: 4px 0; border-radius: 999px; background: rgba(255,77,109,.10); font-size: 13px; font-weight: 700; } /* "Chọn" = cùng khuôn pill "Quay" của DecisionCard; vùng chạm 44 nhờ đệm hàng */
+.cell .mini .ic { font-size: 16px; color: var(--ink); }
+.batt { display: inline-flex; align-items: center; gap: 4px; height: 24px; margin-top: 4px; padding: 0 8px; border-radius: 999px; background: var(--warn-bg); color: var(--warn-ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.batt .ic { font-size: 14px; }
+.board .bfoot { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.board .bfoot .btn { padding: 0 12px; }
+.board .bfoot .btn:only-child { grid-column: 1; }
+.board .stamp { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
+.board .stamp .ic { font-size: 14px; }
+.strip { display: flex; align-items: flex-start; gap: 10px; margin-top: 10px; padding: 10px 12px; border-radius: 16px; background: var(--soft); font-size: 13px; line-height: 18px; font-weight: 600; }
+.strip .ic { flex: none; font-size: 18px; color: var(--ink2); }
+/* Bảng một làn (cặp đang chờ): nhãn trái 88 · giá trị */
+.board.solo .brow { grid-template-columns: 96px minmax(0,1fr); }
+.board.solo .mid { justify-items: start; grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; text-align: left; }
+
+/* ---------- Bản B: MoodCard + SleepCard đúng khuôn app ---------- */
+.mood { padding: 20px; }
+.mhead { display: flex; align-items: center; gap: 12px; }
+.msq { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,77,109,.12); color: var(--rose); }
+.msq .ic { font-size: 20px; }
+.mhead h2 { font-size: 20px; line-height: 24px; font-weight: 700; } /* sectionTitleStyle */
+.mcols { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 12px; margin-top: 16px; }
+.mvr { background: var(--soft); }
+.mside { display: grid; justify-items: center; text-align: center; padding: 8px 0; }
+.ml { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px; color: #6B6B7B; text-transform: uppercase; } /* app: textTertiary; mock nâng lên textSecondary cho đủ tương phản */
+.mface { width: 56px; height: 56px; margin-top: 10px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,77,109,.10); font-size: 34px; line-height: 1; }
+.mface.empty { background: var(--soft); color: var(--ink2); }
+.mface.empty .ic { font-size: 24px; }
+.mw { margin-top: 8px; font-size: 14px; line-height: 18px; font-weight: 700; }
+.mn { margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--ink2); font-style: italic; }
+.mempty { margin-top: 8px; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.mbtn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; margin-top: 16px; border-radius: 999px; background: var(--soft); color: var(--ink2); font-size: 15px; font-weight: 700; }
+.mbtn .ic { font-size: 18px; }
+.mbtn.first { background: var(--sunset); color: #fff; }
+.sleep .scols { display: grid; grid-template-columns: 1fr 1px 1fr; margin-top: 14px; }
+.sleep .scols.one { grid-template-columns: 1fr; }
+.sleep .svr { background: var(--rule); }
+.scol:first-child { padding-right: 14px; } .scol:last-child { padding-left: 14px; }
+.scols.one .scol { padding: 0; }
+.srow { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.moon { flex: none; width: 30px; height: 30px; }
+.sdur { font-size: 22px; line-height: 26px; font-weight: 800; }
+.sdur small { font-size: 13px; font-weight: 700; color: var(--ink2); }
+.srange { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); }
+.sfoot { display: flex; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
+.sfoot .ic { font-size: 12px; color: var(--rose); margin-top: 2px; }
+
+/* ---------- Bản C: thẻ Về đến nhà + Thời tiết hai làn ---------- */
+.alanes, .wlanes { display: grid; grid-template-columns: minmax(0,1fr) 1px minmax(0,1fr); margin-top: 14px; }
+.wlanes.one { grid-template-columns: 1fr; }
+.alanes > .svr, .wlanes > .svr { background: var(--rule); }
+.alane, .wlane { min-width: 0; }
+.alanes > :first-child, .wlanes > :first-child { padding-right: 14px; }
+.alanes > :last-child, .wlanes > :last-child { padding-left: 14px; }
+.wlanes.one > :first-child { padding: 0; }
+.aline { margin-top: 8px; font-size: 16px; line-height: 21px; font-weight: 700; }
+.aline.muted { font-size: 14px; font-weight: 600; color: var(--ink2); }
+.ameta { margin-top: 2px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink2); }
+.alane .batt { margin-top: 6px; }
+.abtns { display: grid; justify-items: start; gap: 4px; margin-top: 12px; }
+.abtns .btn { padding: 0 14px; }
+.abtn2 { gap: 6px; padding: 0 4px; font-size: 14px; font-weight: 700; }
+.abtn2 .ic { font-size: 16px; }
+.wlane .who { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 17px; font-weight: 700; color: var(--ink2); min-width: 0; }
+.wlane .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.wlane .city { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wlane .now { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.wlane .temp { font-size: 30px; line-height: 33px; font-weight: 600; letter-spacing: -0.5px; }
+.wlane .now .ic { font-size: 24px; color: var(--ink2); }
+.wlane .cond { margin-top: 2px; font-size: 14px; line-height: 19px; font-weight: 700; }
+.wshared { display: flex; align-items: center; min-height: 44px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 14px; font-weight: 600; }
+
+/* ---------- Bản C, vòng soát dễ dùng ---------- */
+.home.c .counter { padding: 24px 24px 22px; } /* sát số đo app 362 hơn (mock A/B 400+) */
+.home.c .counter .big { margin-top: 14px; }
+.home.c .clock { margin-top: 12px; }
+.home.c .ms { margin-top: 14px; }
+.lockline { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; line-height: 18px; font-weight: 700; }
+.lockline .ic { font-size: 15px; color: var(--rose-deep); }
+.mside.c { padding: 0; align-content: start; }
+.mside.c .person { justify-content: center; }
+.mood .chead + .mcols { margin-top: 14px; }
+.mood .chead .textlink .ic { font-size: 16px; }
+.alanes2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.alane2 { display: flex; flex-direction: column; min-width: 0; padding: 12px; border-radius: 16px; }
+.alane2.m { background: rgba(255,77,109,.10); } .alane2.p { background: rgba(14,147,132,.10); } .alane2.neutral { background: var(--soft); }
+.alane2 .aline { margin-top: 6px; font-size: 18px; line-height: 23px; font-weight: 700; }
+.alane2 .aline.s { font-size: 15px; }
+.ameta2 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.ameta2 > .ic { font-size: 16px; color: var(--ink); }
+.ameta2 b { font-size: 14px; font-weight: 700; color: var(--ink); }
+.ameta2 .bat { display: inline-flex; align-items: center; gap: 4px; }
+.ameta2 .bat .ic { font-size: 14px; }
+.ameta2 .batt { margin-top: 0; }
+.mstat { display: flex; gap: 6px; align-items: flex-start; margin-top: auto; padding-top: 8px; min-height: 44px; font-size: 12px; line-height: 16px; font-weight: 600; }
+.mstat .ic { font-size: 14px; margin-top: 1px; }
+.alane2 .care { margin-top: auto; align-self: flex-start; margin-left: -8px; }
+.alane2 .care .ic { font-size: 16px; color: var(--rose-deep); }
+.abtns2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; } /* hai nút luôn một hàng, kể cả khổ 360 (2×144) */
+.abtns2 .btn { padding: 0 10px; font-size: 14px; font-weight: 700; gap: 6px; }
+.abtns2 .btn .ic + .ic { margin-left: -2px; font-size: 16px; }
+.weather.compact { padding: 16px; }
+.wrow { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.wtxt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.wtxt .t { font-size: 16px; line-height: 20px; font-weight: 800; }
+.wline { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink2); }
+.wchip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.wchip i { width: 8px; height: 8px; border-radius: 50%; }
+.wchip b { font-weight: 700; color: var(--ink); }
+.wcond { white-space: nowrap; }
+
+/* ---------- So sánh A/B (compare.html) ---------- */
+.cmp { display: grid; grid-template-columns: repeat(var(--cols, 2), 390px); gap: 32px; justify-content: center; padding: 0 16px 48px; }
+.cmp .col { min-width: 0; }
+.cmp .lab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 10px; padding: 0 4px; }
+.cmp .lab h2 { font-size: 20px; line-height: 24px; font-weight: 700; }
+.cmp .lab .len { font-size: 14px; font-weight: 700; }
+.cmp .lab .len span { font-weight: 500; color: var(--ink); }
+.cmp .frame { border-radius: 24px; overflow: hidden; border: 0; }
+.cmp .frame .tabhead { position: static; }
+.cmp .frame .nav { display: none; }
+.cmp .frame .scroll { padding-bottom: 24px; }
+@media (max-width: 1280px) { .cmp { grid-template-columns: minmax(0, 390px); } }
+
+/* ---------- Chơi cùng nhau (PlayTogetherCard, spec caro) ---------- */
+.play h2.ttl { font-size: 16px; line-height: 20px; font-weight: 700; margin-bottom: 4px; }
+.game-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; min-height: 68px; padding: 12px 0; }
+.game-row + .game-row { border-top: 1px solid var(--rule); }
+.game-row .t { font-size: 15px; line-height: 20px; font-weight: 700; }
+.game-row .s { font-size: 13px; line-height: 18px; color: var(--ink2); }
+.game-row .s.on { color: var(--ink); font-weight: 600; }
+.badge svg { width: 26px; height: 26px; }
+
+/* ---------- Sổ tiền (MoneyHomeEntry, spec expenses, IconBadge theo Lead) ---------- */
+.money { display: flex; align-items: center; gap: 12px; }
+.money .txt { flex: 1; min-width: 0; }
+.money .t { font-size: 15px; line-height: 20px; font-weight: 700; }
+.money .s { font-size: 13px; line-height: 18px; font-weight: 500; color: var(--ink2); }
+.money .s b { font-weight: 600; color: var(--ink); }
+.money .s .over { color: #C4242A; font-weight: 700; }
+.round { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; }
+.round .ic { font-size: 22px; }
+
+/* ---------- Phân vân gì không? (DecisionCard, giữ nguyên) ---------- */
+.decide { padding: 0 0 8px; }
+.decide .chead { padding: 16px 8px 4px 16px; }
+.drow { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 16px; }
+.drow.done { min-height: 72px; }
+.drow + .hl { height: 1px; margin: 0 16px 0 72px; background: var(--soft); }
+.drow .txt { flex: 1; min-width: 0; }
+.drow .t { font-size: 15px; line-height: 20px; font-weight: 700; }
+.drow .s { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* maxLines 1 như code */
+.drow .lab { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px; color: var(--ink2); }
+.spin { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: rgba(255,77,109,.10); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.spin .ic { font-size: 16px; }
+
+/* ---------- Kỷ niệm gần đây (MemoryCinemaCard, giữ nguyên) ---------- */
+.cinema { position: relative; height: 240px; border-radius: 24px; overflow: hidden; background: #3b2a3f center / cover no-repeat; box-shadow: 0 10px 24px rgba(0,0,0,.12); } /* taste-skill-ignore: brand: media có bóng .12 */
+.cinema::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.55)); } /* taste-skill-ignore: brand: scrim đáy ảnh */
+.cinema .cap { position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 1; color: #fff; }
+.cinema .cap .t { font-size: 16px; line-height: 20px; font-weight: 700; }
+.cinema .cap .s { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 600; color: rgba(255,255,255,.88); }
+.cinema .dots { position: absolute; right: 18px; bottom: 20px; z-index: 1; display: flex; gap: 6px; }
+.cinema .dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.55); }
+.cinema .dots i.on { width: 16px; background: #fff; }
+
+/* ---------- Banner chờ người ấy (giữ nguyên, rút gọn hình) ---------- */
+.wait { padding: 18px; }
+.wait .wbadge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; background: rgba(255,77,109,.10); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: var(--ink); }
+.step { display: grid; grid-template-columns: 28px 1fr; gap: 12px; margin-top: 14px; }
+.step .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); font-size: 13px; font-weight: 700; }
+.step .t { font-size: 14px; line-height: 18px; font-weight: 700; }
+.step .d { margin-top: 4px; font-size: 12px; line-height: 17px; color: var(--ink2); }
+.code { margin-top: 10px; padding: 8px 12px; border-radius: 14px; background: var(--soft); font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: 4px; color: var(--rose-deep); text-align: center; }
+.wait .btn { width: 100%; height: 52px; margin-top: 12px; background: var(--rose); font-weight: 700; } /* đúng code: accentLove + chữ trắng 15 w700 (nợ tương phản cũ, ngoài phạm vi) */
+.wait .twin { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+.wait .twin .textlink { justify-content: center; }
+
+/* ---------- Nav nổi (glass của design system, giữ nguyên) ---------- */
+.nav { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 4; height: 84px; max-width: 398px; margin: 0 auto; border-radius: 28px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; padding: 0 10px;
+  background: rgba(255,255,255,.22); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,.35); box-shadow: 0 12px 30px rgba(26,26,46,.12); } /* taste-skill-ignore: brand: nav nổi glass */
+.nav a { height: 60px; border-radius: 22px; display: grid; place-items: center; align-content: center; gap: 2px; font-size: 11px; font-weight: 700; color: rgba(26,26,46,.70); }
+.nav a .ic { font-size: 22px; }
+.nav a[aria-current] { background: linear-gradient(to right, #FF6B9D, #E63956); color: #fff; } /* taste-skill-ignore: brand: pill chọn của nav */
+
+/* ---------- Khung tài liệu (chỉ có trong mock) ---------- */
+.doc-note { margin: 28px 0 0; padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,.55); font-size: 13px; line-height: 19px; }
+.doc-note b { font-weight: 700; }
+.doc-note nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.doc-note nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; background: #fff; font-weight: 700; }
+.doc-note nav a[aria-current] { background: var(--ink); color: #fff; }
+.state-h { margin: 36px 16px 4px; font-size: 18px; line-height: 24px; font-weight: 700; }
+.state-p { margin: 0 16px 12px; font-size: 14px; line-height: 20px; }
+.frame + .state-h { margin-top: 48px; }
+.frame .nav { position: absolute; }
+.frame { position: relative; border-top: 1px solid rgba(255,255,255,.4); }
+
+@media (prefers-reduced-motion: reduce) { .heart-btn, .btn { transition: none; } }
+
+/* ---------- Bản E / F (2026-10-29): bảng ô ----------
+   390: thẻ 358 ⇒ 2 ô × 173 + khe 12 · 360: 2 × 158 + 12. Đệm ô 14 ⇒ lòng 145 (390) / 130 (360).
+   Khe trong lưới 12 (nhỏ hơn khe thẻ 16) để bốn ô đọc thành một khối; giữa lưới và thẻ khác vẫn 16. */
+.bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { display: flex; flex-direction: column; min-width: 0; padding: 14px; }
+.tile .thead { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.tile .thead h3 { flex: 1; min-width: 0; font-size: 15px; line-height: 19px; font-weight: 800; }
+.badge.xs { width: 36px; height: 36px; border-radius: 12px; }
+.badge.xs .ic { font-size: 18px; }
+.badge.xs svg { width: 22px; height: 22px; }
+.tbody { display: grid; gap: 10px; margin-top: 12px; }
+.tl { min-width: 0; }
+.tv { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: 3px; font-size: 15px; line-height: 20px; font-weight: 700; }
+.tv .glyph { font-size: 20px; line-height: 1; }
+.tv .ic { font-size: 16px; color: var(--ink2); }
+.tv small { font-size: 12px; font-weight: 700; color: var(--ink2); }
+.tv .muted { font-size: 14px; font-weight: 600; color: var(--ink2); }
+.tsub { margin-top: 1px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tsub .batt { height: 20px; margin: 0 0 0 6px; padding: 0 6px; font-size: 11px; vertical-align: 1px; }
+.tsub .batt .ic { font-size: 12px; }
+.tl .batt { margin-top: 4px; }
+.tfoot { margin-top: auto; padding-top: 12px; }
+.tfoot:empty { display: none; }
+.tpill { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 40px; padding: 0 10px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.tpill::after { content: ''; position: absolute; inset: -2px 0; } /* vùng chạm 44 */
+.tpill .ic { font-size: 16px; }
+.tpill.ghost { border: 1.5px solid rgba(26,26,46,.18); }
+.tpill.rose { background: rgba(255,77,109,.10); }
+.tpill.navy { background: var(--ink); color: #fff; }
+.tfact { display: flex; align-items: center; gap: 6px; min-height: 40px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--ink2); }
+.tfact .ic { flex: none; font-size: 14px; color: var(--ink2); }
+.tfact.heart .ic { font-size: 12px; color: var(--rose); } /* tim = màu thương hiệu; icon khác xám */
+
+/* Phân vân gọn: kết quả hôm nay (nếu có) + 3 nút cùng hàng */
+.decide2 .dtoday { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: var(--soft); }
+.decide2 .dtoday .txt { flex: 1; min-width: 0; display: grid; }
+.decide2 .dtoday .lab { font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 1px; color: var(--ink2); }
+.decide2 .dtoday .t { font-size: 15px; line-height: 20px; font-weight: 700; }
+.decide2 .dtoday .s { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--ink2); }
+.dbtns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.dbtns .tpill { height: 44px; font-size: 14px; }
+.dbtns .tpill::after { content: none; }
+
+/* Thẻ đếm gọn (F) */
+.home.f .counter.cc { text-align: left; padding: 18px 20px 18px; }
+.cc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.home.f .counter.cc .names-plain { font-size: 18px; line-height: 24px; min-width: 0; }
+.cc-streak { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.30); font-size: 14px; font-weight: 700; }
+.cc-streak .ic { font-size: 14px; color: #FFE08A; }
+.cc-mid { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; }
+.home.f .counter.cc .big { margin: 0; font-size: 56px; line-height: 60px; letter-spacing: -1.2px; }
+.home.f .counter.cc .unit { margin: 0; }
+.home.f .counter.cc .clock { margin-top: 6px; padding: 8px 14px; }
+.home.f .counter.cc .clock .v { font-size: 18px; line-height: 18px; }
+.home.f .counter.cc .ms { margin-top: 14px; }

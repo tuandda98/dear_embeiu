@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thời tiết hai nơi, mục trong Cài đặt · Dear Embeiu</title>
+<link rel="stylesheet" href="weather.css">
+<style>
+  /* Theo settings_screen.dart: ContentCard padding 20/6, hàng IconBadge + 15 w700 + phụ 12, vạch ngăn thụt 58 */
+  .group { padding: 6px 20px; }
+  .row { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 0; width: 100%; text-align: left; text-decoration: none; }
+  .row { position: relative; }
+  .row + .row::before { content: ''; position: absolute; left: 56px; right: 0; top: 0; height: 1px; background: var(--rule); } /* vạch thụt như _rowDivider */
+  .rt { flex: 1; min-width: 0; }
+  .rt .t { display: block; font-size: 15px; font-weight: 700; }
+  .rt .s { display: block; font-size: 12px; color: var(--ink2); margin-top: 4px; line-height: 1.4; }
+  .switch { width: 51px; height: 31px; border-radius: 16px; background: #E4E0E7; position: relative; flex: none; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.18); transition: transform 200ms cubic-bezier(.215,.61,.355,1); }
+  .switch[aria-checked="true"] { background: var(--rose); }
+  .switch[aria-checked="true"]::after { transform: translateX(20px); }
+  .timechip { height: 36px; padding: 0 14px; border-radius: 999px; background: var(--soft); font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; }
+  .row[aria-disabled="true"] .rt .t { color: var(--ink2); }
+  .preview-cap { font-size: 13px; font-weight: 600; color: var(--ink); margin: 16px 0 8px; }
+  .notif { background: rgba(255,255,255,.86); border-radius: 20px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .appic { width: 38px; height: 38px; border-radius: 9px; background: #FF6B9D; display: grid; place-items: center; flex: none; }
+  .appic .ic { color: #fff; font-size: 20px; }
+  .nt { flex: 1; min-width: 0; }
+  .nt .t { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; }
+  .nt .t span { font-size: 13px; font-weight: 500; color: var(--ink2); }
+  .nt .b { font-size: 15px; margin-top: 2px; }
+  h1.chip { margin: 0; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="screen doc" id="app"></main>
+<script>
+const { ic, I } = UI, X = WX.places, name = WX.people.partner.name;
+const n = WX.morning('rain', X.hcm, name);
+const badge = (cp) => `<span class="badge">${ic(cp)}</span>`;
+const sub = `Báo lúc 07:30 khi chỗ ${name} mưa, nắng gắt hoặc lạnh. Tối đa 3 lần một tuần.`;
+document.getElementById('app').innerHTML = `
+  <div class="subhead"><a class="back" href="home.html" aria-label="Quay lại">${ic(I.back)}</a>
+    <span class="chipwrap"><h1 class="chip">${ic(0xebd5)}Cài đặt</h1></span><span></span></div>
+  <h2 class="section-title" style="margin-top:20px">Thời tiết hai nơi</h2>
+  <section class="card group" aria-label="Thời tiết hai nơi">
+    <a class="row" href="picker.html">${badge(I.location)}<span class="rt"><span class="t">Chỗ của bạn</span><span class="s">Hà Nội</span></span><span class="chev">${ic(I.chev)}</span></a>
+    <div class="row">${badge(I.location)}<span class="rt"><span class="t">Chỗ ${name}</span><span class="s">TP.HCM · ${name} tự chọn</span></span></div>
+    <div class="row">${badge(0xeb4d)}<span class="rt"><span class="t" id="sw-l">Thời tiết chỗ người ấy</span><span class="s">${sub}</span></span>
+      <button class="switch" role="switch" aria-checked="true" aria-labelledby="sw-l" type="button"></button></div>
+  </section>
+  <p class="preview-cap">Hôm nào chỗ ${name} có mưa, thông báo sẽ như thế này:</p>
+  <div class="notif" role="img" aria-label="Xem trước thông báo: ${n.title}. ${n.body}"><span class="appic">${ic(0xea9c, true)}</span>
+    <div class="nt"><div class="t">${n.title}<span>07:30</span></div><div class="b">${n.body}</div></div></div>
+  <p class="source">Dữ liệu thời tiết: <a href="https://api.met.no/doc/License">MET Norway</a></p>
+
+  <p class="state"><b>Khi tắt thông báo:</b> phần xem trước ẩn.</p>
+  <section class="card group" aria-label="Thời tiết hai nơi, khi tắt thông báo">
+    <a class="row" href="picker.html">${badge(I.location)}<span class="rt"><span class="t">Chỗ của bạn</span><span class="s">Hà Nội</span></span><span class="chev">${ic(I.chev)}</span></a>
+    <a class="row" href="picker-partner.html">${badge(I.location)}<span class="rt"><span class="t">Chỗ ${name}</span><span class="s">Đà Lạt · bạn chọn giúp</span></span><span class="chev">${ic(I.chev)}</span></a>
+    <div class="row">${badge(0xeb4d)}<span class="rt"><span class="t" id="sw-2">Thời tiết chỗ người ấy</span><span class="s">${sub}</span></span>
+      <button class="switch" role="switch" aria-checked="false" aria-labelledby="sw-2" type="button"></button></div>
+  </section>
+
+  <p class="state"><b>Đang chờ người ấy:</b> chỉ còn thành phố của mình, công tắc khoá và nói vì sao.</p>
+  <section class="card group" aria-label="Thời tiết hai nơi, khi đang chờ người ấy">
+    <a class="row" href="picker.html">${badge(I.location)}<span class="rt"><span class="t">Chỗ của bạn</span><span class="s">Chưa chọn</span></span><span class="chev">${ic(I.chev)}</span></a>
+    <div class="row" aria-disabled="true">${badge(0xeb4d)}<span class="rt"><span class="t" id="sw-3">Thời tiết chỗ người ấy</span><span class="s">Ghép đôi xong mới báo được.</span></span>
+      <button class="switch" role="switch" aria-checked="false" aria-disabled="true" aria-labelledby="sw-3" type="button"></button></div>
+  </section>`;
+document.querySelectorAll('.switch:not([aria-disabled])').forEach((s) => s.addEventListener('click', () => s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true')));
+</script>
+</body>
+</html>

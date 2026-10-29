@@ -11,6 +11,12 @@ import '../models/couple.dart';
 import '../providers/auth_provider.dart';
 import '../providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
+// ── caro-game (đợt 2) ──
+import '../providers/caro_game_provider.dart';
+import '../widgets/caro/caro_common.dart' show CaroPeople;
+import 'caro_game_screen.dart' show openCaroGame;
+import '../widgets/play_together_card.dart'
+    show showPlayTogetherHistorySheet;
 import '../providers/rps_game_provider.dart';
 import '../providers/streak_provider.dart';
 import '../services/care_message_service.dart';
@@ -35,9 +41,13 @@ import '../widgets/streak_sheet.dart';
 import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
 import 'rps_game_screen.dart';
-import 'rps_history_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
+// ── expenses (đợt 2) ──
+import '../models/money.dart' show MoneyBookKind;
+import '../services/money_service.dart';
+import '../widgets/ink_tile.dart';
+import 'money/money_screen.dart' show openMoneyScreen;
 
 /// Profile v2 (redesign 2026-06-11): identity + memory chest + admin gateway.
 /// Every number appears exactly once — the daily/live numbers live on Home;
@@ -114,6 +124,12 @@ class ProfileScreen extends StatelessWidget {
                         _buildHeroCard(context, couple: couple),
                         const SizedBox(height: 18),
                         _buildJourneyTrail(context, totalDays: totalDays),
+                        // ── expenses (đợt 2) ── Sổ tiền entry (D25 lối phụ),
+                        // solo couples too; no book without Firebase.
+                        if (MoneyService.isAvailable) ...[
+                          const SizedBox(height: 18),
+                          _MoneyTile(waiting: couple.isWaitingForPartner),
+                        ],
                         // Achievements need a partner (streak/journal exist
                         // only once both are present); while waiting, the
                         // invite block takes the slot.
@@ -644,25 +660,19 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
     final nf = NumberFormat.decimalPattern(
       Localizations.localeOf(context).toString(),
     );
-    // Rock-paper-scissors badge (feature rps-game): all-time W – D – L from
-    // the provider's cached aggregation (one lazy load), plus a dot while the
-    // partner is waiting on me: their invite, or a started round where they
-    // have thrown and I haven't (no-skip rule, design addendum §C).
+    // ── caro-game (đợt 2) ──
+    // "Chơi cùng nhau" (Lead chốt: caro + oẳn tù tì in ONE badge, grid stays
+    // 2×3): the all-time caro score "me – partner", a dot while the partner
+    // waits on me in either game (caro: my turn / invited; rps: their invite
+    // or "tới lượt bạn").
     final rps = context.watch<RpsGameProvider>();
-    final rpsScore = rps.totalScore;
-    // Only while not loaded / not loading / not in the 30s post-failure
-    // backoff (Tester RPS-6 — a failing count() used to re-fire three reads
-    // on every rebuild).
-    if (rps.shouldAutoLoadTotalScore) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.read<RpsGameProvider>().loadTotalScore();
-        }
-      });
-    }
+    final caro = context.watch<CaroGameProvider>();
     final rpsInviteId = (rps.hasPendingInvite || rps.isMyTurn)
         ? rps.openGame?.id
         : null;
+    final caroTurnId = caro.isMyTurn ? caro.openGame?.id : null;
+    final playDot = caroTurnId != null || rpsInviteId != null;
+    final caroPeople = CaroPeople.of(context, l10n);
 
     final milestonesReached = StreakProvider.milestones
         .where((m) => streak.longestStreak >= m)
@@ -783,24 +793,19 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                 icon: IconsaxPlusBold.game,
                 medalGradient: _MedalPalette.game.gradient,
                 accent: _MedalPalette.game.accent,
-                // "W – D – L" (en dashes) — three numbers, so a notch smaller
-                // than the single-number badges.
-                value: rpsScore == null
-                    ? null
-                    : l10n.rpsScoreFormat(
-                        nf.format(rpsScore.wins),
-                        nf.format(rpsScore.draws),
-                        nf.format(rpsScore.losses),
-                      ),
+                value: caro.isStateLoaded
+                    ? l10n.caroScorePair(
+                        nf.format(caro.myWins),
+                        nf.format(caro.partnerWins),
+                      )
+                    : null,
                 valueSize: 22,
-                valueSemantics: rpsScore == null
-                    ? null
-                    : l10n.rpsScoreSemantics(
-                        nf.format(rpsScore.wins),
-                        nf.format(rpsScore.draws),
-                        nf.format(rpsScore.losses),
-                      ),
-                medalOverlay: rpsInviteId == null
+                valueSemantics: caroPeople.score(
+                  l10n,
+                  caro.myWins,
+                  caro.partnerWins,
+                ),
+                medalOverlay: !playDot
                     ? null
                     : Positioned(
                         top: -3,
@@ -818,17 +823,17 @@ class _AchievementsGridState extends State<_AchievementsGrid> {
                           ),
                         ),
                       ),
-                label: l10n.rpsGameTitle,
+                label: l10n.caroPlayTogetherTitle,
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  // The partner waiting on me (invite / "tới lượt bạn")
-                  // takes precedence over the history (design §5.7 +
-                  // addendum §C); unplayed / awaiting rounds are the Home
-                  // card's job.
-                  if (rpsInviteId != null) {
+                  // Whoever waits on me first (caro, then rps); otherwise a
+                  // sheet with each game's history (review UI #14).
+                  if (caroTurnId != null) {
+                    openCaroGame(context, gameId: caroTurnId, source: 'profile');
+                  } else if (rpsInviteId != null) {
                     openRpsGame(context, gameId: rpsInviteId);
                   } else {
-                    openRpsHistory(context);
+                    showPlayTogetherHistorySheet(context);
                   }
                 },
               ),
@@ -1023,3 +1028,65 @@ class _MedalPalette {
 /// Stateful for the same reason as [_AchievementsGrid]: the total is a one-shot
 /// Firestore `count()` aggregation, so it's fetched once and cached instead of
 /// re-querying on every Profile rebuild.
+
+// ── expenses (đợt 2) ── stage 3B
+/// "Sổ tiền" row: one tappable white card (IconBadge · title 15 w700 ·
+/// sub 12 · chevron), the same parts as the Settings rows next door.
+class _MoneyTile extends StatelessWidget {
+  const _MoneyTile({required this.waiting});
+
+  final bool waiting;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return InkTile(
+      borderRadius: 24,
+      onTap: () => openMoneyScreen(
+        context,
+        book: waiting ? MoneyBookKind.own : null,
+        from: 'profile',
+      ),
+      child: ContentCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Semantics(
+          button: true,
+          child: Row(
+            children: [
+              const IconBadge(IconsaxPlusLinear.wallet_2),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.moneyTitle,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.moneyProfileSub,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                IconsaxPlusLinear.arrow_right_3,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -317,6 +317,16 @@
   "homeGreetingEvening": "Chào buổi tối,",
   "homeGreetingNight": "Khuya rồi đó,",
   "homeTodaySectionTitle": "Hôm nay của chúng mình",
+  "homePartnerSectionTitle": "{name} thế nào rồi?",
+  "@homePartnerSectionTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homePartnerSectionTitleFallback": "Người ấy thế nào rồi?",
+  "homeFreeTimeSectionTitle": "Lúc rảnh",
   "dailyTapToAnswer": "Chạm để trả lời…",
   "dailyPartnerAnsweredTeaser": "{name} đã trả lời rồi đó 👀",
   "@dailyPartnerAnsweredTeaser": {
@@ -464,6 +474,7 @@
   "moodMatched": "Chúng mình cùng một tâm trạng 💞",
   "moodShareCta": "Chia sẻ tâm trạng",
   "moodUpdateCta": "Đổi tâm trạng",
+  "moodChangeShort": "Đổi",
   "moodNotSharedYou": "Chạm để chia sẻ",
   "moodPartnerEmpty": "{name} chưa chia sẻ hôm nay",
   "@moodPartnerEmpty": {
@@ -3174,6 +3185,7 @@
     "description": "Decision wheel (feature decision-wheel)"
   },
   "decisionCustomCta": "Nhập & quay",
+  "decisionChipCustom": "Khác",
   "@decisionCustomCta": {
     "description": "Decision wheel (feature decision-wheel)"
   },
@@ -3733,5 +3745,4532 @@
         "type": "String"
       }
     }
-  }
+  },
+  "caroPlayTogetherTitle": "Chơi cùng nhau",
+  "caroGameTitle": "Cờ caro",
+  "caroEntryInvited": "{name} rủ bạn một ván và đã đi nước đầu.",
+  "@caroEntryInvited": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryMyTurn": "Đến lượt bạn. {name} vừa đi nước {n}.",
+  "@caroEntryMyTurn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryWaiting": "Đang chờ {name}. Bạn đi nước {n} lúc {time}.",
+  "@caroEntryWaiting": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryWatching": "{name} đang mở ván, chờ chút nhé.",
+  "@caroEntryWatching": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryStale": "Ván dừng {days} ngày rồi. Vào kết thúc để rủ ván mới.",
+  "@caroEntryStale": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustLost": "{name} thắng ván vừa rồi. {score}.",
+  "@caroEntryJustLost": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustWon": "Bạn thắng ván vừa rồi. {score}.",
+  "@caroEntryJustWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryJustDraw": "Ván vừa rồi hoà. {score}.",
+  "@caroEntryJustDraw": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryIdle": "{score}. Rủ {name} một ván?",
+  "@caroEntryIdle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEntryFirst": "Rủ {name} một ván, bạn đi trước.",
+  "@caroEntryFirst": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScore": "{me} {a} – {b} {partner}",
+  "@caroScore": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "me": {
+        "type": "String"
+      },
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "partner": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScoreDraws": "{score}, {n} ván hoà",
+  "@caroScoreDraws": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroScorePair": "{a} – {b}",
+  "@caroScorePair": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCtaJoin": "Vào chơi",
+  "caroCtaPlayOn": "Đi tiếp",
+  "caroCtaRematch": "Phục thù",
+  "caroCtaNewGame": "Ván mới",
+  "caroCtaInvite": "Chơi",
+  "caroCtaRetry": "Thử lại",
+  "caroActionError": "Chưa làm được, thử lại nhé.",
+  "caroEntryError": "Chưa tải được ván. Chạm để thử lại.",
+  "caroNewTitle": "Rủ {name} chơi caro",
+  "@caroNewTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewSub": "Chọn luật cho ván này. Đổi được ở ván sau.",
+  "caroRuleVn": "Chặn hai đầu",
+  "caroRuleVnDesc": "Năm quân liền nhau là thắng, trừ khi cả hai đầu đều bị quân người kia chặn.",
+  "caroRuleFree": "Tự do",
+  "caroRuleFreeDesc": "Cứ năm quân liền nhau là thắng, bị chặn hai đầu vẫn tính.",
+  "caroRuleExampleNoWin": "Thế này chưa thắng",
+  "caroRuleExampleWin": "Thế này là thắng",
+  "caroRuleLastUsed": "lần trước",
+  "caroNewFirstNote": "Bạn cầm X, quân đầu đặt ở giữa bàn. {name} nhận được lời rủ ngay.",
+  "@caroNewFirstNote": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewCta": "Rủ {name} chơi",
+  "@caroNewCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNewPickFirst": "Tự chọn ô đầu tiên",
+  "caroBadge": "CỜ CARO",
+  "caroMyTurn": "Đến lượt bạn",
+  "caroLastMove": "{name} vừa đi nước {n} lúc {time}.",
+  "@caroLastMove": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWaiting": "Đang chờ {name}",
+  "@caroWaiting": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroYouMoved": "Bạn đi nước {n} lúc {time}. Cứ thoát app, {name} đi xong là có thông báo.",
+  "@caroYouMoved": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerWatching": "Bạn đi nước {n} lúc {time}. {name} đang xem ván.",
+  "@caroPartnerWatching": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWaitedMin": "Bạn đi nước {n} lúc {time}. Đã {m} phút rồi.",
+  "@caroWaitedMin": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "caroNudged": "Đã nhắc {name} lúc {time}.",
+  "@caroNudged": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLaneWins": "thắng",
+  "caroLaneWatching": "đang xem",
+  "caroLaneMove": "nước {n}",
+  "@caroLaneMove": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLaneNew": "ván mới",
+  "caroLaneGames": "{n} ván",
+  "@caroLaneGames": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLanePlusOne": "+1 ván này",
+  "caroPlayHere": "Đi nước này",
+  "caroSending": "Đang đi…",
+  "caroSendError": "Chưa đi được nước này, ô bạn chọn vẫn giữ nguyên. Thử lại nhé.",
+  "caroStaleBoard": "Bàn vừa đổi, xem lại rồi đi nhé.",
+  "caroOffline": "Đang mất mạng. Có mạng lại là đi tiếp được.",
+  "caroWaitNetwork": "Chờ có mạng",
+  "caroTapAgainHint": "Chạm lại ô đang chọn cũng là đi. Chạm ô khác để đổi.",
+  "caroNudge": "Nhắc {name}",
+  "@caroNudge": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNudgeIn": "Nhắc sau {m} phút",
+  "@caroNudgeIn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "caroNudgeSent": "Đã nhắc {name}",
+  "@caroNudgeSent": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedTitle": "{name} rủ bạn chơi caro",
+  "@caroInvitedTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedSubVn": "{name} đã đi nước đầu. Luật chặn hai đầu: năm quân bị chặn cả hai đầu thì chưa thắng.",
+  "@caroInvitedSubVn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInvitedSubFree": "{name} đã đi nước đầu. Luật tự do: cứ năm quân liền nhau là thắng.",
+  "@caroInvitedSubFree": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLater": "Để sau",
+  "caroFirstTitle": "Đặt quân đầu tiên",
+  "caroFirstSub": "Bạn cầm X và đi trước. Đi xong là {name} nhận được lời rủ.",
+  "@caroFirstSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroInviteCta": "Rủ {name} chơi",
+  "@caroInviteCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroStaleTitle": "Ván dừng {days} ngày rồi",
+  "@caroStaleTitle": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "caroStaleSub": "Không ai đi từ {date}. Nhắc {name}, hoặc kết thúc để rủ ván mới.",
+  "@caroStaleSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroEndGame": "Kết thúc ván",
+  "caroInvitedYesterday": "Bạn rủ {name} {when}, lúc {time}.",
+  "@caroInvitedYesterday": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroOldAppHint": "Nếu {name} chưa thấy ván, có thể app của {name} cần cập nhật.",
+  "@caroOldAppHint": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroLoading": "Đang tải ván",
+  "caroCancelledTitle": "Ván này đã huỷ",
+  "caroCancelledSub": "{name} bấm Để sau lúc {time}. Ván huỷ không tính vào tỉ số.",
+  "@caroCancelledSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "caroExpiredTitle": "Ván này đã kết thúc vì để lâu",
+  "caroExpiredSub": "7 ngày không ai đi nên ván dừng ở đây, không tính tỉ số.",
+  "caroNewInviteCta": "Rủ {name} ván mới",
+  "@caroNewInviteCta": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistoryTooltip": "Lịch sử ván",
+  "caroRuleTapHint": "Luật {rule}, chạm để xem giải thích",
+  "@caroRuleTapHint": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      }
+    }
+  },
+  "caroResign": "Xin thua",
+  "caroRuleEdgeNote": "Mép bàn không tính là chặn.",
+  "caroEndKeep": "Để đó",
+  "caroEndConfirm": "Kết thúc",
+  "caroResignTitle": "Xin thua ván này?",
+  "caroResignBody": "{name} được tính thắng. Tỉ số thành {score}.",
+  "@caroResignBody": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "caroKeepPlaying": "Chơi tiếp",
+  "caroCancelTitle": "Bỏ ván này?",
+  "caroCancelBody": "Ván huỷ không tính tỉ số. {name} sẽ thấy ván đã huỷ.",
+  "@caroCancelBody": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCancelConfirm": "Bỏ ván",
+  "caroEndTitle": "Kết thúc ván này?",
+  "caroEndBody": "Ván này không tính tỉ số. Kết thúc rồi là rủ được ván mới.",
+  "caroZoomIn": "Phóng to quanh nước cuối",
+  "caroZoomOut": "Xem toàn bàn",
+  "caroYouWon": "Bạn thắng ván này",
+  "caroPartnerWon": "{name} thắng ván này",
+  "@caroPartnerWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWinDetail": "Năm quân liền nhau ở nước {n}, lúc {time}. Ván kéo dài {span}.",
+  "@caroWinDetail": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "caroSpanHours": "{h} giờ",
+  "@caroSpanHours": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "h": {
+        "type": "int"
+      }
+    }
+  },
+  "caroSpanMinutes": "{m} phút",
+  "@caroSpanMinutes": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "caroPartnerResigned": "{name} xin thua",
+  "@caroPartnerResigned": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroPartnerResignedSub": "Ván này bạn thắng, ở nước {n}.",
+  "@caroPartnerResignedSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroYouResigned": "Bạn đã xin thua",
+  "caroYouResignedSub": "{name} được tính thắng ván này.",
+  "@caroYouResignedSub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroDraw": "Ván này hoà",
+  "caroDrawSub": "Kín cả 225 ô mà chưa ai thắng.",
+  "caroSeeHistory": "Xem lịch sử ván",
+  "caroHistoryBadge": "LỊCH SỬ CARO",
+  "caroLeads": "{name} dẫn trước {n} ván",
+  "@caroLeads": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroTied": "Đang hoà {a} – {a}",
+  "@caroTied": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySub": "{n} ván từ {date}. Ván gần nhất {name} thắng {when}.",
+  "@caroHistorySub": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubNoSince": "{n} ván. Ván gần nhất {name} thắng {when}.",
+  "@caroHistorySubNoSince": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubDrawNoSince": "{n} ván. Ván gần nhất hoà {when}.",
+  "@caroHistorySubDrawNoSince": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistorySubDraw": "{n} ván từ {date}. Ván gần nhất hoà {when}.",
+  "@caroHistorySubDraw": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWhenToday": "hôm nay",
+  "caroWhenYesterday": "hôm qua",
+  "caroWhenOn": "ngày {date}",
+  "@caroWhenOn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "caroDateToday": "Hôm nay",
+  "caroDateYesterday": "Hôm qua",
+  "caroRowWon": "{name} thắng",
+  "@caroRowWon": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowDraw": "Hoà",
+  "caroRowFive": "Năm quân liền, {n} nước",
+  "@caroRowFive": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowResign": "{name} xin thua ở nước {n}",
+  "@caroRowResign": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "caroRowFull": "Kín bàn, 225 nước",
+  "caroRowFreeSuffix": ". Tự do",
+  "caroHistoryEmpty": "Chưa có ván nào xong",
+  "caroHistoryEmptySub": "Ván đầu tiên đang chờ đó. Tỉ số bắt đầu từ 0 – 0.",
+  "caroOpenCurrent": "Mở ván đang chơi",
+  "caroStartWith": "Rủ {name} một ván",
+  "@caroStartWith": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroHistoryPageError": "Chưa tải thêm được ván cũ.",
+  "caroReplayBadge": "VÁN {date}",
+  "@caroReplayBadge": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellEmpty": "Hàng {r}, cột {c}, trống",
+  "@caroCellEmpty": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellX": "Hàng {r}, cột {c}, quân X của {name}",
+  "@caroCellX": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellO": "Hàng {r}, cột {c}, quân O của {name}",
+  "@caroCellO": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "r": {
+        "type": "String"
+      },
+      "c": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroCellLast": ", nước vừa đi",
+  "caroCellSelected": ", đang chọn",
+  "caroCellWinning": ", trong đường thắng",
+  "caroNotifInvite": "{name} rủ bạn chơi cờ caro",
+  "@caroNotifInvite": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroNotifInviteBody": "Nước đầu đã đi rồi, giờ đến lượt bạn.",
+  "caroWidgetTurn": "{name} đã đi caro, đến lượt mình",
+  "@caroWidgetTurn": {
+    "description": "caro-game (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "caroWidgetTurnShort": "Lượt mình đi caro",
+  "caroTourTitle": "Cờ caro theo lượt",
+  "caroTourBody": "Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình.",
+  "weatherCardTitle": "Thời tiết hai nơi",
+  "weatherUpdatedAt": "Cập nhật {time}",
+  "@weatherUpdatedAt": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherStaleAt": "Số liệu lúc {time}",
+  "@weatherStaleAt": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherStaleHeader": "Chưa cập nhật được",
+  "weatherLoadFailed": "Chưa tải được thời tiết",
+  "weatherRetry": "Thử lại",
+  "weatherWhereAmI": "Bạn đang ở đâu?",
+  "weatherWhereIsPartner": "{name} đang ở đâu?",
+  "@weatherWhereIsPartner": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherWhereIsPartnerNext": "Còn {name} đang ở đâu?",
+  "@weatherWhereIsPartnerNext": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherChoose": "Chọn",
+  "weatherChooseForPartner": "Chọn giúp",
+  "weatherSetupBody": "Chọn chỗ của bạn và của {name}. Sáng nào mở app cũng thấy trời hai nơi.",
+  "@weatherSetupBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSetupBodySolo": "Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.",
+  "weatherSetupCta": "Chọn thành phố",
+  "weatherHide": "Ẩn",
+  "weatherHideA11y": "Ẩn thẻ thời tiết",
+  "weatherSameCity": "Cả hai cùng ở {city}",
+  "@weatherSameCity": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherColder": "Chỗ {name} lạnh hơn {n}°",
+  "@weatherColder": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherWarmer": "Chỗ {name} nóng hơn {n}°",
+  "@weatherWarmer": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCtaUmbrella": "Nhắc {name} mang ô",
+  "@weatherCtaUmbrella": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaWater": "Nhắc {name} uống nước",
+  "@weatherCtaWater": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaWarm": "Nhắc {name} mặc ấm",
+  "@weatherCtaWarm": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaA11yUmbrella": "Nhắc {name} mang ô",
+  "@weatherCtaA11yUmbrella": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaA11yWater": "Nhắc {name} uống nước",
+  "@weatherCtaA11yWater": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaA11yWarm": "Nhắc {name} mặc ấm",
+  "@weatherCtaA11yWarm": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCtaHint": "Mở màn Quan tâm, lời nhắn đã soạn sẵn",
+  "weatherCardHint": "Mở chi tiết thời tiết",
+  "weatherDegrees": "{n} độ",
+  "@weatherDegrees": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCondRainNow": "Đang mưa",
+  "weatherCondRainMorning": "Sáng nay mưa",
+  "weatherCondRainAfternoon": "Chiều nay mưa",
+  "weatherCondRainTonight": "Tối nay mưa",
+  "weatherCondRainTomorrow": "Sáng mai mưa",
+  "weatherCondHot": "Nắng gắt, lên {max}°",
+  "@weatherCondHot": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCondCold": "Lạnh, xuống {min}°",
+  "@weatherCondCold": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherSkyClear": "Trời quang",
+  "weatherSkyPartlyCloudy": "Ít mây",
+  "weatherSkyCloudy": "Nhiều mây",
+  "weatherSkyFog": "Có sương mù",
+  "weatherSkyLightRain": "Mưa nhỏ",
+  "weatherSkyRain": "Có mưa",
+  "weatherSkyHeavyRain": "Mưa to",
+  "weatherSkyThunder": "Có dông",
+  "weatherSkySnow": "Có tuyết",
+  "weatherRestOfDay": "Từ giờ tới khuya {min}° – {max}°",
+  "@weatherRestOfDay": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherScaleA11y": "Từ giờ tới khuya {min} đến {max} độ, bây giờ {now} độ",
+  "@weatherScaleA11y": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      },
+      "now": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherSlotA11y": "{time}, {n} độ",
+  "@weatherSlotA11y": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherSlotRainA11y": "{time}, {n} độ, có mưa",
+  "@weatherSlotRainA11y": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherPartnerSelfSet": "{name} tự chọn",
+  "@weatherPartnerSelfSet": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSetByMe": "bạn chọn giúp",
+  "weatherChangeCity": "Đổi thành phố",
+  "weatherChangeForPartner": "Đổi giúp",
+  "weatherTheirTimeNow": "bên đó đang {time}",
+  "@weatherTheirTimeNow": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherPickerSubSelf": "Chỉ cần tên thành phố, app không xin vị trí.",
+  "weatherPickerSubPartner": "{name} vẫn tự đổi được sau.",
+  "@weatherPickerSubPartner": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSearchHint": "Tìm thành phố hoặc tỉnh",
+  "weatherSearchLabel": "Tìm thành phố",
+  "weatherClearSearch": "Xoá chữ đã gõ",
+  "weatherGroupCurrent": "Đang chọn",
+  "weatherGroupVn": "Việt Nam",
+  "weatherGroupIntl": "Nước ngoài",
+  "weatherOldProvince": "Tỉnh cũ: {name}",
+  "@weatherOldProvince": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherNoMatch": "Chưa có thành phố này. Chọn nơi gần nhất nhé.",
+  "weatherPartnerJustSet": "{name} vừa tự chọn chỗ của mình rồi.",
+  "@weatherPartnerJustSet": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherLater": "Để sau",
+  "weatherSourcePrefix": "Dữ liệu thời tiết: ",
+  "weatherSettingsSection": "Thời tiết hai nơi",
+  "weatherSettingsMine": "Chỗ của bạn",
+  "weatherSettingsPartner": "Chỗ {name}",
+  "@weatherSettingsPartner": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherNotSet": "Chưa chọn",
+  "weatherNotifToggle": "Thời tiết chỗ người ấy",
+  "weatherNotifToggleSub": "Báo lúc {time} khi chỗ {name} mưa, nắng gắt hoặc lạnh. Tối đa 3 lần một tuần.",
+  "@weatherNotifToggleSub": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherNotifNeedsCouple": "Ghép đôi xong mới báo được.",
+  "weatherNotifPreviewCaption": "Hôm nào chỗ {name} có mưa, thông báo sẽ như thế này:",
+  "@weatherNotifPreviewCaption": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCareUmbrellaTitle": "Nhớ mang ô nhé",
+  "weatherCareUmbrellaBody": "{city} đang có mưa đó, nhớ mang ô nha.",
+  "@weatherCareUmbrellaBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherCareWaterTitle": "Uống nước nhiều nha",
+  "weatherCareWaterBody": "{city} hôm nay lên tới {max}°. Ra đường nhớ che nắng, uống đủ nước nhé.",
+  "@weatherCareWaterBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherCareWarmTitle": "Mặc ấm vào nhé",
+  "weatherCareWarmBody": "{city} xuống còn {min}° đó. Ra ngoài nhớ mặc thêm áo.",
+  "@weatherCareWarmBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherMorningRainTitle": "Hôm nay {city} có mưa",
+  "@weatherMorningRainTitle": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherMorningRainBody": "Nhắc {name} mang ô nhé?",
+  "@weatherMorningRainBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherMorningHotTitle": "Hôm nay {city} lên {max}°",
+  "@weatherMorningHotTitle": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherMorningHotBody": "Nhắc {name} uống đủ nước nhé?",
+  "@weatherMorningHotBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherMorningColdTitle": "Hôm nay {city} xuống {min}°",
+  "@weatherMorningColdTitle": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherMorningColdBody": "Nhắc {name} mặc ấm nhé?",
+  "@weatherMorningColdBody": {
+    "description": "Weather here and there (feature weather)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSaveFailed": "Chưa lưu được, thử lại nhé.",
+  "weatherLaneFailed": "Chưa tải được",
+  "weatherFeatureTourTitle": "Thời tiết hai nơi",
+  "weatherFeatureTourBody": "Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì chạm một cái là nhắc được người ấy mang ô.",
+  "arrivalCardTitle": "Về đến nhà chưa?",
+  "@arrivalCardTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOpenManageA11y": "Mở cài đặt Về đến nhà",
+  "@arrivalOpenManageA11y": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPitch": "Về đến nhà là máy tự báo cho {name}. Đang chạy xe thì khỏi phải nhắn.",
+  "@arrivalPitch": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalEnableCta": "Bật báo về nhà",
+  "@arrivalEnableCta": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalManualHome": "Về nhà rồi",
+  "@arrivalManualHome": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalManualOther": "Đến nơi rồi",
+  "@arrivalManualOther": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalHomeName": "Nhà",
+  "@arrivalHomeName": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalEnterHome": "Đã về đến nhà",
+  "@arrivalEnterHome": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalExitHome": "Đã rời nhà",
+  "@arrivalExitHome": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalEnterPlace": "Đã đến {place}",
+  "@arrivalEnterPlace": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalExitPlace": "Đã rời {place}",
+  "@arrivalExitPlace": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalYesterdayAt": "hôm qua {time}",
+  "@arrivalYesterdayAt": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalBattery": "{pct}%",
+  "@arrivalBattery": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalBatteryLow": "Pin còn {pct}%",
+  "@arrivalBatteryLow": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalManualTag": "bấm tay",
+  "@arrivalManualTag": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPartnerOn": "Đang bật báo về nhà",
+  "@arrivalPartnerOn": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPartnerOnSub": "Khi {name} đến nơi, tin sẽ hiện ở đây.",
+  "@arrivalPartnerOnSub": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalPartnerOff": "Chưa bật báo về nhà",
+  "@arrivalPartnerOff": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalCareCta": "Hỏi thăm",
+  "@arrivalCareCta": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalCareA11y": "Hỏi thăm {name}",
+  "@arrivalCareA11y": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalCareSuggestion": "Về tới nơi rồi thì nghỉ ngơi nhé",
+  "@arrivalCareSuggestion": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNoEventToday": "Chưa có tin hôm nay",
+  "@arrivalNoEventToday": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalMineAuto": "Tự báo: {places}",
+  "@arrivalMineAuto": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "places": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalPlacesMany": "Nhà và {n} nơi khác",
+  "@arrivalPlacesMany": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalMineNeedAlways": "Chưa tự báo được: cần quyền vị trí Luôn luôn",
+  "@arrivalMineNeedAlways": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalMineRemoteOff": "Tạm thời chỉ báo bằng tay",
+  "@arrivalMineRemoteOff": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalMineManual": "Chỉ báo khi bạn bấm",
+  "@arrivalMineManual": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalMineNoAddress": "Chưa đặt địa chỉ Nhà",
+  "@arrivalMineNoAddress": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSetAddress": "Đặt địa chỉ",
+  "@arrivalSetAddress": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOpenSettings": "Mở Cài đặt",
+  "@arrivalOpenSettings": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalFirstDetected": "App đã nhận ra {place}",
+  "@arrivalFirstDetected": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSent": "Đã báo {name}",
+  "@arrivalSent": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalQueued": "Sẽ báo khi có mạng. Quá 30 phút thì {name} chỉ thấy trên thẻ, không nhận thông báo.",
+  "@arrivalQueued": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSendFailed": "Chưa gửi được tin “{what}”.",
+  "@arrivalSendFailed": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalRetry": "Thử lại",
+  "@arrivalRetry": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPickTitle": "Bạn vừa đến đâu?",
+  "@arrivalPickTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPickNote": "Bấm là {name} nhận “{me} đã đến …” ngay, không cần quyền vị trí.",
+  "@arrivalPickNote": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "me": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalAddPlace": "Thêm nơi",
+  "@arrivalAddPlace": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSlotsLeft": "Còn {n} chỗ",
+  "@arrivalSlotsLeft": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalBadge": "VỀ ĐẾN NHÀ",
+  "@arrivalBadge": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNewPlaceTitle": "Nơi mới",
+  "@arrivalNewPlaceTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNameLabel": "Tên nơi",
+  "@arrivalNameLabel": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNameHint": "Vd: Công ty, Nhà bố mẹ",
+  "@arrivalNameHint": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNameNote": "Người ấy sẽ thấy tên này khi bạn đến.",
+  "@arrivalNameNote": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNameEmpty": "Gõ tên để tiếp tục. Tối đa 24 ký tự.",
+  "@arrivalNameEmpty": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalChipWork": "Công ty",
+  "@arrivalChipWork": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalChipSchool": "Trường",
+  "@arrivalChipSchool": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalChipFamily": "Nhà bố mẹ",
+  "@arrivalChipFamily": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalChipGym": "Phòng gym",
+  "@arrivalChipGym": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalChipCafe": "Quán quen",
+  "@arrivalChipCafe": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconLabel": "Biểu tượng",
+  "@arrivalIconLabel": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconAuto": "Chọn tên gợi ý thì biểu tượng tự đổi theo, bạn vẫn đổi lại được.",
+  "@arrivalIconAuto": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconWork": "Công việc",
+  "@arrivalIconWork": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconSchool": "Trường",
+  "@arrivalIconSchool": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconFamily": "Gia đình",
+  "@arrivalIconFamily": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconGym": "Tập luyện",
+  "@arrivalIconGym": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconCafe": "Quán",
+  "@arrivalIconCafe": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconShop": "Mua sắm",
+  "@arrivalIconShop": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalIconPin": "Chỗ khác",
+  "@arrivalIconPin": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPreviewLead": "{name} sẽ thấy:",
+  "@arrivalPreviewLead": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalContinue": "Tiếp tục",
+  "@arrivalContinue": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalWhereTitle": "{place} ở đâu?",
+  "@arrivalWhereTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalWhereSub": "Gõ đủ số nhà, tên đường và phường để tìm cho đúng.",
+  "@arrivalWhereSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSearchHint": "Vd: 12 Nguyễn Trãi, Thanh Xuân, Hà Nội",
+  "@arrivalSearchHint": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSearching": "Đang tìm…",
+  "@arrivalSearching": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSearchTip": "Gõ xong bấm Tìm trên bàn phím nếu chưa thấy kết quả.",
+  "@arrivalSearchTip": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalClearSearch": "Xoá chữ đã gõ",
+  "@arrivalClearSearch": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalUseCurrentRow": "Không thấy địa chỉ? Dùng vị trí hiện tại",
+  "@arrivalUseCurrentRow": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalUseCurrentRowSub": "Bấm khi bạn đang đứng ở đó",
+  "@arrivalUseCurrentRowSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNoResults": "Không tìm thấy địa chỉ này. Thử thêm tên phường hoặc tỉnh, hoặc dùng vị trí hiện tại khi bạn đang ở đó.",
+  "@arrivalNoResults": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSearchOffline": "Cần mạng để tìm địa chỉ. Có mạng lại thì gõ tiếp, hoặc dùng vị trí hiện tại khi bạn đang ở đó.",
+  "@arrivalSearchOffline": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSearchError": "Chưa tìm được lúc này. Thử lại sau chút nữa, hoặc dùng vị trí hiện tại khi bạn đang ở đó.",
+  "@arrivalSearchError": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNoGeocoder": "Máy này không tra được địa chỉ. Lúc đứng ở đó, bạn lưu bằng vị trí hiện tại nhé.",
+  "@arrivalNoGeocoder": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalUseCurrent": "Dùng vị trí hiện tại",
+  "@arrivalUseCurrent": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNameOnly": "Lưu tên, chỉ bấm tay",
+  "@arrivalNameOnly": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalCurrentTitle": "Bạn đang ở {place}?",
+  "@arrivalCurrentTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalCurrentBody": "App đọc vị trí một lần để lưu chỗ này. Toạ độ chỉ nằm trên máy bạn.",
+  "@arrivalCurrentBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalCurrentHint": "Lần đầu, máy sẽ hỏi quyền vị trí. Chọn “Cho phép khi dùng ứng dụng” và để Vị trí chính xác bật.",
+  "@arrivalCurrentHint": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalReadLocation": "Đọc vị trí",
+  "@arrivalReadLocation": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalReading": "Đang đọc vị trí…",
+  "@arrivalReading": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalBackToSearch": "Quay lại tìm địa chỉ",
+  "@arrivalBackToSearch": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalReadTimeout": "Chưa đọc được vị trí. Ra chỗ thoáng hơn rồi thử lại nhé.",
+  "@arrivalReadTimeout": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPreciseTitle": "Cần bật Vị trí chính xác",
+  "@arrivalPreciseTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPreciseBody": "Nếu chỉ có vị trí gần đúng, app không phân biệt được bạn đã tới cửa hay còn cách nhà vài con phố.",
+  "@arrivalPreciseBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalConfirmTitle": "Đúng chỗ này chưa?",
+  "@arrivalConfirmTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalFromAddress": "Từ địa chỉ",
+  "@arrivalFromAddress": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalFromCurrent": "Vị trí hiện tại của bạn, lệch khoảng {m} m",
+  "@arrivalFromCurrent": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalRadiusLine": "App báo khi bạn vào trong khoảng {m} m quanh đây.",
+  "@arrivalRadiusLine": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalNoHouseNumber": "Địa chỉ này chưa có số nhà, app có thể báo hơi sớm hoặc hơi muộn.",
+  "@arrivalNoHouseNumber": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalConfirmAlleyWarn": "Số nhà trong hẻm thường chỉ tìm được tới đầu hẻm, app có thể báo hơi sớm hoặc hơi muộn.",
+  "@arrivalConfirmAlleyWarn": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSave": "Lưu",
+  "@arrivalSave": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalWrongSpot": "Không đúng chỗ? Dùng vị trí hiện tại khi bạn đang ở đó",
+  "@arrivalWrongSpot": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalReread": "Đọc lại vị trí",
+  "@arrivalReread": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSaved": "Đã lưu {place}",
+  "@arrivalSaved": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalEditTitle": "Sửa {place}",
+  "@arrivalEditTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalRenameNote": "Đổi tên chỉ áp cho lần đến sau.",
+  "@arrivalRenameNote": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalLocationLabel": "Vị trí",
+  "@arrivalLocationLabel": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSavedFromAddress": "Lưu từ địa chỉ · {date}",
+  "@arrivalSavedFromAddress": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSavedFromCurrent": "Lưu bằng vị trí hiện tại · {date}",
+  "@arrivalSavedFromCurrent": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalNoAddressManual": "Chưa đặt địa chỉ, chỉ bấm tay",
+  "@arrivalNoAddressManual": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPaused": "Đang tạm dừng",
+  "@arrivalPaused": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeletePlace": "Xoá nơi này",
+  "@arrivalDeletePlace": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeletePlaceSub": "App hỏi lại trước khi xoá.",
+  "@arrivalDeletePlaceSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeletePlaceTitle": "Xoá {place}?",
+  "@arrivalDeletePlaceTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalDeletePlaceBody": "App thôi báo khi bạn đến đây. Tin đã gửi trước đó vẫn giữ tên cũ.",
+  "@arrivalDeletePlaceBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalHomeEditBody": "Nhà luôn có trên thẻ. Bạn chỉ đổi được chỗ của nó.",
+  "@arrivalHomeEditBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeleteHomeAddress": "Xoá địa chỉ",
+  "@arrivalDeleteHomeAddress": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeleteHomeAddressSub": "Về Nhà thì bạn bấm tay “Về nhà rồi”.",
+  "@arrivalDeleteHomeAddressSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeleteHomeAddressTitle": "Xoá địa chỉ Nhà?",
+  "@arrivalDeleteHomeAddressTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeleteHomeAddressBody": "Nhà vẫn còn trên thẻ, bạn bấm “Về nhà rồi” mỗi lần về.",
+  "@arrivalDeleteHomeAddressBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDelete": "Xoá",
+  "@arrivalDelete": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalCancel": "Huỷ",
+  "@arrivalCancel": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDeleted": "Đã xoá {place}",
+  "@arrivalDeleted": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalHomeAddressDeleted": "Đã xoá địa chỉ Nhà",
+  "@arrivalHomeAddressDeleted": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalUndo": "Hoàn tác",
+  "@arrivalUndo": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNeedPlaceTitle": "Trước hết, nhà bạn ở đâu?",
+  "@arrivalNeedPlaceTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNeedPlaceBody": "Máy cần biết Nhà ở đâu thì mới tự báo được. Gõ địa chỉ là xong, chưa cần cấp quyền gì.",
+  "@arrivalNeedPlaceBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNoAddressYet": "Chưa đặt địa chỉ",
+  "@arrivalNoAddressYet": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSetHomeAddress": "Đặt địa chỉ Nhà",
+  "@arrivalSetHomeAddress": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalLater": "Để sau",
+  "@arrivalLater": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDisclosureTitle": "Về đến nơi, {name} biết ngay",
+  "@arrivalDisclosureTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalDisclosureBody": "Dear Embeiu dùng vị trí để báo người ấy khi bạn đến hoặc rời Nhà và những nơi bạn đã lưu, kể cả khi app đã đóng hoặc không dùng. Địa chỉ và toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi, giờ đến, giờ rời và mức pin lúc đó. Bạn tắt lúc nào cũng được.",
+  "@arrivalDisclosureBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPreviewLabel": "{name} sẽ nhận được",
+  "@arrivalPreviewLabel": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalPushBody": "Nhắn một câu hỏi thăm nhé",
+  "@arrivalPushBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAgree": "Đồng ý, tiếp tục",
+  "@arrivalAgree": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPrivacyLink": "Chính sách bảo mật",
+  "@arrivalPrivacyLink": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAlwaysTitle": "Chọn “{label}”",
+  "@arrivalAlwaysTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalAlwaysBody": "Để tự báo cả lúc app đang đóng, chọn “{label}” ở trang tiếp theo.",
+  "@arrivalAlwaysBody": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalAlwaysLabelIos": "Luôn luôn",
+  "@arrivalAlwaysLabelIos": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAlwaysLabelAndroid": "Cho phép mọi lúc",
+  "@arrivalAlwaysLabelAndroid": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalNextLooksLike": "Trang tiếp theo trông như thế này",
+  "@arrivalNextLooksLike": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOsNever": "Không bao giờ",
+  "@arrivalOsNever": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOsAskNext": "Hỏi lần sau",
+  "@arrivalOsAskNext": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOsWhileUsing": "Khi dùng ứng dụng",
+  "@arrivalOsWhileUsing": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOsAndroidWhileUsing": "Chỉ cho phép khi đang dùng ứng dụng",
+  "@arrivalOsAndroidWhileUsing": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOsAndroidAsk": "Luôn hỏi",
+  "@arrivalOsAndroidAsk": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOsAndroidDeny": "Không cho phép",
+  "@arrivalOsAndroidDeny": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSwipeHint": "Đừng vuốt tắt Dear Embeiu trong đa nhiệm. App bị vuốt tắt thì iPhone có thể không báo được.",
+  "@arrivalSwipeHint": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAutostartHint": "Máy Xiaomi, Oppo, Vivo: bật thêm Tự khởi động cho Dear Embeiu để tin báo không bị chặn.",
+  "@arrivalAutostartHint": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalOpenPermission": "Mở trang quyền",
+  "@arrivalOpenPermission": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalLaterManual": "Để sau, mình bấm tay",
+  "@arrivalLaterManual": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSetupDone": "Xong",
+  "arrivalDoneTitle": "Đã bật báo về nhà",
+  "@arrivalDoneTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDoneBody": "Từ giờ về đến Nhà là {name} biết. Muốn tắt thì vào Cài đặt → Về đến nhà. Tắt là tin gần nhất bị xoá, {name} không nhận thông báo nào.",
+  "@arrivalDoneBody": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalDoneRow": "Tự báo khi đến Nhà",
+  "@arrivalDoneRow": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalDoneRowSub": "Thêm Công ty, phòng gym… để báo cả những chỗ đó",
+  "@arrivalDoneRowSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPartialTitle": "Tạm thời bạn báo bằng tay",
+  "@arrivalPartialTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPartialBody": "Mỗi lần về, bấm “Về nhà rồi” ở trang chủ. {name} nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.",
+  "@arrivalPartialBody": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalBackHome": "Về trang chủ",
+  "@arrivalBackHome": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSeesLabel": "{name} đang thấy",
+  "@arrivalSeesLabel": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalShareTitle": "Báo cho {name}",
+  "@arrivalShareTitle": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalShareSub": "Tắt là xoá tin gần nhất trên máy chủ. {name} không nhận thông báo nào.",
+  "@arrivalShareSub": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalShareOffSub": "Bật lại để báo cho {name} mỗi khi bạn đến nơi.",
+  "@arrivalShareOffSub": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalAutoTitle": "Tự báo khi đến nơi",
+  "@arrivalAutoTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAutoSub": "Máy tự báo khi bạn đến {places}.",
+  "@arrivalAutoSub": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "places": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalAutoNeedPlace": "Đặt địa chỉ Nhà hoặc một nơi khác trước, rồi bật.",
+  "@arrivalAutoNeedPlace": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAutoNeedAlways": "Chưa tự báo được: cần quyền vị trí Luôn luôn.",
+  "@arrivalAutoNeedAlways": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalAutoRemoteOff": "Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” ở trang chủ.",
+  "@arrivalAutoRemoteOff": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPlacesTitle": "Nơi báo",
+  "@arrivalPlacesTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPlacesSub": "Nhà luôn có. Thêm tối đa 4 nơi nữa. Địa chỉ chỉ nằm trên máy này.",
+  "@arrivalPlacesSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermTitle": "Quyền vị trí",
+  "@arrivalPermTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermAlways": "Vị trí: Luôn luôn",
+  "@arrivalPermAlways": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermAlwaysSub": "Đủ để tự báo cả lúc app đang đóng.",
+  "@arrivalPermAlwaysSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermWhileUsing": "Vị trí: Khi dùng ứng dụng",
+  "@arrivalPermWhileUsing": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermWhileUsingSub": "Cần “Luôn luôn” thì máy mới tự báo lúc app đang đóng.",
+  "@arrivalPermWhileUsingSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermNone": "Vị trí: Chưa cho phép",
+  "@arrivalPermNone": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermPreciseOn": "Vị trí chính xác: Bật",
+  "@arrivalPermPreciseOn": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermPreciseOff": "Vị trí chính xác: Tắt",
+  "@arrivalPermPreciseOff": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermPreciseSub": "Để biết bạn đã tới cửa, không phải đầu ngõ.",
+  "@arrivalPermPreciseSub": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalPermOpenSettings": "Mở Cài đặt của máy",
+  "@arrivalPermOpenSettings": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalTurnOffTitle": "Tắt báo về nhà?",
+  "@arrivalTurnOffTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalTurnOffBody": "Tin gần nhất của bạn bị xoá khỏi máy chủ ngay. {name} sẽ thấy “{me} chưa bật báo về nhà” và không nhận thông báo nào.",
+  "@arrivalTurnOffBody": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "me": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalTurnOffAlsoPlaces": "Xoá luôn địa chỉ đã lưu của {n} nơi trên máy này",
+  "@arrivalTurnOffAlsoPlaces": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "arrivalTurnOff": "Tắt",
+  "@arrivalTurnOff": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSettingsPushTitle": "Khi người ấy đến nơi",
+  "@arrivalSettingsPushTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSettingsPushSub": "Báo khi {name} về nhà hoặc đến một nơi đã lưu. Tắt thì trang chủ vẫn hiện tin.",
+  "@arrivalSettingsPushSub": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSettingsTitle": "Về đến nhà",
+  "@arrivalSettingsTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSettingsSharing": "Đang báo cho {name}: {places}",
+  "@arrivalSettingsSharing": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "places": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSettingsOff": "Đang tắt",
+  "@arrivalSettingsOff": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalWidgetHome": "{name} đã về đến nhà",
+  "@arrivalWidgetHome": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalWidgetHomeShort": "{name} về nhà rồi",
+  "@arrivalWidgetHomeShort": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalWidgetPlace": "{name} đã đến {place}",
+  "@arrivalWidgetPlace": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalWidgetPlaceShort": "{name} tới {place}",
+  "@arrivalWidgetPlaceShort": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalTourTitle": "Về đến nhà chưa?",
+  "@arrivalTourTitle": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalTourBody": "Về tới nhà, bấm “Về nhà rồi” trên trang chủ là người ấy biết, khỏi phải nhắn. Muốn thì cho máy tự báo khi bạn đến những nơi đã lưu.",
+  "@arrivalTourBody": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalSaveFailed": "Chưa lưu được {place}. Thử lại sau nhé.",
+  "@arrivalSaveFailed": {
+    "description": "Feature arrival (đợt 2)",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalPlacesFull": "Đã đủ 4 nơi. Xoá bớt một nơi rồi thêm lại.",
+  "@arrivalPlacesFull": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "arrivalUndoFailed": "Chưa hoàn tác được: chỗ này vừa được dùng cho nơi khác.",
+  "@arrivalUndoFailed": {
+    "description": "Feature arrival (đợt 2)"
+  },
+  "moneyCatFood": "Ăn uống",
+  "moneyCatFoodOut": "Ăn ngoài",
+  "moneyCatFoodMarket": "Đi chợ, siêu thị",
+  "moneyCatFoodCoffee": "Cà phê, trà sữa",
+  "moneyCatFoodSnack": "Ăn vặt",
+  "moneyCatDate": "Hẹn hò",
+  "moneyCatDateMovie": "Xem phim",
+  "moneyCatDateOut": "Đi chơi",
+  "moneyCatDateGift": "Quà cho người ấy",
+  "moneyCatMove": "Đi lại",
+  "moneyCatMoveFuel": "Xăng xe",
+  "moneyCatMoveParking": "Gửi xe",
+  "moneyCatMoveGrab": "Grab, taxi",
+  "moneyCatMoveRepair": "Sửa xe",
+  "moneyCatHome": "Nhà cửa",
+  "moneyCatHomeRent": "Tiền nhà",
+  "moneyCatHomePower": "Điện",
+  "moneyCatHomeWater": "Nước",
+  "moneyCatHomeNet": "Internet",
+  "moneyCatHomeGoods": "Đồ gia dụng",
+  "moneyCatBill": "Hoá đơn & gói",
+  "moneyCatBillPhone": "Điện thoại",
+  "moneyCatBillStream": "Xem phim, nghe nhạc",
+  "moneyCatBillSoft": "Phần mềm",
+  "moneyCatShop": "Mua sắm",
+  "moneyCatShopClothes": "Quần áo",
+  "moneyCatShopBeauty": "Mỹ phẩm",
+  "moneyCatShopTech": "Đồ điện tử",
+  "moneyCatHealth": "Sức khoẻ",
+  "moneyCatHealthMed": "Thuốc",
+  "moneyCatHealthDoctor": "Khám bệnh",
+  "moneyCatHealthSport": "Thể thao",
+  "moneyCatEdu": "Học tập",
+  "moneyCatEduFee": "Học phí",
+  "moneyCatEduBooks": "Sách, khoá học",
+  "moneyCatGift": "Quà & hiếu hỉ",
+  "moneyCatGiftPresent": "Quà tặng",
+  "moneyCatGiftWedding": "Đám cưới, đám hiếu",
+  "moneyCatGiftLixi": "Lì xì",
+  "moneyCatFamily": "Gia đình",
+  "moneyCatFamilyParents": "Biếu bố mẹ",
+  "moneyCatFamilyPet": "Thú cưng",
+  "moneyCatTravel": "Du lịch",
+  "moneyCatTravelTicket": "Vé",
+  "moneyCatTravelStay": "Chỗ ở",
+  "moneyCatTravelFun": "Ăn chơi",
+  "moneyCatOther": "Khác",
+  "moneyWalletCash": "Tiền mặt",
+  "moneyJointWallet": "Ví chung",
+  "moneyTitle": "Sổ tiền",
+  "@moneyTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBadge": "SỔ TIỀN",
+  "@moneyBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTabMine": "Của mình",
+  "@moneyTabMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTabShared": "Chung",
+  "@moneyTabShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeShared": "Sổ chung tháng {month}",
+  "@moneyHomeShared": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeSpent": "Đã chi {amount} · {percent}% ngân sách",
+  "@moneyHomeSpent": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeSpentNoBudget": "Đã chi {amount} tháng này",
+  "@moneyHomeSpentNoBudget": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeSpentOnly": "Đã chi {amount}",
+  "@moneyHomeSpentOnly": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeOverPart": "vượt {over}",
+  "@moneyHomeOverPart": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeZero": "Đã chi {amount} · chưa có khoản nào",
+  "@moneyHomeZero": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeStale": "{amount} · số liệu lúc {time}",
+  "@moneyHomeStale": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyHomeError": "Chưa tải được sổ chung",
+  "@moneyHomeError": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeLoading": "Đang tải sổ chung",
+  "@moneyHomeLoading": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeMine": "Sổ tiền của mình",
+  "@moneyHomeMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHomeTodayCount": "{n, plural, =0{Hôm nay chưa ghi khoản nào} other{Hôm nay đã ghi {n} khoản}}",
+  "@moneyHomeTodayCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyHomeFirst": "Gõ 50k, chọn danh mục là xong",
+  "@moneyHomeFirst": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddTx": "Ghi khoản",
+  "@moneyAddTx": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRetry": "Thử lại",
+  "@moneyRetry": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyMoreLabel": "Ví, danh mục, ngân sách",
+  "@moneyMoreLabel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyPrevMonth": "Tháng trước",
+  "@moneyPrevMonth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNextMonth": "Tháng sau",
+  "@moneyNextMonth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyMonthSpentMine": "Đã chi",
+  "@moneyMonthSpentMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyMonthSpentShared": "Chúng mình đã chi",
+  "@moneyMonthSpentShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetLeftLabel": "Còn trong ngân sách",
+  "@moneyBudgetLeftLabel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetNone": "Chưa đặt ngân sách",
+  "@moneyBudgetNone": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetUsed": "Đã dùng {percent}%",
+  "@moneyBudgetUsed": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetOfShort": "của {amount}",
+  "@moneyBudgetOfShort": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyToday": "Hôm nay",
+  "@moneyToday": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetSemantics": "Đã dùng {percent}% ngân sách, còn {left}",
+  "@moneyBudgetSemantics": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFindingPerDay": "Tháng mới qua {passed}/{total} ngày mà đã dùng {percent}% ngân sách. Từ giờ tới cuối tháng, mỗi ngày chỉ còn khoảng {perDay}.",
+  "@moneyFindingPerDay": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "passed": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFindingOver": "Tháng này đã vượt ngân sách {over}.",
+  "@moneyFindingOver": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFindingCategory": "{category} chung đã dùng {percent}% ngân sách, còn {left} cho {days} ngày.",
+  "@moneyFindingCategory": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyMe": "Mình",
+  "@moneyMe": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRecent": "Gần đây",
+  "@moneyRecent": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRecentEmpty": "Chưa có khoản nào trong tháng {month}. Mở tháng {prev} bằng nút ‹ ở trên để xem lại.",
+  "@moneyRecentEmpty": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "prev": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyEmptyMonth": "Tháng {month} chưa có khoản nào. Bấm nút hồng ở góc dưới để ghi khoản đầu tiên.",
+  "@moneyEmptyMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDaySpent": "Chi {amount}",
+  "@moneyDaySpent": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDayToday": "Hôm nay, {date}",
+  "@moneyDayToday": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDayYesterday": "Hôm qua, {date}",
+  "@moneyDayYesterday": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWhere": "Tiêu vào đâu",
+  "@moneyWhere": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgetPercentShort": "{percent}% ngân sách",
+  "@moneyBudgetPercentShort": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOverPercent": "Vượt {percent}%",
+  "@moneyOverPercent": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWallets": "Ví",
+  "@moneyWallets": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTotalAssets": "Tổng tiền đang có",
+  "@moneyTotalAssets": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTotalAssetsValue": "Tổng tiền đang có {amount}",
+  "@moneyTotalAssetsValue": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyManageWallets": "Quản lý ví",
+  "@moneyManageWallets": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalProgress": "{percent}% của {target}",
+  "@moneyGoalProgress": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPaidByNoSplit": "{name} trả",
+  "@moneyPaidByNoSplit": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPaidFromJoint": "Trả từ Ví chung",
+  "@moneyPaidFromJoint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditedBy": "{name} sửa {time}",
+  "@moneyEditedBy": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyPending": "chờ mạng",
+  "@moneyPending": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOffline": "Đang mất mạng. Số dư là số lúc {time}, cộng thêm {n} khoản đang chờ gửi.",
+  "@moneyOffline": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyOfflineNoTime": "Đang mất mạng. {n} khoản đang chờ gửi.",
+  "@moneyOfflineNoTime": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyLoadError": "Chưa tải được khoản mới. Số liệu đúng lúc {time}.",
+  "@moneyLoadError": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLoadErrorNoTime": "Chưa tải được khoản mới.",
+  "@moneyLoadErrorNoTime": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWaitingCard": "Khi người ấy vào app, chúng mình có thêm sổ chung để ghi ai trả, chia đôi và góp quỹ đi chơi.",
+  "@moneyWaitingCard": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySendInvite": "Gửi lời mời",
+  "@moneySendInvite": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAdjustRow": "Sửa số dư cho khớp",
+  "@moneyAdjustRow": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAdjustSub": "{wallet} · không tính là chi",
+  "@moneyAdjustSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyTransferSub": "{from} → {to}",
+  "@moneyTransferSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContribSub": "{name} góp",
+  "@moneyContribSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContribOwnSub": "{wallet} → sổ chung",
+  "@moneyContribOwnSub": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedBadge": "Có ở sổ chung",
+  "@moneyLinkedBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstEntryTitle": "Ghi khoản đầu tiên",
+  "@moneyFirstEntryTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstEntryBody": "Hôm nay vừa trả gì? Chạm một mục, gõ số tiền rồi Lưu.",
+  "@moneyFirstEntryBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstEntryFoot": "Ghi vài hôm, mình sẽ thấy tiền đi đâu nhiều nhất và đặt ngân sách cho tháng sau.",
+  "@moneyFirstEntryFoot": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNegWallet": "Số dư âm, có khoản nào ghi nhầm ví không?",
+  "@moneyNegWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategories": "Danh mục",
+  "@moneyCategories": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditTx": "Sửa khoản",
+  "@moneyEditTx": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyClose": "Đóng",
+  "@moneyClose": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBookShared": "Sổ chung",
+  "@moneyBookShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySwitchBook": "Đổi sổ, đang ở {book}",
+  "@moneySwitchBook": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "book": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyTypeExpense": "Chi",
+  "@moneyTypeExpense": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyTypeTransfer": "Chuyển",
+  "@moneyTypeTransfer": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountLabel": "Số tiền",
+  "@moneyAmountLabel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountHint": "Gõ 50k, 1tr2 hay 1 củ đều được",
+  "@moneyAmountHint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountEcho": "Bạn gõ “{raw}”",
+  "@moneyAmountEcho": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "raw": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountInvalid": "Chưa hiểu số này. Thử 120k hoặc 120000.",
+  "@moneyAmountInvalid": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAmountTooBig": "Tối đa 10 tỷ một khoản. Kiểm tra lại số 0 nhé.",
+  "@moneyAmountTooBig": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletCapHit": "Số dư ví sẽ vượt 100 tỷ. Kiểm tra lại số tiền nhé.",
+  "@moneyWalletCapHit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyQuickRepeat": "Ghi lại khoản quen",
+  "@moneyQuickRepeat": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategory": "Danh mục",
+  "@moneyCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAllCategories": "Tất cả",
+  "@moneyAllCategories": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWallet": "Ví",
+  "@moneyWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeductMine": "Trừ vào ví của mình",
+  "@moneyDeductMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFromWallet": "Từ ví",
+  "@moneyFromWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddNote": "Thêm ghi chú",
+  "@moneyAddNote": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDate": "Ngày",
+  "@moneyDate": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNote": "Ghi chú",
+  "@moneyNote": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNoteHint": "Bún chả, quà sinh nhật…",
+  "@moneyNoteHint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaveAmount": "Lưu {amount}",
+  "@moneySaveAmount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySaveNeedAmount": "Nhập số tiền để lưu",
+  "@moneySaveNeedAmount": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaveFixAmount": "Sửa số tiền để lưu",
+  "@moneySaveFixAmount": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaveNeedWallet": "Chọn ví để lưu",
+  "@moneySaveNeedWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySaved": "Đã ghi {amount} · {category}",
+  "@moneySaved": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySavedEdit": "Đã lưu thay đổi",
+  "@moneySavedEdit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySavedOffline": "Đang chờ mạng, có mạng sẽ tự gửi lên sổ chung",
+  "@moneySavedOffline": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySavedOfflineMine": "Đang chờ mạng, có mạng sẽ tự gửi lên",
+  "@moneySavedOfflineMine": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOverBudgetToast": "{category} chung đã vượt ngân sách {amount}",
+  "@moneyOverBudgetToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNearBudgetToast": "{category} chung đã dùng {percent}% ngân sách tháng",
+  "@moneyNearBudgetToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOverBudgetToastMine": "{category} đã vượt ngân sách {amount}",
+  "@moneyOverBudgetToastMine": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNearBudgetToastMine": "{category} đã dùng {percent}% ngân sách tháng",
+  "@moneyNearBudgetToastMine": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOverTotalToast": "Cả tháng đã vượt ngân sách {amount}",
+  "@moneyOverTotalToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNearTotalToast": "Cả tháng đã dùng {percent}% ngân sách",
+  "@moneyNearTotalToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyConflictTitle": "Chưa lưu được: {name} vừa sửa khoản này",
+  "@moneyConflictTitle": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyConflictBody": "Đã hiện bản mới nhất, sửa lại nếu cần",
+  "@moneyConflictBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWriteFailed": "Chưa lưu được khoản này. Thử lại nhé.",
+  "@moneyWriteFailed": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteTx": "Xoá khoản",
+  "@moneyDeleteTx": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleted": "Đã xoá {note} · {amount}",
+  "@moneyDeleted": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyUndo": "Hoàn tác",
+  "@moneyUndo": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedAskTitle": "Sửa luôn bên sổ của mình?",
+  "@moneyLinkedAskTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedAskBody": "Khoản “{note}” cũng đang trừ {old} ở {wallet}. Đổi thành {amount} ở cả hai sổ?",
+  "@moneyLinkedAskBody": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "old": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedBoth": "Sửa cả hai",
+  "@moneyLinkedBoth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedSharedOnly": "Chỉ sổ chung",
+  "@moneyLinkedSharedOnly": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedChanged": "{name} đã đổi khoản chung thành {amount}",
+  "@moneyLinkedChanged": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedUpdate": "Cập nhật",
+  "@moneyLinkedUpdate": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyLinkedLocked": "Chỉ {name} sửa được số tiền, vì khoản này nằm trong sổ riêng của {name}",
+  "@moneyLinkedLocked": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDeleteBothTitle": "Xoá ở cả hai sổ?",
+  "@moneyDeleteBothTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteBothBody": "“{note}” {amount} có ở sổ chung và đang trừ {wallet} của mình. Xoá cả hai thì {wallet} được cộng lại {amount}.",
+  "@moneyDeleteBothBody": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDeleteBoth": "Xoá cả hai",
+  "@moneyDeleteBoth": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteSharedOnly": "Chỉ xoá ở sổ chung",
+  "@moneyDeleteSharedOnly": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCancel": "Huỷ",
+  "@moneyCancel": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDiscardTitle": "Bỏ khoản đang ghi?",
+  "@moneyDiscardTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDiscardBody": "Khoản {amount} · {category} chưa lưu.",
+  "@moneyDiscardBody": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyKeepEditing": "Tiếp tục ghi",
+  "@moneyKeepEditing": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDiscard": "Bỏ khoản này",
+  "@moneyDiscard": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyPickCategory": "Chọn danh mục",
+  "@moneyPickCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditCategoriesShort": "Sửa",
+  "@moneyEditCategoriesShort": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategorySearchHint": "Tìm danh mục, vd “trà sữa”",
+  "@moneyCategorySearchHint": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryNoMatch": "Không có danh mục nào khớp.",
+  "@moneyCategoryNoMatch": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyDelete": "Xoá một ký tự",
+  "@moneyKeyDelete": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyBillion": "tỷ",
+  "moneyAmountTooBigFor": "Tối đa {max} một khoản.",
+  "@moneyAmountTooBigFor": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletTooBigFor": "Tối đa {max} một ví.",
+  "@moneyWalletTooBigFor": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAddSource": "Thêm nguồn",
+  "moneyCurrencyTitle": "Tiền tệ",
+  "moneyTypeSave": "Góp quỹ",
+  "moneySavedContribution": "Đã góp {amount} vào {fund}",
+  "@moneySavedContribution": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "fund": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySaveInto": "Góp vào",
+  "moneyPaidFrom": "Tiền từ đâu",
+  "moneyMyMoney": "Tiền riêng",
+  "moneyGoalsTitle": "Mục tiêu tiết kiệm",
+  "moneyChTplNoCoffee7": "7 ngày không trà sữa, cà phê",
+  "moneyChTplNoSnack7": "7 ngày không ăn vặt",
+  "moneyChTplNoGrab7": "7 ngày không gọi xe",
+  "moneyChTplNoShop7": "7 ngày không mua sắm",
+  "moneyChTplNoClothes14": "14 ngày không mua quần áo",
+  "moneyChTplCookHome14": "14 ngày nấu ăn ở nhà",
+  "moneyChTplNoTech30": "30 ngày không mua đồ công nghệ",
+  "moneyChTplEatOutCap7": "Tuần này ăn ngoài dưới {amount}",
+  "@moneyChTplEatOutCap7": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChTplDateCap7": "Tuần này hẹn hò dưới {amount}",
+  "@moneyChTplDateCap7": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChTplAllCap7": "Tuần này chi dưới {amount}",
+  "@moneyChTplAllCap7": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChallengesTitle": "Thử thách tiết kiệm",
+  "moneyChallengeNew": "Thử thách mới",
+  "moneyChallengeCustom": "Tự tạo",
+  "moneyChallengeDaysLeft": "Còn {n} ngày",
+  "@moneyChallengeDaysLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChallengeCleanDays": "{done}/{total} ngày",
+  "@moneyChallengeCleanDays": {
+    "placeholders": {
+      "done": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChallengeSpentOf": "{spent} / {limit}",
+  "@moneyChallengeSpentOf": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChallengeWon": "Hoàn thành",
+  "moneyChallengeLost": "Thử lại lần sau",
+  "moneyChallengeStop": "Dừng thử thách",
+  "moneyChallengeStart": "Bắt đầu",
+  "moneyChallengeKindNoSpend": "Không chi",
+  "moneyChallengeKindCap": "Chi dưới mức",
+  "moneyChallengeLimit": "Mức tối đa",
+  "moneyChallengeAll": "Mọi khoản chi",
+  "moneyChallengeDays": "{n} ngày",
+  "@moneyChallengeDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyChallengeMax": "Đang chạy đủ 3 thử thách",
+  "moneyChallengeLastDayTitle": "Hôm nay là ngày cuối thử thách",
+  "moneyChallengeStarted": "Bắt đầu: {title}",
+  "@moneyChallengeStarted": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecapTitle": "Nhìn lại {month}",
+  "@moneyRecapTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecapKeptBudget": "Giữ được hạn mức tháng",
+  "moneyRecapSpentLess": "Chi ít hơn {month} {amount}",
+  "@moneyRecapSpentLess": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecapSaved": "Góp quỹ thêm {amount}",
+  "@moneyRecapSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecapChallenges": "Xong {n} thử thách",
+  "@moneyRecapChallenges": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecapLogged": "Ghi chi tiêu {n}/{total} ngày",
+  "@moneyRecapLogged": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyRecapEmpty": "Tháng mới bắt đầu. Đặt hạn mức cho tháng này?",
+  "moneyChallengeLength": "Thời gian",
+  "moneyKeyThousand": "nghìn",
+  "@moneyKeyThousand": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyMillion": "triệu",
+  "@moneyKeyMillion": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyKeyCu": "củ",
+  "@moneyKeyCu": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyShowKeypad": "Mở bàn phím số",
+  "@moneyShowKeypad": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstRunTitle": "Tiền của mình đang nằm ở đâu?",
+  "@moneyFirstRunTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstRunBody": "Bật những ví đang dùng, nhập số dư lúc này. Bỏ qua cũng được: đã có sẵn ví Tiền mặt.",
+  "@moneyFirstRunBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFirstRunDone": "Xong, vào sổ",
+  "@moneyFirstRunDone": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySkip": "Bỏ qua",
+  "@moneySkip": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBuiltIn": "Có sẵn",
+  "@moneyBuiltIn": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletBank": "Ngân hàng",
+  "@moneyWalletBank": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletEwallet": "Ví điện tử",
+  "@moneyWalletEwallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletCredit": "Thẻ tín dụng",
+  "@moneyWalletCredit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletGoal": "Mục tiêu",
+  "@moneyWalletGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCreditOwed": "Đang nợ thẻ bao nhiêu",
+  "@moneyCreditOwed": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBalanceOf": "Số dư {name}",
+  "@moneyBalanceOf": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletTooBig": "Tối đa 100 tỷ một ví.",
+  "@moneyWalletTooBig": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletsBadge": "VÍ",
+  "@moneyWalletsBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddWallet": "Thêm ví",
+  "@moneyAddWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAssetsNote": "Cộng {n} ví đang dùng, đã trừ tiền đang nợ thẻ. Tiền để dành cho mục tiêu tính riêng bên dưới.",
+  "@moneyAssetsNote": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyInUse": "Đang dùng",
+  "@moneyInUse": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletCount": "{n} ví",
+  "@moneyWalletCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyGoals": "Mục tiêu",
+  "@moneyGoals": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNotInTotal": "không tính vào tổng",
+  "@moneyNotInTotal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalPerMonthShort": "Cần ~{amount} mỗi tháng",
+  "@moneyGoalPerMonthShort": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyArchivedSection": "Đã lưu trữ",
+  "@moneyArchivedSection": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchived": "Lưu trữ từ {date}, giữ nguyên lịch sử",
+  "@moneyArchived": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyArchivedPlain": "Đã lưu trữ, giữ nguyên lịch sử",
+  "@moneyArchivedPlain": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOwingCard": "đang nợ thẻ",
+  "@moneyOwingCard": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCurrentBalance": "Số dư hiện tại",
+  "@moneyCurrentBalance": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletInTotal": "{type} · tính vào tổng tiền đang có",
+  "@moneyWalletInTotal": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletNotInTotal": "{type} · không tính vào tổng",
+  "@moneyWalletNotInTotal": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyInMonth": "Vào tháng {month}",
+  "@moneyInMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyOutMonth": "Ra tháng {month}",
+  "@moneyOutMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFixBalance": "Sửa số dư",
+  "@moneyFixBalance": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEntryCount": "{n} khoản",
+  "@moneyEntryCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyEditWallet": "Sửa ví",
+  "@moneyEditWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyWalletNoEntries": "Tháng này ví chưa có khoản nào.",
+  "@moneyWalletNoEntries": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewWallet": "Ví mới",
+  "@moneyNewWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewGoal": "Mục tiêu mới",
+  "@moneyNewGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyName": "Tên",
+  "@moneyName": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyPickEmoji": "Chọn biểu tượng",
+  "@moneyPickEmoji": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBalanceNow": "Số dư lúc này",
+  "@moneyBalanceNow": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyIncludeInTotal": "Tính vào tổng tiền đang có",
+  "@moneyIncludeInTotal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCreateWallet": "Tạo ví",
+  "@moneyCreateWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCreateGoal": "Tạo mục tiêu",
+  "@moneyCreateGoal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalTarget": "Cần bao nhiêu",
+  "@moneyGoalTarget": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalDeadline": "Hạn (không bắt buộc)",
+  "@moneyGoalDeadline": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyGoalPerMonth": "Cần để dành ~{amount} mỗi tháng trong {n} tháng tới.",
+  "@moneyGoalPerMonth": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyNotSet": "Chưa chọn",
+  "@moneyNotSet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySave": "Lưu",
+  "@moneySave": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchiveWallet": "Lưu trữ ví",
+  "@moneyArchiveWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchiveAskTitle": "Lưu trữ ví này?",
+  "@moneyArchiveAskTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyArchiveAskBody": "Ví thôi hiện khi ghi khoản, lịch sử giữ nguyên. Muốn dùng lại lúc nào cũng được.",
+  "@moneyArchiveAskBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyUnarchiveWallet": "Dùng lại ví này",
+  "@moneyUnarchiveWallet": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNameNeeded": "Đặt tên để lưu",
+  "@moneyNameNeeded": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixTitle": "Sửa số dư cho khớp",
+  "@moneyFixTitle": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixInBook": "{wallet} · trong sổ đang là {amount}",
+  "@moneyFixInBook": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAdjustReal": "Số tiền thật đang có",
+  "@moneyAdjustReal": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixMore": "Trong app đang nhiều hơn tiền thật {amount}. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là chi tiêu.",
+  "@moneyFixMore": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFixLess": "Trong app đang ít hơn tiền thật {amount}. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là thu nhập.",
+  "@moneyFixLess": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyFixSame": "Đã khớp với tiền thật, không cần sửa.",
+  "@moneyFixSame": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAdjustSave": "Cập nhật số dư",
+  "@moneyAdjustSave": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyFixedToast": "Đã sửa số dư {wallet}",
+  "@moneyFixedToast": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyWalletCreated": "Đã tạo {name}",
+  "@moneyWalletCreated": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyCategoriesBadge": "DANH MỤC",
+  "@moneyCategoriesBadge": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryScope": "Sổ của mình · mỗi sổ có bộ danh mục riêng",
+  "@moneyCategoryScope": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryScopeShared": "Sổ chung · mỗi sổ có bộ danh mục riêng",
+  "@moneyCategoryScopeShared": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneySubCount": "{n} mục con",
+  "@moneySubCount": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyAddSub": "Thêm mục con",
+  "@moneyAddSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyRenamedFrom": "Đã đổi tên, gốc là “{name}”",
+  "@moneyRenamedFrom": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyCustom": "Tự thêm",
+  "@moneyCustom": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHidden": "Đã ẩn",
+  "@moneyHidden": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHiddenNote": "không hiện khi ghi khoản",
+  "@moneyHiddenNote": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHiddenSub": "Khoản cũ vẫn giữ tên",
+  "@moneyHiddenSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyShowAgain": "Hiện lại",
+  "@moneyShowAgain": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyHideCategory": "Ẩn danh mục này",
+  "@moneyHideCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyEditCategory": "Sửa danh mục",
+  "@moneyEditCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewCategory": "Nhóm mới",
+  "@moneyNewCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNewSub": "Mục con mới",
+  "@moneyNewSub": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyOriginalName": "Tên gốc: {name}. Đổi tên chỉ áp cho sổ này.",
+  "@moneyOriginalName": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyInGroup": "Nằm trong",
+  "@moneyInGroup": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteCategory": "Xoá danh mục",
+  "@moneyDeleteCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDeleteCategoryAsk": "Xoá “{name}”?",
+  "@moneyDeleteCategoryAsk": {
+    "description": "Sổ tiền (feature expenses)",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyDeleteCategoryBody": "Khoản cũ của danh mục này chuyển về “Khác”.",
+  "@moneyDeleteCategoryBody": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyDelete": "Xoá",
+  "@moneyDelete": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyAddCategory": "Thêm danh mục",
+  "@moneyAddCategory": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyCategoryLimit": "Sổ này đã đủ 80 danh mục tự thêm.",
+  "@moneyCategoryLimit": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyNotSpending": "không tính là chi",
+  "@moneyNotSpending": {
+    "description": "Sổ tiền (feature expenses)"
+  },
+  "moneyBudgets": "Ngân sách",
+  "@moneyBudgets": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetsBadge": "NGÂN SÁCH",
+  "@moneyBudgetsBadge": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReport": "Báo cáo",
+  "@moneyReport": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportBadge": "BÁO CÁO",
+  "@moneyReportBadge": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchBadge": "TÌM KHOẢN",
+  "@moneySearchBadge": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchLabel": "Tìm khoản",
+  "@moneySearchLabel": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySeeAll": "Tất cả",
+  "@moneySeeAll": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSetLink": "Đặt",
+  "@moneyBudgetSetLink": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyAddBudget": "Đặt ngân sách",
+  "@moneyAddBudget": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetScopeShared": "Tháng {month} · cả sổ chung",
+  "@moneyBudgetScopeShared": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetScopeMine": "Tháng {month} · cả sổ của mình",
+  "@moneyBudgetScopeMine": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetDaysLeft": "còn {n} ngày",
+  "@moneyBudgetDaysLeft": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetDailyLeft": "Còn {left}, tức khoảng {perDay} mỗi ngày tới hết tháng.",
+  "@moneyBudgetDailyLeft": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetUsedOf": "của {budget}",
+  "@moneyBudgetUsedOf": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetByCategory": "Theo danh mục",
+  "@moneyBudgetByCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetOverOf": "Vượt {amount} của {budget}",
+  "@moneyBudgetOverOf": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetLeftOf": "Còn {amount} của {budget}",
+  "@moneyBudgetLeftOf": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "budget": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetNoCategory": "Chưa nhóm nào có ngân sách riêng. Đặt cho nhóm hay tiêu nhiều, app sẽ báo khi dùng tới 80% và 100%.",
+  "@moneyBudgetNoCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetUnset": "Chưa đặt ngân sách. Đặt một con số cho cả tháng, app sẽ báo khi dùng tới 80% và 100%.",
+  "@moneyBudgetUnset": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySetBudget": "Đặt ngân sách tháng",
+  "@moneySetBudget": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetPushNote": "Khi chi tới 80% và 100% ngân sách tổng, người không ghi khoản đó sẽ nhận thông báo. Thông báo chỉ có phần trăm, không có số tiền.",
+  "@moneyBudgetPushNote": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSheetTitle": "Ngân sách tháng",
+  "@moneyBudgetSheetTitle": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetWholeBook": "Cả sổ",
+  "@moneyBudgetWholeBook": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetAmountLabel": "Mỗi tháng tối đa",
+  "@moneyBudgetAmountLabel": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetResets": "Đầu tháng nào cũng tính lại từ 0.",
+  "@moneyBudgetResets": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSave": "Lưu ngân sách",
+  "@moneyBudgetSave": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetRemove": "Bỏ ngân sách này",
+  "@moneyBudgetRemove": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyBudgetSaved": "Đã đặt ngân sách {name}: {amount}",
+  "@moneyBudgetSaved": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyBudgetRemoved": "Đã bỏ ngân sách {name}",
+  "@moneyBudgetRemoved": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportUpTo": "tới {date}",
+  "@moneyReportUpTo": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportTopCategory": "Chi nhiều nhất là {category}, chiếm {percent}% cả tháng.",
+  "@moneyReportTopCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportTopShared": "{category} chiếm {percent}% chi chung.",
+  "@moneyReportTopShared": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportTopChild": "Phần lớn là {sub}, {amount}.",
+  "@moneyReportTopChild": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "sub": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportByCategory": "Chi theo danh mục",
+  "@moneyReportByCategory": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportTapHint": "chạm để xem mục con",
+  "@moneyReportTapHint": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportByMonth": "Chi mỗi tháng",
+  "@moneyReportByMonth": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReport6": "6 tháng",
+  "@moneyReport6": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReport12": "12 tháng",
+  "@moneyReport12": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportBudgetLine": "Ngân sách {amount}",
+  "@moneyReportBudgetLine": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportPartial": "Tháng {month} mới tính tới {date}. Đường đứt là ngân sách tổng hiện tại.",
+  "@moneyReportPartial": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportPartialNoBudget": "Tháng {month} mới tính tới {date}.",
+  "@moneyReportPartialNoBudget": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportNewBook": "Sổ chung mới có từ tháng {month}, nên các tháng trước để trống.",
+  "@moneyReportNewBook": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportNewBookMine": "Sổ của mình mới có từ tháng {month}, nên các tháng trước để trống.",
+  "@moneyReportNewBookMine": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportMissing": "Chưa tải được vài tháng nên các cột đó để trống. Có mạng sẽ hiện lại.",
+  "@moneyReportMissing": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportTet": "Tết",
+  "@moneyReportTet": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportChartLabel": "Chi mỗi tháng, {n} tháng gần đây: {values}",
+  "@moneyReportChartLabel": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "values": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyReportByWallet": "Chi theo ví",
+  "@moneyReportByWallet": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyReportNoSpend": "Tháng {month} chưa có khoản chi nào.",
+  "@moneyReportNoSpend": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchHint": "Tìm trong ghi chú và danh mục",
+  "@moneySearchHint": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchClear": "Xoá chữ",
+  "@moneySearchClear": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchAccent": "Gõ không dấu vẫn ra, vd “bun cha” ra “Bún chả”.",
+  "@moneySearchAccent": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchCount": "{n} khoản",
+  "@moneySearchCount": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchRange": "{n} tháng gần đây",
+  "@moneySearchRange": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchEmpty": "Không có khoản nào khớp “{q}” trong {n} tháng gần đây.",
+  "@moneySearchEmpty": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "q": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchEmptyAll": "Không có khoản nào trong {n} tháng gần đây với bộ lọc này.",
+  "@moneySearchEmptyAll": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearch12": "Tìm trong 12 tháng",
+  "@moneySearch12": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchCap": "Chỉ tìm trong 2.000 khoản gần nhất. Chọn khoảng ngày hẹp hơn để không sót khoản nào.",
+  "@moneySearchCap": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchError": "Chưa tìm được. Kiểm tra mạng rồi thử lại.",
+  "@moneySearchError": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchAmount": "Khoảng tiền",
+  "@moneySearchAmount": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchPerson": "Người",
+  "@moneySearchPerson": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchFrom": "Từ",
+  "@moneySearchFrom": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchTo": "Đến",
+  "@moneySearchTo": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchFromOnly": "Từ {amount}",
+  "@moneySearchFromOnly": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchToOnly": "Tới {amount}",
+  "@moneySearchToOnly": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchApply": "Áp dụng",
+  "@moneySearchApply": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchClearFilter": "Bỏ lọc",
+  "@moneySearchClearFilter": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneySearchPickedCount": "{label} · {n}",
+  "@moneySearchPickedCount": {
+    "description": "Sổ tiền (feature expenses) · stage 3A",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "moneySearchPeriod": "Khoảng ngày",
+  "@moneySearchPeriod": {
+    "description": "Sổ tiền (feature expenses) · stage 3A"
+  },
+  "moneyGoalSaved": "Chúng mình đã góp",
+  "@moneyGoalSaved": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalSavedMine": "Đã để dành",
+  "@moneyGoalSavedMine": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalTargetOf": "Mục tiêu {amount}",
+  "@moneyGoalTargetOf": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalLeft": "Còn {left}. Để kịp {date}, mỗi tháng chúng mình cần để dành khoảng {perMonth}.",
+  "@moneyGoalLeft": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "perMonth": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalLeftMine": "Còn {left}. Để kịp {date}, mỗi tháng mình cần để dành khoảng {perMonth}.",
+  "@moneyGoalLeftMine": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "perMonth": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalLeftOnly": "Còn {left}.",
+  "@moneyGoalLeftOnly": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalNoDeadline": "Chưa đặt hạn. Thêm hạn để biết mỗi tháng cần để dành bao nhiêu.",
+  "@moneyGoalNoDeadline": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalReachedOn": "Đủ ngày {date}",
+  "@moneyGoalReachedOn": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalReached": "Đủ rồi! Lên lịch đi {trip} thôi. Tiêu gì trong chuyến đi thì ghi thẳng từ quỹ này.",
+  "@moneyGoalReached": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyGoalHistory": "Lịch sử góp",
+  "@moneyGoalHistory": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalTimes": "{count} lần",
+  "@moneyGoalTimes": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "moneyGoalHistoryEmpty": "Chưa có lần góp nào. Góp lần đầu đi, 50k cũng được.",
+  "@moneyGoalHistoryEmpty": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyGoalHistoryPartial": "Chưa tải được lịch sử cũ, đang hiện các lần góp gần đây.",
+  "@moneyGoalHistoryPartial": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContribute": "Góp vào quỹ",
+  "@moneyContribute": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneySpendFromFund": "Chi từ quỹ",
+  "@moneySpendFromFund": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContributeTitle": "Góp vào {wallet}",
+  "@moneyContributeTitle": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributeFrom": "Lấy từ ví",
+  "@moneyContributeFrom": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyContributeSave": "Góp {amount}",
+  "@moneyContributeSave": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributed": "Đã góp {amount} vào {wallet}",
+  "@moneyContributed": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributedFull": "{wallet} đủ rồi",
+  "@moneyContributedFull": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyContributeHint": "Số tiền góp",
+  "@moneyContributeHint": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyLogFromDecision": "Ghi chi",
+  "@moneyLogFromDecision": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderBody1": "Hôm nay có khoản nào chưa ghi không?",
+  "@moneyReminderBody1": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderBody2": "Ghi nốt chi tiêu hôm nay, mất chưa tới một phút",
+  "@moneyReminderBody2": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderBody3": "Tối rồi, xem hôm nay mình tiêu bao nhiêu nhé",
+  "@moneyReminderBody3": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderSettingTitle": "Nhắc ghi chi tiêu buổi tối",
+  "@moneyReminderSettingTitle": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyReminderSettingSubtitle": "Mỗi tối một lần. Hôm nào đã ghi khoản thì thôi không nhắc.",
+  "@moneyReminderSettingSubtitle": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyMenuReminder": "Nhắc tối",
+  "@moneyMenuReminder": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyProfileSub": "Ví, chi tiêu và quỹ chung",
+  "@moneyProfileSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifGoal": "{name} vừa góp vào quỹ, giờ được {percent}%",
+  "@moneyNotifGoal": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNotifGoalReached": "{wallet} đủ rồi!",
+  "@moneyNotifGoalReached": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "wallet": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyNotifGoalReachedSub": "Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.",
+  "@moneyNotifGoalReachedSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifBudget80": "Tháng này chúng mình đã tiêu 80% ngân sách",
+  "@moneyNotifBudget80": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifBudget100": "Tháng này chúng mình tiêu hết ngân sách rồi",
+  "@moneyNotifBudget100": {
+    "description": "Sổ tiền (feature expenses), stage 3B"
+  },
+  "moneyNotifBudgetSub": "Sổ chung · {month}",
+  "@moneyNotifBudgetSub": {
+    "description": "Sổ tiền (feature expenses), stage 3B",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyLinkedPayerLocked": "Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.",
+  "@moneyLinkedPayerLocked": {
+    "description": "Sổ tiền (feature expenses), sửa theo Tester 2026-10-22"
+  },
+  "moneyUndoTooLate": "Khoản này đã xoá rồi.",
+  "@moneyUndoTooLate": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: Hoàn tác bấm sau khi đã xoá"
+  },
+  "moneyOwingCardDetail": "Đang nợ thẻ chừng này, nhớ trả trước hạn nhé.",
+  "@moneyOwingCardDetail": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: chi tiết ví thẻ tín dụng âm"
+  },
+  "moneyReminderTimeA11y": "Giờ nhắc, {time}",
+  "@moneyReminderTimeA11y": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: nhãn đọc màn hình ô giờ nhắc tối",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountSpoken": "{amount} đồng",
+  "@moneyAmountSpoken": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: số tiền đọc màn hình",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moneyAmountSpokenNeg": "âm {amount} đồng",
+  "@moneyAmountSpokenNeg": {
+    "description": "Sổ tiền (feature expenses), vòng vá đợt 2: số tiền âm đọc màn hình",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalShareFirstSub": "Bật để báo cho {name} mỗi khi bạn đến nơi.",
+  "@arrivalShareFirstSub": {
+    "description": "Feature arrival (đợt 2), vòng vá: chưa từng bật chia sẻ",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "arrivalSetAddressCta": "Chạm để đặt địa chỉ",
+  "@arrivalSetAddressCta": {
+    "description": "Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ"
+  },
+  "rateAppTitle": "Bạn thấy Dear Embeiu thế nào?",
+  "rateAppSubtitle": "Chỉ mất vài giây thôi.",
+  "rateAppStar1": "Chưa ổn lắm",
+  "rateAppStar2": "Còn thiếu nhiều",
+  "rateAppStar3": "Tạm được",
+  "rateAppStar4": "Khá thích",
+  "rateAppStar5": "Rất thích",
+  "rateAppCtaDefault": "Chọn số sao",
+  "rateAppCtaIos": "Đánh giá trên App Store",
+  "rateAppCtaAndroid": "Đánh giá trên Google Play",
+  "rateAppCtaLow": "Viết góp ý",
+  "rateAppLater": "Để sau",
+  "rateAppStarSemantics": "{count} sao",
+  "@rateAppStarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rateAppStarsGroupSemantics": "Chấm sao cho Dear Embeiu",
+  "settingsRateAppTitle": "Đánh giá Dear Embeiu",
+  "settingsRateAppSubtitle": "Chấm sao cho app trên cửa hàng ứng dụng",
+  "settingsFeedbackTitle": "Góp ý & báo lỗi",
+  "settingsFeedbackSubtitle": "Điều gì chưa ổn, hay bạn muốn có thêm gì?",
+  "feedbackBadge": "GÓP Ý & BÁO LỖI",
+  "feedbackTypeSuggestion": "Góp ý",
+  "feedbackTypeBug": "Báo lỗi",
+  "feedbackFieldLabel": "Nội dung",
+  "feedbackHintSuggestion": "Bạn muốn app có thêm gì, hay sửa chỗ nào cho dễ dùng hơn?",
+  "feedbackHintBug": "Chuyện gì đã xảy ra? Bạn bấm gì, ở màn hình nào, và lẽ ra phải thế nào?",
+  "feedbackHintLowRating": "Điều gì khiến bạn chưa hài lòng? Một dòng cũng được.",
+  "feedbackRatedLabel": "Bạn chấm {count}/5 sao",
+  "@feedbackRatedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackCounter": "{count}/2000",
+  "@feedbackCounter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackAttachCta": "Đính kèm ảnh chụp màn hình",
+  "feedbackPhotoLabel": "Ảnh đính kèm",
+  "feedbackPhotoRemove": "Bỏ ảnh đính kèm",
+  "feedbackPhotoError": "Không mở được ảnh này. Thử ảnh khác nhé.",
+  "feedbackPhotoTooLarge": "Ảnh lớn quá, tối đa 10 MB.",
+  "feedbackDeviceNote": "App gửi kèm phiên bản, hệ điều hành và đời máy để tìm lỗi nhanh hơn.",
+  "feedbackSendCta": "Gửi góp ý",
+  "feedbackRetryCta": "Thử lại",
+  "feedbackErrorBanner": "Chưa gửi được. Kiểm tra mạng rồi thử lại, nội dung của bạn vẫn còn đây.",
+  "feedbackSuccessTitle": "Cảm ơn bạn",
+  "feedbackSuccessBody": "Dear Embeiu đã nhận được góp ý của bạn.",
+  "feedbackDoneCta": "Xong"
 }

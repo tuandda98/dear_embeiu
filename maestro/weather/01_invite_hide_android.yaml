@@ -1,0 +1,50 @@
+# Case CH-01, CH-19b, LOC-01, CARD-01. Android = test3 (Tuấn).
+# Tiền điều kiện: chưa ai trong cặp chọn thành phố; thẻ chưa bị "Ẩn" (xem README mục "Đặt lại").
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+# Thẻ mời: nút chọn + nút ẩn (nhãn a11y của "Ẩn")
+- assertVisible: 'Chọn thành phố'
+- assertVisible: 'Ẩn thẻ thời tiết'
+# Mở bảng chọn: có câu "không xin vị trí", không có hộp xin quyền vị trí
+- tapOn: 'Chọn thành phố'
+- assertVisible: '.*không xin vị trí.*'
+- assertNotVisible: '.*(Cho phép|Allow).*(vị trí|location).*'
+- assertVisible: 'Việt Nam'
+- scrollUntilVisible:
+    element:
+      text: 'Nước ngoài'
+    direction: DOWN
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+# Tìm không dấu + không tìm thấy
+- tapOn: 'Tìm thành phố.*'
+- inputText: 'xxzzqq'
+- assertVisible: 'Chưa có thành phố này.*'
+- back
+- back
+# Ẩn thẻ
+- scrollUntilVisible:
+    element:
+      text: 'Ẩn thẻ thời tiết'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- tapOn: 'Ẩn thẻ thời tiết'
+- waitForAnimationToEnd
+- assertNotVisible: 'Chọn thành phố'

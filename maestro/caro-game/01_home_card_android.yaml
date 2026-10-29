@@ -1,0 +1,17 @@
+appId: com.tony.dearembeiu.dev
+---
+# CARO-HOME: thẻ "Chơi cùng nhau" có dòng Cờ caro khi đã ghép đôi, không có ván mở.
+# Tiền điều kiện: không có ván caro đang mở (nếu có, kết thúc bằng Xin thua trước).
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: '(?s)Chơi cùng nhau.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- assertVisible: '(?s)Chơi cùng nhau.*'
+- assertVisible: 'Cờ caro\..*'

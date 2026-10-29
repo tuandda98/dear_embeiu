@@ -50,6 +50,7 @@ class CatchupGate {
     try {
       await showDialog<void>(
         context: context,
+        routeSettings: const RouteSettings(name: 'CatchupGate'),
         barrierDismissible: false,
         useSafeArea: false,
         barrierColor: AppColors.textPrimary.withValues(alpha: 0.55),

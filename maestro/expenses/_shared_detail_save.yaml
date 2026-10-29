@@ -1,0 +1,13 @@
+# Sau khi đã gõ số tiền ở form SỔ CHUNG (tab Chi): chọn nguồn tiền, ghi chú, Lưu.
+# Env: SOURCE ('Tiền riêng' | tên ví chung), NOTE (ASCII),
+# AMOUNT_TEXT (regex số tiền hiện trên nút Lưu, vd '1\.000\.000').
+appId: com.tony.dearembeiu.dev
+---
+- tapOn: '${SOURCE}'
+- tapOn: 'Hôm nay · .*'
+- tapOn: 'Ghi chú.*'
+- inputText: ${NOTE}
+- tapOn: 'Lưu ${AMOUNT_TEXT}.*'
+- extendedWaitUntil:
+    visible: 'Đã ghi ${AMOUNT_TEXT}.*'
+    timeout: 8000

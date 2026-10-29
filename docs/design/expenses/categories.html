@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · danh mục · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { categories, fmt } = D;
+const parents = categories.filter((c) => !c.parent && !D.INCOME_IDS.includes(c.id));
+const custom = { id: 'cus_badminton', parent: 'health', vi: 'Cầu lông', emoji: '🏸' }; // taste-skill-ignore
+const renamed = { food_coffee: 'Trà sữa' };
+const hidden = ['edu'];
+const open = ['food', 'health'];
+const child = (c, tag = '') => `<button class="row sub"><span class="emo" aria-hidden="true">${c.emoji}</span><div class="mid"><div class="t">${renamed[c.id] || c.vi}</div>${tag ? `<div class="s">${tag}</div>` : ''}</div>${icon('edit_2', 18)}</button>`;
+const group = (p) => {
+  const kids = categories.filter((c) => c.parent === p.id);
+  const isOpen = open.includes(p.id);
+  return `<div class="grp"><button class="row" aria-expanded="${isOpen}"><span class="emo" aria-hidden="true">${p.emoji}</span><div class="mid"><div class="t">${p.vi}</div><div class="s">${kids.length + (p.id === 'health' ? 1 : 0)} mục con</div></div>${icon('arrow_right_3', 18).replace('class="ic"', `class="ic" style="color:var(--sec);transform:rotate(${isOpen ? 90 : 0}deg)"`)}</button>
+    ${isOpen ? kids.map((c) => child(c, renamed[c.id] ? `Đã đổi tên, gốc là “${c.vi}”` : '')).join('') + (p.id === 'health' ? child(custom, 'Tự thêm') : '') + `<button class="row sub addsub">${icon('add', 18)}<span>Thêm mục con</span></button>` : ''}</div>`;
+};
+document.getElementById('app').innerHTML = `
+  ${UI.header('Danh mục', 'category_2', UI.ibtn('add', 'Thêm danh mục'))}
+  ${UI.seg(['Chi', 'Thu'], 0)}
+  <main>
+  <p class="scope">Sổ của mình · mỗi sổ có bộ danh mục riêng</p>
+  <section class="card" aria-label="Danh mục chi">${parents.filter((p) => !hidden.includes(p.id)).map(group).join('')}</section>
+  <section class="card" aria-labelledby="h-hid">
+    <div class="card-h"><h2 id="h-hid">Đã ẩn</h2><span class="meta">không hiện khi ghi khoản</span></div>
+    ${parents.filter((p) => hidden.includes(p.id)).map((p) => `<div class="row"><span class="emo" aria-hidden="true">${p.emoji}</span><div class="mid"><div class="t">${p.vi}</div><div class="s">Khoản cũ vẫn giữ tên</div></div><button class="btn sm ghost">${icon('eye', 18)}Hiện lại</button></div>`).join('')}
+  </section>
+  <h2 class="state-label">Sửa danh mục (sheet)</h2>
+  <div class="frame"><div class="sheet"><div class="handle" aria-hidden="true"></div>
+    <div class="sh-top"><button class="ibtn l" aria-label="Đóng">${icon('close_circle', 24)}</button><h3>Sửa danh mục</h3><span></span></div>
+    <label class="flabel" for="cn">Tên</label><div style="display:flex;gap:8px"><button class="emo-btn" aria-label="Đổi biểu tượng">${D.cat('food_coffee').emoji}</button><input id="cn" class="field" value="Trà sữa" maxlength="24"></div>
+    <p class="meta" style="margin-top:8px">Tên gốc: Cà phê, trà sữa. Đổi tên chỉ áp cho sổ này.</p>
+    <button class="kv" style="margin-top:8px"><span class="k">Nằm trong</span><span class="v">${D.cat('food').emoji} Ăn uống${icon('arrow_right_3', 16)}</span></button>
+    <button class="btn primary save">Lưu</button>
+    <button class="btn" style="margin-top:8px">${icon('eye_slash', 18)}Ẩn danh mục này</button>
+  </div></div>
+  </main>`;
+</script>
+</body>
+</html>

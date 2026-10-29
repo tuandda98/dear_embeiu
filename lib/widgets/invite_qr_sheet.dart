@@ -26,6 +26,7 @@ class InviteQrSheet extends StatelessWidget {
     context.read<ReminderProvider>().markInviteShared(code);
     return showModalBottomSheet<void>(
       context: context,
+      routeSettings: const RouteSettings(name: 'InviteQrSheet'),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => InviteQrSheet._(code),

@@ -71,6 +71,18 @@ class AppColors {
   static const Color warning = Color(0xFFFFA726);
   static const Color info = Color(0xFFA78BFA); // lavender, design-aligned
 
+  // Readable status ink (đợt 2, 2026-10-20). [error]/[warning] above are fills:
+  // as text on white they only reach ~3:1, so text, icons and solid
+  // destructive buttons use these instead.
+  static const Color errorInk = Color(0xFFC4242A);   // 5.9:1 on white ("Xin thua")
+  static const Color warningInk = Color(0xFF8A4B00); // 6.0:1 on warning α.18 (pin yếu)
+
+  // Sổ tiền amounts and budget state. Negative = [errorInk] so "vượt" reads
+  // like every other destructive red in the app.
+  static const Color moneyPositive = Color(0xFF247B50); // thu, "+120.000 ₫"
+  static const Color moneyNegative = errorInk;          // vượt ngân sách
+  static const Color moneyWarn = Color(0xFFB65A00);     // ≥80% ngân sách
+
   // ---------------------------------------------------------------------------
   // Gradients
   static const LinearGradient sunsetRomance = LinearGradient(

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · chi tiết ví Techcombank · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const B = D.own; const W = B.wallets.find((w) => w.id === 'w_tcb');
+const rows = B.tx.filter((r) => r.outWalletId === W.id || r.inWalletId === W.id);
+const inn = D.sumBy(rows, (r) => r.inWalletId === W.id), out = D.sumBy(rows, (r) => r.outWalletId === W.id);
+console.assert(B.balances[W.id] === 9850000 + inn - out, 'số dư ví = cuối 30/09 + vào − ra');
+document.getElementById('app').innerHTML = `
+  ${UI.header('Techcombank', 'card', UI.ibtn('edit_2', 'Sửa ví'))}
+  <main>
+  <section class="card" aria-labelledby="h-bal">
+    <h2 id="h-bal" class="label">Số dư hiện tại</h2>
+    <p>${UI.money(B.balances[W.id], 'fig-xl')}</p>
+    <p class="meta" style="margin-top:4px">Ngân hàng · tính vào tổng tiền đang có</p>
+    <div class="split"><div><p class="meta">Vào tháng 10</p><p class="fig fig-m num pos">+${fmt(inn)}</p></div><div><p class="meta">Ra tháng 10</p><p class="fig fig-m num">−${fmt(out)}</p></div></div>
+    <div style="display:flex;gap:8px;margin-top:16px"><button class="btn sm outline" style="flex:1">${icon('arrow_swap_horizontal', 18)}Chuyển tiền</button><button class="btn sm outline" style="flex:1" aria-label="Sửa số dư cho khớp tiền thật">${icon('edit_2', 18)}Sửa số dư</button></div>
+  </section>
+  <section class="card" aria-labelledby="h-tx">
+    <div class="card-h"><h2 id="h-tx">Tháng 10</h2><span class="meta">${rows.length} khoản</span></div>
+    ${UI.dayGroups(rows, 'own', 9, { hideWallet: true })}
+  </section>
+  </main>${UI.fab()}`;
+</script>
+</body>
+</html>

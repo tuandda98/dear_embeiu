@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · Quỹ Đà Lạt · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const S = D.shared; const W = S.wallets.find((w) => w.id === 'v_dalat');
+const bal = S.balances.v_dalat, c = S.dalat, left = W.goalTarget - bal, months = D.monthsLeft(D.TODAY, W.goalDeadline);
+const perMonth = Math.ceil(left / months / 1000) * 1000;
+const rows = S.tx.filter((r) => r.inWalletId === W.id || r.outWalletId === W.id);
+document.getElementById('app').innerHTML = `
+  ${UI.header('Quỹ Đà Lạt', 'flag', UI.ibtn('edit_2', 'Sửa quỹ'))}
+  <main>
+  <section class="card" aria-labelledby="h-g">
+    <h2 id="h-g" class="label">Chúng mình đã góp</h2>
+    <p>${UI.money(bal, 'fig-xl')}</p>
+    <div class="goalbar" role="img" aria-label="${Math.round(bal / W.goalTarget * 100)}% của ${fmt(W.goalTarget)}"><span style="width:${bal / W.goalTarget * 100}%"></span></div>
+    <div class="plan-ends meta num"><span>${Math.round(bal / W.goalTarget * 100)}%</span><span>Mục tiêu ${fmt(W.goalTarget)}</span></div>
+    <p class="finding">Còn <b class="num">${fmt(left)}</b>. Để kịp 31/01/2027, mỗi tháng chúng mình cần để dành khoảng <b class="num">${fmt(perMonth)}</b>.</p>
+  </section>
+  <section class="card" aria-labelledby="h-who">
+    <div class="card-h"><h2 id="h-who">Mỗi người góp</h2></div>
+    <div class="lanes two">
+      <div class="lane"><p class="lane-n">${UI.av('thao')}Thảo</p><p class="fig fig-m num">${fmt(c.thao)}</p></div>
+      <div class="lane"><p class="lane-n">${UI.av('tuan')}Mình</p><p class="fig fig-m num">${fmt(c.tuan)}</p></div>
+    </div>
+    <div class="stack"><span style="flex:${c.thao};background:var(--pa)"></span><span style="flex:${c.tuan};background:var(--me)"></span><span style="flex:${left};background:transparent"></span></div>
+  </section>
+  <section class="card" aria-labelledby="h-h">
+    <div class="card-h"><h2 id="h-h">Lịch sử góp</h2><span class="meta">${rows.length} lần</span></div>
+    ${UI.dayGroups(rows, 'shared', 5)}
+  </section>
+  <div style="display:flex;gap:8px;margin-top:24px"><button class="btn outline" style="flex:2">Chi từ quỹ</button><button class="btn primary" style="flex:3">Góp vào quỹ</button></div>
+  <h2 class="state-label">Khi đủ 100% (thẻ đầu đổi chữ, không pháo hoa)</h2>
+  <section class="card" aria-label="Quỹ đã đủ">
+    <p class="label">Chúng mình đã góp</p><p>${UI.money(W.goalTarget, 'fig-xl')}</p>
+    <div class="goalbar"><span style="width:100%"></span></div>
+    <div class="plan-ends meta num"><span>100%</span><span>Đủ ngày 28/12/2026</span></div>
+    <p class="finding">Đủ rồi. Lên lịch đi Đà Lạt thôi, tiền chi chuyến đi ghi thẳng từ quỹ này.</p>
+  </section>
+  </main>`;
+</script>
+</body>
+</html>

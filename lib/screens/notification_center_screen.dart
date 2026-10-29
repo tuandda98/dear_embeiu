@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:provider/provider.dart';
 
+// ── caro-game (đợt 2) ──
+import '../l10n/app_l10n.dart';
 import '../l10n/l10n.dart';
 import '../models/app_notification.dart';
 import '../models/decision.dart';
@@ -17,6 +19,8 @@ import '../widgets/shimmer_skeleton.dart';
 import '../widgets/sub_screen_header.dart';
 import 'care_timeline_screen.dart';
 import 'journal_screen.dart';
+// ── expenses (đợt 2) ──
+import '../widgets/money/money_notification_text.dart';
 
 /// In-app notification center (feature notifications). Lists the current
 /// couple's notifications newest-first, grouped into "Today" / "Earlier", lets
@@ -237,12 +241,17 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = notification;
-    final subtitle = _subtitleFor(n);
+    final subtitle =
+        _subtitleFor(n) ??
+        // ── expenses (đợt 2) ──
+        moneyInboxText(n, context.l10n)?.subtitle;
     final unread = !n.read;
 
-    // Solid white reading surface (B4, r22 tile variant) — glass is banned in
-    // long scrolling lists (B11). Unread keeps its "NEW" language as a rose
-    // outline + dot (same as the love-note card).
+    // Solid reading surface (B4, r22 tile variant) — glass is banned in long
+    // scrolling lists (B11). Opening the center doesn't mark anything read
+    // (only tapping a tile does), so unread must stand out at a glance (user
+    // 2026-10-24): rose-tinted fill + rose outline + dot + bolder title; read
+    // tiles stay plain white.
     return Container(
       foregroundDecoration: unread
           ? BoxDecoration(
@@ -256,6 +265,7 @@ class _NotificationTile extends StatelessWidget {
       child: ContentCard(
         radius: 22,
         padding: EdgeInsets.zero,
+        color: unread ? _unreadFill : AppColors.cardSurface,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -298,6 +308,17 @@ class _NotificationTile extends StatelessWidget {
                 return;
               }
 
+              // ── expenses (đợt 2) ── Sổ tiền types: same route as the push
+              // tap (Home + the `money` focus + the fund id).
+              if (NotificationTapRouter.routeMoney(
+                n.rawType,
+                walletId: n.walletId,
+                from: 'inbox',
+              )) {
+                Navigator.of(context).maybePop();
+                return;
+              }
+
               // Photo/reaction → deep-link to the exact photo; else just the tab.
               final photoId = n.photoId;
               if (photoId != null && photoId.isNotEmpty) {
@@ -323,6 +344,16 @@ class _NotificationTile extends StatelessWidget {
               } else if (n.type == AppNotificationType.decision) {
                 NotificationTapRouter.pendingHomeFocus.value =
                     NotificationTapRouter.focusDecision;
+              }
+              // ── caro-game (đợt 2) ── same plumbing as the push tap.
+              if (n.type == AppNotificationType.caroInvite) {
+                final gameId = n.gameId;
+                NotificationTapRouter.pendingCaroSource = 'inbox';
+                if (gameId != null && gameId.isNotEmpty) {
+                  NotificationTapRouter.pendingCaroGameId.value = gameId;
+                }
+                NotificationTapRouter.pendingHomeFocus.value =
+                    NotificationTapRouter.focusCaroGame;
               }
               NotificationTapRouter.pendingHomeTab.value = n.targetHomeTab;
               Navigator.of(context).maybePop();
@@ -408,6 +439,12 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 
+  /// accentLove .10 over white (#FFEDF0): the unread tile fill.
+  static final Color _unreadFill = Color.alphaBlend(
+    AppColors.accentLove.withValues(alpha: 0.10),
+    AppColors.cardSurface,
+  );
+
   /// Daily-question deep-link: the journal only contains days BOTH partners
   /// answered, so a tap opens the journal at that day ONLY when today's
   /// question is already revealed; the notification center is replaced so Back
@@ -483,6 +520,16 @@ class _NotificationTile extends StatelessWidget {
         return l10n.notifRpsResult(name);
       case AppNotificationType.decision:
         return _decisionTitle(n, l10n);
+      // ── caro-game (đợt 2) ──
+      case AppNotificationType.caroInvite:
+        return l10n.caroNotifInvite(
+          n.actorName.isNotEmpty ? n.actorName : l10n.reactionPartnerFallback,
+        );
+      // ── expenses (đợt 2) ──
+      case AppNotificationType.moneyGoal:
+      case AppNotificationType.moneyGoalReached:
+      case AppNotificationType.moneyBudget:
+        return moneyInboxText(n, l10n)!.title;
       case AppNotificationType.unknown:
         return l10n.notifGeneric;
     }
@@ -520,6 +567,9 @@ class _NotificationTile extends StatelessWidget {
         return n.caption;
       case AppNotificationType.careMessage:
         return n.body;
+      // ── caro-game (đợt 2) ──
+      case AppNotificationType.caroInvite:
+        return AppL10n.strings.caroNotifInviteBody;
       default:
         return null;
     }
@@ -590,6 +640,15 @@ class _Avatar extends StatelessWidget {
         return (IconsaxPlusLinear.game, AppColors.accentLavenderDeep);
       case AppNotificationType.decision:
         return (IconsaxPlusLinear.shuffle, AppColors.accentRose);
+      // ── caro-game (đợt 2) ──
+      case AppNotificationType.caroInvite:
+        return (IconsaxPlusLinear.grid_5, AppColors.accentLavenderDeep);
+      // ── expenses (đợt 2) ──
+      case AppNotificationType.moneyGoal:
+      case AppNotificationType.moneyGoalReached:
+        return (IconsaxPlusLinear.flag, AppColors.accentLavenderDeep);
+      case AppNotificationType.moneyBudget:
+        return (IconsaxPlusLinear.wallet_2, AppColors.accentLoveDeep);
       case AppNotificationType.unknown:
         return (IconsaxPlusLinear.notification, AppColors.textSecondary);
     }

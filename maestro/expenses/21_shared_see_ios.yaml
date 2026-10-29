@@ -1,0 +1,17 @@
+# CẶP 2 MÁY, bước 2: Thảo (iOS) thấy khoản của Tuấn ở sổ Chung.
+# Chạy: maestro --device 23B763A6-DF45-4E75-9112-F9636CCB983B test -e RUN=<mã> maestro/expenses/21_shared_see_ios.yaml
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- scrollUntilVisible:
+    element:
+      text: 'MTS${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTS${output.run}, .*âm 1\.000\.000 đồng.*'

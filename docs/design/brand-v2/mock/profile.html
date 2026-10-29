@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hồ sơ v2 — Dear Embeiu</title>
+<link rel="stylesheet" href="v2.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const { I } = UI;
+const gear = `<button class="icon-btn" aria-label="Cài đặt">${I.gear}</button>`;
+// Dải cột mốc: các trạm cách đều theo thứ tự, vạch "hôm nay" nội suy giữa hai trạm kề.
+const st = D.TRAIL, n = st.length - 1;
+const passed = st.filter((m) => m <= D.daysTogether).length; // 4
+const a = st[passed - 1], b = st[passed];
+const nowPos = ((passed - 1) + (D.daysTogether - a) / (b - a)) / n * 100;
+const labelled = new Set([0, 3, 4, n]); // 100 · 1.000 · 1.314 (mốc kế) · 3.650: đủ để đọc, không chồng chữ
+const trail = `<div class="trail" role="img" aria-label="Đã qua ${passed} trên ${st.length} cột mốc, mốc kế tiếp ${D.fmtInt(b)} ngày">
+  <span class="base"></span><span class="done" style="width:${nowPos}%"></span>
+  ${st.map((m, i) => `<span class="st ${m <= D.daysTogether ? 'hit' : ''}" style="left:${i / n * 100}%"></span>`).join('')}
+  <span class="st now" style="left:${nowPos}%"></span>
+  ${st.map((m, i) => labelled.has(i) ? `<span class="lab ${i === 0 ? 'first' : i === n ? 'last' : ''}" style="left:${i / n * 100}%">${D.fmtInt(m)}</span>` : '').join('')}
+</div>`;
+
+const rows = [
+  ['Gửi lời quan tâm', 'Thảo nhận đúng từng chữ mình viết'],
+  ['Dòng thời gian quan tâm', `${D.careMessages} lời đã gửi cho nhau`],
+  ['Sổ chung', `Tháng này ${D.fmtMoney(D.money.monthSpent)}`],
+  ['Cột mốc và lời nhắc', `${D.remindersOn} lời nhắc đang bật`],
+  ['Nhật ký câu hỏi', `${D.fmtInt(D.answeredCount)} ngày cả hai đã trả lời`],
+];
+
+document.getElementById('app').innerHTML = `
+${UI.topbar({ scope: 'Dear Embeiu', actions: gear })}
+<main class="canvas">
+  <section class="title">
+    <h1>Tuấn và Thảo</h1>
+    <p class="sub">Bên nhau từ ${D.anniversaryText} · <span class="num">${D.fmtInt(D.daysTogether)}</span> ngày</p>
+    <p class="finding" style="display:flex;align-items:center;gap:8px"><span class="av thao">T</span>Thảo <span class="muted">và</span> <span class="av tuan">T</span>Tuấn <span class="muted">· mã ghép đôi <b class="num">TQ4821</b></span></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-trail">
+    <header><h2 id="h-trail">Cột mốc</h2><span class="meta num">${passed}/${st.length} đã qua</span></header>
+    ${trail}
+    <p class="meta num">Còn ${D.toMilestone} ngày tới mốc ${D.fmtInt(b)}, ngày ${D.milestoneDateText}.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-rec">
+    <header><h2 id="h-rec">Thành tích</h2><a class="link" href="#records">Tủ kỷ lục</a></header>
+    <div class="kv">
+      <div><div class="l">Chuỗi hiện tại</div><div class="v">${D.streak} <small>ngày</small></div></div>
+      <div><div class="l">Chuỗi dài nhất</div><div class="v">${D.longest} <small>ngày</small></div></div>
+      <div><div class="l">Kỷ niệm</div><div class="v">${D.photoTotal} <small>ảnh</small></div></div>
+      <div><div class="l">Câu hỏi đã trả lời</div><div class="v">${D.fmtInt(D.answeredCount)} <small>ngày</small></div></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-us">
+    <header><h2 id="h-us">Của chúng mình</h2></header>
+    <ul class="list">${rows.map(([t, s]) => `<li><div><div class="t">${t}</div><div class="s num">${s}</div></div>${I.chevron}</li>`).join('')}</ul>
+  </section>
+</main>
+${UI.tabbar('profile', D.today.chat.partner.unread)}`;
+</script>
+</body>
+</html>

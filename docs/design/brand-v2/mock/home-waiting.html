@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trang chủ v2, đang chờ người ấy — Dear Embeiu</title>
+<link rel="stylesheet" href="v2.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const { I } = UI; const W = D.waiting;
+const bell = `<button class="icon-btn" aria-label="Thông báo, không có thông báo mới">${I.bell}</button>`;
+document.getElementById('app').innerHTML = `
+${UI.topbar({ scope: 'Dear Embeiu', actions: bell })}
+<main class="canvas">
+  <section class="title">
+    <h1>${W.me} và ${W.partner},<br><span class="num">${W.days}</span> ngày bên nhau</h1>
+    <p class="sub">${D.todayText} · từ ${W.anniversaryText}</p>
+    <p class="finding">${W.partner} chưa vào app. Còn ${W.steps.length - W.doneSteps} bước nữa là hai máy nối với nhau.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-invite">
+    <header><h2 id="h-invite">Mời ${W.partner} vào</h2><span class="meta num">${W.doneSteps}/${W.steps.length} bước</span></header>
+    <ol class="steps">${W.steps.map((st, i) => `
+      <li><span class="step-n ${st.done ? 'done' : ''} num">${i + 1}</span><div><div class="t" style="font-weight:500">${st.text}</div><div class="s muted" style="font-size:14px;line-height:20px">${st.sub}</div></div>${i === 0 ? '<button class="btn sm">Gửi lại</button>' : ''}</li>`).join('')}
+    </ol>
+    <div class="board-foot"><span class="meta">Mã <b class="num" style="color:var(--text)">${W.code}</b></span><span><button class="link" style="margin-right:16px">Mã QR</button><button class="link">Sao chép</button></span></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-today">
+    <header><h2 id="h-today">Hôm nay</h2><span class="meta">làn của ${W.partner} trống</span></header>
+    <div class="lanes">
+      <div class="who"><span class="av" style="background:var(--active);color:var(--muted)">?</span><span class="muted">${W.partner}</span></div>
+      <div></div>
+      <div class="who me">Mình <span class="av tuan">M</span></div>
+      <div class="q"><span class="lbl">Câu hỏi hôm nay</span><p>Điều gì làm bạn cười nhiều nhất tuần này?</p></div>
+      <div class="row after-q">
+        <div class="cell"><span class="v none">—</span></div>
+        <div class="cell mid"></div>
+        <div class="cell me"><button class="btn primary sm">Trả lời trước</button></div>
+      </div>
+      <div class="row">
+        <div class="cell"><span class="v none">—</span></div>
+        <div class="cell mid"><span class="lbl">Đêm qua</span></div>
+        <div class="cell me"><span class="v fig">${D.fmtDur(W.sleepMin)}</span><span class="s">${W.sleep.bed}–${W.sleep.wake}</span></div>
+      </div>
+      <div class="row">
+        <div class="cell"><span class="v none">—</span></div>
+        <div class="cell mid"><span class="lbl">Thời tiết</span></div>
+        <div class="cell me"><span class="v fig">${W.weather.temp}°</span><span class="s">${W.weather.city}</span><span class="s">${W.weather.sky}</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-decide">
+    <header><h2 id="h-decide">Phân vân gì không?</h2></header>
+    <ul class="list">
+      <li><div><div class="t">Ăn gì</div><div class="s">Chưa quay hôm nay</div></div><button class="btn sm">Quay</button></li>
+      <li><div><div class="t">Đi đâu</div><div class="s">Chưa quay hôm nay</div></div><button class="btn sm">Quay</button></li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="h-mem">
+    <header><h2 id="h-mem">Kỷ niệm</h2><span class="meta">0 ảnh</span></header>
+    <ul class="list"><li><div><div class="t">Thêm tấm ảnh đầu tiên</div><div class="s">${W.partner} vào app sẽ thấy ngay</div></div><button class="btn sm">${I.plus}Thêm</button></li></ul>
+  </section>
+</main>
+${UI.tabbar('home')}`;
+</script>
+</body>
+</html>

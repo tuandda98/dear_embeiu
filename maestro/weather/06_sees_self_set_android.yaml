@@ -1,0 +1,24 @@
+# Case CH-07 (phía Tuấn), CH-08, SH-04. Android = test3. Chạy sau 05.
+# Thảo vừa tự chọn Đà Nẵng: Tuấn thấy ngay, và không còn "Đổi giúp".
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: '.*Thời tiết hai nơi.*'
+    direction: DOWN
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- assertVisible: '.*Hà Nội.*'
+- assertVisible: '.*Đà Nẵng.*'
+- tapOn: '.*Thời tiết hai nơi.*'
+- waitForAnimationToEnd
+- assertVisible: '.* tự chọn'
+- assertNotVisible: 'Đổi giúp'
+- back

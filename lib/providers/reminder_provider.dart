@@ -9,6 +9,7 @@ import '../services/home_prefs_service.dart';
 import '../services/catchup_service.dart';
 import '../services/reminder_service.dart';
 import '../utils/lunar_calendar.dart';
+import '../services/analytics_service.dart';
 
 /// User-facing settings for the "milestone & anniversary reminders" feature.
 @immutable
@@ -96,6 +97,11 @@ class ReminderProvider extends ChangeNotifier {
   static const String _decisionEnabledKey = 'decisionReminderEnabled';
   static const String _decisionMinuteKey = 'decisionReminderMinute';
   static const int defaultDecisionReminderMinute = 16 * 60 + 30;
+  // ── expenses (đợt 2) ── Sổ tiền evening reminder (D18): per device,
+  // default OFF at 21:30.
+  static const String _moneyEveningEnabledKey = 'moneyEveningEnabled';
+  static const String _moneyEveningMinuteKey = 'moneyEveningMinute';
+  static const int defaultMoneyEveningMinute = 21 * 60 + 30;
   static const String _dqLegacyHourKey = 'dqReminderHour';
   static const String _dqLegacyMinuteKey = 'dqReminderMinute';
 
@@ -204,6 +210,19 @@ class ReminderProvider extends ChangeNotifier {
   String? _decisionSignature;
 
   bool get decisionReminderEnabled => _decisionEnabled;
+
+  // ── expenses (đợt 2) ── Sổ tiền evening reminder (D18).
+  bool _moneyEveningEnabled = false;
+  int _moneyEveningMinute = defaultMoneyEveningMinute;
+  bool _moneyLoggedToday = false;
+  AppLocalizations? _moneyL10n;
+  String? _moneySignature;
+
+  bool get moneyEveningEnabled => _moneyEveningEnabled;
+  TimeOfDay get moneyEveningTime => TimeOfDay(
+    hour: _moneyEveningMinute ~/ 60,
+    minute: _moneyEveningMinute % 60,
+  );
   TimeOfDay get decisionReminderTime =>
       TimeOfDay(hour: _decisionMinute ~/ 60, minute: _decisionMinute % 60);
 
@@ -292,6 +311,16 @@ class ReminderProvider extends ChangeNotifier {
                   as int)
               .clamp(0, 24 * 60 - 1);
       _lunarEnabled = box.get(_lunarEnabledKey, defaultValue: false) as bool;
+      // ── expenses (đợt 2) ──
+      _moneyEveningEnabled =
+          box.get(_moneyEveningEnabledKey, defaultValue: false) as bool;
+      _moneyEveningMinute =
+          (box.get(
+                    _moneyEveningMinuteKey,
+                    defaultValue: defaultMoneyEveningMinute,
+                  )
+                  as int)
+              .clamp(0, 24 * 60 - 1);
       final storedLunarTimes = box.get(_lunarTimesKey);
       if (storedLunarTimes is List && storedLunarTimes.isNotEmpty) {
         _lunarTimes = _normalizeLunarTimes(
@@ -408,6 +437,10 @@ class ReminderProvider extends ChangeNotifier {
     await _persistLunar();
     await refreshLunar(l10n ?? _lastL10n);
     notifyListeners();
+    AnalyticsService.instance.logLunarReminderChanged(
+      enabled: enabled,
+      count: _lunarTimes.length,
+    );
   }
 
   /// Replace the reminder times (normalized) and reschedule.
@@ -419,6 +452,10 @@ class ReminderProvider extends ChangeNotifier {
     await _persistLunar();
     await refreshLunar(l10n ?? _lastL10n);
     notifyListeners();
+    AnalyticsService.instance.logLunarReminderChanged(
+      enabled: _lunarEnabled,
+      count: _lunarTimes.length,
+    );
   }
 
   /// Replace the lunar days (normalized) and reschedule.
@@ -430,6 +467,10 @@ class ReminderProvider extends ChangeNotifier {
     await _persistLunar();
     await refreshLunar(l10n ?? _lastL10n);
     notifyListeners();
+    AnalyticsService.instance.logLunarReminderChanged(
+      enabled: _lunarEnabled,
+      count: _lunarTimes.length,
+    );
   }
 
   /// (Re)compute the upcoming occurrences (for the chosen [_lunarDays]) and
@@ -558,6 +599,7 @@ class ReminderProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+    AnalyticsService.instance.logMilestoneToggled(type.name, on: value);
   }
 
   /// Set or clear a milestone's custom reminder time (Dv8).
@@ -579,6 +621,9 @@ class ReminderProvider extends ChangeNotifier {
       await _scheduleMilestone(type, anniversary, l10n);
     }
     notifyListeners();
+    if (time != null) {
+      AnalyticsService.instance.logMilestoneTimeSet(type.name);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -653,6 +698,10 @@ class ReminderProvider extends ChangeNotifier {
     await _scheduleEndOfDay(l10n);
     _publishReminderPrefs(enabled: value);
     notifyListeners();
+    AnalyticsService.instance.logDqReminderChanged(
+      enabled: value,
+      count: _dqTimes.length,
+    );
     return true;
   }
 
@@ -667,6 +716,10 @@ class ReminderProvider extends ChangeNotifier {
     await _scheduleDailyQuestion(l10n);
     _publishReminderPrefs(times: _dqTimes);
     notifyListeners();
+    AnalyticsService.instance.logDqReminderChanged(
+      enabled: _dqEnabled,
+      count: _dqTimes.length,
+    );
   }
 
   /// Add one fire time (no-op past the cap or when it already exists).
@@ -737,6 +790,15 @@ class ReminderProvider extends ChangeNotifier {
   /// provider notifications don't thrash the OS schedule. Clears each band first,
   /// so safe to call repeatedly.
   Future<void> _scheduleDailyQuestion(AppLocalizations l10n) async {
+    if (!kDailyQuestionRemindersEnabled) {
+      // Flag tắt: huỷ lịch cũ 1 lần/phiên, không arm gì.
+      if (_dqScheduleSignature != 'flag-off') {
+        _dqScheduleSignature = 'flag-off';
+        await _service.cancelDailyQuestionBands();
+        await _service.cancelDailyQuestionBackstop();
+      }
+      return;
+    }
     final now = DateTime.now();
     final dayKey = '${now.year}-${now.month}-${now.day}';
     final signature = <Object>[
@@ -841,6 +903,13 @@ class ReminderProvider extends ChangeNotifier {
   /// Shared by [refreshDailyQuestionSafetyNet] and the enable/disable paths (so
   /// toggling re-arms with the right copy). Debounced via [_eodSignature].
   Future<void> _scheduleEndOfDay(AppLocalizations l10n) async {
+    if (!kDailyQuestionRemindersEnabled) {
+      if (_eodSignature != 'flag-off') {
+        _eodSignature = 'flag-off';
+        await _service.cancelDailyQuestionEndOfDay();
+      }
+      return;
+    }
     final now = DateTime.now();
     final dayKey = '${now.year}-${now.month}-${now.day}';
     final signature = <Object>[
@@ -1645,6 +1714,7 @@ class ReminderProvider extends ChangeNotifier {
     await _persistDecision();
     notifyListeners();
     await _scheduleDecision();
+    AnalyticsService.instance.logDecisionReminderChanged(enabled: value);
     return true;
   }
 
@@ -1660,6 +1730,132 @@ class ReminderProvider extends ChangeNotifier {
       final box = await Hive.openBox<dynamic>(_boxName);
       await box.put(_decisionEnabledKey, _decisionEnabled);
       await box.put(_decisionMinuteKey, _decisionMinute);
+    } catch (_) {
+      // Best effort — the in-memory value still drives this session.
+    }
+  }
+
+  // ── expenses (đợt 2) ── Sổ tiền evening reminder (D18) ──────────────────
+
+  /// Re-arm 1210 (today) + 1211 (tomorrow), or drop 1210 once something was
+  /// logged today in either book. HomeScreen calls it on open / resume and
+  /// whenever the books change; debounced per day + inputs.
+  Future<void> refreshMoneyEvening({
+    required bool loggedToday,
+    required AppLocalizations l10n,
+  }) async {
+    _moneyLoggedToday = loggedToday;
+    _moneyL10n = l10n;
+    await _scheduleMoneyEvening();
+  }
+
+  Future<void> _scheduleMoneyEvening() async {
+    final l10n = _moneyL10n;
+    final now = DateTime.now();
+    final signature = [
+      _moneyEveningEnabled,
+      _moneyEveningMinute,
+      _moneyLoggedToday,
+      l10n?.localeName,
+      '${now.year}-${now.month}-${now.day}',
+    ].join('|');
+    if (signature == _moneySignature) {
+      return;
+    }
+    if (!_moneyEveningEnabled) {
+      _moneySignature = signature;
+      await _service.cancelMoneyEvening();
+      return;
+    }
+    if (l10n == null) {
+      return; // Home hasn't handed us the strings yet.
+    }
+    _moneySignature = signature;
+    final bodies = [
+      l10n.moneyReminderBody1,
+      l10n.moneyReminderBody2,
+      l10n.moneyReminderBody3,
+    ];
+    await _service.scheduleMoneyEvening([
+      for (final slot in ReminderService.moneyEveningSlots(
+        now: now,
+        minuteOfDay: _moneyEveningMinute,
+        loggedToday: _moneyLoggedToday,
+      ))
+        (
+          id: slot.id,
+          when: slot.when,
+          title: l10n.moneyTitle,
+          body: bodies[slot.variant],
+        ),
+    ]);
+  }
+
+  String? _challengeSignature;
+
+  /// D34 §4: 09:00 on the last day of every running challenge. [slots] =
+  /// (last day, title) of each; HomeScreen passes them whenever the books
+  /// change. Debounced on the inputs.
+  Future<void> refreshMoneyChallenges({
+    required List<({String lastDay, String title})> slots,
+    required AppLocalizations l10n,
+  }) async {
+    final signature = [
+      l10n.localeName,
+      for (final s in slots) '${s.lastDay}/${s.title}',
+    ].join('|');
+    if (signature == _challengeSignature) return;
+    _challengeSignature = signature;
+    await _service.scheduleMoneyChallenges([
+      for (final s in slots)
+        (
+          when: DateTime.parse('${s.lastDay} 09:00:00'),
+          title: l10n.moneyChallengeLastDayTitle,
+          body: s.title,
+        ),
+    ]);
+  }
+
+  /// Settings switch. Turning it on asks for notification permission first;
+  /// returns false (and stays off) when denied.
+  Future<bool> setMoneyEveningEnabled(bool value) async {
+    if (value && !await _service.requestPermissions()) {
+      _moneyEveningEnabled = false;
+      await _persistMoneyEvening();
+      notifyListeners();
+      return false;
+    }
+    _moneyEveningEnabled = value;
+    await _persistMoneyEvening();
+    notifyListeners();
+    await _scheduleMoneyEvening();
+    return true;
+  }
+
+  Future<void> setMoneyEveningTime(TimeOfDay time) async {
+    _moneyEveningMinute = time.hour * 60 + time.minute;
+    await _persistMoneyEvening();
+    notifyListeners();
+    await _scheduleMoneyEvening();
+  }
+
+  bool _moneyCancelled = false;
+
+  /// Feature Sổ tiền tắt: huỷ lịch tối + thử thách đã arm sẵn (1 lần/phiên).
+  Future<void> cancelMoneyReminders() async {
+    if (_moneyCancelled) return;
+    _moneyCancelled = true;
+    _moneySignature = null;
+    _challengeSignature = null;
+    await _service.cancelMoneyEvening();
+    await _service.cancelMoneyChallenges();
+  }
+
+  Future<void> _persistMoneyEvening() async {
+    try {
+      final box = await Hive.openBox<dynamic>(_boxName);
+      await box.put(_moneyEveningEnabledKey, _moneyEveningEnabled);
+      await box.put(_moneyEveningMinuteKey, _moneyEveningMinute);
     } catch (_) {
       // Best effort — the in-memory value still drives this session.
     }
@@ -1701,6 +1897,10 @@ class ReminderProvider extends ChangeNotifier {
     _decisionSignature = null;
     _decisionCoupleActive = false;
     await _service.cancelDecisionReminder();
+    // ── expenses (đợt 2) ── 1210–1211: signed out there is no book; a
+    // couple change is re-armed by Home's next refreshMoneyEvening.
+    _moneySignature = null;
+    await _service.cancelMoneyEvening();
   }
 
   /// Forgets the "already armed" debounce for today's daily-question bands so

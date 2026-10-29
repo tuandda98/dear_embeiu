@@ -1,0 +1,18 @@
+# Ghi 1 khoản chi 50k vào sổ đang mở (đang đứng ở MoneyScreen). Cần env NOTE (chỉ ASCII).
+appId: com.tony.dearembeiu.dev
+---
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- tapOn: '5'
+- tapOn: '0'
+- tapOn: 'nghìn'
+- assertVisible: 'Lưu 50\.000.*'
+- tapOn: 'Hôm nay · Thêm ghi chú'
+- tapOn: 'Ghi chú.*'
+- inputText: ${NOTE}
+- tapOn: 'Lưu 50\.000.*'
+- extendedWaitUntil:
+    visible: 'Đã ghi 50\.000.*'
+    timeout: 8000

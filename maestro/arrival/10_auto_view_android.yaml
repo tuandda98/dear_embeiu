@@ -1,0 +1,15 @@
+# 10 (Android, Tuấn) — chờ sự kiện TỰ ĐỘNG của Thảo (iOS) "Đã về đến nhà" không có nhãn "bấm tay".
+# Best-effort: geofence iOS simulator phụ thuộc hệ thống. Cách tạo sự kiện ở README (bước 10): đặt vị trí ngoài vùng,
+# đưa app iOS ra nền, rồi đặt vị trí vào Nhà. Cần 08 xong và Thảo đã "Luôn luôn". Kiểm: SK-01, SK-16.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+# Làn của Thảo, có "Đã về đến nhà" và KHÔNG có "bấm tay" (tempered dot).
+- extendedWaitUntil:
+    visible: '(?s).*Đã về đến nhà(?:(?!bấm tay).)*'
+    timeout: 300000
+- takeScreenshot: 10_auto_view_android

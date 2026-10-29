@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home bản E, bảng ô · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const note = `<aside class="doc-note" aria-label="Ghi chú mock">
+  <p><b>Bản E · bảng ô (29/10).</b> Giữ thẻ đếm và thẻ câu hỏi. Tâm trạng, Về nhà, Thời tiết, Đêm qua thành bốn ô hai cột; Cờ caro, Oẳn tù tì thành hai ô; Phân vân gọn còn ba nút. Máy Tuấn, 20/10 19:05.</p>
+  <nav aria-label="Các trang mock"><a href="home-e.html" aria-current="page">Bản E</a><a href="home-e-waiting.html">E · cặp đang chờ</a><a href="home-f.html">Bản F</a><a href="compare-def.html">So sánh D · E · F</a></nav></aside>`;
+document.getElementById('app').innerHTML = UI.homeE(D.S, { after: note });
+</script>
+</body>
+</html>

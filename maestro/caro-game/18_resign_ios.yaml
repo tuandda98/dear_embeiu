@@ -1,0 +1,27 @@
+appId: com.tony.dearembeiu.dev
+---
+# Thảo (đến lượt, ván có 2 quân nên không còn "Để sau") xin thua. Để nguyên màn kết quả.
+# CARO-RESIGN: hộp xác nhận; Chơi tiếp giữ nguyên; Xin thua => "Bạn đã xin thua".
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. Đến lượt bạn.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- tapOn: 'Cờ caro\. Đến lượt bạn.*'
+- waitForAnimationToEnd
+- assertNotVisible: '(?s)Để sau.*'
+- tapOn: 'Xin thua'
+- assertVisible: '(?s)Xin thua ván này\?.*'
+- tapOn: 'Chơi tiếp'
+- waitForAnimationToEnd
+- assertVisible: 'Đến lượt bạn\. .*'
+- tapOn: 'Xin thua'
+- tapOn: 'Xin thua'
+- waitForAnimationToEnd
+- assertVisible: 'Bạn đã xin thua\. .*'

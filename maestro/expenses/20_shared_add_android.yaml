@@ -1,0 +1,30 @@
+# CẶP 2 MÁY, bước 1: Tuấn (Android) chi 1 củ bằng tiền riêng ở sổ Chung (D34: không chia, không nợ).
+# Chạy: maestro --device emulator-5554 test -e RUN=<mã> maestro/expenses/20_shared_add_android.yaml
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- tapOn: '1'
+- tapOn: 'củ'
+# Tiền riêng: khoản trừ luôn vào ví riêng chọn sẵn.
+- runFlow:
+    file: _shared_detail_save.yaml
+    env:
+      NOTE: MTS${output.run}
+      SOURCE: 'Tiền riêng'
+      AMOUNT_TEXT: '1\.000\.000'
+- scrollUntilVisible:
+    element:
+      text: 'MTS${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTS${output.run}, .*âm 1\.000\.000 đồng.*'

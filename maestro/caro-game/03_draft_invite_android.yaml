@@ -1,0 +1,16 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn bấm "Chơi" ở Home: gửi lời mời luôn (2026-10-24, như Oẳn tù tì) —
+# không qua sheet chọn luật, quân đầu X đặt giữa bàn (hàng 8, cột 8),
+# app mở thẳng màn ván ở trạng thái chờ Thảo.
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _lib_open_card.yaml
+- assertNotVisible: '(?s)Tự chọn ô đầu tiên.*'
+- extendedWaitUntil:
+    visible: 'Đang chờ .*\. .*'
+    timeout: 20000
+- runFlow: _lib_zoom_out.yaml
+- assertVisible: 'Hàng 8, cột 8, quân X của .*'

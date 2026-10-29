@@ -1,0 +1,378 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+import '../models/money.dart';
+import 'firebase_bootstrap_service.dart';
+
+/// TẮT toàn bộ Sổ tiền (user chốt 2026-10-29): ẩn sổ riêng + sổ chung, không
+/// watch Firestore, không nhắc tối/thử thách, tap thông báo money_* bị bỏ qua.
+/// Code giữ nguyên. Bật lại = đổi true.
+const bool kMoneyFeatureEnabled = false;
+
+/// What happened to a write: confirmed by the server, or (offline / slow
+/// network) sitting in Firestore's queue and sent later (D21).
+enum MoneyWriteOutcome { saved, queued }
+
+/// A queued write the server refused later (rules: someone edited the entry
+/// first, the couple changed…). The provider surfaces it as a snackbar.
+class MoneyWriteError {
+  const MoneyWriteError(this.book, this.docId, this.error);
+
+  final MoneyBookKind book;
+  final String docId;
+  final Object error;
+
+  bool get isPermissionDenied =>
+      error is FirebaseException &&
+      (error as FirebaseException).code == 'permission-denied';
+}
+
+/// One write inside a [MoneyService.commit] batch.
+typedef MoneyBatchOp = void Function(WriteBatch batch);
+
+/// Firestore side of one money book (feature expenses, D1): the SAME code
+/// serves the own book (`users/{uid}`) and the shared book
+/// (`couples/{coupleId}`, every doc pinned to [memberUids]). No Hive
+/// fallback: money lives in Firestore, offline works through its cache +
+/// write queue.
+class MoneyService {
+  MoneyService._(this.kind, this.book, this.memberUids, this._db);
+
+  factory MoneyService.own(String uid, {FirebaseFirestore? firestore}) {
+    final db = firestore ?? FirebaseFirestore.instance;
+    return MoneyService._(
+      MoneyBookKind.own,
+      db.collection('users').doc(uid),
+      const <String>[],
+      db,
+    );
+  }
+
+  factory MoneyService.shared(
+    String coupleId,
+    List<String> memberUids, {
+    FirebaseFirestore? firestore,
+  }) {
+    final db = firestore ?? FirebaseFirestore.instance;
+    return MoneyService._(
+      MoneyBookKind.shared,
+      db.collection('couples').doc(coupleId),
+      List<String>.unmodifiable(memberUids),
+      db,
+    );
+  }
+
+  final MoneyBookKind kind;
+
+  /// `users/{uid}` or `couples/{coupleId}`.
+  final DocumentReference<Map<String, dynamic>> book;
+
+  /// The pair this shared book shows (`couple.memberIds`); empty = own book.
+  final List<String> memberUids;
+  final FirebaseFirestore _db;
+
+  /// Past this a write counts as "queued" (the sheet closes either way).
+  static const Duration writeTimeout = Duration(seconds: 4);
+
+  static bool get isAvailable =>
+      kMoneyFeatureEnabled &&
+      FirebaseBootstrapService.isFirebaseReady &&
+      Firebase.apps.isNotEmpty;
+
+  bool get isShared => kind == MoneyBookKind.shared;
+
+  CollectionReference<Map<String, dynamic>> get _wallets =>
+      book.collection(kMoneyWallets);
+  CollectionReference<Map<String, dynamic>> get _txs =>
+      book.collection(kMoneyTx);
+  CollectionReference<Map<String, dynamic>> get _budgets =>
+      book.collection(kMoneyBudgets);
+  CollectionReference<Map<String, dynamic>> get _challenges =>
+      book.collection(kMoneyChallenges);
+  DocumentReference<Map<String, dynamic>> get _meta =>
+      book.collection(kMoneyMeta).doc(kMoneyMetaDoc);
+
+  /// Shared reads always filter on the pair: the rules can prove access from
+  /// it, and it drops a previous pair's entries in the same couple (D3).
+  Query<Map<String, dynamic>> _pair(Query<Map<String, dynamic>> q) =>
+      isShared ? q.where('memberUids', isEqualTo: memberUids) : q;
+
+  String newTxId() => _txs.doc().id;
+  String newWalletId() => _wallets.doc().id;
+
+  // ---- reads ---------------------------------------------------------------
+
+  /// Wallets + whether this list came from the server (an empty list from
+  /// the cache does not mean "first run").
+  // includeMetadataChanges: an empty book first emits "empty, from cache";
+  // the server's "still empty" changes no data, so without metadata events
+  // it never arrives → fromServer stays false → no first-run screen, no
+  // starter wallet, and the add sheet can't save ("Chọn ví để lưu" with no
+  // wallet to pick). Seen on a fresh login, 2026-10-24.
+  Stream<({List<MoneyWallet> wallets, bool fromServer})> watchWallets() =>
+      _pair(_wallets)
+          .snapshots(includeMetadataChanges: true)
+          .map(
+            (s) => (
+              wallets: [
+                for (final d in s.docs) ?MoneyWallet.fromDoc(d.id, d.data()),
+              ]..sort((a, b) => a.order.compareTo(b.order)),
+              fromServer: !s.metadata.isFromCache,
+            ),
+          );
+
+  /// Entries dated from [from] (inclusive, 'YYYY-MM-DD'; null = all), newest
+  /// first, live, each flagged `pending` while it waits for the network.
+  Stream<({List<MoneyTx> txs, bool fromServer})> watchTx({
+    String? from,
+    String? to,
+  }) {
+    Query<Map<String, dynamic>> q = _pair(_txs);
+    if (from != null) q = q.where('date', isGreaterThanOrEqualTo: from);
+    if (to != null) q = q.where('date', isLessThanOrEqualTo: to);
+    return q
+        .orderBy('date', descending: true)
+        .snapshots(includeMetadataChanges: true)
+        .map((s) => (txs: _parseTx(s), fromServer: !s.metadata.isFromCache));
+  }
+
+  static List<MoneyTx> _parseTx(QuerySnapshot<Map<String, dynamic>> s) => [
+    for (final d in s.docs)
+      ?MoneyTx.fromDoc(d.id, d.data(), pending: d.metadata.hasPendingWrites),
+  ];
+
+  /// One-shot range read for search (newest first, capped at [limit]).
+  Future<List<MoneyTx>> fetchTx({
+    required String from,
+    required String to,
+    int limit = 2000,
+  }) async {
+    final s = await _pair(_txs)
+        .where('date', isGreaterThanOrEqualTo: from)
+        .where('date', isLessThanOrEqualTo: to)
+        .orderBy('date', descending: true)
+        .limit(limit)
+        .get();
+    return _parseTx(s);
+  }
+
+  /// Has this book (this pair) ever had an entry, any date? One doc read.
+  Future<bool> hasAnyTx() async =>
+      (await _pair(_txs).limit(1).get()).docs.isNotEmpty;
+
+  // ── expenses (đợt 2) ── stage 3B
+  /// Every entry into / out of [walletId], all time (the fund screen's
+  /// history and "Mỗi người góp"). Two reads on the existing
+  /// `(memberUids, inWalletId|outWalletId)` indexes; no orderBy (that would
+  /// need a third index) — the caller sorts.
+  // ponytail: capped at [limit] per side; a fund with more entries than that
+  // shows the newest it got. Add a date index + paging if funds grow that big.
+  Future<List<MoneyTx>> fetchWalletTx(
+    String walletId, {
+    int limit = 500,
+  }) async {
+    final r = await Future.wait([
+      _pair(_txs).where('inWalletId', isEqualTo: walletId).limit(limit).get(),
+      _pair(_txs).where('outWalletId', isEqualTo: walletId).limit(limit).get(),
+    ]);
+    return [for (final s in r) ..._parseTx(s)];
+  }
+
+  /// The other half of a linked pair when it is not in memory. Both halves
+  /// are written by the same person ([createdBy]); a partner's shared entry
+  /// carrying the same linkId is not it.
+  Future<MoneyTx?> findByLinkId(
+    String linkId, {
+    required String createdBy,
+  }) async {
+    final s = await _pair(_txs)
+        .where('linkId', isEqualTo: linkId)
+        .where('createdBy', isEqualTo: createdBy)
+        .limit(1)
+        .get();
+    return s.docs.isEmpty ? null : _parseTx(s).firstOrNull;
+  }
+
+  Stream<List<MoneyChallenge>> watchChallenges() => _challenges.snapshots().map(
+    (s) =>
+        [for (final d in s.docs) ?MoneyChallenge.fromDoc(d.id, d.data())]
+          ..sort((a, b) => b.startDate.compareTo(a.startDate)),
+  );
+
+  Stream<List<MoneyBudget>> watchBudgets() => _budgets.snapshots().map(
+    (s) => [for (final d in s.docs) ?MoneyBudget.fromDoc(d.id, d.data())],
+  );
+
+  Stream<MoneyMeta> watchMeta() =>
+      _meta.snapshots().map((s) => MoneyMeta.fromDoc(s.data()));
+
+  Future<int> _sum(Query<Map<String, dynamic>> q) async {
+    final s = await q.aggregate(sum('amount')).get();
+    return (s.getSum('amount') ?? 0).round();
+  }
+
+  /// Σ in − Σ out per wallet over the whole history: 2 aggregate `sum()`
+  /// queries per wallet, server-only (throws offline) (D19).
+  Future<Map<String, int>> walletNetSums(Iterable<String> walletIds) async {
+    final ids = walletIds.toList();
+    final sums = await Future.wait([
+      for (final id in ids) ...[
+        _sum(_pair(_txs).where('inWalletId', isEqualTo: id)),
+        _sum(_pair(_txs).where('outWalletId', isEqualTo: id)),
+      ],
+    ]);
+    return {
+      for (var i = 0; i < ids.length; i++)
+        ids[i]: sums[2 * i] - sums[2 * i + 1],
+    };
+  }
+
+  /// Spent in one month (trend chart), server-only.
+  Future<int> monthSpent(String from, String to) => _sum(
+    _pair(_txs)
+        .where('type', isEqualTo: 'expense')
+        .where('date', isGreaterThanOrEqualTo: from)
+        .where('date', isLessThanOrEqualTo: to),
+  );
+
+  // ---- writes --------------------------------------------------------------
+
+  /// Commits [ops] in ONE batch (both books when a pair is linked, D11).
+  /// Returns [MoneyWriteOutcome.queued] when the server did not answer
+  /// within [writeTimeout]; a later refusal goes to [onLateError].
+  /// [onDone] runs once the server answered, however long that takes
+  /// (null = accepted, else the error).
+  Future<MoneyWriteOutcome> commit(
+    List<MoneyBatchOp> ops, {
+    required String docId,
+    void Function(MoneyWriteError error)? onLateError,
+    void Function(Object? error)? onDone,
+  }) async {
+    final batch = _db.batch();
+    for (final op in ops) {
+      op(batch);
+    }
+    final write = batch.commit();
+    if (onDone != null) {
+      unawaited(write.then((_) => onDone(null), onError: onDone));
+    }
+    try {
+      await write.timeout(writeTimeout);
+      return MoneyWriteOutcome.saved;
+    } on TimeoutException {
+      unawaited(
+        write.catchError(
+          (Object e) => onLateError?.call(MoneyWriteError(kind, docId, e)),
+        ),
+      );
+      return MoneyWriteOutcome.queued;
+    }
+  }
+
+  MoneyBatchOp createTxOp(MoneyTx tx, {required String uid}) {
+    if (!tx.isWellFormed || (tx.memberUids.isNotEmpty) != isShared) {
+      throw ArgumentError.value(tx.id, 'tx', 'not a valid ${kind.name} entry');
+    }
+    final data = tx.toCreateMap(uid: uid);
+    return (b) => b.set(_txs.doc(tx.id), data);
+  }
+
+  /// [updated] carries the new editable fields of [old]. editCount is set to
+  /// the absolute `old + 1` (not an increment) so the rules refuse the second
+  /// of two edits made from the same version (overview §8).
+  MoneyBatchOp updateTxOp(MoneyTx old, MoneyTx updated, {required String uid}) {
+    if (!updated.isWellFormed) {
+      throw ArgumentError.value(updated.id, 'tx', 'not a valid entry');
+    }
+    final data = <String, dynamic>{
+      ...updated.editableFields(),
+      'updatedBy': uid,
+      'updatedAt': FieldValue.serverTimestamp(),
+      'editCount': old.editCount + 1,
+    };
+    return (b) => b.update(_txs.doc(old.id), data);
+  }
+
+  MoneyBatchOp deleteTxOp(String id) =>
+      (b) => b.delete(_txs.doc(id));
+
+  Future<MoneyWriteOutcome> createWallets(
+    List<MoneyWallet> wallets, {
+    required String uid,
+  }) {
+    for (final w in wallets) {
+      if (!w.isWellFormed) throw ArgumentError.value(w.name, 'wallet');
+    }
+    return commit([
+      for (final w in wallets)
+        (b) => b.set(_wallets.doc(w.id), w.toCreateMap(uid: uid)),
+    ], docId: wallets.isEmpty ? '' : wallets.first.id);
+  }
+
+  /// Name, emoji, colour, opening balance, archive flag, goal… (never type).
+  Future<MoneyWriteOutcome> updateWallet(
+    String id,
+    Map<String, dynamic> fields,
+  ) => commit([
+    (b) => b.update(_wallets.doc(id), <String, dynamic>{
+      ...fields,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }),
+  ], docId: id);
+
+  /// One budget per category ('' = total), doc id [MoneyBudget.idFor] —
+  /// [id] given (the budget already exists) = edit.
+  Future<MoneyWriteOutcome> setBudget({
+    String? id,
+    required String categoryId,
+    required int amount,
+    required String uid,
+  }) {
+    if (amount < 1 || amount > 10000000000) {
+      throw ArgumentError.value(amount, 'amount');
+    }
+    final ref = _budgets.doc(id ?? MoneyBudget.idFor(categoryId));
+    return commit([
+      (b) => id == null
+          ? b.set(ref, <String, dynamic>{
+              'categoryId': categoryId,
+              'amount': amount,
+              'createdBy': uid,
+              'createdAt': FieldValue.serverTimestamp(),
+            })
+          : b.update(ref, <String, dynamic>{
+              'amount': amount,
+              'updatedAt': FieldValue.serverTimestamp(),
+            }),
+    ], docId: ref.id);
+  }
+
+  Future<MoneyWriteOutcome> createChallenge(
+    MoneyChallenge c, {
+    required String uid,
+  }) {
+    final ref = _challenges.doc();
+    return commit([(b) => b.set(ref, c.toCreateMap(uid: uid))], docId: ref.id);
+  }
+
+  Future<MoneyWriteOutcome> cancelChallenge(String id) => commit([
+    (b) => b.update(_challenges.doc(id), <String, dynamic>{
+      'cancelled': true,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }),
+  ], docId: id);
+
+  Future<MoneyWriteOutcome> deleteBudget(String id) =>
+      commit([(b) => b.delete(_budgets.doc(id))], docId: id);
+
+  /// Merge-writes the category meta (custom list, overrides, hidden ids,
+  /// default wallet).
+  Future<MoneyWriteOutcome> setMeta(Map<String, dynamic> fields) => commit([
+    (b) => b.set(_meta, <String, dynamic>{
+      ...fields,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)),
+  ], docId: kMoneyMetaDoc);
+}

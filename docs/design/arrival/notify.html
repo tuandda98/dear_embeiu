@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arrival · thông báo, widget, Cài đặt · mock</title>
+<link rel="stylesheet" href="app.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+<style>
+  .frame { padding: 16px 16px 32px; }
+  .frame + .frame { border-top: 8px solid rgba(255,255,255,.35); }
+  .lbl { font-size: 13px; font-weight: 700; margin: 0 4px 8px; }
+  .ios-n { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,.88); border-radius: 22px; padding: 12px 14px; font-family: -apple-system, system-ui, sans-serif; color: #000; }
+  .ios-n .ic { width: 38px; height: 38px; border-radius: 9px; background: #FF6B9D; color: #fff; display: grid; place-items: center; flex: none; }
+  .ios-n .t { font-size: 15px; font-weight: 600; } .ios-n .b { font-size: 15px; } .ios-n .w { margin-left: auto; font-size: 13px; color: #555; }
+  .and-n { background: #fff; border-radius: 24px; padding: 14px 16px; font-family: Roboto, system-ui, sans-serif; color: #1f1f1f; }
+  .and-n .top { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; }
+  .and-n .dot { width: 18px; height: 18px; border-radius: 50%; background: #FF6B9D; color: #fff; display: grid; place-items: center; }
+  .and-n .t { font-size: 15px; font-weight: 500; margin-top: 6px; } .and-n .b { font-size: 14px; color: #444; }
+  .row2 { display: flex; gap: 16px; flex-wrap: wrap; }
+  .w { position: relative; overflow: hidden; color: #fff; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; flex: none; }
+  .w.night { background: linear-gradient(160deg, #1A1A2E 0%, #241F45 55%, #352A5E 100%); } /* taste-skill-ignore: nền "Trời đêm" của widget (user giữ navy làm ngoại lệ) */
+  .w.photo { background: #3a2b33 url('../brand-v2/mock/img/p3.jpg') center/cover; }
+  .w.photo::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.60)); } /* taste-skill-ignore: scrim trung tính trên ảnh */
+  .w > * { position: relative; }
+  .w .chipw { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .w.night .chipw { background: rgba(255,255,255,.14); }
+  .w.photo .chipw { background: rgba(255,255,255,.84); color: #1A1A2E; }
+  .w .n { font-size: 40px; font-weight: 700; letter-spacing: -1px; line-height: 50px; margin-top: auto; }
+  .w .c { font-size: 12px; font-weight: 600; opacity: .92; }
+  .w .st { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; margin-top: 6px; white-space: nowrap; }
+  .w .st i { width: 6px; height: 6px; border-radius: 50%; background: #FF8FA3; flex: none; }
+  .w.photo .st i { background: #fff; }
+  .wm { display: grid; grid-template-columns: 150px 1px 1fr; gap: 14px; }
+  .wm .div { background: rgba(255,255,255,.22); }
+  .wm .rt { display: flex; flex-direction: column; }
+  .wm .rt .st { white-space: normal; font-size: 14px; margin-top: auto; align-items: flex-start; }
+  .wm .rt .st i { margin-top: 6px; }
+  .card.rows { padding: 4px 20px; }
+</style>
+</head>
+<body>
+<header class="doc">
+  <h1>Tin “đã đến nơi” đến tay người ấy</h1>
+  <p>Thông báo đẩy (chỉ khi ĐẾN), dòng widget-today và hai dòng mới trong Cài đặt. Thảo về nhà 18:42, pin 12%.</p>
+</header>
+<main id="m"></main>
+<script>
+const { I } = UI; const pn = D.people.partner.name, me = D.people.me.name;
+const p = D.push, pe = D.pushEn, alt = D.pushGym, W = D.widget(D.docs.u_thao.last, pn), WG = D.widget(D.gym, pn);
+const heart = (c) => `<span style="color:${c};display:flex">${I.heart(10)}</span>`;
+const small = (bg, txt) => `<div class="w ${bg}" style="width:158px;height:158px" role="img" aria-label="Widget nhỏ: ${D.daysTogether} ngày bên nhau. ${txt}"><span class="chipw">${me}${heart(bg === 'night' ? '#FF8FA3' : '#E63956')}${pn}</span><span class="n num">${D.daysTogether.toLocaleString('vi-VN')}</span><span class="c">ngày bên nhau</span><span class="st"><i></i>${txt}</span></div>`;
+const medium = (bg) => `<div class="w ${bg} wm" style="width:338px;height:158px" role="img" aria-label="Widget vừa: ${D.daysTogether} ngày bên nhau. ${p.title}"><div style="display:flex;flex-direction:column"><span class="chipw">${me}${heart('#FF8FA3')}${pn}</span><span class="n num">${D.daysTogether.toLocaleString('vi-VN')}</span><span class="c">ngày bên nhau</span></div><span class="div"></span><div class="rt"><span class="c">Còn 45 ngày tới mốc 1.300</span><span class="st"><i></i>${W.vi}</span></div></div>`;
+const F = [
+  ['Thông báo đẩy trên iPhone (tiếng Việt và tiếng Anh)', `<div class="stack">
+    <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${p.title}</p><p class="b">${p.body}</p></div><span class="w">18:42</span></div>
+    <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${alt.title}</p><p class="b">${alt.body}</p></div><span class="w">17:50</span></div>
+    <div class="ios-n"><span class="ic">${I.heart(18)}</span><div><p class="t">${pe.title}</p><p class="b">${pe.body}</p></div><span class="w">18:42</span></div></div>
+    <p class="note fine" style="margin-top:10px">Dòng pin chỉ có khi pin từ 20% trở xuống. Giờ do hệ thống hiện, không nằm trong chữ. Chạm → Home, cuộn tới thẻ “Về đến nhà chưa?”.</p>`],
+  ['Thông báo đẩy trên Android', `<div class="and-n"><div class="top"><span class="dot">${I.heart(10)}</span>Dear Embeiu · 18:42</div><p class="t">${p.title}</p><p class="b">${p.body}</p></div>`],
+  ['Widget nhỏ: về nhà (Trời đêm) và đến nơi tự đặt (có ảnh), bản rút gọn', `<div class="row2">${small('night', W.viShort)}${small('photo', WG.viShort)}</div><p class="note fine" style="margin-top:10px">Không có pin, không có tin “đã rời”. Chỉ tin đến nơi của hôm nay. Tên nơi dài hơn khoảng 9 ký tự sẽ bị cắt “…” ở widget nhỏ.</p>`],
+  ['Widget vừa: Trời đêm và có ảnh (bản đầy đủ)', `<div class="stack">${medium('night')}${medium('photo')}</div>`],
+  ['Cài đặt → Thông báo: dòng mới', `<div class="card rows">
+    <div class="srow"><span class="badge">${I.bell(20)}</span><div class="tx"><p class="tt">Nhắc trả lời câu hỏi</p><p class="ts">20:30 mỗi ngày</p></div><button class="switch" role="switch" aria-checked="true" aria-label="Nhắc trả lời câu hỏi"></button></div>
+    <div class="srow"><span class="badge">${I.home(20)}</span><div class="tx"><p class="tt">Khi người ấy đến nơi</p><p class="ts">Báo khi ${pn} về nhà hoặc đến một nơi đã lưu. Tắt thì thẻ Home vẫn hiện tin.</p></div><button class="switch" role="switch" aria-checked="true" aria-label="Khi người ấy đến nơi"></button></div></div>
+    <p class="note fine" style="margin-top:10px">Chỉ hiện khi đã ghép đôi. Dòng “Nhắc trả lời câu hỏi” là dòng có sẵn, vẽ lại để thấy vị trí.</p>`],
+  ['Cài đặt → Chung: lối vào màn quản lý', `<div class="card rows">
+    <div class="srow" role="button" tabindex="0"><span class="badge">${I.loc(20)}</span><div class="tx"><p class="tt">Về đến nhà</p><p class="ts">Đang báo cho ${pn}: Nhà và 2 nơi khác</p></div><span style="color:var(--tertiary);display:flex">${I.chev()}</span></div></div>
+    <p class="note fine" style="margin-top:10px">Đang tắt: “Đang tắt”. Tắt từ xa: “Tạm thời chỉ báo bằng tay”.</p>`],
+];
+document.getElementById('m').innerHTML = F.map(([h, html]) => `<section class="frame"><h2 class="lbl" style="margin-bottom:14px">${h}</h2>${html}</section>`).join('');
+document.addEventListener('click', (ev) => { const s = ev.target.closest('.switch'); if (s) s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true'); });
+console.assert(1300 - D.daysTogether === 45, 'còn 45 ngày tới mốc 1.300');
+</script>
+</body>
+</html>

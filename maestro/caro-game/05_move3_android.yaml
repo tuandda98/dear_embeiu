@@ -1,0 +1,37 @@
+appId: com.tony.dearembeiu.dev
+---
+# Tuấn, nước 3: X hàng 9, cột 8. Từ ngoài vào ván bằng thẻ Home (tới lượt mình).
+# CARO-MOVE: thẻ "Đến lượt bạn", chạm ô có quân bỏ qua, một chạm là đánh,
+# sau đó tới lượt người kia: chạm bàn không có tác dụng, nút Nhắc bị khoá 30 phút.
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Cờ caro\. Đến lượt bạn.*'
+    centerElement: true
+    visibilityPercentage: 60
+    speed: 30
+    timeout: 40000
+- waitForAnimationToEnd
+- assertVisible: 'Cờ caro\. Đến lượt bạn.*'
+- tapOn: 'Cờ caro\. Đến lượt bạn.*'
+- waitForAnimationToEnd
+- assertVisible: 'Đến lượt bạn\. .*'
+- runFlow: _lib_zoom_out.yaml
+- tapOn: 'Hàng 8, cột 9, quân O của .*'
+- waitForAnimationToEnd
+- assertVisible: 'Đến lượt bạn\. .*'
+- tapOn: '(?s)Hàng 9, cột 8, trống.*'
+- waitForAnimationToEnd
+- assertVisible: 'Đang chờ .*\. .*'
+- assertVisible: 'Hàng 9, cột 8, quân X của .*'
+# Không phải lượt: chạm ô trống khác không đặt được quân.
+- tapOn: '(?s)Hàng 15, cột 15, trống.*'
+- waitForAnimationToEnd
+- assertVisible: '(?s)Hàng 15, cột 15, trống.*'
+- assertNotVisible: 'Hàng 15, cột 15, quân .*'
+# Vừa đi xong: nút Nhắc chưa dùng được.
+- assertVisible:
+    text: '(?s)Nhắc sau .* phút.*'
+    enabled: false

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arrival · thẻ Home · mock bấm thử</title>
+<link rel="stylesheet" href="app.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+<script src="card.js"></script>
+</head>
+<body>
+<header class="doc">
+  <h1>Thẻ Home “Về đến nhà chưa?”</h1>
+  <p>Thẻ đứng riêng. Bạn bên trái, Thảo bên phải. Tuấn và Thảo, thứ Ba 20/10/2026, 19:05. Bấm “Về nhà rồi”, “Đến nơi rồi”, “Hỏi thăm” để thử.</p>
+</header>
+<main id="m"></main>
+<script>
+const { I, iconOf } = UI; const C = ArrivalCard.card, A = ArrivalCard.auto; const e = D.docs.u_thao.last;
+const others = D.places.u_tuan.filter((p) => p.slot !== 'home');
+const sheet = `<div class="sheet" role="dialog" aria-label="Bạn vừa đến đâu?"><div class="handle"></div><h3>Bạn vừa đến đâu?</h3>
+  <div class="card rows" style="margin-top:12px;box-shadow:none;background:var(--surface-light)">${others.map((p) => `<button class="srow pick" data-act="pick"><span class="badge navy">${iconOf({ place: p.slot, icon: p.icon })(20)}</span><span class="tx"><span class="tt">${p.name}</span></span></button>`).join('')}</div>
+  <button class="btn text" style="margin-top:8px;height:44px">${I.plus(16)}Thêm nơi</button>
+  <p class="fine" style="margin-top:4px">Bấm là Thảo nhận “Tuấn đã đến …” ngay, không cần quyền vị trí.</p></div>`;
+const S = [
+  ['Mặc định: cả hai đang bật, Thảo vừa về nhà', C({ me: A, partner: 'event', event: e }), 'Thẻ đứng riêng trên Home (user chốt “mọi thứ một thẻ riêng”). Bấm thử ba nút.', 'live'],
+  ['Thảo đến một nơi tự đặt', C({ me: A, partner: 'event', event: D.gym })],
+  ['Tên nơi dài nhất (24 ký tự): câu tối đa 3 dòng', C({ me: A, partner: 'event', event: D.longName })],
+  ['Thảo vừa rời Công ty (không có thông báo đẩy)', C({ me: A, partner: 'event', event: D.exitWork })],
+  ['Tin hôm qua, Thảo bấm tay', C({ me: A, partner: 'event', event: D.yesterday }), 'Tin cũ hơn 3 ngày thì ẩn, làn Thảo chuyển sang “Đang bật báo về nhà”.'],
+  ['Thảo đang bật, 3 ngày chưa có tin', C({ me: A, partner: 'quiet' })],
+  ['Thảo chưa bật hoặc đã tắt (trung tính, không nút giục)', C({ me: A, partner: 'off' })],
+  ['Lần đầu, cả hai chưa bật', C({ pitch: true })],
+  ['Bạn chưa bật, Thảo đã bật', C({ me: { off: true }, partner: 'event', event: e, footer: 'enable' })],
+  ['Vừa lưu nơi bằng địa chỉ: tin đến đầu tiên', C({ me: { last: { place: 'p2', name: 'Phòng gym', icon: 'gym', type: 'enter', at: '2026-10-20T18:05', battery: 70, source: 'auto' }, confirm: 'App đã nhận ra Phòng gym', status: A.status }, partner: 'event', event: e }), 'D21: làn của bạn hiện lần đến đầu tiên để bạn tự thấy app nhận đúng chỗ.'],
+  ['Thiếu quyền vị trí Luôn luôn', C({ me: { last: A.last, status: 'Chưa tự báo được: cần quyền vị trí Luôn luôn', statusIcon: I.locOff(14), statusTap: false, link: 'Mở Cài đặt' }, partner: 'event', event: e })],
+  ['Chưa đặt địa chỉ nơi nào (chỉ bấm tay)', C({ me: { status: 'Chưa đặt địa chỉ Nhà', statusIcon: I.locOff(14), statusTap: false, link: 'Đặt địa chỉ' }, partner: 'event', event: e, noOther: true })],
+  ['Tắt từ xa (config/app.arrivalAutoEnabled = false)', C({ me: { last: A.last, status: 'Tạm thời chỉ báo bằng tay', statusIcon: I.locOff(14) }, partner: 'event', event: e })],
+  ['Vừa bấm “Về nhà rồi”', C({ me: { last: { place: 'home', type: 'enter', at: '2026-10-20T19:05', battery: 51, source: 'manual' }, confirm: 'Đã báo Thảo', status: A.status }, partner: 'event', event: e, sent: true }), 'Nút giữ nhãn và bề rộng, chỉ đổi icon trong 4 giây.'],
+  ['Mất mạng lúc bấm', C({ me: { last: A.last, status: A.status }, partner: 'event', event: e, queued: true, strip: 'offline' })],
+  ['Ghi lỗi', C({ me: { last: A.last, status: A.status }, partner: 'event', event: e, strip: 'error' })],
+  ['Đang tải', C({ loading: true })],
+  ['Sheet “Đến nơi rồi”', sheet, 'Chỉ có nút này khi đã có ≥1 nơi ngoài Nhà. Nơi chưa có vị trí vẫn bấm tay được.', 'sheet'],
+];
+document.getElementById('m').innerHTML = S.map(([h, html, note, id]) => `<section class="state"${id ? ` id="${id}"` : ''}><h2>${h}</h2>${html}${note ? `<p class="note">${note}</p>` : ''}</section>`).join('');
+const live = document.getElementById('live');
+live.addEventListener('click', (ev) => {
+  const b = ev.target.closest('button'); if (!b) return;
+  const art = live.querySelector('article');
+  if (b.dataset.act === 'home') { art.outerHTML = C({ me: { last: { place: 'home', type: 'enter', at: '2026-10-20T19:05', battery: 51, source: 'manual' }, confirm: 'Đã báo Thảo', status: A.status }, partner: 'event', event: e, sent: true }); }
+  if (b.dataset.act === 'other') document.getElementById('sheet').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  if (b.dataset.act === 'care') { b.insertAdjacentHTML('afterend', `<p class="okline" role="status">Mở “Gửi quan tâm”</p>`); b.disabled = true; }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+# Nhập số bằng bàn phím k/tr/củ/000/dấu phẩy, gợi ý "Bạn gõ ...", quá 10 tỷ, bỏ khoản đang ghi.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- assertVisible: '(?s).*Gõ 50k, 1tr2 hay 1 củ đều được.*'
+# 1tr2 = 1.200.000
+- tapOn: '1'
+- tapOn: 'triệu'
+- tapOn: '2'
+- assertVisible: '(?s).*Bạn gõ .1tr2..*'
+- assertVisible: 'Lưu 1\.200\.000.*'
+# xoá: "1tr2" -> "1tr" -> "1" (đơn vị bị xoá nguyên khối) -> trống
+- repeat:
+    times: 3
+    commands:
+      - tapOn: 'Xoá một ký tự'
+- assertVisible: '(?s).*Nhập số tiền để lưu.*'
+# 1 củ = 1.000.000
+- tapOn: '1'
+- tapOn: 'củ'
+- assertVisible: 'Lưu 1\.000\.000.*'
+- repeat:
+    times: 2
+    commands:
+      - tapOn: 'Xoá một ký tự'
+# 2 + 000 = 2.000 (số thường, không có đơn vị nên không có dòng "Bạn gõ")
+- tapOn: '2'
+- tapOn: '000'
+- assertVisible: 'Lưu 2\.000.*'
+- assertNotVisible: 'Bạn gõ .*'
+- repeat:
+    times: 4
+    commands:
+      - tapOn: 'Xoá một ký tự'
+# dấu phẩy: 1,5tr = 1.500.000
+- tapOn: '1'
+- tapOn: ','
+- tapOn: '5'
+- tapOn: 'triệu'
+- assertVisible: '(?s).*Bạn gõ .1,5tr..*'
+- assertVisible: 'Lưu 1\.500\.000.*'
+- repeat:
+    times: 4
+    commands:
+      - tapOn: 'Xoá một ký tự'
+# vượt 10 tỷ: 2 và 12 chữ số 0
+- tapOn: '2'
+- repeat:
+    times: 4
+    commands:
+      - tapOn: '000'
+- assertVisible: '(?s).*Tối đa 10 tỷ một khoản. Kiểm tra lại số 0 nhé\..*'
+- assertVisible: '(?s).*Sửa số tiền để lưu.*'
+# bỏ khoản đang ghi
+- tapOn: 'Đóng'
+- assertVisible: '(?s).*Bỏ khoản đang ghi\?.*'
+- tapOn: 'Tiếp tục ghi'
+- assertVisible: '(?s).*Sửa số tiền để lưu.*'
+- tapOn: 'Đóng'
+- tapOn: 'Bỏ khoản này'
+- assertNotVisible: '(?s).*Sửa số tiền để lưu.*'

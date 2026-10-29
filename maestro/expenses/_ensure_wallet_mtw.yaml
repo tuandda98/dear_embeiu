@@ -1,0 +1,25 @@
+# Đảm bảo có ví tên "MTW" ở sổ Của mình (không tạo lại nếu đã có). Đứng ở MoneyScreen.
+appId: com.tony.dearembeiu.dev
+---
+- tapOn: 'Ví, danh mục, ngân sách'
+- tapOn: 'Ví'
+- extendedWaitUntil:
+    visible: '(?s).*VÍ.*'
+    timeout: 8000
+- runFlow:
+    when:
+      notVisible: 'MTW.*'
+    commands:
+      - tapOn: 'Thêm ví'
+      - extendedWaitUntil:
+          visible: '(?s).*Ví mới.*'
+          timeout: 8000
+      - tapOn: 'Tên'
+      - inputText: 'MTW'
+      - tapOn: 'Số dư lúc này.*'
+      - inputText: '100000'
+      - tapOn: 'Tạo ví'
+      - extendedWaitUntil:
+          visible: '(?s).*Đã tạo MTW.*'
+          timeout: 8000
+- assertVisible: 'MTW.*'

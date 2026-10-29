@@ -75,7 +75,13 @@ public class WidgetChannelPlugin implements FlutterPlugin, MethodChannel.MethodC
                 // leave, and remember the leave as `clearedAt` so a late push
                 // from before it can't bring the old partner's line back.
                 boolean clearIfOlder = "1".equals(status.remove("clearIfOlder"));
+                // caro end (CARO-T4): replace only the line of this kind.
+                String onlyIfKind = status.remove("onlyIfKind");
                 SharedPreferences prefs = context.getSharedPreferences(STATUS_PREFS, Context.MODE_PRIVATE);
+                if (onlyIfKind != null && !onlyIfKind.equals(prefs.getString("statusKind", ""))) {
+                    result.success(null);
+                    break;
+                }
                 long storedAt = parse(prefs.getString("statusAt", "0"));
                 long incomingAt = parse(status.get("statusAt"));
                 long clearedAt = parse(prefs.getString("clearedAt", "0"));

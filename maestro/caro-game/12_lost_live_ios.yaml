@@ -1,0 +1,13 @@
+appId: com.tony.dearembeiu.dev
+---
+# Thảo vẫn mở màn ván (flow 10 để lại) => thấy kết quả thua ngay, không khởi động lại app.
+# CARO-LOSE: tiêu đề "<tên> thắng ván này", nút Phục thù, đường thắng có nhãn.
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: '.* thắng ván này\. .*'
+    timeout: 15000
+- assertVisible: '(?s)Phục thù.*'
+- assertVisible: '(?s)Xem lịch sử ván.*'
+- assertVisible: '(?s)Hàng 12, cột 8, quân X của .*, nước vừa đi, trong đường thắng.*'
+- assertNotVisible: '(?s)Xin thua.*'

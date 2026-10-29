@@ -1,0 +1,32 @@
+appId: com.tony.dearembeiu.dev
+---
+# Thảo (iOS): lời mời hiện trong Trung tâm thông báo, chạm mở đúng ván.
+# CARO-NOTI: inbox caro_invite; tap => màn ván; trạng thái "được rủ".
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- assertVisible: 'Thông báo, .*'
+- tapOn: 'Thông báo, .*'
+- waitForAnimationToEnd
+- assertVisible: '.* rủ bạn chơi cờ caro.*'
+- tapOn: '.* rủ bạn chơi cờ caro.*'
+- waitForAnimationToEnd
+- assertVisible: '.* rủ bạn chơi caro\. .*'
+- assertVisible: '(?s)Để sau.*'
+- runFlow: _lib_zoom_out.yaml
+# Ô đã có quân: chạm không làm gì, không gửi nước.
+- tapOn: 'Hàng 8, cột 8, quân X của .*'
+- waitForAnimationToEnd
+- assertVisible: '.* rủ bạn chơi caro\. .*'
+# Phóng to / thu nhỏ đổi nhãn nút.
+- tapOn: '(?s)Phóng to quanh nước cuối.*'
+- waitForAnimationToEnd
+- assertVisible: '(?s)Xem toàn bàn.*'
+- tapOn: '(?s)Xem toàn bàn.*'
+- waitForAnimationToEnd
+# Một chạm là đánh: O ở hàng 8, cột 9 (nước 2).
+- tapOn: '(?s)Hàng 8, cột 9, trống.*'
+- waitForAnimationToEnd
+- assertVisible: 'Đang chờ .*\. .*'
+- assertVisible: 'Hàng 8, cột 9, quân O của .*'

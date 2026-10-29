@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · ngân sách (sổ chung) · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt } = D; const B = D.shared;
+const total = B.budgets.find((b) => !b.categoryId).amount; const spent = B.totals.expense;
+const cats = D.byCategory(B.tx, D.M);
+const withB = B.budgets.filter((b) => b.categoryId).map((b) => ({ ...b, spent: (cats.find((c) => c.id === b.categoryId) || { amount: 0 }).amount }));
+const noB = cats.filter((c) => !B.budgets.some((b) => b.categoryId === c.id));
+const pill = (r) => r >= 1 ? `<span class="pill neg">Vượt ${Math.round(r * 100 - 100)}%</span>` : r >= .8 ? `<span class="pill warn">${Math.round(r * 100)}%</span>` : `<span class="meta num">${Math.round(r * 100)}%</span>`;
+document.getElementById('app').innerHTML = `
+  ${UI.header('Ngân sách', 'chart_2', UI.ibtn('add', 'Đặt ngân sách'))}
+  ${UI.seg(['Của mình', 'Chung'], 1)}
+  <main>
+  <section class="card" aria-labelledby="h-t">
+    <div class="card-h"><h2 id="h-t">Tháng 10 · cả sổ chung</h2><span class="meta">còn 11 ngày</span></div>
+    <p style="margin-top:12px">${UI.money(spent, 'fig-xl')}</p>
+    ${UI.plan(spent, total, 20 / 31)}
+    <div class="plan-ends meta num"><span>Đã dùng ${Math.round(spent / total * 100)}%</span><span>của ${fmt(total)}</span></div>
+    <p class="finding">Còn <b class="num">${fmt(total - spent)}</b>, tức khoảng ${fmt(Math.floor((total - spent) / 11 / 1000) * 1000)} mỗi ngày tới hết tháng.</p>
+  </section>
+  <section class="card" aria-labelledby="h-c">
+    <div class="card-h"><h2 id="h-c">Theo danh mục</h2></div>
+    ${withB.map((b) => { const c = D.cat(b.categoryId); const r = b.spent / b.amount; return `<button class="brow"><div class="brow-h"><span class="emo" aria-hidden="true">${c.emoji}</span><span class="t">${c.vi}</span>${pill(r)}<span class="num v">${fmt(b.spent)}</span></div>${UI.plan(b.spent, b.amount, 20 / 31, false)}<p class="meta num" style="margin-top:6px">${r >= 1 ? `Vượt ${fmt(b.spent - b.amount)}` : `Còn ${fmt(b.amount - b.spent)}`} của ${fmt(b.amount)}</p></button>`; }).join('')}
+  </section>
+  <section class="card" aria-labelledby="h-n">
+    <div class="card-h"><h2 id="h-n">Chưa đặt ngân sách</h2></div>
+    <div class="rows">${noB.map((c) => { const cc = D.cat(c.id); return `<div class="row"><span class="emo" aria-hidden="true">${cc.emoji}</span><div class="mid"><div class="t">${cc.vi}</div><div class="s num">Đã chi ${fmt(c.amount)} tháng này</div></div><button class="btn sm ghost">Đặt</button></div>`; }).join('')}</div>
+  </section>
+  <p class="scope">Chạm 80% và 100% ngân sách tổng: người không ghi khoản đó nhận thông báo chỉ có phần trăm, không có số tiền.</p>
+  </main>`;
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_motion.dart';
 
 /// A rounded placeholder box with a soft, brand-aligned shimmer sweep.
 ///
@@ -38,6 +39,8 @@ class ShimmerSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
+      // Reduce Motion: the placeholder stays still (no sweeping shine).
+      enabled: !AppMotion.reduceMotion(context),
       // Light, romantic tones rather than the default grey.
       baseColor: AppColors.surfaceLight,
       highlightColor: AppColors.white,

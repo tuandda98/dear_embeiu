@@ -621,6 +621,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get homeTodaySectionTitle => 'Hôm nay của chúng mình';
 
   @override
+  String homePartnerSectionTitle(String name) {
+    return '$name thế nào rồi?';
+  }
+
+  @override
+  String get homePartnerSectionTitleFallback => 'Người ấy thế nào rồi?';
+
+  @override
+  String get homeFreeTimeSectionTitle => 'Lúc rảnh';
+
+  @override
   String get dailyTapToAnswer => 'Chạm để trả lời…';
 
   @override
@@ -803,6 +814,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get moodUpdateCta => 'Đổi tâm trạng';
+
+  @override
+  String get moodChangeShort => 'Đổi';
 
   @override
   String get moodNotSharedYou => 'Chạm để chia sẻ';
@@ -4027,6 +4041,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get decisionCustomCta => 'Nhập & quay';
 
   @override
+  String get decisionChipCustom => 'Khác';
+
+  @override
   String decisionByMe(String time) {
     return 'Mình quay · $time';
   }
@@ -4396,4 +4413,3320 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifDecisionRespin(String name, String result) {
     return '$name quay lại: $result';
   }
+
+  @override
+  String get caroPlayTogetherTitle => 'Chơi cùng nhau';
+
+  @override
+  String get caroGameTitle => 'Cờ caro';
+
+  @override
+  String caroEntryInvited(String name) {
+    return '$name rủ bạn một ván và đã đi nước đầu.';
+  }
+
+  @override
+  String caroEntryMyTurn(String name, String n) {
+    return 'Đến lượt bạn. $name vừa đi nước $n.';
+  }
+
+  @override
+  String caroEntryWaiting(String name, String n, String time) {
+    return 'Đang chờ $name. Bạn đi nước $n lúc $time.';
+  }
+
+  @override
+  String caroEntryWatching(String name) {
+    return '$name đang mở ván, chờ chút nhé.';
+  }
+
+  @override
+  String caroEntryStale(String days) {
+    return 'Ván dừng $days ngày rồi. Vào kết thúc để rủ ván mới.';
+  }
+
+  @override
+  String caroEntryJustLost(String name, String score) {
+    return '$name thắng ván vừa rồi. $score.';
+  }
+
+  @override
+  String caroEntryJustWon(String score) {
+    return 'Bạn thắng ván vừa rồi. $score.';
+  }
+
+  @override
+  String caroEntryJustDraw(String score) {
+    return 'Ván vừa rồi hoà. $score.';
+  }
+
+  @override
+  String caroEntryIdle(String score, String name) {
+    return '$score. Rủ $name một ván?';
+  }
+
+  @override
+  String caroEntryFirst(String name) {
+    return 'Rủ $name một ván, bạn đi trước.';
+  }
+
+  @override
+  String caroScore(String me, String a, String b, String partner) {
+    return '$me $a – $b $partner';
+  }
+
+  @override
+  String caroScoreDraws(String score, String n) {
+    return '$score, $n ván hoà';
+  }
+
+  @override
+  String caroScorePair(String a, String b) {
+    return '$a – $b';
+  }
+
+  @override
+  String get caroCtaJoin => 'Vào chơi';
+
+  @override
+  String get caroCtaPlayOn => 'Đi tiếp';
+
+  @override
+  String get caroCtaRematch => 'Phục thù';
+
+  @override
+  String get caroCtaNewGame => 'Ván mới';
+
+  @override
+  String get caroCtaInvite => 'Chơi';
+
+  @override
+  String get caroCtaRetry => 'Thử lại';
+
+  @override
+  String get caroActionError => 'Chưa làm được, thử lại nhé.';
+
+  @override
+  String get caroEntryError => 'Chưa tải được ván. Chạm để thử lại.';
+
+  @override
+  String caroNewTitle(String name) {
+    return 'Rủ $name chơi caro';
+  }
+
+  @override
+  String get caroNewSub => 'Chọn luật cho ván này. Đổi được ở ván sau.';
+
+  @override
+  String get caroRuleVn => 'Chặn hai đầu';
+
+  @override
+  String get caroRuleVnDesc =>
+      'Năm quân liền nhau là thắng, trừ khi cả hai đầu đều bị quân người kia chặn.';
+
+  @override
+  String get caroRuleFree => 'Tự do';
+
+  @override
+  String get caroRuleFreeDesc =>
+      'Cứ năm quân liền nhau là thắng, bị chặn hai đầu vẫn tính.';
+
+  @override
+  String get caroRuleExampleNoWin => 'Thế này chưa thắng';
+
+  @override
+  String get caroRuleExampleWin => 'Thế này là thắng';
+
+  @override
+  String get caroRuleLastUsed => 'lần trước';
+
+  @override
+  String caroNewFirstNote(String name) {
+    return 'Bạn cầm X, quân đầu đặt ở giữa bàn. $name nhận được lời rủ ngay.';
+  }
+
+  @override
+  String caroNewCta(String name) {
+    return 'Rủ $name chơi';
+  }
+
+  @override
+  String get caroNewPickFirst => 'Tự chọn ô đầu tiên';
+
+  @override
+  String get caroBadge => 'CỜ CARO';
+
+  @override
+  String get caroMyTurn => 'Đến lượt bạn';
+
+  @override
+  String caroLastMove(String name, String n, String time) {
+    return '$name vừa đi nước $n lúc $time.';
+  }
+
+  @override
+  String caroWaiting(String name) {
+    return 'Đang chờ $name';
+  }
+
+  @override
+  String caroYouMoved(String n, String time, String name) {
+    return 'Bạn đi nước $n lúc $time. Cứ thoát app, $name đi xong là có thông báo.';
+  }
+
+  @override
+  String caroPartnerWatching(String n, String time, String name) {
+    return 'Bạn đi nước $n lúc $time. $name đang xem ván.';
+  }
+
+  @override
+  String caroWaitedMin(String n, String time, int m) {
+    return 'Bạn đi nước $n lúc $time. Đã $m phút rồi.';
+  }
+
+  @override
+  String caroNudged(String name, String time) {
+    return 'Đã nhắc $name lúc $time.';
+  }
+
+  @override
+  String get caroLaneWins => 'thắng';
+
+  @override
+  String get caroLaneWatching => 'đang xem';
+
+  @override
+  String caroLaneMove(String n) {
+    return 'nước $n';
+  }
+
+  @override
+  String get caroLaneNew => 'ván mới';
+
+  @override
+  String caroLaneGames(String n) {
+    return '$n ván';
+  }
+
+  @override
+  String get caroLanePlusOne => '+1 ván này';
+
+  @override
+  String get caroPlayHere => 'Đi nước này';
+
+  @override
+  String get caroSending => 'Đang đi…';
+
+  @override
+  String get caroSendError =>
+      'Chưa đi được nước này, ô bạn chọn vẫn giữ nguyên. Thử lại nhé.';
+
+  @override
+  String get caroStaleBoard => 'Bàn vừa đổi, xem lại rồi đi nhé.';
+
+  @override
+  String get caroOffline => 'Đang mất mạng. Có mạng lại là đi tiếp được.';
+
+  @override
+  String get caroWaitNetwork => 'Chờ có mạng';
+
+  @override
+  String get caroTapAgainHint =>
+      'Chạm lại ô đang chọn cũng là đi. Chạm ô khác để đổi.';
+
+  @override
+  String caroNudge(String name) {
+    return 'Nhắc $name';
+  }
+
+  @override
+  String caroNudgeIn(int m) {
+    return 'Nhắc sau $m phút';
+  }
+
+  @override
+  String caroNudgeSent(String name) {
+    return 'Đã nhắc $name';
+  }
+
+  @override
+  String caroInvitedTitle(String name) {
+    return '$name rủ bạn chơi caro';
+  }
+
+  @override
+  String caroInvitedSubVn(String name) {
+    return '$name đã đi nước đầu. Luật chặn hai đầu: năm quân bị chặn cả hai đầu thì chưa thắng.';
+  }
+
+  @override
+  String caroInvitedSubFree(String name) {
+    return '$name đã đi nước đầu. Luật tự do: cứ năm quân liền nhau là thắng.';
+  }
+
+  @override
+  String get caroLater => 'Để sau';
+
+  @override
+  String get caroFirstTitle => 'Đặt quân đầu tiên';
+
+  @override
+  String caroFirstSub(String name) {
+    return 'Bạn cầm X và đi trước. Đi xong là $name nhận được lời rủ.';
+  }
+
+  @override
+  String caroInviteCta(String name) {
+    return 'Rủ $name chơi';
+  }
+
+  @override
+  String caroStaleTitle(String days) {
+    return 'Ván dừng $days ngày rồi';
+  }
+
+  @override
+  String caroStaleSub(String date, String name) {
+    return 'Không ai đi từ $date. Nhắc $name, hoặc kết thúc để rủ ván mới.';
+  }
+
+  @override
+  String get caroEndGame => 'Kết thúc ván';
+
+  @override
+  String caroInvitedYesterday(String name, String when, String time) {
+    return 'Bạn rủ $name $when, lúc $time.';
+  }
+
+  @override
+  String caroOldAppHint(String name) {
+    return 'Nếu $name chưa thấy ván, có thể app của $name cần cập nhật.';
+  }
+
+  @override
+  String get caroLoading => 'Đang tải ván';
+
+  @override
+  String get caroCancelledTitle => 'Ván này đã huỷ';
+
+  @override
+  String caroCancelledSub(String name, String time) {
+    return '$name bấm Để sau lúc $time. Ván huỷ không tính vào tỉ số.';
+  }
+
+  @override
+  String get caroExpiredTitle => 'Ván này đã kết thúc vì để lâu';
+
+  @override
+  String get caroExpiredSub =>
+      '7 ngày không ai đi nên ván dừng ở đây, không tính tỉ số.';
+
+  @override
+  String caroNewInviteCta(String name) {
+    return 'Rủ $name ván mới';
+  }
+
+  @override
+  String get caroHistoryTooltip => 'Lịch sử ván';
+
+  @override
+  String caroRuleTapHint(String rule) {
+    return 'Luật $rule, chạm để xem giải thích';
+  }
+
+  @override
+  String get caroResign => 'Xin thua';
+
+  @override
+  String get caroRuleEdgeNote => 'Mép bàn không tính là chặn.';
+
+  @override
+  String get caroEndKeep => 'Để đó';
+
+  @override
+  String get caroEndConfirm => 'Kết thúc';
+
+  @override
+  String get caroResignTitle => 'Xin thua ván này?';
+
+  @override
+  String caroResignBody(String name, String score) {
+    return '$name được tính thắng. Tỉ số thành $score.';
+  }
+
+  @override
+  String get caroKeepPlaying => 'Chơi tiếp';
+
+  @override
+  String get caroCancelTitle => 'Bỏ ván này?';
+
+  @override
+  String caroCancelBody(String name) {
+    return 'Ván huỷ không tính tỉ số. $name sẽ thấy ván đã huỷ.';
+  }
+
+  @override
+  String get caroCancelConfirm => 'Bỏ ván';
+
+  @override
+  String get caroEndTitle => 'Kết thúc ván này?';
+
+  @override
+  String get caroEndBody =>
+      'Ván này không tính tỉ số. Kết thúc rồi là rủ được ván mới.';
+
+  @override
+  String get caroZoomIn => 'Phóng to quanh nước cuối';
+
+  @override
+  String get caroZoomOut => 'Xem toàn bàn';
+
+  @override
+  String get caroYouWon => 'Bạn thắng ván này';
+
+  @override
+  String caroPartnerWon(String name) {
+    return '$name thắng ván này';
+  }
+
+  @override
+  String caroWinDetail(String n, String time, String span) {
+    return 'Năm quân liền nhau ở nước $n, lúc $time. Ván kéo dài $span.';
+  }
+
+  @override
+  String caroSpanHours(int h) {
+    return '$h giờ';
+  }
+
+  @override
+  String caroSpanMinutes(int m) {
+    return '$m phút';
+  }
+
+  @override
+  String caroPartnerResigned(String name) {
+    return '$name xin thua';
+  }
+
+  @override
+  String caroPartnerResignedSub(String n) {
+    return 'Ván này bạn thắng, ở nước $n.';
+  }
+
+  @override
+  String get caroYouResigned => 'Bạn đã xin thua';
+
+  @override
+  String caroYouResignedSub(String name) {
+    return '$name được tính thắng ván này.';
+  }
+
+  @override
+  String get caroDraw => 'Ván này hoà';
+
+  @override
+  String get caroDrawSub => 'Kín cả 225 ô mà chưa ai thắng.';
+
+  @override
+  String get caroSeeHistory => 'Xem lịch sử ván';
+
+  @override
+  String get caroHistoryBadge => 'LỊCH SỬ CARO';
+
+  @override
+  String caroLeads(String name, String n) {
+    return '$name dẫn trước $n ván';
+  }
+
+  @override
+  String caroTied(String a) {
+    return 'Đang hoà $a – $a';
+  }
+
+  @override
+  String caroHistorySub(String n, String date, String name, String when) {
+    return '$n ván từ $date. Ván gần nhất $name thắng $when.';
+  }
+
+  @override
+  String caroHistorySubNoSince(String n, String name, String when) {
+    return '$n ván. Ván gần nhất $name thắng $when.';
+  }
+
+  @override
+  String caroHistorySubDrawNoSince(String n, String when) {
+    return '$n ván. Ván gần nhất hoà $when.';
+  }
+
+  @override
+  String caroHistorySubDraw(String n, String date, String when) {
+    return '$n ván từ $date. Ván gần nhất hoà $when.';
+  }
+
+  @override
+  String get caroWhenToday => 'hôm nay';
+
+  @override
+  String get caroWhenYesterday => 'hôm qua';
+
+  @override
+  String caroWhenOn(String date) {
+    return 'ngày $date';
+  }
+
+  @override
+  String get caroDateToday => 'Hôm nay';
+
+  @override
+  String get caroDateYesterday => 'Hôm qua';
+
+  @override
+  String caroRowWon(String name) {
+    return '$name thắng';
+  }
+
+  @override
+  String get caroRowDraw => 'Hoà';
+
+  @override
+  String caroRowFive(String n) {
+    return 'Năm quân liền, $n nước';
+  }
+
+  @override
+  String caroRowResign(String name, String n) {
+    return '$name xin thua ở nước $n';
+  }
+
+  @override
+  String get caroRowFull => 'Kín bàn, 225 nước';
+
+  @override
+  String get caroRowFreeSuffix => '. Tự do';
+
+  @override
+  String get caroHistoryEmpty => 'Chưa có ván nào xong';
+
+  @override
+  String get caroHistoryEmptySub =>
+      'Ván đầu tiên đang chờ đó. Tỉ số bắt đầu từ 0 – 0.';
+
+  @override
+  String get caroOpenCurrent => 'Mở ván đang chơi';
+
+  @override
+  String caroStartWith(String name) {
+    return 'Rủ $name một ván';
+  }
+
+  @override
+  String get caroHistoryPageError => 'Chưa tải thêm được ván cũ.';
+
+  @override
+  String caroReplayBadge(String date) {
+    return 'VÁN $date';
+  }
+
+  @override
+  String caroCellEmpty(String r, String c) {
+    return 'Hàng $r, cột $c, trống';
+  }
+
+  @override
+  String caroCellX(String r, String c, String name) {
+    return 'Hàng $r, cột $c, quân X của $name';
+  }
+
+  @override
+  String caroCellO(String r, String c, String name) {
+    return 'Hàng $r, cột $c, quân O của $name';
+  }
+
+  @override
+  String get caroCellLast => ', nước vừa đi';
+
+  @override
+  String get caroCellSelected => ', đang chọn';
+
+  @override
+  String get caroCellWinning => ', trong đường thắng';
+
+  @override
+  String caroNotifInvite(String name) {
+    return '$name rủ bạn chơi cờ caro';
+  }
+
+  @override
+  String get caroNotifInviteBody => 'Nước đầu đã đi rồi, giờ đến lượt bạn.';
+
+  @override
+  String caroWidgetTurn(String name) {
+    return '$name đã đi caro, đến lượt mình';
+  }
+
+  @override
+  String get caroWidgetTurnShort => 'Lượt mình đi caro';
+
+  @override
+  String get caroTourTitle => 'Cờ caro theo lượt';
+
+  @override
+  String get caroTourBody =>
+      'Mỗi người đi một nước khi rảnh, rải cả ngày cũng được. Thắng thua cộng vào tỉ số chung của chúng mình.';
+
+  @override
+  String get weatherCardTitle => 'Thời tiết hai nơi';
+
+  @override
+  String weatherUpdatedAt(String time) {
+    return 'Cập nhật $time';
+  }
+
+  @override
+  String weatherStaleAt(String time) {
+    return 'Số liệu lúc $time';
+  }
+
+  @override
+  String get weatherStaleHeader => 'Chưa cập nhật được';
+
+  @override
+  String get weatherLoadFailed => 'Chưa tải được thời tiết';
+
+  @override
+  String get weatherRetry => 'Thử lại';
+
+  @override
+  String get weatherWhereAmI => 'Bạn đang ở đâu?';
+
+  @override
+  String weatherWhereIsPartner(String name) {
+    return '$name đang ở đâu?';
+  }
+
+  @override
+  String weatherWhereIsPartnerNext(String name) {
+    return 'Còn $name đang ở đâu?';
+  }
+
+  @override
+  String get weatherChoose => 'Chọn';
+
+  @override
+  String get weatherChooseForPartner => 'Chọn giúp';
+
+  @override
+  String weatherSetupBody(String name) {
+    return 'Chọn chỗ của bạn và của $name. Sáng nào mở app cũng thấy trời hai nơi.';
+  }
+
+  @override
+  String get weatherSetupBodySolo =>
+      'Chọn thành phố của bạn, sáng nào mở app cũng thấy trời hôm nay.';
+
+  @override
+  String get weatherSetupCta => 'Chọn thành phố';
+
+  @override
+  String get weatherHide => 'Ẩn';
+
+  @override
+  String get weatherHideA11y => 'Ẩn thẻ thời tiết';
+
+  @override
+  String weatherSameCity(String city) {
+    return 'Cả hai cùng ở $city';
+  }
+
+  @override
+  String weatherColder(String name, int n) {
+    return 'Chỗ $name lạnh hơn $n°';
+  }
+
+  @override
+  String weatherWarmer(String name, int n) {
+    return 'Chỗ $name nóng hơn $n°';
+  }
+
+  @override
+  String weatherCtaUmbrella(String name) {
+    return 'Nhắc $name mang ô';
+  }
+
+  @override
+  String weatherCtaWater(String name) {
+    return 'Nhắc $name uống nước';
+  }
+
+  @override
+  String weatherCtaWarm(String name) {
+    return 'Nhắc $name mặc ấm';
+  }
+
+  @override
+  String weatherCtaA11yUmbrella(String name) {
+    return 'Nhắc $name mang ô';
+  }
+
+  @override
+  String weatherCtaA11yWater(String name) {
+    return 'Nhắc $name uống nước';
+  }
+
+  @override
+  String weatherCtaA11yWarm(String name) {
+    return 'Nhắc $name mặc ấm';
+  }
+
+  @override
+  String get weatherCtaHint => 'Mở màn Quan tâm, lời nhắn đã soạn sẵn';
+
+  @override
+  String get weatherCardHint => 'Mở chi tiết thời tiết';
+
+  @override
+  String weatherDegrees(int n) {
+    return '$n độ';
+  }
+
+  @override
+  String get weatherCondRainNow => 'Đang mưa';
+
+  @override
+  String get weatherCondRainMorning => 'Sáng nay mưa';
+
+  @override
+  String get weatherCondRainAfternoon => 'Chiều nay mưa';
+
+  @override
+  String get weatherCondRainTonight => 'Tối nay mưa';
+
+  @override
+  String get weatherCondRainTomorrow => 'Sáng mai mưa';
+
+  @override
+  String weatherCondHot(int max) {
+    return 'Nắng gắt, lên $max°';
+  }
+
+  @override
+  String weatherCondCold(int min) {
+    return 'Lạnh, xuống $min°';
+  }
+
+  @override
+  String get weatherSkyClear => 'Trời quang';
+
+  @override
+  String get weatherSkyPartlyCloudy => 'Ít mây';
+
+  @override
+  String get weatherSkyCloudy => 'Nhiều mây';
+
+  @override
+  String get weatherSkyFog => 'Có sương mù';
+
+  @override
+  String get weatherSkyLightRain => 'Mưa nhỏ';
+
+  @override
+  String get weatherSkyRain => 'Có mưa';
+
+  @override
+  String get weatherSkyHeavyRain => 'Mưa to';
+
+  @override
+  String get weatherSkyThunder => 'Có dông';
+
+  @override
+  String get weatherSkySnow => 'Có tuyết';
+
+  @override
+  String weatherRestOfDay(int min, int max) {
+    return 'Từ giờ tới khuya $min° – $max°';
+  }
+
+  @override
+  String weatherScaleA11y(int min, int max, int now) {
+    return 'Từ giờ tới khuya $min đến $max độ, bây giờ $now độ';
+  }
+
+  @override
+  String weatherSlotA11y(String time, int n) {
+    return '$time, $n độ';
+  }
+
+  @override
+  String weatherSlotRainA11y(String time, int n) {
+    return '$time, $n độ, có mưa';
+  }
+
+  @override
+  String weatherPartnerSelfSet(String name) {
+    return '$name tự chọn';
+  }
+
+  @override
+  String get weatherSetByMe => 'bạn chọn giúp';
+
+  @override
+  String get weatherChangeCity => 'Đổi thành phố';
+
+  @override
+  String get weatherChangeForPartner => 'Đổi giúp';
+
+  @override
+  String weatherTheirTimeNow(String time) {
+    return 'bên đó đang $time';
+  }
+
+  @override
+  String get weatherPickerSubSelf =>
+      'Chỉ cần tên thành phố, app không xin vị trí.';
+
+  @override
+  String weatherPickerSubPartner(String name) {
+    return '$name vẫn tự đổi được sau.';
+  }
+
+  @override
+  String get weatherSearchHint => 'Tìm thành phố hoặc tỉnh';
+
+  @override
+  String get weatherSearchLabel => 'Tìm thành phố';
+
+  @override
+  String get weatherClearSearch => 'Xoá chữ đã gõ';
+
+  @override
+  String get weatherGroupCurrent => 'Đang chọn';
+
+  @override
+  String get weatherGroupVn => 'Việt Nam';
+
+  @override
+  String get weatherGroupIntl => 'Nước ngoài';
+
+  @override
+  String weatherOldProvince(String name) {
+    return 'Tỉnh cũ: $name';
+  }
+
+  @override
+  String get weatherNoMatch => 'Chưa có thành phố này. Chọn nơi gần nhất nhé.';
+
+  @override
+  String weatherPartnerJustSet(String name) {
+    return '$name vừa tự chọn chỗ của mình rồi.';
+  }
+
+  @override
+  String get weatherLater => 'Để sau';
+
+  @override
+  String get weatherSourcePrefix => 'Dữ liệu thời tiết: ';
+
+  @override
+  String get weatherSettingsSection => 'Thời tiết hai nơi';
+
+  @override
+  String get weatherSettingsMine => 'Chỗ của bạn';
+
+  @override
+  String weatherSettingsPartner(String name) {
+    return 'Chỗ $name';
+  }
+
+  @override
+  String get weatherNotSet => 'Chưa chọn';
+
+  @override
+  String get weatherNotifToggle => 'Thời tiết chỗ người ấy';
+
+  @override
+  String weatherNotifToggleSub(String time, String name) {
+    return 'Báo lúc $time khi chỗ $name mưa, nắng gắt hoặc lạnh. Tối đa 3 lần một tuần.';
+  }
+
+  @override
+  String get weatherNotifNeedsCouple => 'Ghép đôi xong mới báo được.';
+
+  @override
+  String weatherNotifPreviewCaption(String name) {
+    return 'Hôm nào chỗ $name có mưa, thông báo sẽ như thế này:';
+  }
+
+  @override
+  String get weatherCareUmbrellaTitle => 'Nhớ mang ô nhé';
+
+  @override
+  String weatherCareUmbrellaBody(String city) {
+    return '$city đang có mưa đó, nhớ mang ô nha.';
+  }
+
+  @override
+  String get weatherCareWaterTitle => 'Uống nước nhiều nha';
+
+  @override
+  String weatherCareWaterBody(String city, int max) {
+    return '$city hôm nay lên tới $max°. Ra đường nhớ che nắng, uống đủ nước nhé.';
+  }
+
+  @override
+  String get weatherCareWarmTitle => 'Mặc ấm vào nhé';
+
+  @override
+  String weatherCareWarmBody(String city, int min) {
+    return '$city xuống còn $min° đó. Ra ngoài nhớ mặc thêm áo.';
+  }
+
+  @override
+  String weatherMorningRainTitle(String city) {
+    return 'Hôm nay $city có mưa';
+  }
+
+  @override
+  String weatherMorningRainBody(String name) {
+    return 'Nhắc $name mang ô nhé?';
+  }
+
+  @override
+  String weatherMorningHotTitle(String city, int max) {
+    return 'Hôm nay $city lên $max°';
+  }
+
+  @override
+  String weatherMorningHotBody(String name) {
+    return 'Nhắc $name uống đủ nước nhé?';
+  }
+
+  @override
+  String weatherMorningColdTitle(String city, int min) {
+    return 'Hôm nay $city xuống $min°';
+  }
+
+  @override
+  String weatherMorningColdBody(String name) {
+    return 'Nhắc $name mặc ấm nhé?';
+  }
+
+  @override
+  String get weatherSaveFailed => 'Chưa lưu được, thử lại nhé.';
+
+  @override
+  String get weatherLaneFailed => 'Chưa tải được';
+
+  @override
+  String get weatherFeatureTourTitle => 'Thời tiết hai nơi';
+
+  @override
+  String get weatherFeatureTourBody =>
+      'Mở app là biết chỗ người ấy có mưa không. Trời sắp mưa thì chạm một cái là nhắc được người ấy mang ô.';
+
+  @override
+  String get arrivalCardTitle => 'Về đến nhà chưa?';
+
+  @override
+  String get arrivalOpenManageA11y => 'Mở cài đặt Về đến nhà';
+
+  @override
+  String arrivalPitch(String name) {
+    return 'Về đến nhà là máy tự báo cho $name. Đang chạy xe thì khỏi phải nhắn.';
+  }
+
+  @override
+  String get arrivalEnableCta => 'Bật báo về nhà';
+
+  @override
+  String get arrivalManualHome => 'Về nhà rồi';
+
+  @override
+  String get arrivalManualOther => 'Đến nơi rồi';
+
+  @override
+  String get arrivalHomeName => 'Nhà';
+
+  @override
+  String get arrivalEnterHome => 'Đã về đến nhà';
+
+  @override
+  String get arrivalExitHome => 'Đã rời nhà';
+
+  @override
+  String arrivalEnterPlace(String place) {
+    return 'Đã đến $place';
+  }
+
+  @override
+  String arrivalExitPlace(String place) {
+    return 'Đã rời $place';
+  }
+
+  @override
+  String arrivalYesterdayAt(String time) {
+    return 'hôm qua $time';
+  }
+
+  @override
+  String arrivalBattery(int pct) {
+    return '$pct%';
+  }
+
+  @override
+  String arrivalBatteryLow(int pct) {
+    return 'Pin còn $pct%';
+  }
+
+  @override
+  String get arrivalManualTag => 'bấm tay';
+
+  @override
+  String get arrivalPartnerOn => 'Đang bật báo về nhà';
+
+  @override
+  String arrivalPartnerOnSub(String name) {
+    return 'Khi $name đến nơi, tin sẽ hiện ở đây.';
+  }
+
+  @override
+  String get arrivalPartnerOff => 'Chưa bật báo về nhà';
+
+  @override
+  String get arrivalCareCta => 'Hỏi thăm';
+
+  @override
+  String arrivalCareA11y(String name) {
+    return 'Hỏi thăm $name';
+  }
+
+  @override
+  String get arrivalCareSuggestion => 'Về tới nơi rồi thì nghỉ ngơi nhé';
+
+  @override
+  String get arrivalNoEventToday => 'Chưa có tin hôm nay';
+
+  @override
+  String arrivalMineAuto(String places) {
+    return 'Tự báo: $places';
+  }
+
+  @override
+  String arrivalPlacesMany(int n) {
+    return 'Nhà và $n nơi khác';
+  }
+
+  @override
+  String get arrivalMineNeedAlways =>
+      'Chưa tự báo được: cần quyền vị trí Luôn luôn';
+
+  @override
+  String get arrivalMineRemoteOff => 'Tạm thời chỉ báo bằng tay';
+
+  @override
+  String get arrivalMineManual => 'Chỉ báo khi bạn bấm';
+
+  @override
+  String get arrivalMineNoAddress => 'Chưa đặt địa chỉ Nhà';
+
+  @override
+  String get arrivalSetAddress => 'Đặt địa chỉ';
+
+  @override
+  String get arrivalOpenSettings => 'Mở Cài đặt';
+
+  @override
+  String arrivalFirstDetected(String place) {
+    return 'App đã nhận ra $place';
+  }
+
+  @override
+  String arrivalSent(String name) {
+    return 'Đã báo $name';
+  }
+
+  @override
+  String arrivalQueued(String name) {
+    return 'Sẽ báo khi có mạng. Quá 30 phút thì $name chỉ thấy trên thẻ, không nhận thông báo.';
+  }
+
+  @override
+  String arrivalSendFailed(String what) {
+    return 'Chưa gửi được tin “$what”.';
+  }
+
+  @override
+  String get arrivalRetry => 'Thử lại';
+
+  @override
+  String get arrivalPickTitle => 'Bạn vừa đến đâu?';
+
+  @override
+  String arrivalPickNote(String name, String me) {
+    return 'Bấm là $name nhận “$me đã đến …” ngay, không cần quyền vị trí.';
+  }
+
+  @override
+  String get arrivalAddPlace => 'Thêm nơi';
+
+  @override
+  String arrivalSlotsLeft(int n) {
+    return 'Còn $n chỗ';
+  }
+
+  @override
+  String get arrivalBadge => 'VỀ ĐẾN NHÀ';
+
+  @override
+  String get arrivalNewPlaceTitle => 'Nơi mới';
+
+  @override
+  String get arrivalNameLabel => 'Tên nơi';
+
+  @override
+  String get arrivalNameHint => 'Vd: Công ty, Nhà bố mẹ';
+
+  @override
+  String get arrivalNameNote => 'Người ấy sẽ thấy tên này khi bạn đến.';
+
+  @override
+  String get arrivalNameEmpty => 'Gõ tên để tiếp tục. Tối đa 24 ký tự.';
+
+  @override
+  String get arrivalChipWork => 'Công ty';
+
+  @override
+  String get arrivalChipSchool => 'Trường';
+
+  @override
+  String get arrivalChipFamily => 'Nhà bố mẹ';
+
+  @override
+  String get arrivalChipGym => 'Phòng gym';
+
+  @override
+  String get arrivalChipCafe => 'Quán quen';
+
+  @override
+  String get arrivalIconLabel => 'Biểu tượng';
+
+  @override
+  String get arrivalIconAuto =>
+      'Chọn tên gợi ý thì biểu tượng tự đổi theo, bạn vẫn đổi lại được.';
+
+  @override
+  String get arrivalIconWork => 'Công việc';
+
+  @override
+  String get arrivalIconSchool => 'Trường';
+
+  @override
+  String get arrivalIconFamily => 'Gia đình';
+
+  @override
+  String get arrivalIconGym => 'Tập luyện';
+
+  @override
+  String get arrivalIconCafe => 'Quán';
+
+  @override
+  String get arrivalIconShop => 'Mua sắm';
+
+  @override
+  String get arrivalIconPin => 'Chỗ khác';
+
+  @override
+  String arrivalPreviewLead(String name) {
+    return '$name sẽ thấy:';
+  }
+
+  @override
+  String get arrivalContinue => 'Tiếp tục';
+
+  @override
+  String arrivalWhereTitle(String place) {
+    return '$place ở đâu?';
+  }
+
+  @override
+  String get arrivalWhereSub =>
+      'Gõ đủ số nhà, tên đường và phường để tìm cho đúng.';
+
+  @override
+  String get arrivalSearchHint => 'Vd: 12 Nguyễn Trãi, Thanh Xuân, Hà Nội';
+
+  @override
+  String get arrivalSearching => 'Đang tìm…';
+
+  @override
+  String get arrivalSearchTip =>
+      'Gõ xong bấm Tìm trên bàn phím nếu chưa thấy kết quả.';
+
+  @override
+  String get arrivalClearSearch => 'Xoá chữ đã gõ';
+
+  @override
+  String get arrivalUseCurrentRow => 'Không thấy địa chỉ? Dùng vị trí hiện tại';
+
+  @override
+  String get arrivalUseCurrentRowSub => 'Bấm khi bạn đang đứng ở đó';
+
+  @override
+  String get arrivalNoResults =>
+      'Không tìm thấy địa chỉ này. Thử thêm tên phường hoặc tỉnh, hoặc dùng vị trí hiện tại khi bạn đang ở đó.';
+
+  @override
+  String get arrivalSearchOffline =>
+      'Cần mạng để tìm địa chỉ. Có mạng lại thì gõ tiếp, hoặc dùng vị trí hiện tại khi bạn đang ở đó.';
+
+  @override
+  String get arrivalSearchError =>
+      'Chưa tìm được lúc này. Thử lại sau chút nữa, hoặc dùng vị trí hiện tại khi bạn đang ở đó.';
+
+  @override
+  String get arrivalNoGeocoder =>
+      'Máy này không tra được địa chỉ. Lúc đứng ở đó, bạn lưu bằng vị trí hiện tại nhé.';
+
+  @override
+  String get arrivalUseCurrent => 'Dùng vị trí hiện tại';
+
+  @override
+  String get arrivalNameOnly => 'Lưu tên, chỉ bấm tay';
+
+  @override
+  String arrivalCurrentTitle(String place) {
+    return 'Bạn đang ở $place?';
+  }
+
+  @override
+  String get arrivalCurrentBody =>
+      'App đọc vị trí một lần để lưu chỗ này. Toạ độ chỉ nằm trên máy bạn.';
+
+  @override
+  String get arrivalCurrentHint =>
+      'Lần đầu, máy sẽ hỏi quyền vị trí. Chọn “Cho phép khi dùng ứng dụng” và để Vị trí chính xác bật.';
+
+  @override
+  String get arrivalReadLocation => 'Đọc vị trí';
+
+  @override
+  String get arrivalReading => 'Đang đọc vị trí…';
+
+  @override
+  String get arrivalBackToSearch => 'Quay lại tìm địa chỉ';
+
+  @override
+  String get arrivalReadTimeout =>
+      'Chưa đọc được vị trí. Ra chỗ thoáng hơn rồi thử lại nhé.';
+
+  @override
+  String get arrivalPreciseTitle => 'Cần bật Vị trí chính xác';
+
+  @override
+  String get arrivalPreciseBody =>
+      'Nếu chỉ có vị trí gần đúng, app không phân biệt được bạn đã tới cửa hay còn cách nhà vài con phố.';
+
+  @override
+  String get arrivalConfirmTitle => 'Đúng chỗ này chưa?';
+
+  @override
+  String get arrivalFromAddress => 'Từ địa chỉ';
+
+  @override
+  String arrivalFromCurrent(int m) {
+    return 'Vị trí hiện tại của bạn, lệch khoảng $m m';
+  }
+
+  @override
+  String arrivalRadiusLine(int m) {
+    return 'App báo khi bạn vào trong khoảng $m m quanh đây.';
+  }
+
+  @override
+  String get arrivalNoHouseNumber =>
+      'Địa chỉ này chưa có số nhà, app có thể báo hơi sớm hoặc hơi muộn.';
+
+  @override
+  String get arrivalConfirmAlleyWarn =>
+      'Số nhà trong hẻm thường chỉ tìm được tới đầu hẻm, app có thể báo hơi sớm hoặc hơi muộn.';
+
+  @override
+  String get arrivalSave => 'Lưu';
+
+  @override
+  String get arrivalWrongSpot =>
+      'Không đúng chỗ? Dùng vị trí hiện tại khi bạn đang ở đó';
+
+  @override
+  String get arrivalReread => 'Đọc lại vị trí';
+
+  @override
+  String arrivalSaved(String place) {
+    return 'Đã lưu $place';
+  }
+
+  @override
+  String arrivalEditTitle(String place) {
+    return 'Sửa $place';
+  }
+
+  @override
+  String get arrivalRenameNote => 'Đổi tên chỉ áp cho lần đến sau.';
+
+  @override
+  String get arrivalLocationLabel => 'Vị trí';
+
+  @override
+  String arrivalSavedFromAddress(String date) {
+    return 'Lưu từ địa chỉ · $date';
+  }
+
+  @override
+  String arrivalSavedFromCurrent(String date) {
+    return 'Lưu bằng vị trí hiện tại · $date';
+  }
+
+  @override
+  String get arrivalNoAddressManual => 'Chưa đặt địa chỉ, chỉ bấm tay';
+
+  @override
+  String get arrivalPaused => 'Đang tạm dừng';
+
+  @override
+  String get arrivalDeletePlace => 'Xoá nơi này';
+
+  @override
+  String get arrivalDeletePlaceSub => 'App hỏi lại trước khi xoá.';
+
+  @override
+  String arrivalDeletePlaceTitle(String place) {
+    return 'Xoá $place?';
+  }
+
+  @override
+  String get arrivalDeletePlaceBody =>
+      'App thôi báo khi bạn đến đây. Tin đã gửi trước đó vẫn giữ tên cũ.';
+
+  @override
+  String get arrivalHomeEditBody =>
+      'Nhà luôn có trên thẻ. Bạn chỉ đổi được chỗ của nó.';
+
+  @override
+  String get arrivalDeleteHomeAddress => 'Xoá địa chỉ';
+
+  @override
+  String get arrivalDeleteHomeAddressSub =>
+      'Về Nhà thì bạn bấm tay “Về nhà rồi”.';
+
+  @override
+  String get arrivalDeleteHomeAddressTitle => 'Xoá địa chỉ Nhà?';
+
+  @override
+  String get arrivalDeleteHomeAddressBody =>
+      'Nhà vẫn còn trên thẻ, bạn bấm “Về nhà rồi” mỗi lần về.';
+
+  @override
+  String get arrivalDelete => 'Xoá';
+
+  @override
+  String get arrivalCancel => 'Huỷ';
+
+  @override
+  String arrivalDeleted(String place) {
+    return 'Đã xoá $place';
+  }
+
+  @override
+  String get arrivalHomeAddressDeleted => 'Đã xoá địa chỉ Nhà';
+
+  @override
+  String get arrivalUndo => 'Hoàn tác';
+
+  @override
+  String get arrivalNeedPlaceTitle => 'Trước hết, nhà bạn ở đâu?';
+
+  @override
+  String get arrivalNeedPlaceBody =>
+      'Máy cần biết Nhà ở đâu thì mới tự báo được. Gõ địa chỉ là xong, chưa cần cấp quyền gì.';
+
+  @override
+  String get arrivalNoAddressYet => 'Chưa đặt địa chỉ';
+
+  @override
+  String get arrivalSetHomeAddress => 'Đặt địa chỉ Nhà';
+
+  @override
+  String get arrivalLater => 'Để sau';
+
+  @override
+  String arrivalDisclosureTitle(String name) {
+    return 'Về đến nơi, $name biết ngay';
+  }
+
+  @override
+  String get arrivalDisclosureBody =>
+      'Dear Embeiu dùng vị trí để báo người ấy khi bạn đến hoặc rời Nhà và những nơi bạn đã lưu, kể cả khi app đã đóng hoặc không dùng. Địa chỉ và toạ độ chỉ lưu trên máy bạn. Người ấy chỉ thấy tên nơi, giờ đến, giờ rời và mức pin lúc đó. Bạn tắt lúc nào cũng được.';
+
+  @override
+  String arrivalPreviewLabel(String name) {
+    return '$name sẽ nhận được';
+  }
+
+  @override
+  String get arrivalPushBody => 'Nhắn một câu hỏi thăm nhé';
+
+  @override
+  String get arrivalAgree => 'Đồng ý, tiếp tục';
+
+  @override
+  String get arrivalPrivacyLink => 'Chính sách bảo mật';
+
+  @override
+  String arrivalAlwaysTitle(String label) {
+    return 'Chọn “$label”';
+  }
+
+  @override
+  String arrivalAlwaysBody(String label) {
+    return 'Để tự báo cả lúc app đang đóng, chọn “$label” ở trang tiếp theo.';
+  }
+
+  @override
+  String get arrivalAlwaysLabelIos => 'Luôn luôn';
+
+  @override
+  String get arrivalAlwaysLabelAndroid => 'Cho phép mọi lúc';
+
+  @override
+  String get arrivalNextLooksLike => 'Trang tiếp theo trông như thế này';
+
+  @override
+  String get arrivalOsNever => 'Không bao giờ';
+
+  @override
+  String get arrivalOsAskNext => 'Hỏi lần sau';
+
+  @override
+  String get arrivalOsWhileUsing => 'Khi dùng ứng dụng';
+
+  @override
+  String get arrivalOsAndroidWhileUsing =>
+      'Chỉ cho phép khi đang dùng ứng dụng';
+
+  @override
+  String get arrivalOsAndroidAsk => 'Luôn hỏi';
+
+  @override
+  String get arrivalOsAndroidDeny => 'Không cho phép';
+
+  @override
+  String get arrivalSwipeHint =>
+      'Đừng vuốt tắt Dear Embeiu trong đa nhiệm. App bị vuốt tắt thì iPhone có thể không báo được.';
+
+  @override
+  String get arrivalAutostartHint =>
+      'Máy Xiaomi, Oppo, Vivo: bật thêm Tự khởi động cho Dear Embeiu để tin báo không bị chặn.';
+
+  @override
+  String get arrivalOpenPermission => 'Mở trang quyền';
+
+  @override
+  String get arrivalLaterManual => 'Để sau, mình bấm tay';
+
+  @override
+  String get arrivalSetupDone => 'Xong';
+
+  @override
+  String get arrivalDoneTitle => 'Đã bật báo về nhà';
+
+  @override
+  String arrivalDoneBody(String name) {
+    return 'Từ giờ về đến Nhà là $name biết. Muốn tắt thì vào Cài đặt → Về đến nhà. Tắt là tin gần nhất bị xoá, $name không nhận thông báo nào.';
+  }
+
+  @override
+  String get arrivalDoneRow => 'Tự báo khi đến Nhà';
+
+  @override
+  String get arrivalDoneRowSub =>
+      'Thêm Công ty, phòng gym… để báo cả những chỗ đó';
+
+  @override
+  String get arrivalPartialTitle => 'Tạm thời bạn báo bằng tay';
+
+  @override
+  String arrivalPartialBody(String name) {
+    return 'Mỗi lần về, bấm “Về nhà rồi” ở trang chủ. $name nhận tin y như lúc máy tự báo. Các nơi đã lưu vẫn giữ nguyên.';
+  }
+
+  @override
+  String get arrivalBackHome => 'Về trang chủ';
+
+  @override
+  String arrivalSeesLabel(String name) {
+    return '$name đang thấy';
+  }
+
+  @override
+  String arrivalShareTitle(String name) {
+    return 'Báo cho $name';
+  }
+
+  @override
+  String arrivalShareSub(String name) {
+    return 'Tắt là xoá tin gần nhất trên máy chủ. $name không nhận thông báo nào.';
+  }
+
+  @override
+  String arrivalShareOffSub(String name) {
+    return 'Bật lại để báo cho $name mỗi khi bạn đến nơi.';
+  }
+
+  @override
+  String get arrivalAutoTitle => 'Tự báo khi đến nơi';
+
+  @override
+  String arrivalAutoSub(String places) {
+    return 'Máy tự báo khi bạn đến $places.';
+  }
+
+  @override
+  String get arrivalAutoNeedPlace =>
+      'Đặt địa chỉ Nhà hoặc một nơi khác trước, rồi bật.';
+
+  @override
+  String get arrivalAutoNeedAlways =>
+      'Chưa tự báo được: cần quyền vị trí Luôn luôn.';
+
+  @override
+  String get arrivalAutoRemoteOff =>
+      'Tạm thời chỉ báo bằng tay. Bạn vẫn bấm “Về nhà rồi” ở trang chủ.';
+
+  @override
+  String get arrivalPlacesTitle => 'Nơi báo';
+
+  @override
+  String get arrivalPlacesSub =>
+      'Nhà luôn có. Thêm tối đa 4 nơi nữa. Địa chỉ chỉ nằm trên máy này.';
+
+  @override
+  String get arrivalPermTitle => 'Quyền vị trí';
+
+  @override
+  String get arrivalPermAlways => 'Vị trí: Luôn luôn';
+
+  @override
+  String get arrivalPermAlwaysSub => 'Đủ để tự báo cả lúc app đang đóng.';
+
+  @override
+  String get arrivalPermWhileUsing => 'Vị trí: Khi dùng ứng dụng';
+
+  @override
+  String get arrivalPermWhileUsingSub =>
+      'Cần “Luôn luôn” thì máy mới tự báo lúc app đang đóng.';
+
+  @override
+  String get arrivalPermNone => 'Vị trí: Chưa cho phép';
+
+  @override
+  String get arrivalPermPreciseOn => 'Vị trí chính xác: Bật';
+
+  @override
+  String get arrivalPermPreciseOff => 'Vị trí chính xác: Tắt';
+
+  @override
+  String get arrivalPermPreciseSub =>
+      'Để biết bạn đã tới cửa, không phải đầu ngõ.';
+
+  @override
+  String get arrivalPermOpenSettings => 'Mở Cài đặt của máy';
+
+  @override
+  String get arrivalTurnOffTitle => 'Tắt báo về nhà?';
+
+  @override
+  String arrivalTurnOffBody(String name, String me) {
+    return 'Tin gần nhất của bạn bị xoá khỏi máy chủ ngay. $name sẽ thấy “$me chưa bật báo về nhà” và không nhận thông báo nào.';
+  }
+
+  @override
+  String arrivalTurnOffAlsoPlaces(int n) {
+    return 'Xoá luôn địa chỉ đã lưu của $n nơi trên máy này';
+  }
+
+  @override
+  String get arrivalTurnOff => 'Tắt';
+
+  @override
+  String get arrivalSettingsPushTitle => 'Khi người ấy đến nơi';
+
+  @override
+  String arrivalSettingsPushSub(String name) {
+    return 'Báo khi $name về nhà hoặc đến một nơi đã lưu. Tắt thì trang chủ vẫn hiện tin.';
+  }
+
+  @override
+  String get arrivalSettingsTitle => 'Về đến nhà';
+
+  @override
+  String arrivalSettingsSharing(String name, String places) {
+    return 'Đang báo cho $name: $places';
+  }
+
+  @override
+  String get arrivalSettingsOff => 'Đang tắt';
+
+  @override
+  String arrivalWidgetHome(String name) {
+    return '$name đã về đến nhà';
+  }
+
+  @override
+  String arrivalWidgetHomeShort(String name) {
+    return '$name về nhà rồi';
+  }
+
+  @override
+  String arrivalWidgetPlace(String name, String place) {
+    return '$name đã đến $place';
+  }
+
+  @override
+  String arrivalWidgetPlaceShort(String name, String place) {
+    return '$name tới $place';
+  }
+
+  @override
+  String get arrivalTourTitle => 'Về đến nhà chưa?';
+
+  @override
+  String get arrivalTourBody =>
+      'Về tới nhà, bấm “Về nhà rồi” trên trang chủ là người ấy biết, khỏi phải nhắn. Muốn thì cho máy tự báo khi bạn đến những nơi đã lưu.';
+
+  @override
+  String arrivalSaveFailed(String place) {
+    return 'Chưa lưu được $place. Thử lại sau nhé.';
+  }
+
+  @override
+  String get arrivalPlacesFull => 'Đã đủ 4 nơi. Xoá bớt một nơi rồi thêm lại.';
+
+  @override
+  String get arrivalUndoFailed =>
+      'Chưa hoàn tác được: chỗ này vừa được dùng cho nơi khác.';
+
+  @override
+  String get moneyCatFood => 'Ăn uống';
+
+  @override
+  String get moneyCatFoodOut => 'Ăn ngoài';
+
+  @override
+  String get moneyCatFoodMarket => 'Đi chợ, siêu thị';
+
+  @override
+  String get moneyCatFoodCoffee => 'Cà phê, trà sữa';
+
+  @override
+  String get moneyCatFoodSnack => 'Ăn vặt';
+
+  @override
+  String get moneyCatDate => 'Hẹn hò';
+
+  @override
+  String get moneyCatDateMovie => 'Xem phim';
+
+  @override
+  String get moneyCatDateOut => 'Đi chơi';
+
+  @override
+  String get moneyCatDateGift => 'Quà cho người ấy';
+
+  @override
+  String get moneyCatMove => 'Đi lại';
+
+  @override
+  String get moneyCatMoveFuel => 'Xăng xe';
+
+  @override
+  String get moneyCatMoveParking => 'Gửi xe';
+
+  @override
+  String get moneyCatMoveGrab => 'Grab, taxi';
+
+  @override
+  String get moneyCatMoveRepair => 'Sửa xe';
+
+  @override
+  String get moneyCatHome => 'Nhà cửa';
+
+  @override
+  String get moneyCatHomeRent => 'Tiền nhà';
+
+  @override
+  String get moneyCatHomePower => 'Điện';
+
+  @override
+  String get moneyCatHomeWater => 'Nước';
+
+  @override
+  String get moneyCatHomeNet => 'Internet';
+
+  @override
+  String get moneyCatHomeGoods => 'Đồ gia dụng';
+
+  @override
+  String get moneyCatBill => 'Hoá đơn & gói';
+
+  @override
+  String get moneyCatBillPhone => 'Điện thoại';
+
+  @override
+  String get moneyCatBillStream => 'Xem phim, nghe nhạc';
+
+  @override
+  String get moneyCatBillSoft => 'Phần mềm';
+
+  @override
+  String get moneyCatShop => 'Mua sắm';
+
+  @override
+  String get moneyCatShopClothes => 'Quần áo';
+
+  @override
+  String get moneyCatShopBeauty => 'Mỹ phẩm';
+
+  @override
+  String get moneyCatShopTech => 'Đồ điện tử';
+
+  @override
+  String get moneyCatHealth => 'Sức khoẻ';
+
+  @override
+  String get moneyCatHealthMed => 'Thuốc';
+
+  @override
+  String get moneyCatHealthDoctor => 'Khám bệnh';
+
+  @override
+  String get moneyCatHealthSport => 'Thể thao';
+
+  @override
+  String get moneyCatEdu => 'Học tập';
+
+  @override
+  String get moneyCatEduFee => 'Học phí';
+
+  @override
+  String get moneyCatEduBooks => 'Sách, khoá học';
+
+  @override
+  String get moneyCatGift => 'Quà & hiếu hỉ';
+
+  @override
+  String get moneyCatGiftPresent => 'Quà tặng';
+
+  @override
+  String get moneyCatGiftWedding => 'Đám cưới, đám hiếu';
+
+  @override
+  String get moneyCatGiftLixi => 'Lì xì';
+
+  @override
+  String get moneyCatFamily => 'Gia đình';
+
+  @override
+  String get moneyCatFamilyParents => 'Biếu bố mẹ';
+
+  @override
+  String get moneyCatFamilyPet => 'Thú cưng';
+
+  @override
+  String get moneyCatTravel => 'Du lịch';
+
+  @override
+  String get moneyCatTravelTicket => 'Vé';
+
+  @override
+  String get moneyCatTravelStay => 'Chỗ ở';
+
+  @override
+  String get moneyCatTravelFun => 'Ăn chơi';
+
+  @override
+  String get moneyCatOther => 'Khác';
+
+  @override
+  String get moneyWalletCash => 'Tiền mặt';
+
+  @override
+  String get moneyJointWallet => 'Ví chung';
+
+  @override
+  String get moneyTitle => 'Sổ tiền';
+
+  @override
+  String get moneyBadge => 'SỔ TIỀN';
+
+  @override
+  String get moneyTabMine => 'Của mình';
+
+  @override
+  String get moneyTabShared => 'Chung';
+
+  @override
+  String moneyHomeShared(String month) {
+    return 'Sổ chung tháng $month';
+  }
+
+  @override
+  String moneyHomeSpent(String amount, String percent) {
+    return 'Đã chi $amount · $percent% ngân sách';
+  }
+
+  @override
+  String moneyHomeSpentNoBudget(String amount) {
+    return 'Đã chi $amount tháng này';
+  }
+
+  @override
+  String moneyHomeSpentOnly(String amount) {
+    return 'Đã chi $amount';
+  }
+
+  @override
+  String moneyHomeOverPart(String over) {
+    return 'vượt $over';
+  }
+
+  @override
+  String moneyHomeZero(String amount) {
+    return 'Đã chi $amount · chưa có khoản nào';
+  }
+
+  @override
+  String moneyHomeStale(String amount, String time) {
+    return '$amount · số liệu lúc $time';
+  }
+
+  @override
+  String get moneyHomeError => 'Chưa tải được sổ chung';
+
+  @override
+  String get moneyHomeLoading => 'Đang tải sổ chung';
+
+  @override
+  String get moneyHomeMine => 'Sổ tiền của mình';
+
+  @override
+  String moneyHomeTodayCount(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Hôm nay đã ghi $n khoản',
+      zero: 'Hôm nay chưa ghi khoản nào',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moneyHomeFirst => 'Gõ 50k, chọn danh mục là xong';
+
+  @override
+  String get moneyAddTx => 'Ghi khoản';
+
+  @override
+  String get moneyRetry => 'Thử lại';
+
+  @override
+  String get moneyMoreLabel => 'Ví, danh mục, ngân sách';
+
+  @override
+  String get moneyPrevMonth => 'Tháng trước';
+
+  @override
+  String get moneyNextMonth => 'Tháng sau';
+
+  @override
+  String get moneyMonthSpentMine => 'Đã chi';
+
+  @override
+  String get moneyMonthSpentShared => 'Chúng mình đã chi';
+
+  @override
+  String get moneyBudgetLeftLabel => 'Còn trong ngân sách';
+
+  @override
+  String get moneyBudgetNone => 'Chưa đặt ngân sách';
+
+  @override
+  String moneyBudgetUsed(String percent) {
+    return 'Đã dùng $percent%';
+  }
+
+  @override
+  String moneyBudgetOfShort(String amount) {
+    return 'của $amount';
+  }
+
+  @override
+  String get moneyToday => 'Hôm nay';
+
+  @override
+  String moneyBudgetSemantics(String percent, String left) {
+    return 'Đã dùng $percent% ngân sách, còn $left';
+  }
+
+  @override
+  String moneyFindingPerDay(
+    String passed,
+    String total,
+    String percent,
+    String perDay,
+  ) {
+    return 'Tháng mới qua $passed/$total ngày mà đã dùng $percent% ngân sách. Từ giờ tới cuối tháng, mỗi ngày chỉ còn khoảng $perDay.';
+  }
+
+  @override
+  String moneyFindingOver(String over) {
+    return 'Tháng này đã vượt ngân sách $over.';
+  }
+
+  @override
+  String moneyFindingCategory(
+    String category,
+    String percent,
+    String left,
+    String days,
+  ) {
+    return '$category chung đã dùng $percent% ngân sách, còn $left cho $days ngày.';
+  }
+
+  @override
+  String get moneyMe => 'Mình';
+
+  @override
+  String get moneyRecent => 'Gần đây';
+
+  @override
+  String moneyRecentEmpty(String month, String prev) {
+    return 'Chưa có khoản nào trong tháng $month. Mở tháng $prev bằng nút ‹ ở trên để xem lại.';
+  }
+
+  @override
+  String moneyEmptyMonth(String month) {
+    return 'Tháng $month chưa có khoản nào. Bấm nút hồng ở góc dưới để ghi khoản đầu tiên.';
+  }
+
+  @override
+  String moneyDaySpent(String amount) {
+    return 'Chi $amount';
+  }
+
+  @override
+  String moneyDayToday(String date) {
+    return 'Hôm nay, $date';
+  }
+
+  @override
+  String moneyDayYesterday(String date) {
+    return 'Hôm qua, $date';
+  }
+
+  @override
+  String get moneyWhere => 'Tiêu vào đâu';
+
+  @override
+  String moneyBudgetPercentShort(String percent) {
+    return '$percent% ngân sách';
+  }
+
+  @override
+  String moneyOverPercent(String percent) {
+    return 'Vượt $percent%';
+  }
+
+  @override
+  String get moneyWallets => 'Ví';
+
+  @override
+  String get moneyTotalAssets => 'Tổng tiền đang có';
+
+  @override
+  String moneyTotalAssetsValue(String amount) {
+    return 'Tổng tiền đang có $amount';
+  }
+
+  @override
+  String get moneyManageWallets => 'Quản lý ví';
+
+  @override
+  String moneyGoalProgress(String percent, String target) {
+    return '$percent% của $target';
+  }
+
+  @override
+  String moneyPaidByNoSplit(String name) {
+    return '$name trả';
+  }
+
+  @override
+  String get moneyPaidFromJoint => 'Trả từ Ví chung';
+
+  @override
+  String moneyEditedBy(String name, String time) {
+    return '$name sửa $time';
+  }
+
+  @override
+  String get moneyPending => 'chờ mạng';
+
+  @override
+  String moneyOffline(String time, int n) {
+    return 'Đang mất mạng. Số dư là số lúc $time, cộng thêm $n khoản đang chờ gửi.';
+  }
+
+  @override
+  String moneyOfflineNoTime(int n) {
+    return 'Đang mất mạng. $n khoản đang chờ gửi.';
+  }
+
+  @override
+  String moneyLoadError(String time) {
+    return 'Chưa tải được khoản mới. Số liệu đúng lúc $time.';
+  }
+
+  @override
+  String get moneyLoadErrorNoTime => 'Chưa tải được khoản mới.';
+
+  @override
+  String get moneyWaitingCard =>
+      'Khi người ấy vào app, chúng mình có thêm sổ chung để ghi ai trả, chia đôi và góp quỹ đi chơi.';
+
+  @override
+  String get moneySendInvite => 'Gửi lời mời';
+
+  @override
+  String get moneyAdjustRow => 'Sửa số dư cho khớp';
+
+  @override
+  String moneyAdjustSub(String wallet) {
+    return '$wallet · không tính là chi';
+  }
+
+  @override
+  String moneyTransferSub(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String moneyContribSub(String name) {
+    return '$name góp';
+  }
+
+  @override
+  String moneyContribOwnSub(String wallet) {
+    return '$wallet → sổ chung';
+  }
+
+  @override
+  String get moneyLinkedBadge => 'Có ở sổ chung';
+
+  @override
+  String get moneyFirstEntryTitle => 'Ghi khoản đầu tiên';
+
+  @override
+  String get moneyFirstEntryBody =>
+      'Hôm nay vừa trả gì? Chạm một mục, gõ số tiền rồi Lưu.';
+
+  @override
+  String get moneyFirstEntryFoot =>
+      'Ghi vài hôm, mình sẽ thấy tiền đi đâu nhiều nhất và đặt ngân sách cho tháng sau.';
+
+  @override
+  String get moneyNegWallet => 'Số dư âm, có khoản nào ghi nhầm ví không?';
+
+  @override
+  String get moneyCategories => 'Danh mục';
+
+  @override
+  String get moneyEditTx => 'Sửa khoản';
+
+  @override
+  String get moneyClose => 'Đóng';
+
+  @override
+  String get moneyBookShared => 'Sổ chung';
+
+  @override
+  String moneySwitchBook(String book) {
+    return 'Đổi sổ, đang ở $book';
+  }
+
+  @override
+  String get moneyTypeExpense => 'Chi';
+
+  @override
+  String get moneyTypeTransfer => 'Chuyển';
+
+  @override
+  String get moneyAmountLabel => 'Số tiền';
+
+  @override
+  String get moneyAmountHint => 'Gõ 50k, 1tr2 hay 1 củ đều được';
+
+  @override
+  String moneyAmountEcho(String raw) {
+    return 'Bạn gõ “$raw”';
+  }
+
+  @override
+  String get moneyAmountInvalid => 'Chưa hiểu số này. Thử 120k hoặc 120000.';
+
+  @override
+  String get moneyAmountTooBig =>
+      'Tối đa 10 tỷ một khoản. Kiểm tra lại số 0 nhé.';
+
+  @override
+  String get moneyWalletCapHit =>
+      'Số dư ví sẽ vượt 100 tỷ. Kiểm tra lại số tiền nhé.';
+
+  @override
+  String get moneyQuickRepeat => 'Ghi lại khoản quen';
+
+  @override
+  String get moneyCategory => 'Danh mục';
+
+  @override
+  String get moneyAllCategories => 'Tất cả';
+
+  @override
+  String get moneyWallet => 'Ví';
+
+  @override
+  String get moneyDeductMine => 'Trừ vào ví của mình';
+
+  @override
+  String get moneyFromWallet => 'Từ ví';
+
+  @override
+  String get moneyAddNote => 'Thêm ghi chú';
+
+  @override
+  String get moneyDate => 'Ngày';
+
+  @override
+  String get moneyNote => 'Ghi chú';
+
+  @override
+  String get moneyNoteHint => 'Bún chả, quà sinh nhật…';
+
+  @override
+  String moneySaveAmount(String amount) {
+    return 'Lưu $amount';
+  }
+
+  @override
+  String get moneySaveNeedAmount => 'Nhập số tiền để lưu';
+
+  @override
+  String get moneySaveFixAmount => 'Sửa số tiền để lưu';
+
+  @override
+  String get moneySaveNeedWallet => 'Chọn ví để lưu';
+
+  @override
+  String moneySaved(String amount, String category) {
+    return 'Đã ghi $amount · $category';
+  }
+
+  @override
+  String get moneySavedEdit => 'Đã lưu thay đổi';
+
+  @override
+  String get moneySavedOffline =>
+      'Đang chờ mạng, có mạng sẽ tự gửi lên sổ chung';
+
+  @override
+  String get moneySavedOfflineMine => 'Đang chờ mạng, có mạng sẽ tự gửi lên';
+
+  @override
+  String moneyOverBudgetToast(String category, String amount) {
+    return '$category chung đã vượt ngân sách $amount';
+  }
+
+  @override
+  String moneyNearBudgetToast(String category, String percent) {
+    return '$category chung đã dùng $percent% ngân sách tháng';
+  }
+
+  @override
+  String moneyOverBudgetToastMine(String category, String amount) {
+    return '$category đã vượt ngân sách $amount';
+  }
+
+  @override
+  String moneyNearBudgetToastMine(String category, String percent) {
+    return '$category đã dùng $percent% ngân sách tháng';
+  }
+
+  @override
+  String moneyOverTotalToast(String amount) {
+    return 'Cả tháng đã vượt ngân sách $amount';
+  }
+
+  @override
+  String moneyNearTotalToast(String percent) {
+    return 'Cả tháng đã dùng $percent% ngân sách';
+  }
+
+  @override
+  String moneyConflictTitle(String name) {
+    return 'Chưa lưu được: $name vừa sửa khoản này';
+  }
+
+  @override
+  String get moneyConflictBody => 'Đã hiện bản mới nhất, sửa lại nếu cần';
+
+  @override
+  String get moneyWriteFailed => 'Chưa lưu được khoản này. Thử lại nhé.';
+
+  @override
+  String get moneyDeleteTx => 'Xoá khoản';
+
+  @override
+  String moneyDeleted(String note, String amount) {
+    return 'Đã xoá $note · $amount';
+  }
+
+  @override
+  String get moneyUndo => 'Hoàn tác';
+
+  @override
+  String get moneyLinkedAskTitle => 'Sửa luôn bên sổ của mình?';
+
+  @override
+  String moneyLinkedAskBody(
+    String note,
+    String old,
+    String wallet,
+    String amount,
+  ) {
+    return 'Khoản “$note” cũng đang trừ $old ở $wallet. Đổi thành $amount ở cả hai sổ?';
+  }
+
+  @override
+  String get moneyLinkedBoth => 'Sửa cả hai';
+
+  @override
+  String get moneyLinkedSharedOnly => 'Chỉ sổ chung';
+
+  @override
+  String moneyLinkedChanged(String name, String amount) {
+    return '$name đã đổi khoản chung thành $amount';
+  }
+
+  @override
+  String get moneyLinkedUpdate => 'Cập nhật';
+
+  @override
+  String moneyLinkedLocked(String name) {
+    return 'Chỉ $name sửa được số tiền, vì khoản này nằm trong sổ riêng của $name';
+  }
+
+  @override
+  String get moneyDeleteBothTitle => 'Xoá ở cả hai sổ?';
+
+  @override
+  String moneyDeleteBothBody(String note, String amount, String wallet) {
+    return '“$note” $amount có ở sổ chung và đang trừ $wallet của mình. Xoá cả hai thì $wallet được cộng lại $amount.';
+  }
+
+  @override
+  String get moneyDeleteBoth => 'Xoá cả hai';
+
+  @override
+  String get moneyDeleteSharedOnly => 'Chỉ xoá ở sổ chung';
+
+  @override
+  String get moneyCancel => 'Huỷ';
+
+  @override
+  String get moneyDiscardTitle => 'Bỏ khoản đang ghi?';
+
+  @override
+  String moneyDiscardBody(String amount, String category) {
+    return 'Khoản $amount · $category chưa lưu.';
+  }
+
+  @override
+  String get moneyKeepEditing => 'Tiếp tục ghi';
+
+  @override
+  String get moneyDiscard => 'Bỏ khoản này';
+
+  @override
+  String get moneyPickCategory => 'Chọn danh mục';
+
+  @override
+  String get moneyEditCategoriesShort => 'Sửa';
+
+  @override
+  String get moneyCategorySearchHint => 'Tìm danh mục, vd “trà sữa”';
+
+  @override
+  String get moneyCategoryNoMatch => 'Không có danh mục nào khớp.';
+
+  @override
+  String get moneyKeyDelete => 'Xoá một ký tự';
+
+  @override
+  String get moneyKeyBillion => 'tỷ';
+
+  @override
+  String moneyAmountTooBigFor(String max) {
+    return 'Tối đa $max một khoản.';
+  }
+
+  @override
+  String moneyWalletTooBigFor(String max) {
+    return 'Tối đa $max một ví.';
+  }
+
+  @override
+  String get moneyAddSource => 'Thêm nguồn';
+
+  @override
+  String get moneyCurrencyTitle => 'Tiền tệ';
+
+  @override
+  String get moneyTypeSave => 'Góp quỹ';
+
+  @override
+  String moneySavedContribution(String amount, String fund) {
+    return 'Đã góp $amount vào $fund';
+  }
+
+  @override
+  String get moneySaveInto => 'Góp vào';
+
+  @override
+  String get moneyPaidFrom => 'Tiền từ đâu';
+
+  @override
+  String get moneyMyMoney => 'Tiền riêng';
+
+  @override
+  String get moneyGoalsTitle => 'Mục tiêu tiết kiệm';
+
+  @override
+  String get moneyChTplNoCoffee7 => '7 ngày không trà sữa, cà phê';
+
+  @override
+  String get moneyChTplNoSnack7 => '7 ngày không ăn vặt';
+
+  @override
+  String get moneyChTplNoGrab7 => '7 ngày không gọi xe';
+
+  @override
+  String get moneyChTplNoShop7 => '7 ngày không mua sắm';
+
+  @override
+  String get moneyChTplNoClothes14 => '14 ngày không mua quần áo';
+
+  @override
+  String get moneyChTplCookHome14 => '14 ngày nấu ăn ở nhà';
+
+  @override
+  String get moneyChTplNoTech30 => '30 ngày không mua đồ công nghệ';
+
+  @override
+  String moneyChTplEatOutCap7(String amount) {
+    return 'Tuần này ăn ngoài dưới $amount';
+  }
+
+  @override
+  String moneyChTplDateCap7(String amount) {
+    return 'Tuần này hẹn hò dưới $amount';
+  }
+
+  @override
+  String moneyChTplAllCap7(String amount) {
+    return 'Tuần này chi dưới $amount';
+  }
+
+  @override
+  String get moneyChallengesTitle => 'Thử thách tiết kiệm';
+
+  @override
+  String get moneyChallengeNew => 'Thử thách mới';
+
+  @override
+  String get moneyChallengeCustom => 'Tự tạo';
+
+  @override
+  String moneyChallengeDaysLeft(String n) {
+    return 'Còn $n ngày';
+  }
+
+  @override
+  String moneyChallengeCleanDays(String done, String total) {
+    return '$done/$total ngày';
+  }
+
+  @override
+  String moneyChallengeSpentOf(String spent, String limit) {
+    return '$spent / $limit';
+  }
+
+  @override
+  String get moneyChallengeWon => 'Hoàn thành';
+
+  @override
+  String get moneyChallengeLost => 'Thử lại lần sau';
+
+  @override
+  String get moneyChallengeStop => 'Dừng thử thách';
+
+  @override
+  String get moneyChallengeStart => 'Bắt đầu';
+
+  @override
+  String get moneyChallengeKindNoSpend => 'Không chi';
+
+  @override
+  String get moneyChallengeKindCap => 'Chi dưới mức';
+
+  @override
+  String get moneyChallengeLimit => 'Mức tối đa';
+
+  @override
+  String get moneyChallengeAll => 'Mọi khoản chi';
+
+  @override
+  String moneyChallengeDays(String n) {
+    return '$n ngày';
+  }
+
+  @override
+  String get moneyChallengeMax => 'Đang chạy đủ 3 thử thách';
+
+  @override
+  String get moneyChallengeLastDayTitle => 'Hôm nay là ngày cuối thử thách';
+
+  @override
+  String moneyChallengeStarted(String title) {
+    return 'Bắt đầu: $title';
+  }
+
+  @override
+  String moneyRecapTitle(String month) {
+    return 'Nhìn lại $month';
+  }
+
+  @override
+  String get moneyRecapKeptBudget => 'Giữ được hạn mức tháng';
+
+  @override
+  String moneyRecapSpentLess(String amount, String month) {
+    return 'Chi ít hơn $month $amount';
+  }
+
+  @override
+  String moneyRecapSaved(String amount) {
+    return 'Góp quỹ thêm $amount';
+  }
+
+  @override
+  String moneyRecapChallenges(String n) {
+    return 'Xong $n thử thách';
+  }
+
+  @override
+  String moneyRecapLogged(String n, String total) {
+    return 'Ghi chi tiêu $n/$total ngày';
+  }
+
+  @override
+  String get moneyRecapEmpty => 'Tháng mới bắt đầu. Đặt hạn mức cho tháng này?';
+
+  @override
+  String get moneyChallengeLength => 'Thời gian';
+
+  @override
+  String get moneyKeyThousand => 'nghìn';
+
+  @override
+  String get moneyKeyMillion => 'triệu';
+
+  @override
+  String get moneyKeyCu => 'củ';
+
+  @override
+  String get moneyShowKeypad => 'Mở bàn phím số';
+
+  @override
+  String get moneyFirstRunTitle => 'Tiền của mình đang nằm ở đâu?';
+
+  @override
+  String get moneyFirstRunBody =>
+      'Bật những ví đang dùng, nhập số dư lúc này. Bỏ qua cũng được: đã có sẵn ví Tiền mặt.';
+
+  @override
+  String get moneyFirstRunDone => 'Xong, vào sổ';
+
+  @override
+  String get moneySkip => 'Bỏ qua';
+
+  @override
+  String get moneyBuiltIn => 'Có sẵn';
+
+  @override
+  String get moneyWalletBank => 'Ngân hàng';
+
+  @override
+  String get moneyWalletEwallet => 'Ví điện tử';
+
+  @override
+  String get moneyWalletCredit => 'Thẻ tín dụng';
+
+  @override
+  String get moneyWalletGoal => 'Mục tiêu';
+
+  @override
+  String get moneyCreditOwed => 'Đang nợ thẻ bao nhiêu';
+
+  @override
+  String moneyBalanceOf(String name) {
+    return 'Số dư $name';
+  }
+
+  @override
+  String get moneyWalletTooBig => 'Tối đa 100 tỷ một ví.';
+
+  @override
+  String get moneyWalletsBadge => 'VÍ';
+
+  @override
+  String get moneyAddWallet => 'Thêm ví';
+
+  @override
+  String moneyAssetsNote(int n) {
+    return 'Cộng $n ví đang dùng, đã trừ tiền đang nợ thẻ. Tiền để dành cho mục tiêu tính riêng bên dưới.';
+  }
+
+  @override
+  String get moneyInUse => 'Đang dùng';
+
+  @override
+  String moneyWalletCount(int n) {
+    return '$n ví';
+  }
+
+  @override
+  String get moneyGoals => 'Mục tiêu';
+
+  @override
+  String get moneyNotInTotal => 'không tính vào tổng';
+
+  @override
+  String moneyGoalPerMonthShort(String amount) {
+    return 'Cần ~$amount mỗi tháng';
+  }
+
+  @override
+  String get moneyArchivedSection => 'Đã lưu trữ';
+
+  @override
+  String moneyArchived(String date) {
+    return 'Lưu trữ từ $date, giữ nguyên lịch sử';
+  }
+
+  @override
+  String get moneyArchivedPlain => 'Đã lưu trữ, giữ nguyên lịch sử';
+
+  @override
+  String get moneyOwingCard => 'đang nợ thẻ';
+
+  @override
+  String get moneyCurrentBalance => 'Số dư hiện tại';
+
+  @override
+  String moneyWalletInTotal(String type) {
+    return '$type · tính vào tổng tiền đang có';
+  }
+
+  @override
+  String moneyWalletNotInTotal(String type) {
+    return '$type · không tính vào tổng';
+  }
+
+  @override
+  String moneyInMonth(String month) {
+    return 'Vào tháng $month';
+  }
+
+  @override
+  String moneyOutMonth(String month) {
+    return 'Ra tháng $month';
+  }
+
+  @override
+  String get moneyFixBalance => 'Sửa số dư';
+
+  @override
+  String moneyEntryCount(int n) {
+    return '$n khoản';
+  }
+
+  @override
+  String get moneyEditWallet => 'Sửa ví';
+
+  @override
+  String get moneyWalletNoEntries => 'Tháng này ví chưa có khoản nào.';
+
+  @override
+  String get moneyNewWallet => 'Ví mới';
+
+  @override
+  String get moneyNewGoal => 'Mục tiêu mới';
+
+  @override
+  String get moneyName => 'Tên';
+
+  @override
+  String get moneyPickEmoji => 'Chọn biểu tượng';
+
+  @override
+  String get moneyBalanceNow => 'Số dư lúc này';
+
+  @override
+  String get moneyIncludeInTotal => 'Tính vào tổng tiền đang có';
+
+  @override
+  String get moneyCreateWallet => 'Tạo ví';
+
+  @override
+  String get moneyCreateGoal => 'Tạo mục tiêu';
+
+  @override
+  String get moneyGoalTarget => 'Cần bao nhiêu';
+
+  @override
+  String get moneyGoalDeadline => 'Hạn (không bắt buộc)';
+
+  @override
+  String moneyGoalPerMonth(String amount, int n) {
+    return 'Cần để dành ~$amount mỗi tháng trong $n tháng tới.';
+  }
+
+  @override
+  String get moneyNotSet => 'Chưa chọn';
+
+  @override
+  String get moneySave => 'Lưu';
+
+  @override
+  String get moneyArchiveWallet => 'Lưu trữ ví';
+
+  @override
+  String get moneyArchiveAskTitle => 'Lưu trữ ví này?';
+
+  @override
+  String get moneyArchiveAskBody =>
+      'Ví thôi hiện khi ghi khoản, lịch sử giữ nguyên. Muốn dùng lại lúc nào cũng được.';
+
+  @override
+  String get moneyUnarchiveWallet => 'Dùng lại ví này';
+
+  @override
+  String get moneyNameNeeded => 'Đặt tên để lưu';
+
+  @override
+  String get moneyFixTitle => 'Sửa số dư cho khớp';
+
+  @override
+  String moneyFixInBook(String wallet, String amount) {
+    return '$wallet · trong sổ đang là $amount';
+  }
+
+  @override
+  String get moneyAdjustReal => 'Số tiền thật đang có';
+
+  @override
+  String moneyFixMore(String amount) {
+    return 'Trong app đang nhiều hơn tiền thật $amount. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là chi tiêu.';
+  }
+
+  @override
+  String moneyFixLess(String amount) {
+    return 'Trong app đang ít hơn tiền thật $amount. App ghi 1 dòng “sửa số dư” để khớp, dòng này không tính là thu nhập.';
+  }
+
+  @override
+  String get moneyFixSame => 'Đã khớp với tiền thật, không cần sửa.';
+
+  @override
+  String get moneyAdjustSave => 'Cập nhật số dư';
+
+  @override
+  String moneyFixedToast(String wallet) {
+    return 'Đã sửa số dư $wallet';
+  }
+
+  @override
+  String moneyWalletCreated(String name) {
+    return 'Đã tạo $name';
+  }
+
+  @override
+  String get moneyCategoriesBadge => 'DANH MỤC';
+
+  @override
+  String get moneyCategoryScope => 'Sổ của mình · mỗi sổ có bộ danh mục riêng';
+
+  @override
+  String get moneyCategoryScopeShared =>
+      'Sổ chung · mỗi sổ có bộ danh mục riêng';
+
+  @override
+  String moneySubCount(int n) {
+    return '$n mục con';
+  }
+
+  @override
+  String get moneyAddSub => 'Thêm mục con';
+
+  @override
+  String moneyRenamedFrom(String name) {
+    return 'Đã đổi tên, gốc là “$name”';
+  }
+
+  @override
+  String get moneyCustom => 'Tự thêm';
+
+  @override
+  String get moneyHidden => 'Đã ẩn';
+
+  @override
+  String get moneyHiddenNote => 'không hiện khi ghi khoản';
+
+  @override
+  String get moneyHiddenSub => 'Khoản cũ vẫn giữ tên';
+
+  @override
+  String get moneyShowAgain => 'Hiện lại';
+
+  @override
+  String get moneyHideCategory => 'Ẩn danh mục này';
+
+  @override
+  String get moneyEditCategory => 'Sửa danh mục';
+
+  @override
+  String get moneyNewCategory => 'Nhóm mới';
+
+  @override
+  String get moneyNewSub => 'Mục con mới';
+
+  @override
+  String moneyOriginalName(String name) {
+    return 'Tên gốc: $name. Đổi tên chỉ áp cho sổ này.';
+  }
+
+  @override
+  String get moneyInGroup => 'Nằm trong';
+
+  @override
+  String get moneyDeleteCategory => 'Xoá danh mục';
+
+  @override
+  String moneyDeleteCategoryAsk(String name) {
+    return 'Xoá “$name”?';
+  }
+
+  @override
+  String get moneyDeleteCategoryBody =>
+      'Khoản cũ của danh mục này chuyển về “Khác”.';
+
+  @override
+  String get moneyDelete => 'Xoá';
+
+  @override
+  String get moneyAddCategory => 'Thêm danh mục';
+
+  @override
+  String get moneyCategoryLimit => 'Sổ này đã đủ 80 danh mục tự thêm.';
+
+  @override
+  String get moneyNotSpending => 'không tính là chi';
+
+  @override
+  String get moneyBudgets => 'Ngân sách';
+
+  @override
+  String get moneyBudgetsBadge => 'NGÂN SÁCH';
+
+  @override
+  String get moneyReport => 'Báo cáo';
+
+  @override
+  String get moneyReportBadge => 'BÁO CÁO';
+
+  @override
+  String get moneySearchBadge => 'TÌM KHOẢN';
+
+  @override
+  String get moneySearchLabel => 'Tìm khoản';
+
+  @override
+  String get moneySeeAll => 'Tất cả';
+
+  @override
+  String get moneyBudgetSetLink => 'Đặt';
+
+  @override
+  String get moneyAddBudget => 'Đặt ngân sách';
+
+  @override
+  String moneyBudgetScopeShared(String month) {
+    return 'Tháng $month · cả sổ chung';
+  }
+
+  @override
+  String moneyBudgetScopeMine(String month) {
+    return 'Tháng $month · cả sổ của mình';
+  }
+
+  @override
+  String moneyBudgetDaysLeft(String n) {
+    return 'còn $n ngày';
+  }
+
+  @override
+  String moneyBudgetDailyLeft(String left, String perDay) {
+    return 'Còn $left, tức khoảng $perDay mỗi ngày tới hết tháng.';
+  }
+
+  @override
+  String moneyBudgetUsedOf(String budget) {
+    return 'của $budget';
+  }
+
+  @override
+  String get moneyBudgetByCategory => 'Theo danh mục';
+
+  @override
+  String moneyBudgetOverOf(String amount, String budget) {
+    return 'Vượt $amount của $budget';
+  }
+
+  @override
+  String moneyBudgetLeftOf(String amount, String budget) {
+    return 'Còn $amount của $budget';
+  }
+
+  @override
+  String get moneyBudgetNoCategory =>
+      'Chưa nhóm nào có ngân sách riêng. Đặt cho nhóm hay tiêu nhiều, app sẽ báo khi dùng tới 80% và 100%.';
+
+  @override
+  String get moneyBudgetUnset =>
+      'Chưa đặt ngân sách. Đặt một con số cho cả tháng, app sẽ báo khi dùng tới 80% và 100%.';
+
+  @override
+  String get moneySetBudget => 'Đặt ngân sách tháng';
+
+  @override
+  String get moneyBudgetPushNote =>
+      'Khi chi tới 80% và 100% ngân sách tổng, người không ghi khoản đó sẽ nhận thông báo. Thông báo chỉ có phần trăm, không có số tiền.';
+
+  @override
+  String get moneyBudgetSheetTitle => 'Ngân sách tháng';
+
+  @override
+  String get moneyBudgetWholeBook => 'Cả sổ';
+
+  @override
+  String get moneyBudgetAmountLabel => 'Mỗi tháng tối đa';
+
+  @override
+  String get moneyBudgetResets => 'Đầu tháng nào cũng tính lại từ 0.';
+
+  @override
+  String get moneyBudgetSave => 'Lưu ngân sách';
+
+  @override
+  String get moneyBudgetRemove => 'Bỏ ngân sách này';
+
+  @override
+  String moneyBudgetSaved(String name, String amount) {
+    return 'Đã đặt ngân sách $name: $amount';
+  }
+
+  @override
+  String moneyBudgetRemoved(String name) {
+    return 'Đã bỏ ngân sách $name';
+  }
+
+  @override
+  String moneyReportUpTo(String date) {
+    return 'tới $date';
+  }
+
+  @override
+  String moneyReportTopCategory(String category, String percent) {
+    return 'Chi nhiều nhất là $category, chiếm $percent% cả tháng.';
+  }
+
+  @override
+  String moneyReportTopShared(String category, String percent) {
+    return '$category chiếm $percent% chi chung.';
+  }
+
+  @override
+  String moneyReportTopChild(String sub, String amount) {
+    return 'Phần lớn là $sub, $amount.';
+  }
+
+  @override
+  String get moneyReportByCategory => 'Chi theo danh mục';
+
+  @override
+  String get moneyReportTapHint => 'chạm để xem mục con';
+
+  @override
+  String get moneyReportByMonth => 'Chi mỗi tháng';
+
+  @override
+  String get moneyReport6 => '6 tháng';
+
+  @override
+  String get moneyReport12 => '12 tháng';
+
+  @override
+  String moneyReportBudgetLine(String amount) {
+    return 'Ngân sách $amount';
+  }
+
+  @override
+  String moneyReportPartial(String month, String date) {
+    return 'Tháng $month mới tính tới $date. Đường đứt là ngân sách tổng hiện tại.';
+  }
+
+  @override
+  String moneyReportPartialNoBudget(String month, String date) {
+    return 'Tháng $month mới tính tới $date.';
+  }
+
+  @override
+  String moneyReportNewBook(String month) {
+    return 'Sổ chung mới có từ tháng $month, nên các tháng trước để trống.';
+  }
+
+  @override
+  String moneyReportNewBookMine(String month) {
+    return 'Sổ của mình mới có từ tháng $month, nên các tháng trước để trống.';
+  }
+
+  @override
+  String get moneyReportMissing =>
+      'Chưa tải được vài tháng nên các cột đó để trống. Có mạng sẽ hiện lại.';
+
+  @override
+  String get moneyReportTet => 'Tết';
+
+  @override
+  String moneyReportChartLabel(String n, String values) {
+    return 'Chi mỗi tháng, $n tháng gần đây: $values';
+  }
+
+  @override
+  String get moneyReportByWallet => 'Chi theo ví';
+
+  @override
+  String moneyReportNoSpend(String month) {
+    return 'Tháng $month chưa có khoản chi nào.';
+  }
+
+  @override
+  String get moneySearchHint => 'Tìm trong ghi chú và danh mục';
+
+  @override
+  String get moneySearchClear => 'Xoá chữ';
+
+  @override
+  String get moneySearchAccent =>
+      'Gõ không dấu vẫn ra, vd “bun cha” ra “Bún chả”.';
+
+  @override
+  String moneySearchCount(String n) {
+    return '$n khoản';
+  }
+
+  @override
+  String moneySearchRange(String n) {
+    return '$n tháng gần đây';
+  }
+
+  @override
+  String moneySearchEmpty(String q, String n) {
+    return 'Không có khoản nào khớp “$q” trong $n tháng gần đây.';
+  }
+
+  @override
+  String moneySearchEmptyAll(String n) {
+    return 'Không có khoản nào trong $n tháng gần đây với bộ lọc này.';
+  }
+
+  @override
+  String get moneySearch12 => 'Tìm trong 12 tháng';
+
+  @override
+  String get moneySearchCap =>
+      'Chỉ tìm trong 2.000 khoản gần nhất. Chọn khoảng ngày hẹp hơn để không sót khoản nào.';
+
+  @override
+  String get moneySearchError => 'Chưa tìm được. Kiểm tra mạng rồi thử lại.';
+
+  @override
+  String get moneySearchAmount => 'Khoảng tiền';
+
+  @override
+  String get moneySearchPerson => 'Người';
+
+  @override
+  String get moneySearchFrom => 'Từ';
+
+  @override
+  String get moneySearchTo => 'Đến';
+
+  @override
+  String moneySearchFromOnly(String amount) {
+    return 'Từ $amount';
+  }
+
+  @override
+  String moneySearchToOnly(String amount) {
+    return 'Tới $amount';
+  }
+
+  @override
+  String get moneySearchApply => 'Áp dụng';
+
+  @override
+  String get moneySearchClearFilter => 'Bỏ lọc';
+
+  @override
+  String moneySearchPickedCount(String label, String n) {
+    return '$label · $n';
+  }
+
+  @override
+  String get moneySearchPeriod => 'Khoảng ngày';
+
+  @override
+  String get moneyGoalSaved => 'Chúng mình đã góp';
+
+  @override
+  String get moneyGoalSavedMine => 'Đã để dành';
+
+  @override
+  String moneyGoalTargetOf(String amount) {
+    return 'Mục tiêu $amount';
+  }
+
+  @override
+  String moneyGoalLeft(String left, String date, String perMonth) {
+    return 'Còn $left. Để kịp $date, mỗi tháng chúng mình cần để dành khoảng $perMonth.';
+  }
+
+  @override
+  String moneyGoalLeftMine(String left, String date, String perMonth) {
+    return 'Còn $left. Để kịp $date, mỗi tháng mình cần để dành khoảng $perMonth.';
+  }
+
+  @override
+  String moneyGoalLeftOnly(String left) {
+    return 'Còn $left.';
+  }
+
+  @override
+  String get moneyGoalNoDeadline =>
+      'Chưa đặt hạn. Thêm hạn để biết mỗi tháng cần để dành bao nhiêu.';
+
+  @override
+  String moneyGoalReachedOn(String date) {
+    return 'Đủ ngày $date';
+  }
+
+  @override
+  String moneyGoalReached(String trip) {
+    return 'Đủ rồi! Lên lịch đi $trip thôi. Tiêu gì trong chuyến đi thì ghi thẳng từ quỹ này.';
+  }
+
+  @override
+  String get moneyGoalHistory => 'Lịch sử góp';
+
+  @override
+  String moneyGoalTimes(int count) {
+    return '$count lần';
+  }
+
+  @override
+  String get moneyGoalHistoryEmpty =>
+      'Chưa có lần góp nào. Góp lần đầu đi, 50k cũng được.';
+
+  @override
+  String get moneyGoalHistoryPartial =>
+      'Chưa tải được lịch sử cũ, đang hiện các lần góp gần đây.';
+
+  @override
+  String get moneyContribute => 'Góp vào quỹ';
+
+  @override
+  String get moneySpendFromFund => 'Chi từ quỹ';
+
+  @override
+  String moneyContributeTitle(String wallet) {
+    return 'Góp vào $wallet';
+  }
+
+  @override
+  String get moneyContributeFrom => 'Lấy từ ví';
+
+  @override
+  String moneyContributeSave(String amount) {
+    return 'Góp $amount';
+  }
+
+  @override
+  String moneyContributed(String amount, String wallet) {
+    return 'Đã góp $amount vào $wallet';
+  }
+
+  @override
+  String moneyContributedFull(String wallet) {
+    return '$wallet đủ rồi';
+  }
+
+  @override
+  String get moneyContributeHint => 'Số tiền góp';
+
+  @override
+  String get moneyLogFromDecision => 'Ghi chi';
+
+  @override
+  String get moneyReminderBody1 => 'Hôm nay có khoản nào chưa ghi không?';
+
+  @override
+  String get moneyReminderBody2 =>
+      'Ghi nốt chi tiêu hôm nay, mất chưa tới một phút';
+
+  @override
+  String get moneyReminderBody3 =>
+      'Tối rồi, xem hôm nay mình tiêu bao nhiêu nhé';
+
+  @override
+  String get moneyReminderSettingTitle => 'Nhắc ghi chi tiêu buổi tối';
+
+  @override
+  String get moneyReminderSettingSubtitle =>
+      'Mỗi tối một lần. Hôm nào đã ghi khoản thì thôi không nhắc.';
+
+  @override
+  String get moneyMenuReminder => 'Nhắc tối';
+
+  @override
+  String get moneyProfileSub => 'Ví, chi tiêu và quỹ chung';
+
+  @override
+  String moneyNotifGoal(String name, String percent) {
+    return '$name vừa góp vào quỹ, giờ được $percent%';
+  }
+
+  @override
+  String moneyNotifGoalReached(String wallet) {
+    return '$wallet đủ rồi!';
+  }
+
+  @override
+  String get moneyNotifGoalReachedSub =>
+      'Chúng mình góp đủ mục tiêu rồi. Lên lịch đi thôi.';
+
+  @override
+  String get moneyNotifBudget80 => 'Tháng này chúng mình đã tiêu 80% ngân sách';
+
+  @override
+  String get moneyNotifBudget100 =>
+      'Tháng này chúng mình tiêu hết ngân sách rồi';
+
+  @override
+  String moneyNotifBudgetSub(String month) {
+    return 'Sổ chung · $month';
+  }
+
+  @override
+  String get moneyLinkedPayerLocked =>
+      'Khoản này đã trừ vào ví của mình nên không đổi người trả được. Muốn đổi thì xoá rồi ghi lại nhé.';
+
+  @override
+  String get moneyUndoTooLate => 'Khoản này đã xoá rồi.';
+
+  @override
+  String get moneyOwingCardDetail =>
+      'Đang nợ thẻ chừng này, nhớ trả trước hạn nhé.';
+
+  @override
+  String moneyReminderTimeA11y(String time) {
+    return 'Giờ nhắc, $time';
+  }
+
+  @override
+  String moneyAmountSpoken(String amount) {
+    return '$amount đồng';
+  }
+
+  @override
+  String moneyAmountSpokenNeg(String amount) {
+    return 'âm $amount đồng';
+  }
+
+  @override
+  String arrivalShareFirstSub(String name) {
+    return 'Bật để báo cho $name mỗi khi bạn đến nơi.';
+  }
+
+  @override
+  String get arrivalSetAddressCta => 'Chạm để đặt địa chỉ';
+
+  @override
+  String get rateAppTitle => 'Bạn thấy Dear Embeiu thế nào?';
+
+  @override
+  String get rateAppSubtitle => 'Chỉ mất vài giây thôi.';
+
+  @override
+  String get rateAppStar1 => 'Chưa ổn lắm';
+
+  @override
+  String get rateAppStar2 => 'Còn thiếu nhiều';
+
+  @override
+  String get rateAppStar3 => 'Tạm được';
+
+  @override
+  String get rateAppStar4 => 'Khá thích';
+
+  @override
+  String get rateAppStar5 => 'Rất thích';
+
+  @override
+  String get rateAppCtaDefault => 'Chọn số sao';
+
+  @override
+  String get rateAppCtaIos => 'Đánh giá trên App Store';
+
+  @override
+  String get rateAppCtaAndroid => 'Đánh giá trên Google Play';
+
+  @override
+  String get rateAppCtaLow => 'Viết góp ý';
+
+  @override
+  String get rateAppLater => 'Để sau';
+
+  @override
+  String rateAppStarSemantics(int count) {
+    return '$count sao';
+  }
+
+  @override
+  String get rateAppStarsGroupSemantics => 'Chấm sao cho Dear Embeiu';
+
+  @override
+  String get settingsRateAppTitle => 'Đánh giá Dear Embeiu';
+
+  @override
+  String get settingsRateAppSubtitle =>
+      'Chấm sao cho app trên cửa hàng ứng dụng';
+
+  @override
+  String get settingsFeedbackTitle => 'Góp ý & báo lỗi';
+
+  @override
+  String get settingsFeedbackSubtitle =>
+      'Điều gì chưa ổn, hay bạn muốn có thêm gì?';
+
+  @override
+  String get feedbackBadge => 'GÓP Ý & BÁO LỖI';
+
+  @override
+  String get feedbackTypeSuggestion => 'Góp ý';
+
+  @override
+  String get feedbackTypeBug => 'Báo lỗi';
+
+  @override
+  String get feedbackFieldLabel => 'Nội dung';
+
+  @override
+  String get feedbackHintSuggestion =>
+      'Bạn muốn app có thêm gì, hay sửa chỗ nào cho dễ dùng hơn?';
+
+  @override
+  String get feedbackHintBug =>
+      'Chuyện gì đã xảy ra? Bạn bấm gì, ở màn hình nào, và lẽ ra phải thế nào?';
+
+  @override
+  String get feedbackHintLowRating =>
+      'Điều gì khiến bạn chưa hài lòng? Một dòng cũng được.';
+
+  @override
+  String feedbackRatedLabel(int count) {
+    return 'Bạn chấm $count/5 sao';
+  }
+
+  @override
+  String feedbackCounter(int count) {
+    return '$count/2000';
+  }
+
+  @override
+  String get feedbackAttachCta => 'Đính kèm ảnh chụp màn hình';
+
+  @override
+  String get feedbackPhotoLabel => 'Ảnh đính kèm';
+
+  @override
+  String get feedbackPhotoRemove => 'Bỏ ảnh đính kèm';
+
+  @override
+  String get feedbackPhotoError => 'Không mở được ảnh này. Thử ảnh khác nhé.';
+
+  @override
+  String get feedbackPhotoTooLarge => 'Ảnh lớn quá, tối đa 10 MB.';
+
+  @override
+  String get feedbackDeviceNote =>
+      'App gửi kèm phiên bản, hệ điều hành và đời máy để tìm lỗi nhanh hơn.';
+
+  @override
+  String get feedbackSendCta => 'Gửi góp ý';
+
+  @override
+  String get feedbackRetryCta => 'Thử lại';
+
+  @override
+  String get feedbackErrorBanner =>
+      'Chưa gửi được. Kiểm tra mạng rồi thử lại, nội dung của bạn vẫn còn đây.';
+
+  @override
+  String get feedbackSuccessTitle => 'Cảm ơn bạn';
+
+  @override
+  String get feedbackSuccessBody => 'Dear Embeiu đã nhận được góp ý của bạn.';
+
+  @override
+  String get feedbackDoneCta => 'Xong';
 }

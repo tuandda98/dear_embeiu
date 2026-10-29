@@ -1,0 +1,15 @@
+# 12 (Android, Tuấn) — Thảo tắt chia sẻ → làn Thảo "Chưa bật báo về nhà", không còn tin cũ, không còn "Hỏi thăm Thảo". Chạy sau 11.
+# Kiểm: NA-01, RT-05 (người ấy không thấy dấu vết).
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- extendedWaitUntil:
+    visible: '(?s).*Chưa bật báo về nhà.*'
+    timeout: 45000
+- assertNotVisible: '(?s).*Hỏi thăm Thảo.*'
+- assertNotVisible: '(?s).*Đã đến Công ty.*'
+- takeScreenshot: 12_view_off_android

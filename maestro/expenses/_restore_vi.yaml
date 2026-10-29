@@ -1,0 +1,19 @@
+# Đưa ngôn ngữ về Tiếng Việt nếu flow đổi ngôn ngữ chạy dở (chạy được từ bất kỳ trạng thái).
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: '(?s).*Profile.*'
+    commands:
+      - tapOn: 'Profile'
+      - tapOn: 'Settings'
+      - scrollUntilVisible:
+          element:
+            text: 'Language.*'
+      - tapOn: 'Language.*'
+      - tapOn: 'Tiếng Việt'
+          timeout: 40000

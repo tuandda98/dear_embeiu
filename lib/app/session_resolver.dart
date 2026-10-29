@@ -18,8 +18,16 @@ import '../providers/answer_reaction_provider.dart';
 import '../providers/reaction_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/rps_game_provider.dart';
+// ── caro-game (đợt 2) ──
+import '../providers/caro_game_provider.dart';
 import '../providers/sleep_provider.dart';
 import '../providers/streak_provider.dart';
+// ── weather (đợt 2) ──
+import '../providers/weather_provider.dart';
+// ── arrival (đợt 2) ──
+import '../providers/arrival_provider.dart';
+// ── expenses (đợt 2) ──
+import '../providers/money_provider.dart';
 import '../services/app_update_service.dart';
 import '../services/storage_service.dart';
 import 'app_routes.dart';
@@ -58,7 +66,15 @@ class SessionResolver {
     final partnerReminderProvider = context.read<PartnerReminderProvider>();
     final customRemindersProvider = context.read<CustomRemindersProvider>();
     final rpsGameProvider = context.read<RpsGameProvider>();
+    // ── caro-game (đợt 2) ──
+    final caroGameProvider = context.read<CaroGameProvider>();
     final sleepProvider = context.read<SleepProvider>();
+    // ── weather (đợt 2) ──
+    final weatherProvider = context.read<WeatherProvider>();
+    // ── arrival (đợt 2) ──
+    final arrivalProvider = context.read<ArrivalProvider>();
+    // ── expenses (đợt 2) ──
+    final moneyProvider = context.read<MoneyProvider>();
 
     try {
       return await _resolve(
@@ -77,7 +93,15 @@ class SessionResolver {
         partnerReminderProvider: partnerReminderProvider,
         customRemindersProvider: customRemindersProvider,
         rpsGameProvider: rpsGameProvider,
+        // ── caro-game (đợt 2) ──
+        caroGameProvider: caroGameProvider,
         sleepProvider: sleepProvider,
+        // ── weather (đợt 2) ──
+        weatherProvider: weatherProvider,
+        // ── arrival (đợt 2) ──
+        arrivalProvider: arrivalProvider,
+        // ── expenses (đợt 2) ──
+        moneyProvider: moneyProvider,
       ).timeout(_globalResolveTimeout);
     } catch (_) {
       // Global backstop: never hang on the splash. Pick a safe route from
@@ -125,7 +149,15 @@ class SessionResolver {
     required PartnerReminderProvider partnerReminderProvider,
     required CustomRemindersProvider customRemindersProvider,
     required RpsGameProvider rpsGameProvider,
+    // ── caro-game (đợt 2) ──
+    required CaroGameProvider caroGameProvider,
     required SleepProvider sleepProvider,
+    // ── weather (đợt 2) ──
+    required WeatherProvider weatherProvider,
+    // ── arrival (đợt 2) ──
+    required ArrivalProvider arrivalProvider,
+    // ── expenses (đợt 2) ──
+    required MoneyProvider moneyProvider,
   }) async {
     // Force-update gate (feature force-update): a build older than the server's
     // minimum is sealed off behind the update screen BEFORE any auth/couple
@@ -162,7 +194,15 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      // ── caro-game (đợt 2) ──
+      caroGameProvider.clear();
       sleepProvider.clear(signedOut: true);
+      // ── weather (đợt 2) ──
+      weatherProvider.clear(signedOut: true);
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear(signedOut: true);
+      // ── expenses (đợt 2) ──
+      moneyProvider.clear(signedOut: true);
       // Signed out / account deleted: forget the couple too — the home-screen
       // widget bridge listens to CoupleProvider and pushes its empty state.
       await coupleProvider.loadCoupleForUser(null);
@@ -190,7 +230,15 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      // ── caro-game (đợt 2) ──
+      caroGameProvider.clear();
       sleepProvider.clear(signedOut: true);
+      // ── weather (đợt 2) ──
+      weatherProvider.clear(signedOut: true);
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear(signedOut: true);
+      // ── expenses (đợt 2) ──
+      moneyProvider.clear(signedOut: true);
       await coupleProvider.loadCoupleForUser(
         null,
       ); // same reason as the guest branch
@@ -208,6 +256,9 @@ class SessionResolver {
       await authProvider.updateCurrentUser(healed);
     };
     await coupleProvider.loadCoupleForUser(currentUser);
+    // ── expenses (đợt 2) ──
+    // Sổ tiền: my own book is mine with or without a partner (D2).
+    if (currentUser != null) moneyProvider.watchOwn(currentUser.id);
     final hasCoupleData =
         currentUser?.hasCouple == true && coupleProvider.hasCoupleData;
 
@@ -281,6 +332,14 @@ class SessionResolver {
         currentUser.id,
         rpsPartnerUid,
       );
+      // ── caro-game (đợt 2) ──
+      // Caro (feature caro-game): score + open game for Home/Profile/widget.
+      // Same partner uid rule as rps ('' while waiting ⇒ no entry point).
+      caroGameProvider.watchForCouple(
+        currentUser.coupleId!,
+        currentUser.id,
+        rpsPartnerUid,
+      );
       // Sleep (feature sleep): my nights + (when shared) my partner's. Same
       // partner uid rule as rps ('' while waiting).
       unawaited(
@@ -290,6 +349,34 @@ class SessionResolver {
           rpsPartnerUid,
         ),
       );
+      // ── weather (đợt 2) ──
+      // Weather (feature weather): both cities; my city only while waiting
+      // (same partner uid rule as rps).
+      weatherProvider.watchForCouple(
+        currentUser.coupleId!,
+        currentUser.id,
+        rpsPartnerUid,
+      );
+      // ── arrival (đợt 2) ── hidden while waiting (partner uid '', D9).
+      unawaited(
+        arrivalProvider.watchForCouple(
+          currentUser.coupleId!,
+          currentUser.id,
+          rpsPartnerUid,
+        ),
+      );
+      // ── expenses (đợt 2) ──
+      // Shared money book only while both are in (D5); HomeScreen re-arms it
+      // when the partner joins mid-session.
+      if (rpsPartnerUid.isNotEmpty) {
+        moneyProvider.watchShared(
+          currentUser.coupleId!,
+          rpsCouple!.memberIds,
+          currentUser.id,
+        );
+      } else {
+        moneyProvider.clearShared();
+      }
     } else {
       await photoProvider.clearForSignOut();
       chatProvider.clear();
@@ -303,7 +390,15 @@ class SessionResolver {
       partnerReminderProvider.clear();
       customRemindersProvider.setCouple(null, null);
       rpsGameProvider.clear();
+      // ── caro-game (đợt 2) ──
+      caroGameProvider.clear();
       sleepProvider.clear();
+      // ── weather (đợt 2) ──
+      weatherProvider.clear();
+      // ── arrival (đợt 2) ──
+      arrivalProvider.clear();
+      // ── expenses (đợt 2) ──
+      moneyProvider.clearShared();
       // Authenticated but no couple yet — cancel the daily-question nudge (b2)
       // until a partner joins; the preference persists for re-arming via sync.
       await reminderProvider.cancelDailyQuestionSchedule();

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thời tiết hai nơi, thẻ ở Home · Dear Embeiu</title>
+<link rel="stylesheet" href="weather.css">
+<style>
+  /* Bối cảnh Home (không thuộc feature): thẻ câu hỏi đã xong + đầu thẻ tâm trạng, vẽ tối giản */
+  .ctx { display: flex; align-items: center; gap: 12px; }
+  .ctx .t { font-size: 16px; font-weight: 800; flex: 1; }
+  .ctx .s { font-size: 13px; color: var(--ink2); font-weight: 600; }
+  .ctx .badge.lav { background: rgba(124,92,214,.12); } .ctx .badge.lav .ic { color: #7C5CD6; }
+  /* Floating nav của Home shell (glass: thiết bị của design system, giữ nguyên) */
+  .nav { position: fixed; left: 16px; right: 16px; bottom: 16px; height: 84px; border-radius: 28px; max-width: 398px; margin: 0 auto;
+    background: rgba(255,255,255,.22); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,.35);
+    box-shadow: 0 12px 30px rgba(26,26,46,.12); display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; padding: 0 10px; }
+  .nav a { height: 60px; border-radius: 22px; display: grid; place-items: center; align-content: center; gap: 2px; color: rgba(255,255,255,.95); text-decoration: none; font-size: 11px; font-weight: 700; }
+  .nav a .ic { font-size: 22px; }
+  .nav a[aria-current] { background: linear-gradient(to right, #FF6B9D, #E63956); } /* taste-skill-ignore: pill chọn của nav Home hiện có */
+  .nav a:not([aria-current]) { color: rgba(26,26,46,.70); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="screen" id="app"></main>
+<script>
+const { ic, I, card } = UI;
+document.getElementById('app').innerHTML = `
+<div class="tabhead">
+  <span class="chip">${ic(0xec15)}Chào buổi sáng, Tuấn</span>
+  <a class="iconbtn" href="#" aria-label="Thông báo">${ic(I.bell)}</a>
+</div>
+<h1 class="section-title" style="margin-top:20px">Hôm nay của chúng mình</h1>
+<section class="card" aria-label="Câu hỏi hôm nay (bối cảnh)"><div class="ctx"><span class="badge">${ic(0xeafe)}</span><span class="t">Câu hỏi hôm nay</span><span class="s">Cả hai đã trả lời</span></div></section>
+${card.both()}
+<section class="card" aria-label="Tâm trạng hôm nay (bối cảnh)"><div class="ctx"><span class="badge lav">${ic(I.heart)}</span><span class="t">Tâm trạng hôm nay</span><span class="s">Thảo chưa chọn</span></div></section>
+<nav class="nav" aria-label="Điều hướng chính">
+  <a href="#" aria-current="page">${ic(0xea9c, true)}<span>Trang chủ</span></a>
+  <a href="#">${ic(0xeb04)}<span>Trò chuyện</span></a>
+  <a href="#">${ic(0xea6a)}<span>Thư viện</span></a>
+  <a href="#">${ic(0xec4a)}<span>Hồ sơ</span></a>
+</nav>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# iOS (Thảo): sổ riêng trống -> (nếu là lần đầu: màn "Tiền của mình đang nằm ở đâu?" bấm Bỏ qua) -> ghi 50k.
+# Độc lập với các flow cặp 2 máy.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- runFlow:
+    when:
+      visible: '(?s).*Tiền của mình đang nằm ở đâu\?.*'
+    commands:
+      - tapOn: 'Bỏ qua'
+- extendedWaitUntil:
+    visible: '(?s).*Ghi khoản.*'
+    timeout: 15000
+- runFlow:
+    file: _add_expense_own.yaml
+    env:
+      NOTE: MTI${output.run}
+- scrollUntilVisible:
+    element:
+      text: 'MTI${output.run}, .*'
+    centerElement: true
+    timeout: 40000
+- assertVisible: 'MTI${output.run}, .*âm 50\.000 đồng.*'

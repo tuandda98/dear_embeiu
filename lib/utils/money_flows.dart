@@ -1,0 +1,117 @@
+import '../models/money.dart';
+import '../providers/money_provider.dart';
+import 'money_math.dart';
+
+// ── expenses (đợt 2) ── stage 3B: pure helpers behind the fund screen, the
+// settle-up sheet, the decision-wheel "Ghi chi" button and the evening
+// reminder. Kept apart from MoneyMath so the two stage-3 branches don't
+// touch the same file; every number still comes from MoneyMath.
+
+/// The fund card (design §3.10): how full, what is left, what to save a
+/// month until the deadline.
+class MoneyGoalView {
+  const MoneyGoalView({
+    required this.balance,
+    required this.target,
+    required this.percent,
+    required this.left,
+    required this.perMonth,
+    this.deadline,
+  });
+
+  factory MoneyGoalView.of(
+    MoneyWallet w,
+    int balance,
+    String today, {
+    int step = 1000,
+  }) {
+    final target = w.goalTarget ?? 0;
+    final left = target - balance;
+    final deadline = w.goalDeadline;
+    return MoneyGoalView(
+      balance: balance,
+      target: target,
+      percent: MoneyMath.goalPercent(balance, target),
+      left: left < 0 ? 0 : left,
+      perMonth: deadline == null || target <= 0
+          ? 0
+          : MoneyMath.perMonthNeeded(left, today, deadline, step: step),
+      deadline: deadline,
+    );
+  }
+
+  final int balance;
+  final int target;
+  final int percent;
+  final int left;
+  final int perMonth;
+  final String? deadline;
+
+  bool get reached => target > 0 && balance >= target;
+}
+
+/// "Đủ rồi. Lên lịch đi Đà Lạt thôi": the fund's name without the "Quỹ" /
+/// "Fund" word in front ("Quỹ Đà Lạt" → "Đà Lạt"). Only the word with its
+/// tone mark: "Quy Nhơn" is a place, not "Quỹ Nhơn".
+String moneyTripName(String walletName) {
+  final n = walletName.trim();
+  final m = RegExp(
+    r'^(quỹ|qũy|fund)\s+(.+)$',
+    caseSensitive: false,
+  ).firstMatch(n);
+  if (m != null) return m.group(2)!;
+  final t = RegExp(r'^(.+?)\s+fund$', caseSensitive: false).firstMatch(n);
+  return t?.group(1) ?? n;
+}
+
+/// Entries of one wallet: the server read (all time, may be null when it
+/// failed) overlaid with the live window (newer copies win), newest first,
+/// minus what is in its undo window.
+List<MoneyTx> moneyWalletHistory({
+  required String walletId,
+  required Iterable<MoneyTx>? fetched,
+  required Iterable<MoneyTx> live,
+  bool Function(String txId)? deleting,
+}) {
+  final byId = <String, MoneyTx>{
+    for (final t in fetched ?? const <MoneyTx>[]) t.id: t,
+    for (final t in live)
+      if (t.inWalletId == walletId || t.outWalletId == walletId) t.id: t,
+  };
+  return [
+    for (final t in byId.values)
+      if (deleting == null || !deleting(t.id)) t,
+  ]..sort((a, b) => b.date.compareTo(a.date));
+}
+
+/// Where "Ghi chi" from a decision-wheel pick lands (D20): an active couple
+/// logs it in the shared book, a waiting couple in their own; food → Ăn
+/// ngoài, a place → Đi chơi.
+({MoneyBookKind book, String categoryId}) moneyDecisionPrefill({
+  required bool eat,
+  required bool coupleActive,
+  required bool hasShared,
+}) => (
+  book: coupleActive && hasShared ? MoneyBookKind.shared : MoneyBookKind.own,
+  categoryId: eat ? 'food_out' : 'date_out',
+);
+
+/// Did [uid] log anything dated [today] in [txs] (either book)? Drives the
+/// evening reminder (D18: today's slot goes once something is written).
+// ponytail: "logged today" = an entry dated today by me; a late entry for
+// yesterday written tonight doesn't count. Use createdAt if that matters.
+bool moneyLoggedToday(Iterable<MoneyTx> txs, String uid, String today) =>
+    txs.any((t) => t.date == today && t.createdBy == uid);
+
+/// "Hoàn tác" right after a write (§15 #8): the entry (and its own-book
+/// half) leave at once, the delete goes out after the undo window.
+Future<void> moneyUndoAdd(
+  MoneyProvider money,
+  MoneyBookKind kind,
+  MoneyTx draft,
+) async {
+  final stored =
+      money.book(kind)?.txs.where((t) => t.id == draft.id).firstOrNull ?? draft;
+  final linked = await money.linkedOf(kind, stored);
+  money.scheduleDelete(kind, stored, alsoLinked: linked);
+}

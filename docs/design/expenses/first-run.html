@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sổ tiền · lần đầu mở (ví 1 màn) · Dear Embeiu mockup</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="sheet.css">
+</head>
+<body>
+<div class="app" id="app"></div>
+<script src="icons.js"></script><script src="data.js"></script><script src="ui.js"></script>
+<script>
+const { fmt, parseVndInput } = D;
+const PICKS = [ // taste-skill-ignore: emoji ví gợi ý (dữ liệu, người dùng đổi được)
+  { id: 'cash', name: 'Tiền mặt', type: 'Tiền mặt', emoji: '💵', on: true, fixed: true, raw: '' }, // taste-skill-ignore
+  { id: 'bank', name: 'Ngân hàng', type: 'Ngân hàng', emoji: '🏦', on: false, raw: '' }, // taste-skill-ignore
+  { id: 'momo', name: 'MoMo', type: 'Ví điện tử', emoji: '📱', on: true, raw: '1.500.000' }, // taste-skill-ignore
+  { id: 'zalo', name: 'ZaloPay', type: 'Ví điện tử', emoji: '💙', on: false, raw: '' }, // taste-skill-ignore
+  { id: 'credit', name: 'Thẻ tín dụng', type: 'Đang nợ thẻ bao nhiêu', emoji: '💳', on: false, raw: '' }, // taste-skill-ignore
+];
+const total = () => PICKS.filter((p) => p.on).reduce((s, p) => { const r = parseVndInput(p.raw); return s + (r.ok ? (p.id === 'credit' ? -r.value : r.value) : 0); }, 0);
+console.assert(total() === 1500000, 'AC: thêm MoMo 1.500.000 → tổng 1.500.000');
+function render() {
+  document.getElementById('app').innerHTML = `
+  ${UI.header('Sổ tiền', 'wallet_2', '')}
+  <main>
+  <h2 class="lead-q">Tiền của mình đang nằm ở đâu?</h2>
+  <p class="sheet-sub">Bật những ví đang dùng, nhập số dư lúc này. Bỏ qua cũng được: đã có sẵn ví Tiền mặt.</p>
+  <section class="card" aria-label="Chọn ví">
+    ${PICKS.map((p, i) => `<div class="pick">
+      <div class="kv"><span class="emo" aria-hidden="true">${p.emoji}</span><span class="k">${p.name}<span class="meta" style="display:block;font-weight:500">${p.fixed ? 'Có sẵn' : p.type}</span></span>
+        <button class="switch" role="switch" aria-checked="${p.on}" aria-label="Dùng ví ${p.name}" data-i="${i}" ${p.fixed ? 'disabled' : ''}></button></div>
+      ${p.on ? `<label class="sr" for="b${i}">Số dư ${p.name}</label><div class="amt-in"><input id="b${i}" class="field num" inputmode="decimal" placeholder="${p.id === 'credit' ? 'Số đang nợ, vd 2tr' : 'Số dư, vd 500k'}" value="${p.raw}" data-raw="${i}"><span class="meta">₫</span></div>` : ''}
+    </div>`).join('')}
+  </section>
+  <section class="card" aria-labelledby="h-sum" style="display:flex;justify-content:space-between;align-items:baseline">
+    <h2 id="h-sum" class="label">Tổng tiền đang có</h2><p>${UI.money(total(), 'fig-l')}</p>
+  </section>
+  <button class="btn primary" style="margin-top:24px">Xong, vào sổ</button>
+  <button class="btn" style="margin-top:8px">Bỏ qua</button>
+  </main>`;
+}
+document.addEventListener('click', (e) => { const s = e.target.closest('[data-i]'); if (!s || s.disabled) return; const p = PICKS[+s.dataset.i]; setTimeout(() => { p.on = !p.on; render(); }); });
+document.addEventListener('change', (e) => { const i = e.target.dataset.raw; if (i == null) return; PICKS[+i].raw = e.target.value; render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thẻ Chơi cùng nhau trên Home</title>
+<link rel="stylesheet" href="caro.css">
+<style>
+  .play h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .game-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; min-height: 68px; padding: 12px 0; color: inherit; text-decoration: none; }
+  .game-row + .game-row { border-top: 1px solid var(--rule); }
+  .badge { position: relative; width: 44px; height: 44px; border-radius: 16px; display: grid; place-items: center; }
+  .badge svg { width: 26px; height: 26px; }
+  .badge .ping { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 1.5px solid #fff; }
+  .game-row .t { font-size: 15px; font-weight: 700; }
+  .game-row .s { font-size: 13px; color: var(--muted); }
+  .game-row .s.on { color: var(--text); font-weight: 600; }
+  .cta { height: 40px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .cta.ghost { background: #fff; color: var(--text); border: 1.4px solid var(--text); }
+  .hidden-note { font-size: 14px; background: rgba(255, 255, 255, .55); border-radius: 24px; padding: 16px; }
+</style>
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<h1 class="page-h1">Thẻ “Chơi cùng nhau” trên Home</h1>
+<p class="page-sub">Thay chỗ RpsInviteCard. Dòng cờ caro ở trên, oẳn tù tì ở dưới, thứ tự cố định. Nút đặc chỉ khi người ấy đang chờ bạn.</p>
+<main id="app"></main>
+<script>
+const P = UI.P, G = D.openGame, W = D.wins, R = D.rps.week;
+// Huy hiệu: cờ caro = bàn 2×2 có X (mình) và O (người ấy); oẳn tù tì = icon game màu rpsMedalAccent.
+const caroBadge = (ping) => `<span class="badge" style="background:#F5F0F5" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M13 3v20M3 13h20" stroke="#1A1A2E" stroke-opacity=".18" stroke-width="1.2"/>${UI.mark('x', 7.5, 7.5, 13, P.tuan.hue)}${UI.mark('o', 18.5, 18.5, 13, P.thao.hue)}</svg>${ping ? '<span class="ping"></span>' : ''}</span>`;
+const rpsBadge = `<span class="badge" style="background:rgba(242,109,91,.12);color:#C2410C" aria-hidden="true">${UI.ICON.game}</span>`;
+const rowCaro = (s, cta, _ghost, ping, on) => { const ghost = !ping; return `<a class="game-row" href="board.html" aria-label="Cờ caro. ${s}">${caroBadge(ping)}<span><span class="t">Cờ caro</span><br><span class="s${on ? ' on' : ''}">${s}</span></span><button class="cta${ghost ? ' ghost' : ''}" tabindex="-1">${cta}</button></a>`; };
+const rowRps = `<a class="game-row" href="#" aria-label="Oẳn tù tì">${rpsBadge}<span><span class="t">Oẳn tù tì</span><br><span class="s">Tuần này ${R.wins} – ${R.draws} – ${R.losses}</span></span><button class="cta ghost" tabindex="-1">Chơi</button></a>`;
+const card = (caro) => `<section class="card play"><h2>Chơi cùng nhau</h2>${caro}${rowRps}</section>`;
+const skel = `<div class="game-row" aria-hidden="true"><span class="bar" style="width:44px;height:44px;border-radius:16px"></span><span><span class="bar" style="width:70px;height:18px"></span><span class="bar" style="width:190px;height:14px;margin-top:6px"></span></span><span class="bar" style="width:72px;height:40px;border-radius:999px"></span></div>`;
+const states = [
+  ['Đến lượt bạn (máy Tuấn, 10:14)', rowCaro(`Đến lượt bạn. Thảo vừa đi nước ${G.cells.length}.`, 'Đi tiếp', false, true, true)],
+  ['Đang chờ người ấy', rowCaro(`Đang chờ Thảo. Bạn đi nước 15 lúc ${D.nudge.myMoveAt}.`, 'Mở', true)],
+  ['Đang chờ, người ấy đang mở ván', rowCaro('Đang chờ Thảo. Thảo đang xem ván.', 'Mở', true)],
+  ['Được rủ (máy Thảo, 08:02)', rowCaro('Tuấn rủ bạn một ván, Tuấn đã đi nước đầu.', 'Vào chơi', false, true, true)],
+  ['Vừa xong ván, mình thua (trong 24 giờ)', rowCaro(`Thảo thắng ván vừa rồi. Tuấn ${W.tuan} – ${W.thao} Thảo.`, 'Phục thù')],
+  ['Không có ván, đã có tỉ số', rowCaro(`Tuấn ${W.tuan} – ${W.thao} Thảo. Rủ Thảo một ván?`, 'Rủ chơi')],
+  ['Không có ván, chưa chơi lần nào', rowCaro('Rủ Thảo một ván, bạn đi trước.', 'Rủ chơi')],
+  ['Ván dừng 7 ngày trở lên', rowCaro(`Ván dừng ${D.stale.days} ngày rồi. Vào kết thúc để rủ ván mới.`, 'Mở', true)],
+  ['Đang tải', skel],
+  ['Chưa tải được, không có bản lưu', rowCaro('Chưa tải được ván. Chạm để thử lại.', 'Thử lại', true)],
+];
+document.getElementById('app').innerHTML = states.map(([t, r]) => `<h2 class="state-h">${t}</h2>${card(r)}`).join('') +
+  `<h2 class="state-h">Cặp đang chờ người ấy</h2><p class="hidden-note">Không hiện thẻ này (D14). Thẻ checklist mời người ấy đứng ở chỗ đó như hiện nay.</p>`;
+</script>
+</body>
+</html>

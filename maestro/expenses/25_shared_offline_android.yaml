@@ -1,0 +1,41 @@
+# CẶP 2 MÁY, bước 6: Tuấn mất mạng, ghi khoản chung 20k -> hiện ngay, có dấu "chờ mạng"; bật mạng thì dấu biến mất.
+# Dùng `setAirplaneMode` của Maestro (chỉ Android). Nếu emulator không cắt mạng thật, tắt Wi-Fi tay rồi bỏ 2 dòng setAirplaneMode.
+appId: com.tony.dearembeiu.dev
+# Flow trượt giữa chừng thì vẫn tắt chế độ máy bay (không thì các flow sau mất mạng theo).
+onFlowComplete:
+  - setAirplaneMode: disabled
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Chung'
+- waitForAnimationToEnd
+- setAirplaneMode: enabled
+- tapOn: 'Ghi khoản'
+- extendedWaitUntil:
+    visible: '(?s).*Nhập số tiền để lưu.*'
+    timeout: 8000
+- tapOn: '2'
+- tapOn: '0'
+- tapOn: 'nghìn'
+- runFlow:
+    file: _shared_detail_save.yaml
+    env:
+      NOTE: MTP${output.run}
+      PAYER: 'Mình'
+      SPLIT: 'Chia đôi'
+      AMOUNT_TEXT: '20\.000'
+- assertVisible: '(?s).*Đang mất mạng.*'
+- scrollUntilVisible:
+    element:
+      text: 'MTP${output.run}, .*chờ mạng.*'
+    centerElement: true
+    timeout: 40000
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    notVisible: 'MTP${output.run}, .*chờ mạng.*'
+    timeout: 90000
+- assertVisible: 'MTP${output.run}, .*'

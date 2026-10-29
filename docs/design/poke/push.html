@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thông báo chạm tim gộp một dòng — Dear Embeiu</title>
+<link rel="stylesheet" href="poke.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="doc" id="app"></main>
+<script>
+const { C, partner, firstPush, lastPush } = D;
+const P = partner.name;
+const nav = (cur) => `<nav class="pages" aria-label="Các màn của feature">${[['home.html', 'Home'], ['widget.html', 'Widget'], ['push.html', 'Thông báo'], ['settings.html', 'Cài đặt']]
+  .map(([h, t]) => `<a href="${h}"${h === cur ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const ios = (p, when, old) => `<div class="ntf${old ? ' old' : ''}"><img src="img/app_icon.png" alt=""><div><div class="t">${C.pushTitle(P, p.n)}</div><div class="b">${C.pushBody(p.n, p.total)}</div></div><span class="when">${when}</span></div>`;
+const and = (p, when) => `<div class="anf"><div class="hd"><span class="ic">${UI.I.heartBold}</span>Dear Embeiu · ${when}</div><div class="t">${C.pushTitle(P, p.n)}</div><div class="b">${C.pushBody(p.n, p.total)}</div></div>`;
+const state = (title, desc, body) => `<section class="state"><h2>${title}</h2><p>${desc}</p>${body}</section>`;
+
+document.getElementById('app').innerHTML = `
+<header>
+  <h1>Năm lần chạm, một dòng thông báo</h1>
+  <p>Mỗi lần ${P} chạm tim, máy Tuấn nhận lại đúng một dòng. Dòng mới thay dòng cũ, chỉ có con số đổi. Chạm vào thông báo mở Home.</p>
+  ${nav('push.html')}
+</header>
+
+${state(`iPhone, lần chạm đầu lúc ${firstPush.at}`, 'Câu ngắn, có lời mời chạm lại.', `
+<div class="lock"><div class="wall" style="background-image:url(img/p6.jpg)"></div><div class="time num">8:05</div>${ios(firstPush, 'bây giờ')}</div>`)}
+
+${state(`iPhone, lần chạm thứ ${lastPush.n} lúc ${lastPush.at}`, `Vẫn một dòng (apns-collapse-id "poke"). Câu dưới nói tổng của cả hai lúc đó: ${lastPush.total} lần. Dòng mờ bên dưới là thông báo khác của app, để thấy tim không chen vào.`, `
+<div class="lock"><div class="wall" style="background-image:url(img/p6.jpg)"></div><div class="time num">14:30</div>${ios(lastPush, 'bây giờ')}<div class="ntf old"><img src="img/app_icon.png" alt=""><div><div class="t">Câu hỏi hôm nay đang chờ</div><div class="b">Thảo đã trả lời, đến lượt bạn.</div></div><span class="when">9:00</span></div></div>`)}
+
+${state('Android, kênh “Chạm tim”', `Kênh mới pokes, rung bật, tag "poke": thông báo sau thay thông báo trước trong khay. Biểu tượng nhỏ giữ biểu tượng hiện tại của app.`, `
+<div class="shade">${and(lastPush, lastPush.at)}</div>`)}
+`;
+</script>
+</body>
+</html>

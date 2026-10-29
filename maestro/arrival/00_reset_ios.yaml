@@ -1,0 +1,22 @@
+# 00 (ios) — đưa máy về "mình chưa chia sẻ": Quản lý → tắt nếu đang bật. Không xoá nơi đã lưu.
+# Kiểm: BT-01, BT-03. Chạy trước mọi flow khác, cả 2 máy.
+appId: com.tony.dearembeiu.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _sub/scroll_to_card.yaml
+- runFlow:
+    when:
+      visible: '(?s).*Mở cài đặt Về đến nhà.*'
+    commands:
+      - tapOn: '(?s).*Mở cài đặt Về đến nhà.*'
+      - waitForAnimationToEnd
+      - runFlow: _sub/manage_turn_off_if_on.yaml
+      - tapOn: 'Quay lại'
+      - waitForAnimationToEnd
+- runFlow: _sub/scroll_to_card.yaml
+- assertVisible: '(?s).*Bật báo về nhà.*'
+- assertVisible: '(?s).*Về nhà rồi.*'
+- takeScreenshot: 00_reset_ios

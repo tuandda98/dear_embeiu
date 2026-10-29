@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home đợt 2, bản C (bản chọn), 20/10 19:05 · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const note = `<aside class="doc-note" aria-label="Ghi chú mock">
+  <p><b>Bản C · bản chọn.</b> Máy Tuấn, thứ Ba 20/10/2026, 19:05. Mỗi thứ một thẻ riêng, không có tim chạm. Thảo đã trả lời câu hỏi từ 12:31 và về đến nhà lúc 18:42 với pin 12%; Tuấn vẫn ở Công ty.</p>
+  <nav aria-label="Các trang mock"><a href="home-c.html" aria-current="page">Bản C</a><a href="home-c-waiting.html">C · cặp đang chờ</a><a href="compare.html">So sánh A · B · C</a></nav></aside>`;
+document.getElementById('app').innerHTML = UI.homeC(D.S, { after: note });
+</script>
+</body>
+</html>

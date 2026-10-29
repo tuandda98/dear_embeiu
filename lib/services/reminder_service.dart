@@ -6,6 +6,9 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../models/custom_reminder.dart';
 import '../models/milestone_reminder.dart';
+// ── weather (đợt 2) ──
+import 'push_notification_service.dart'
+    show NotificationTapRouter, PushNotificationService;
 
 /// One end-of-day daily-question nudge: a fixed [hour]:[minute] for TODAY with
 /// its own localized [title]/[body]. The provider picks the copy from the
@@ -38,6 +41,12 @@ enum InviteFollowUp {
   final int id;
   final Duration delay;
 }
+
+/// TẮT toàn bộ nhắc LOCAL "trả lời câu hỏi hằng ngày" (user chốt 2026-10-29):
+/// giờ user đặt (1040–1049), backstop 7 ngày (1020–1033), cảnh báo cuối ngày
+/// (1050–1052). Tắt = không arm gì và tự huỷ lịch đã arm từ bản cũ. Push
+/// server `notifyDailyAnswer` và nhắc mời người ấy (1180–1189) không đổi.
+const bool kDailyQuestionRemindersEnabled = false;
 
 /// Local, on-device infrastructure for the retention "love reminders" feature.
 ///
@@ -167,6 +176,20 @@ class ReminderService {
   // partner's `decision` push (kind eat) cancels it from the background.
   static const int _idDecision = 1200;
 
+  // ── weather (đợt 2) ──
+  // Weather morning notice (feature weather D13), band 1160–1179, only 1160
+  // used: ONE-SHOT at the next 07:30 when the partner's city has rain / heat
+  // / cold ahead. Owned by WeatherProvider (cap 3 per 7 days, no same kind
+  // two days running); cancelled on switch-off / sign-out / leaving.
+  static const int _idWeatherMorning = 1160;
+  static const String weatherMorningType = 'weather_morning';
+
+  /// JSON payload of a tapped morning notice (`type`, `cta`, `city`, `min`,
+  /// `max`). HomeScreen opens the care screen prefilled from it, then clears
+  /// it.
+  static final ValueNotifier<String?> pendingWeatherTap =
+      ValueNotifier<String?>(null);
+
   // Partner reminders (feature partner-nudge, 2026-06-29): scheduled reminders
   // one partner set FOR the other, synced via Firestore and armed LOCALLY on the
   // recipient's device (so they fire in the recipient's own timezone). Reserved
@@ -224,8 +247,25 @@ class ReminderService {
         iOS: darwinSettings,
         macOS: darwinSettings,
       );
-      await _plugin.initialize(settings);
+      await _plugin.initialize(
+        settings,
+        // ── weather (đợt 2) ── tap on the morning notice (id 1160). Same
+        // callback as the push service: the plugin keeps only the last one.
+        onDidReceiveNotificationResponse:
+            PushNotificationService.handleLocalNotificationTap,
+      );
       _initialized = true;
+      // ── weather (đợt 2) ── cold start from a tapped morning notice.
+      try {
+        final launch = await _plugin.getNotificationAppLaunchDetails();
+        if (launch?.didNotificationLaunchApp ?? false) {
+          final payload = launch!.notificationResponse?.payload;
+          // ── expenses (đợt 2) ── or the Sổ tiền evening nudge.
+          if (!routeWeatherTap(payload)) routeMoneyEveningTap(payload);
+        }
+      } catch (_) {
+        // No launch details on this platform.
+      }
     } catch (error, stack) {
       // Don't let a misconfigured device crash launch; reminders simply stay
       // unavailable until the next run.
@@ -910,6 +950,148 @@ class ReminderService {
     }
   }
 
+  // ── expenses (đợt 2) ──
+  // Sổ tiền evening reminder (D18), band 1210–1219: 1210 = TODAY, 1211 =
+  // TOMORROW (so a day without opening the app still gets one), both
+  // ONE-SHOT, re-armed on every app open (never a repeating
+  // DateTimeComponents.time — the iOS trap, CLAUDE.md §6). 1212–1219 stay
+  // free for recurring entries (mốc B). Owned by
+  // ReminderProvider.refreshMoneyEvening.
+  static const int idMoneyEveningToday = 1210;
+  static const int idMoneyEveningTomorrow = 1211;
+
+  // Saving challenges (D34 §4), 1212–1217: ONE-SHOT 09:00 on each running
+  // challenge's last day (3 per book × 2 books). Owned by
+  // ReminderProvider.refreshMoneyChallenges; the band is replaced each time.
+  static const int idMoneyChallengeBase = 1212;
+  static const int maxMoneyChallenges = 6;
+
+  /// Tap payload of 1210/1211: the shared local-tap callback routes it to
+  /// Sổ tiền, own book (NotificationTapRouter.routeMoney).
+  static const String moneyEveningType = 'money_evening';
+  static const String moneyEveningPayload = '{"type":"$moneyEveningType"}';
+
+  /// The slots to arm at [minuteOfDay]: today (unless something was already
+  /// logged today or the time has passed) + tomorrow. [variant] picks one of
+  /// the 3 bodies by date, so the line changes day to day.
+  static List<({int id, DateTime when, int variant})> moneyEveningSlots({
+    required DateTime now,
+    required int minuteOfDay,
+    required bool loggedToday,
+  }) {
+    final m = minuteOfDay.clamp(0, 24 * 60 - 1);
+    DateTime at(int dayOffset) =>
+        DateTime(now.year, now.month, now.day + dayOffset, m ~/ 60, m % 60);
+    final today = at(0), tomorrow = at(1);
+    return [
+      if (!loggedToday && today.isAfter(now))
+        (
+          id: idMoneyEveningToday,
+          when: today,
+          variant: moneyEveningVariant(today),
+        ),
+      (
+        id: idMoneyEveningTomorrow,
+        when: tomorrow,
+        variant: moneyEveningVariant(tomorrow),
+      ),
+    ];
+  }
+
+  /// 0..2, one step per calendar day.
+  static int moneyEveningVariant(DateTime day) =>
+      DateTime.utc(
+        day.year,
+        day.month,
+        day.day,
+      ).difference(DateTime.utc(2026)).inDays %
+      3;
+
+  /// Replaces the band with [slots] (from [moneyEveningSlots]).
+  Future<void> scheduleMoneyEvening(
+    List<({int id, DateTime when, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelMoneyEvening();
+    for (final s in slots) {
+      final when = tz.TZDateTime(
+        tz.local,
+        s.when.year,
+        s.when.month,
+        s.when.day,
+        s.when.hour,
+        s.when.minute,
+      );
+      if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
+        continue;
+      }
+      await _scheduleAt(
+        id: s.id,
+        when: when,
+        title: s.title,
+        body: s.body,
+        payload: moneyEveningPayload,
+      );
+    }
+  }
+
+  /// Replaces the challenge band with [slots] (first [maxMoneyChallenges]).
+  Future<void> scheduleMoneyChallenges(
+    List<({DateTime when, String title, String body})> slots,
+  ) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelMoneyChallenges();
+    var i = 0;
+    for (final s in slots) {
+      if (i >= maxMoneyChallenges) break;
+      final when = tz.TZDateTime(
+        tz.local,
+        s.when.year,
+        s.when.month,
+        s.when.day,
+        s.when.hour,
+        s.when.minute,
+      );
+      if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
+        continue;
+      }
+      await _scheduleAt(
+        id: idMoneyChallengeBase + i,
+        when: when,
+        title: s.title,
+        body: s.body,
+      );
+      i++;
+    }
+  }
+
+  Future<void> cancelMoneyChallenges() async {
+    for (var i = 0; i < maxMoneyChallenges; i++) {
+      try {
+        await _plugin.cancel(idMoneyChallengeBase + i);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
+  /// Drops both slots. Plain platform calls (no [initialize] needed).
+  Future<void> cancelMoneyEvening() async {
+    for (final id in [idMoneyEveningToday, idMoneyEveningTomorrow]) {
+      try {
+        await _plugin.cancel(id);
+      } catch (_) {
+        // Already in the desired state.
+      }
+    }
+  }
+
   /// Cancel ALL personal bands — used when the signed-in account is not the
   /// gated one (or on reset).
   Future<void> cancelPersonalReminders() async {
@@ -1198,6 +1380,7 @@ class ReminderService {
     required String title,
     required String body,
     DateTimeComponents? matchDateTimeComponents,
+    String? payload,
   }) async {
     if (!_initialized) {
       return;
@@ -1211,6 +1394,7 @@ class ReminderService {
         _details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: matchDateTimeComponents,
+        payload: payload,
       );
     } catch (error) {
       debugPrint('ReminderService schedule($id) failed: $error');
@@ -1249,5 +1433,66 @@ class ReminderService {
       hour,
       minute,
     );
+  }
+
+  // ── weather (đợt 2) ──
+
+  /// True when [payload] is the morning notice (then it's routed here).
+  static bool routeWeatherTap(String? payload) {
+    if (payload == null || !payload.contains('"$weatherMorningType"')) {
+      return false;
+    }
+    NotificationTapRouter.pendingHomeTab.value = 0; // Home
+    pendingWeatherTap.value = payload;
+    return true;
+  }
+
+  // ── expenses (đợt 2) ──
+  /// True when [payload] is the evening nudge 1210/1211 (then routed to Sổ
+  /// tiền, own book).
+  static bool routeMoneyEveningTap(String? payload) =>
+      payload == moneyEveningPayload &&
+      NotificationTapRouter.routeMoney(moneyEveningType, from: 'reminder');
+
+  /// Arm the morning notice at [fireAt] (phone-local) — replaces any earlier
+  /// one; skipped when that moment has passed.
+  Future<void> scheduleWeatherMorning({
+    required DateTime fireAt,
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    await initialize();
+    if (!_initialized) {
+      return;
+    }
+    await cancelWeatherMorning();
+    final when = tz.TZDateTime.from(fireAt, tz.local);
+    if (!when.isAfter(tz.TZDateTime.now(tz.local))) {
+      return;
+    }
+    try {
+      await _plugin.zonedSchedule(
+        _idWeatherMorning,
+        title,
+        body,
+        when,
+        _details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: payload,
+      );
+    } catch (error) {
+      debugPrint('ReminderService schedule($_idWeatherMorning) failed: $error');
+    }
+  }
+
+  /// Works without [initialize] (plain platform call), like
+  /// [cancelDecisionReminder].
+  Future<void> cancelWeatherMorning() async {
+    try {
+      await _plugin.cancel(_idWeatherMorning);
+    } catch (_) {
+      // Already in the desired state.
+    }
   }
 }

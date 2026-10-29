@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiQuestionsDialogBody.
   ///
   /// In en, this message translates to:
-  /// **'This applies to both of you: your partner will see the AI-written question too. We only read the last 30 days of answers to create it — nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.'**
+  /// **'This applies to both of you: your partner will see the AI-written question too. The AI only reads the last 30 days of answers to write it. Nothing is used for training, and you can turn it off any time. AI questions start from tomorrow\'s question.'**
   String get aiQuestionsDialogBody;
 
   /// No description provided for @aiQuestionsDialogConfirm.
@@ -767,7 +767,7 @@ abstract class AppLocalizations {
   /// No description provided for @alreadyWithUs.
   ///
   /// In en, this message translates to:
-  /// **'Already with us?'**
+  /// **'Already have an account?'**
   String get alreadyWithUs;
 
   /// No description provided for @backToSignIn.
@@ -1226,6 +1226,24 @@ abstract class AppLocalizations {
   /// **'Today, together'**
   String get homeTodaySectionTitle;
 
+  /// Home section header above the arrival, weather and last-night cards (Home D, 2026-10-29). name = the partner's name.
+  ///
+  /// In en, this message translates to:
+  /// **'How\'s {name} doing?'**
+  String homePartnerSectionTitle(String name);
+
+  /// No description provided for @homePartnerSectionTitleFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'How\'s your partner doing?'**
+  String get homePartnerSectionTitleFallback;
+
+  /// No description provided for @homeFreeTimeSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free time'**
+  String get homeFreeTimeSectionTitle;
+
   /// No description provided for @dailyTapToAnswer.
   ///
   /// In en, this message translates to:
@@ -1495,6 +1513,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update mood'**
   String get moodUpdateCta;
+
+  /// No description provided for @moodChangeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get moodChangeShort;
 
   /// No description provided for @moodNotSharedYou.
   ///
@@ -1967,7 +1991,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportPhotoSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tell us what\'s wrong with this photo.'**
+  /// **'What\'s wrong with this photo?'**
   String get reportPhotoSubtitle;
 
   /// No description provided for @reportReasonInappropriate.
@@ -2147,7 +2171,7 @@ abstract class AppLocalizations {
   /// No description provided for @galleryLoadErrorSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Your memories are safe — we just couldn\'t reach them right now.'**
+  /// **'Your memories are safe. They just couldn\'t load right now.'**
   String get galleryLoadErrorSubtitle;
 
   /// No description provided for @galleryRetryBtn.
@@ -2753,7 +2777,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAnalyticsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Help improve the app with anonymous data. We never collect your private content.'**
+  /// **'Help improve the app with anonymous data. Your photos, messages and other private content are never included.'**
   String get settingsAnalyticsSubtitle;
 
   /// No description provided for @languageSearchHint.
@@ -4151,7 +4175,7 @@ abstract class AppLocalizations {
   /// forgotPasswordSentBody
   ///
   /// In en, this message translates to:
-  /// **'We\'ve sent a password reset link to {email}. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.'**
+  /// **'A password reset link was sent to {email}. Open the email and tap the link to reset it. Don\'t forget to check your spam folder.'**
   String forgotPasswordSentBody(String email);
 
   /// forgotPasswordResendLink
@@ -5674,7 +5698,7 @@ abstract class AppLocalizations {
   /// Play screen hint under the nudge button: leaving is fine, the result is pushed.
   ///
   /// In en, this message translates to:
-  /// **'Feel free to step away — we\'ll tell you the result'**
+  /// **'Feel free to step away. You\'ll get a notification with the result'**
   String get rpsChosenLeaveHint;
 
   /// Home card subtitle when the partner has thrown and I have not.
@@ -5704,7 +5728,7 @@ abstract class AppLocalizations {
   /// Home card subtitle for rpsEntryAwaitingTitle.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve thrown · we\'ll tell you'**
+  /// **'You\'ve thrown · you\'ll get the result'**
   String get rpsEntryAwaitingSubtitle;
 
   /// Home card CTA to open a started round and throw.
@@ -6829,6 +6853,12 @@ abstract class AppLocalizations {
   /// **'Type & spin'**
   String get decisionCustomCta;
 
+  /// Third button on the Home card Can't decide? (compact layout, Home D 2026-10-29): opens the wheel to type your own options.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get decisionChipCustom;
+
   /// Decision wheel (feature decision-wheel)
   ///
   /// In en, this message translates to:
@@ -6976,13 +7006,13 @@ abstract class AppLocalizations {
   /// Decision wheel (feature decision-wheel)
   ///
   /// In en, this message translates to:
-  /// **'Tap spin and we\'ll pick a dish'**
+  /// **'Tap spin to pick a dish'**
   String get decisionIdleEat;
 
   /// Decision wheel (feature decision-wheel)
   ///
   /// In en, this message translates to:
-  /// **'Tap spin and we\'ll pick a plan'**
+  /// **'Tap spin to pick a plan'**
   String get decisionIdleGo;
 
   /// Decision wheel (feature decision-wheel)
@@ -7470,6 +7500,5325 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} re-spun: {result}'**
   String notifDecisionRespin(String name, String result);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play together'**
+  String get caroPlayTogetherTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Caro'**
+  String get caroGameTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} started a game and made the first move.'**
+  String caroEntryInvited(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn. {name} just played move {n}.'**
+  String caroEntryMyTurn(String name, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}. You played move {n} at {time}.'**
+  String caroEntryWaiting(String name, String n, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}, who has the game open.'**
+  String caroEntryWatching(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No moves for {days} days. Open it to end the game.'**
+  String caroEntryStale(String days);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} won the last game. {score}.'**
+  String caroEntryJustLost(String name, String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You won the last game. {score}.'**
+  String caroEntryJustWon(String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The last game was a draw. {score}.'**
+  String caroEntryJustDraw(String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{score}. Another game with {name}?'**
+  String caroEntryIdle(String score, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a game with {name}. You go first.'**
+  String caroEntryFirst(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{me} {a}–{b} {partner}'**
+  String caroScore(String me, String a, String b, String partner);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{score}, {n} draws'**
+  String caroScoreDraws(String score, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{a} – {b}'**
+  String caroScorePair(String a, String b);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get caroCtaJoin;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your move'**
+  String get caroCtaPlayOn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Rematch'**
+  String get caroCtaRematch;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'New game'**
+  String get caroCtaNewGame;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get caroCtaInvite;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get caroCtaRetry;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t go through. Try again.'**
+  String get caroActionError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the game. Tap to try again.'**
+  String get caroEntryError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a caro game with {name}'**
+  String caroNewTitle(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the rules for this game. You can switch next time.'**
+  String get caroNewSub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked ends'**
+  String get caroRuleVn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row wins, unless both ends are blocked by the other player.'**
+  String get caroRuleVnDesc;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Freestyle'**
+  String get caroRuleFree;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Any five in a row wins, even with both ends blocked.'**
+  String get caroRuleFreeDesc;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This doesn\'t win'**
+  String get caroRuleExampleNoWin;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This wins'**
+  String get caroRuleExampleWin;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'last time'**
+  String get caroRuleLastUsed;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You play X and your first piece goes in the centre. {name} gets the invite right away.'**
+  String caroNewFirstNote(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Invite {name}'**
+  String caroNewCta(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your own first square'**
+  String get caroNewPickFirst;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'CARO'**
+  String get caroBadge;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your turn'**
+  String get caroMyTurn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} played move {n} at {time}.'**
+  String caroLastMove(String name, String n, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}'**
+  String caroWaiting(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You played move {n} at {time}. You can close the app. You\'ll get a notification when {name} moves.'**
+  String caroYouMoved(String n, String time, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You played move {n} at {time}. {name} is looking at the board.'**
+  String caroPartnerWatching(String n, String time, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You played move {n} at {time}, {m, plural, =1{1 minute} other{{m} minutes}} ago.'**
+  String caroWaitedMin(String n, String time, int m);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You nudged {name} at {time}.'**
+  String caroNudged(String name, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'wins'**
+  String get caroLaneWins;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'watching'**
+  String get caroLaneWatching;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'move {n}'**
+  String caroLaneMove(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'new game'**
+  String get caroLaneNew;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games'**
+  String caroLaneGames(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'+1 this game'**
+  String get caroLanePlusOne;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Play here'**
+  String get caroPlayHere;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Playing…'**
+  String get caroSending;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'That move didn\'t go through. Your square is still selected.'**
+  String get caroSendError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The board changed. Take another look before you move.'**
+  String get caroStaleBoard;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline. You can move once you\'re back.'**
+  String get caroOffline;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for connection'**
+  String get caroWaitNetwork;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the selected square again to play it, or pick another.'**
+  String get caroTapAgainHint;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge {name}'**
+  String caroNudge(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nudge in {m} min'**
+  String caroNudgeIn(int m);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nudged {name}'**
+  String caroNudgeSent(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to play caro'**
+  String caroInvitedTitle(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} made the first move. Blocked ends: a five blocked at both ends doesn\'t win.'**
+  String caroInvitedSubVn(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} made the first move. Freestyle: any five in a row wins.'**
+  String caroInvitedSubFree(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get caroLater;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Place your first piece'**
+  String get caroFirstTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You play X and go first. {name} gets the invite after your move.'**
+  String caroFirstSub(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Invite {name}'**
+  String caroInviteCta(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No moves for {days} days'**
+  String caroStaleTitle(String days);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has moved since {date}. Nudge {name}, or end it and start over.'**
+  String caroStaleSub(String date, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'End game'**
+  String get caroEndGame;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You invited {name} {when} at {time}.'**
+  String caroInvitedYesterday(String name, String when, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'If {name} can\'t see the game, their app may need an update.'**
+  String caroOldAppHint(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Loading game'**
+  String get caroLoading;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This game was cancelled'**
+  String get caroCancelledTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} chose Not now at {time}. Cancelled games don\'t count.'**
+  String caroCancelledSub(String name, String time);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This game has ended'**
+  String get caroExpiredTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody moved for 7 days, so it stopped here. It doesn\'t count.'**
+  String get caroExpiredSub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'New game with {name}'**
+  String caroNewInviteCta(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Game history'**
+  String get caroHistoryTooltip;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{rule} rules, tap for details'**
+  String caroRuleTapHint(String rule);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Resign'**
+  String get caroResign;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The edge of the board doesn\'t count as a block.'**
+  String get caroRuleEdgeNote;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Leave it'**
+  String get caroEndKeep;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'End it'**
+  String get caroEndConfirm;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Resign this game?'**
+  String get caroResignTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets the win. The score becomes {score}.'**
+  String caroResignBody(String name, String score);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep playing'**
+  String get caroKeepPlaying;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this game?'**
+  String get caroCancelTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'It won\'t count. {name} will see it was cancelled.'**
+  String caroCancelBody(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get caroCancelConfirm;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'End this game?'**
+  String get caroEndTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'It won\'t count, and you can start a new one.'**
+  String get caroEndBody;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in on the last move'**
+  String get caroZoomIn;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Show the whole board'**
+  String get caroZoomOut;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You won this game'**
+  String get caroYouWon;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} won this game'**
+  String caroPartnerWon(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row on move {n}, at {time}. The game took {span}.'**
+  String caroWinDetail(String n, String time, String span);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{h, plural, =1{1 hour} other{{h} hours}}'**
+  String caroSpanHours(int h);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{m, plural, =1{1 minute} other{{m} minutes}}'**
+  String caroSpanMinutes(int m);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} resigned'**
+  String caroPartnerResigned(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You win this one, on move {n}.'**
+  String caroPartnerResignedSub(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You resigned'**
+  String get caroYouResigned;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} gets the win.'**
+  String caroYouResignedSub(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This game is a draw'**
+  String get caroDraw;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'All 225 squares are full and nobody won.'**
+  String get caroDrawSub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'See game history'**
+  String get caroSeeHistory;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'CARO HISTORY'**
+  String get caroHistoryBadge;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} leads by {n}'**
+  String caroLeads(String name, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tied at {a}–{a}'**
+  String caroTied(String a);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games since {date}. {name} won the last one {when}.'**
+  String caroHistorySub(String n, String date, String name, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games. {name} won the last one {when}.'**
+  String caroHistorySubNoSince(String n, String name, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games. The last one was a draw {when}.'**
+  String caroHistorySubDrawNoSince(String n, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} games since {date}. The last one was a draw {when}.'**
+  String caroHistorySubDraw(String n, String date, String when);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get caroWhenToday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get caroWhenYesterday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'on {date}'**
+  String caroWhenOn(String date);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get caroDateToday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get caroDateYesterday;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} won'**
+  String caroRowWon(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get caroRowDraw;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Five in a row, {n} moves'**
+  String caroRowFive(String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} resigned on move {n}'**
+  String caroRowResign(String name, String n);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Board full, 225 moves'**
+  String get caroRowFull;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'. Freestyle'**
+  String get caroRowFreeSuffix;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No finished games yet'**
+  String get caroHistoryEmpty;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your first game is waiting. The score starts at 0–0.'**
+  String get caroHistoryEmptySub;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open current game'**
+  String get caroOpenCurrent;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Start a game with {name}'**
+  String caroStartWith(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load older games.'**
+  String get caroHistoryPageError;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'GAME {date}'**
+  String caroReplayBadge(String date);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Row {r}, column {c}, empty'**
+  String caroCellEmpty(String r, String c);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Row {r}, column {c}, {name}\'s X'**
+  String caroCellX(String r, String c, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Row {r}, column {c}, {name}\'s O'**
+  String caroCellO(String r, String c, String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **', last move'**
+  String get caroCellLast;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **', selected'**
+  String get caroCellSelected;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **', part of the winning line'**
+  String get caroCellWinning;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} started a game of caro'**
+  String caroNotifInvite(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'They made the first move. Your turn.'**
+  String get caroNotifInviteBody;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} moved in caro, your turn'**
+  String caroWidgetTurn(String name);
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your caro move'**
+  String get caroWidgetTurnShort;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn-based caro'**
+  String get caroTourTitle;
+
+  /// caro-game (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Take turns whenever you have a minute, all day if you like. Every win adds to your shared score.'**
+  String get caroTourBody;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather here and there'**
+  String get weatherCardTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {time}'**
+  String weatherUpdatedAt(String time);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'As of {time}'**
+  String weatherStaleAt(String time);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update'**
+  String get weatherStaleHeader;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the weather'**
+  String get weatherLoadFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get weatherRetry;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you?'**
+  String get weatherWhereAmI;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Where is {name}?'**
+  String weatherWhereIsPartner(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'And where is {name}?'**
+  String weatherWhereIsPartnerNext(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get weatherChoose;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose for them'**
+  String get weatherChooseForPartner;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your city and {name}\'s. Both forecasts show up here every morning.'**
+  String weatherSetupBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your city. Today\'s weather shows up here every morning.'**
+  String get weatherSetupBodySolo;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a city'**
+  String get weatherSetupCta;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get weatherHide;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Hide the weather card'**
+  String get weatherHideA11y;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re both in {city}'**
+  String weatherSameCity(String city);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{n}° colder where {name} is'**
+  String weatherColder(String name, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{n}° warmer where {name} is'**
+  String weatherWarmer(String name, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name}: umbrella'**
+  String weatherCtaUmbrella(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name}: water'**
+  String weatherCtaWater(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name}: dress warm'**
+  String weatherCtaWarm(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to take an umbrella'**
+  String weatherCtaA11yUmbrella(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to drink water'**
+  String weatherCtaA11yWater(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to dress warm'**
+  String weatherCtaA11yWarm(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Opens a care note with the message filled in'**
+  String get weatherCtaHint;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Opens the weather details'**
+  String get weatherCardHint;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} degrees'**
+  String weatherDegrees(int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Raining now'**
+  String get weatherCondRainNow;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain this morning'**
+  String get weatherCondRainMorning;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain this afternoon'**
+  String get weatherCondRainAfternoon;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain tonight'**
+  String get weatherCondRainTonight;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain tomorrow morning'**
+  String get weatherCondRainTomorrow;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Hot, up to {max}°'**
+  String weatherCondHot(int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Cold, down to {min}°'**
+  String weatherCondCold(int min);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get weatherSkyClear;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Partly cloudy'**
+  String get weatherSkyPartlyCloudy;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get weatherSkyCloudy;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Foggy'**
+  String get weatherSkyFog;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Light rain'**
+  String get weatherSkyLightRain;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get weatherSkyRain;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy rain'**
+  String get weatherSkyHeavyRain;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorms'**
+  String get weatherSkyThunder;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get weatherSkySnow;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rest of today {min}° to {max}°'**
+  String weatherRestOfDay(int min, int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rest of today {min} to {max} degrees, now {now} degrees'**
+  String weatherScaleA11y(int min, int max, int now);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{time}, {n} degrees'**
+  String weatherSlotA11y(String time, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{time}, {n} degrees, rain'**
+  String weatherSlotRainA11y(String time, int n);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} picked this'**
+  String weatherPartnerSelfSet(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'you picked this'**
+  String get weatherSetByMe;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Change city'**
+  String get weatherChangeCity;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Change for them'**
+  String get weatherChangeForPartner;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'it\'s {time} there'**
+  String weatherTheirTimeNow(String time);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Just the city. The app never asks for your location.'**
+  String get weatherPickerSubSelf;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} can still change it later.'**
+  String weatherPickerSubPartner(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Search a city or province'**
+  String get weatherSearchHint;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Search cities'**
+  String get weatherSearchLabel;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get weatherClearSearch;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get weatherGroupCurrent;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnam'**
+  String get weatherGroupVn;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Abroad'**
+  String get weatherGroupIntl;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Formerly {name}'**
+  String weatherOldProvince(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'That city isn\'t on the list yet. Pick the closest one.'**
+  String get weatherNoMatch;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just picked their own city.'**
+  String weatherPartnerJustSet(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get weatherLater;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather data: '**
+  String get weatherSourcePrefix;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather here and there'**
+  String get weatherSettingsSection;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Your city'**
+  String get weatherSettingsMine;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s city'**
+  String weatherSettingsPartner(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get weatherNotSet;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather where your partner is'**
+  String get weatherNotifToggle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'At {time}, only when it rains, gets very hot or turns cold where {name} is. Up to 3 times a week.'**
+  String weatherNotifToggleSub(String time, String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Available once you\'re paired.'**
+  String get weatherNotifNeedsCouple;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'On a rainy day where {name} is, you\'ll get this:'**
+  String weatherNotifPreviewCaption(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Take an umbrella'**
+  String get weatherCareUmbrellaTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s rainy in {city}. Grab an umbrella if you head out.'**
+  String weatherCareUmbrellaBody(String city);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Stay hydrated'**
+  String get weatherCareWaterTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} is hitting {max}° today. Cover up in the sun and keep drinking water.'**
+  String weatherCareWaterBody(String city, int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Dress warm'**
+  String get weatherCareWarmTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} is dropping to {min}°. Bring an extra layer when you go out.'**
+  String weatherCareWarmBody(String city, int min);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Rain in {city} today'**
+  String weatherMorningRainTitle(String city);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to take an umbrella?'**
+  String weatherMorningRainBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} hits {max}° today'**
+  String weatherMorningHotTitle(String city, int max);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to drink enough water?'**
+  String weatherMorningHotBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'{city} drops to {min}° today'**
+  String weatherMorningColdTitle(String city, int min);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Remind {name} to dress warm?'**
+  String weatherMorningColdBody(String name);
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save that. Please try again.'**
+  String get weatherSaveFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load'**
+  String get weatherLaneFailed;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'Weather here and there'**
+  String get weatherFeatureTourTitle;
+
+  /// Weather here and there (feature weather)
+  ///
+  /// In en, this message translates to:
+  /// **'See if it\'s about to rain where your partner is. One tap reminds them to bring an umbrella.'**
+  String get weatherFeatureTourBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home yet?'**
+  String get arrivalCardTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open arrival settings'**
+  String get arrivalOpenManageA11y;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'When you get home, your phone tells {name}. No texting from the road.'**
+  String arrivalPitch(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on arrivals'**
+  String get arrivalEnableCta;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m home'**
+  String get arrivalManualHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve arrived'**
+  String get arrivalManualOther;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get arrivalHomeName;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Got home'**
+  String get arrivalEnterHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Left home'**
+  String get arrivalExitHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived at {place}'**
+  String arrivalEnterPlace(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Left {place}'**
+  String arrivalExitPlace(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday {time}'**
+  String arrivalYesterdayAt(String time);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}%'**
+  String arrivalBattery(int pct);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Battery at {pct}%'**
+  String arrivalBatteryLow(int pct);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'manual'**
+  String get arrivalManualTag;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals are on'**
+  String get arrivalPartnerOn;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll see it here when {name} arrives.'**
+  String arrivalPartnerOnSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals are off'**
+  String get arrivalPartnerOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Say hi'**
+  String get arrivalCareCta;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Say hi to {name}'**
+  String arrivalCareA11y(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You made it. Get some rest'**
+  String get arrivalCareSuggestion;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet today'**
+  String get arrivalNoEventToday;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: {places}'**
+  String arrivalMineAuto(String places);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home and {n} more'**
+  String arrivalPlacesMany(int n);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t send on its own yet: needs Always location'**
+  String get arrivalMineNeedAlways;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Manual only for now'**
+  String get arrivalMineRemoteOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Only when you tap'**
+  String get arrivalMineManual;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home address not set'**
+  String get arrivalMineNoAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Set address'**
+  String get arrivalSetAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get arrivalOpenSettings;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The app recognized {place}'**
+  String arrivalFirstDetected(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {name}'**
+  String arrivalSent(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sends when you\'re back online. After 30 minutes, {name} only sees it on the card, with no notification.'**
+  String arrivalQueued(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send “{what}”.'**
+  String arrivalSendFailed(String what);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get arrivalRetry;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Where did you just arrive?'**
+  String get arrivalPickTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap and {name} gets “{me} arrived at …” right away. No location access needed.'**
+  String arrivalPickNote(String name, String me);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get arrivalAddPlace;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left'**
+  String arrivalSlotsLeft(int n);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'ARRIVALS'**
+  String get arrivalBadge;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'New place'**
+  String get arrivalNewPlaceTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Place name'**
+  String get arrivalNameLabel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Work, Mom and Dad\'s'**
+  String get arrivalNameHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your partner sees this name when you arrive.'**
+  String get arrivalNameNote;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Type a name to continue. Up to 24 characters.'**
+  String get arrivalNameEmpty;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get arrivalChipWork;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get arrivalChipSchool;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Mom and Dad\'s'**
+  String get arrivalChipFamily;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get arrivalChipGym;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Usual spot'**
+  String get arrivalChipCafe;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get arrivalIconLabel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Picking a suggestion picks its icon too. You can change it.'**
+  String get arrivalIconAuto;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get arrivalIconWork;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get arrivalIconSchool;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get arrivalIconFamily;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Workout'**
+  String get arrivalIconGym;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Café'**
+  String get arrivalIconCafe;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get arrivalIconShop;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get arrivalIconPin;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will see:'**
+  String arrivalPreviewLead(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get arrivalContinue;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Where is {place}?'**
+  String arrivalWhereTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Include the house number, street and ward for the best match.'**
+  String get arrivalWhereSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 12 Nguyen Trai, Thanh Xuan, Ha Noi'**
+  String get arrivalSearchHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get arrivalSearching;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Search on the keyboard if nothing shows up.'**
+  String get arrivalSearchTip;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get arrivalClearSearch;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find it? Use current location'**
+  String get arrivalUseCurrentRow;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Tap this while you\'re there'**
+  String get arrivalUseCurrentRowSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find that address. Try adding the ward or province, or use your current location while you\'re there.'**
+  String get arrivalNoResults;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Finding an address needs internet. Try again when you\'re online, or use your current location while you\'re there.'**
+  String get arrivalSearchOffline;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t search right now. Try again in a bit, or use your current location while you\'re there.'**
+  String get arrivalSearchError;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This phone can\'t look up addresses. Save the place with your current location while you\'re there.'**
+  String get arrivalNoGeocoder;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Use current location'**
+  String get arrivalUseCurrent;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Save the name, tap manually'**
+  String get arrivalNameOnly;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Are you at {place} now?'**
+  String arrivalCurrentTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The app reads your location once to save this spot. Coordinates stay on your phone.'**
+  String get arrivalCurrentBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The first time, your phone asks for location access. Choose “While Using the App” and keep Precise Location on.'**
+  String get arrivalCurrentHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Read location'**
+  String get arrivalReadLocation;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Reading location…'**
+  String get arrivalReading;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Back to search'**
+  String get arrivalBackToSearch;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your location. Move somewhere more open and try again.'**
+  String get arrivalReadTimeout;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Precise Location'**
+  String get arrivalPreciseTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'With approximate location, the app can\'t tell your door from a few streets away.'**
+  String get arrivalPreciseBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Is this the right spot?'**
+  String get arrivalConfirmTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'From the address'**
+  String get arrivalFromAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your current location, within about {m} m'**
+  String arrivalFromCurrent(int m);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The app lets them know when you\'re within about {m} m of here.'**
+  String arrivalRadiusLine(int m);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'This address has no house number, so the alert may come a little early or late.'**
+  String get arrivalNoHouseNumber;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Alley addresses usually only resolve to the alley entrance, so the alert may come a little early or late.'**
+  String get arrivalConfirmAlleyWarn;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get arrivalSave;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong spot? Use your current location while you\'re there'**
+  String get arrivalWrongSpot;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Read location again'**
+  String get arrivalReread;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{place} saved'**
+  String arrivalSaved(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {place}'**
+  String arrivalEditTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'A new name applies from your next arrival.'**
+  String get arrivalRenameNote;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get arrivalLocationLabel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved from address · {date}'**
+  String arrivalSavedFromAddress(String date);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved from current location · {date}'**
+  String arrivalSavedFromCurrent(String date);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No address yet, manual only'**
+  String get arrivalNoAddressManual;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get arrivalPaused;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this place'**
+  String get arrivalDeletePlace;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll be asked to confirm.'**
+  String get arrivalDeletePlaceSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {place}?'**
+  String arrivalDeletePlaceTitle(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll stop sending arrivals for it. Updates already sent keep the old name.'**
+  String get arrivalDeletePlaceBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home always stays on the card. You can only change where it is.'**
+  String get arrivalHomeEditBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove address'**
+  String get arrivalDeleteHomeAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home goes back to tapping “I\'m home”.'**
+  String get arrivalDeleteHomeAddressSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Home\'s address?'**
+  String get arrivalDeleteHomeAddressTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home stays on the card. Tap “I\'m home” each time you get back.'**
+  String get arrivalDeleteHomeAddressBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get arrivalDelete;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get arrivalCancel;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{place} deleted'**
+  String arrivalDeleted(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home\'s address removed'**
+  String get arrivalHomeAddressDeleted;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get arrivalUndo;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'First, where\'s home?'**
+  String get arrivalNeedPlaceTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone needs to know where Home is to send on its own. Typing the address is enough, no permissions yet.'**
+  String get arrivalNeedPlaceBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'No address yet'**
+  String get arrivalNoAddressYet;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Set Home address'**
+  String get arrivalSetHomeAddress;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get arrivalLater;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} knows when you arrive'**
+  String arrivalDisclosureTitle(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Dear Embeiu uses your location to let your partner know when you get to or leave Home or a place you saved, even when the app is closed or not in use. Addresses and coordinates stay on your phone. Your partner only sees the place name, when you arrived or left, and your battery level. You can turn this off anytime.'**
+  String get arrivalDisclosureBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will get'**
+  String arrivalPreviewLabel(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Send a quick hello'**
+  String get arrivalPushBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Agree and continue'**
+  String get arrivalAgree;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get arrivalPrivacyLink;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Choose “{label}”'**
+  String arrivalAlwaysTitle(String label);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'To send it even when the app is closed, choose “{label}” on the next screen.'**
+  String arrivalAlwaysBody(String label);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get arrivalAlwaysLabelIos;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Allow all the time'**
+  String get arrivalAlwaysLabelAndroid;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'The next screen looks like this'**
+  String get arrivalNextLooksLike;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get arrivalOsNever;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Next Time'**
+  String get arrivalOsAskNext;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'While Using the App'**
+  String get arrivalOsWhileUsing;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Allow only while using the app'**
+  String get arrivalOsAndroidWhileUsing;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Ask every time'**
+  String get arrivalOsAndroidAsk;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t allow'**
+  String get arrivalOsAndroidDeny;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t swipe Dear Embeiu away in the app switcher, or your iPhone may not send arrivals.'**
+  String get arrivalSwipeHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'On Xiaomi, Oppo or Vivo, also turn on Autostart for Dear Embeiu so arrivals aren\'t blocked.'**
+  String get arrivalAutostartHint;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open permissions'**
+  String get arrivalOpenPermission;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Later, I\'ll tap manually'**
+  String get arrivalLaterManual;
+
+  /// No description provided for @arrivalSetupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get arrivalSetupDone;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals are on'**
+  String get arrivalDoneTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'From now on, {name} knows when you get home. To turn it off, go to Settings → Arrivals. Turning it off deletes your latest update, and {name} gets no notification.'**
+  String arrivalDoneBody(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sends when you reach Home'**
+  String get arrivalDoneRow;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Add work, the gym… to cover those too'**
+  String get arrivalDoneRowSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ll send it manually for now'**
+  String get arrivalPartialTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Each time you get home, tap “I\'m home” on the Home card. {name} gets the same message. Your saved places stay.'**
+  String arrivalPartialBody(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get arrivalBackHome;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'What {name} sees'**
+  String arrivalSeesLabel(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Share with {name}'**
+  String arrivalShareTitle(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turning this off deletes your latest update from the server. {name} gets no notification.'**
+  String arrivalShareSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it back on to let {name} know when you arrive.'**
+  String arrivalShareOffSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Send automatically'**
+  String get arrivalAutoTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone sends it when you reach {places}.'**
+  String arrivalAutoSub(String places);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Set an address for Home or another place first.'**
+  String get arrivalAutoNeedPlace;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t send on its own yet: needs Always location.'**
+  String get arrivalAutoNeedAlways;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Manual only for now. You can still tap “I\'m home” on the Home card.'**
+  String get arrivalAutoRemoteOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get arrivalPlacesTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home is always there. Add up to 4 more. Addresses stay on this phone.'**
+  String get arrivalPlacesSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location access'**
+  String get arrivalPermTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location: Always'**
+  String get arrivalPermAlways;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Enough to send even when the app is closed.'**
+  String get arrivalPermAlwaysSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location: While Using'**
+  String get arrivalPermWhileUsing;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Needs “Always” to send while the app is closed.'**
+  String get arrivalPermWhileUsingSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Location: Not allowed'**
+  String get arrivalPermNone;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Location: On'**
+  String get arrivalPermPreciseOn;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Location: Off'**
+  String get arrivalPermPreciseOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'So it knows you\'re at the door, not the end of the street.'**
+  String get arrivalPermPreciseSub;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Open phone Settings'**
+  String get arrivalPermOpenSettings;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off arrivals?'**
+  String get arrivalTurnOffTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Your latest update is deleted from the server right away. {name} will see that {me}\'s arrivals are off and won\'t get a notification.'**
+  String arrivalTurnOffBody(String name, String me);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Also delete the saved addresses of {n} places on this phone'**
+  String arrivalTurnOffAlsoPlaces(int n);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off'**
+  String get arrivalTurnOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'When your partner arrives'**
+  String get arrivalSettingsPushTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when {name} gets home or reaches a saved place. The Home card still shows it when this is off.'**
+  String arrivalSettingsPushSub(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Arrivals'**
+  String get arrivalSettingsTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing with {name}: {places}'**
+  String arrivalSettingsSharing(String name, String places);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get arrivalSettingsOff;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} got home'**
+  String arrivalWidgetHome(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is home'**
+  String arrivalWidgetHomeShort(String name);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} arrived at {place}'**
+  String arrivalWidgetPlace(String name, String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} at {place}'**
+  String arrivalWidgetPlaceShort(String name, String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Home yet?'**
+  String get arrivalTourTitle;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Got home? Tap “I\'m home” on the Home tab and your partner knows, no texting. You can also let your phone send it when you reach a saved place.'**
+  String get arrivalTourBody;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save {place}. Please try again.'**
+  String arrivalSaveFailed(String place);
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'You already have 4 places. Delete one, then add this again.'**
+  String get arrivalPlacesFull;
+
+  /// Feature arrival (đợt 2)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo: that spot was just used for another place.'**
+  String get arrivalUndoFailed;
+
+  /// No description provided for @moneyCatFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & drink'**
+  String get moneyCatFood;
+
+  /// No description provided for @moneyCatFoodOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Eating out'**
+  String get moneyCatFoodOut;
+
+  /// No description provided for @moneyCatFoodMarket.
+  ///
+  /// In en, this message translates to:
+  /// **'Groceries'**
+  String get moneyCatFoodMarket;
+
+  /// No description provided for @moneyCatFoodCoffee.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee & bubble tea'**
+  String get moneyCatFoodCoffee;
+
+  /// No description provided for @moneyCatFoodSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks'**
+  String get moneyCatFoodSnack;
+
+  /// No description provided for @moneyCatDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get moneyCatDate;
+
+  /// No description provided for @moneyCatDateMovie.
+  ///
+  /// In en, this message translates to:
+  /// **'Movies'**
+  String get moneyCatDateMovie;
+
+  /// No description provided for @moneyCatDateOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Going out'**
+  String get moneyCatDateOut;
+
+  /// No description provided for @moneyCatDateGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts for my love'**
+  String get moneyCatDateGift;
+
+  /// No description provided for @moneyCatMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting around'**
+  String get moneyCatMove;
+
+  /// No description provided for @moneyCatMoveFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get moneyCatMoveFuel;
+
+  /// No description provided for @moneyCatMoveParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get moneyCatMoveParking;
+
+  /// No description provided for @moneyCatMoveGrab.
+  ///
+  /// In en, this message translates to:
+  /// **'Grab & taxi'**
+  String get moneyCatMoveGrab;
+
+  /// No description provided for @moneyCatMoveRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Repairs'**
+  String get moneyCatMoveRepair;
+
+  /// No description provided for @moneyCatHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get moneyCatHome;
+
+  /// No description provided for @moneyCatHomeRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get moneyCatHomeRent;
+
+  /// No description provided for @moneyCatHomePower.
+  ///
+  /// In en, this message translates to:
+  /// **'Electricity'**
+  String get moneyCatHomePower;
+
+  /// No description provided for @moneyCatHomeWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get moneyCatHomeWater;
+
+  /// No description provided for @moneyCatHomeNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet'**
+  String get moneyCatHomeNet;
+
+  /// No description provided for @moneyCatHomeGoods.
+  ///
+  /// In en, this message translates to:
+  /// **'Household items'**
+  String get moneyCatHomeGoods;
+
+  /// No description provided for @moneyCatBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills & subscriptions'**
+  String get moneyCatBill;
+
+  /// No description provided for @moneyCatBillPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone plan'**
+  String get moneyCatBillPhone;
+
+  /// No description provided for @moneyCatBillStream.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaming'**
+  String get moneyCatBillStream;
+
+  /// No description provided for @moneyCatBillSoft.
+  ///
+  /// In en, this message translates to:
+  /// **'Software'**
+  String get moneyCatBillSoft;
+
+  /// No description provided for @moneyCatShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get moneyCatShop;
+
+  /// No description provided for @moneyCatShopClothes.
+  ///
+  /// In en, this message translates to:
+  /// **'Clothes'**
+  String get moneyCatShopClothes;
+
+  /// No description provided for @moneyCatShopBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'Beauty'**
+  String get moneyCatShopBeauty;
+
+  /// No description provided for @moneyCatShopTech.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronics'**
+  String get moneyCatShopTech;
+
+  /// No description provided for @moneyCatHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get moneyCatHealth;
+
+  /// No description provided for @moneyCatHealthMed.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get moneyCatHealthMed;
+
+  /// No description provided for @moneyCatHealthDoctor.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor'**
+  String get moneyCatHealthDoctor;
+
+  /// No description provided for @moneyCatHealthSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport'**
+  String get moneyCatHealthSport;
+
+  /// No description provided for @moneyCatEdu.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get moneyCatEdu;
+
+  /// No description provided for @moneyCatEduFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get moneyCatEduFee;
+
+  /// No description provided for @moneyCatEduBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Books & courses'**
+  String get moneyCatEduBooks;
+
+  /// No description provided for @moneyCatGift.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts & occasions'**
+  String get moneyCatGift;
+
+  /// No description provided for @moneyCatGiftPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Presents'**
+  String get moneyCatGiftPresent;
+
+  /// No description provided for @moneyCatGiftWedding.
+  ///
+  /// In en, this message translates to:
+  /// **'Weddings & funerals'**
+  String get moneyCatGiftWedding;
+
+  /// No description provided for @moneyCatGiftLixi.
+  ///
+  /// In en, this message translates to:
+  /// **'Lucky money'**
+  String get moneyCatGiftLixi;
+
+  /// No description provided for @moneyCatFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get moneyCatFamily;
+
+  /// No description provided for @moneyCatFamilyParents.
+  ///
+  /// In en, this message translates to:
+  /// **'For my parents'**
+  String get moneyCatFamilyParents;
+
+  /// No description provided for @moneyCatFamilyPet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get moneyCatFamilyPet;
+
+  /// No description provided for @moneyCatTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get moneyCatTravel;
+
+  /// No description provided for @moneyCatTravelTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Tickets'**
+  String get moneyCatTravelTicket;
+
+  /// No description provided for @moneyCatTravelStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays'**
+  String get moneyCatTravelStay;
+
+  /// No description provided for @moneyCatTravelFun.
+  ///
+  /// In en, this message translates to:
+  /// **'Fun'**
+  String get moneyCatTravelFun;
+
+  /// No description provided for @moneyCatOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get moneyCatOther;
+
+  /// No description provided for @moneyWalletCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get moneyWalletCash;
+
+  /// No description provided for @moneyJointWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared wallet'**
+  String get moneyJointWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Money book'**
+  String get moneyTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'MONEY BOOK'**
+  String get moneyBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get moneyTabMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get moneyTabShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book · {month}'**
+  String moneyHomeShared(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} · {percent}% of budget'**
+  String moneyHomeSpent(String amount, String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} this month'**
+  String moneyHomeSpentNoBudget(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount}'**
+  String moneyHomeSpentOnly(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{over} over'**
+  String moneyHomeOverPart(String over);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} · nothing yet'**
+  String moneyHomeZero(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} · as of {time}'**
+  String moneyHomeStale(String amount, String time);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the shared book'**
+  String get moneyHomeError;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the shared book'**
+  String get moneyHomeLoading;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'My money book'**
+  String get moneyHomeMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{Nothing logged today} =1{1 entry today} other{{n} entries today}}'**
+  String moneyHomeTodayCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Type 50k, pick a category, done'**
+  String get moneyHomeFirst;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get moneyAddTx;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get moneyRetry;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets, categories, budgets'**
+  String get moneyMoreLabel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get moneyPrevMonth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get moneyNextMonth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent'**
+  String get moneyMonthSpentMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'We spent'**
+  String get moneyMonthSpentShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Left in budget'**
+  String get moneyBudgetLeftLabel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'No budget yet'**
+  String get moneyBudgetNone;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% used'**
+  String moneyBudgetUsed(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'of {amount}'**
+  String moneyBudgetOfShort(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get moneyToday;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of budget used, {left} left'**
+  String moneyBudgetSemantics(String percent, String left);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The month is {passed}/{total} days in and {percent}% of the budget is gone. That leaves about {perDay} a day until month end.'**
+  String moneyFindingPerDay(
+    String passed,
+    String total,
+    String percent,
+    String perDay,
+  );
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'This month is {over} over budget.'**
+  String moneyFindingOver(String over);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {category} is at {percent}% of budget, {left} left for {days} days.'**
+  String moneyFindingCategory(
+    String category,
+    String percent,
+    String left,
+    String days,
+  );
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Me'**
+  String get moneyMe;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get moneyRecent;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in {month} yet. Tap ‹ above to look back at {prev}.'**
+  String moneyRecentEmpty(String month, String prev);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in {month} yet. Use the pink button below to add the first entry.'**
+  String moneyEmptyMonth(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount}'**
+  String moneyDaySpent(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Today, {date}'**
+  String moneyDayToday(String date);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday, {date}'**
+  String moneyDayYesterday(String date);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Where it went'**
+  String get moneyWhere;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of budget'**
+  String moneyBudgetPercentShort(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% over'**
+  String moneyOverPercent(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets'**
+  String get moneyWallets;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Total money'**
+  String get moneyTotalAssets;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Total money {amount}'**
+  String moneyTotalAssetsValue(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Manage wallets'**
+  String get moneyManageWallets;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% of {target}'**
+  String moneyGoalProgress(String percent, String target);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} paid'**
+  String moneyPaidByNoSplit(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from shared wallet'**
+  String get moneyPaidFromJoint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edited by {name} {time}'**
+  String moneyEditedBy(String name, String time);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'waiting for signal'**
+  String get moneyPending;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Offline. Balances are from {time} plus {n} entries waiting to send.'**
+  String moneyOffline(String time, int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Offline. {n} entries waiting to send.'**
+  String moneyOfflineNoTime(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load new entries. Figures are from {time}.'**
+  String moneyLoadError(String time);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load new entries.'**
+  String get moneyLoadErrorNoTime;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'When they join, we also get a shared book for who paid, splitting costs and a trip fund.'**
+  String get moneyWaitingCard;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Send invite'**
+  String get moneySendInvite;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Balance fix'**
+  String get moneyAdjustRow;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} · not spending'**
+  String moneyAdjustSub(String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{from} → {to}'**
+  String moneyTransferSub(String from, String to);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} put in'**
+  String moneyContribSub(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} → shared book'**
+  String moneyContribOwnSub(String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Also in the shared book'**
+  String get moneyLinkedBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Your first entry'**
+  String get moneyFirstEntryTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'What did you pay for today? Tap one, type the amount, then Save.'**
+  String get moneyFirstEntryBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Log a few days and you\'ll see where the money goes, then set a budget for next month.'**
+  String get moneyFirstEntryFoot;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Negative balance. Was something logged to the wrong wallet?'**
+  String get moneyNegWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get moneyCategories;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit entry'**
+  String get moneyEditTx;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get moneyClose;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book'**
+  String get moneyBookShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Switch book, now {book}'**
+  String moneySwitchBook(String book);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get moneyTypeExpense;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get moneyTypeTransfer;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get moneyAmountLabel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'50K, 1.2M or 1 million all work'**
+  String get moneyAmountHint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'You typed “{raw}”'**
+  String moneyAmountEcho(String raw);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t read that number. Try 120k or 120000.'**
+  String get moneyAmountInvalid;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'10 billion max per entry. Check the zeros.'**
+  String get moneyAmountTooBig;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'That would push the wallet past 100 billion. Check the amount.'**
+  String get moneyWalletCapHit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Log a usual one again'**
+  String get moneyQuickRepeat;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get moneyCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get moneyAllCategories;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get moneyWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Take it from my wallet'**
+  String get moneyDeductMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get moneyFromWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get moneyAddNote;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get moneyDate;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get moneyNote;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch, birthday gift…'**
+  String get moneyNoteHint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Save {amount}'**
+  String moneySaveAmount(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount to save'**
+  String get moneySaveNeedAmount;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the amount to save'**
+  String get moneySaveFixAmount;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a wallet to save'**
+  String get moneySaveNeedWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} · {category}'**
+  String moneySaved(String amount, String category);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved'**
+  String get moneySavedEdit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal. It\'ll sync to the shared book once you\'re online.'**
+  String get moneySavedOffline;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for signal, it\'ll sync when you\'re back online'**
+  String get moneySavedOfflineMine;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {category} is {amount} over this month\'s budget'**
+  String moneyOverBudgetToast(String category, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared {category} is at {percent}% of this month\'s budget'**
+  String moneyNearBudgetToast(String category, String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is {amount} over this month\'s budget'**
+  String moneyOverBudgetToastMine(String category, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is at {percent}% of this month\'s budget'**
+  String moneyNearBudgetToastMine(String category, String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The month is {amount} over budget'**
+  String moneyOverTotalToast(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The month is at {percent}% of budget'**
+  String moneyNearTotalToast(String percent);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved: {name} just edited this entry'**
+  String moneyConflictTitle(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the latest version. Edit again if needed.'**
+  String get moneyConflictBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save this. Try again.'**
+  String get moneyWriteFailed;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry'**
+  String get moneyDeleteTx;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {note} · {amount}'**
+  String moneyDeleted(String note, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get moneyUndo;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Change it in my book too?'**
+  String get moneyLinkedAskTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'“{note}” also takes {old} from {wallet}. Change both books to {amount}?'**
+  String moneyLinkedAskBody(
+    String note,
+    String old,
+    String wallet,
+    String amount,
+  );
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Change both'**
+  String get moneyLinkedBoth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book only'**
+  String get moneyLinkedSharedOnly;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} changed the shared entry to {amount}'**
+  String moneyLinkedChanged(String name, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get moneyLinkedUpdate;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Only {name} can change the amount because it\'s also in their own book'**
+  String moneyLinkedLocked(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from both books?'**
+  String get moneyDeleteBothTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'“{note}” {amount} is in the shared book and also comes out of my {wallet}. Deleting both puts {amount} back in {wallet}.'**
+  String moneyDeleteBothBody(String note, String amount, String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete both'**
+  String get moneyDeleteBoth;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Only the shared book'**
+  String get moneyDeleteSharedOnly;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get moneyCancel;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this entry?'**
+  String get moneyDiscardTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} · {category} isn\'t saved yet.'**
+  String moneyDiscardBody(String amount, String category);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get moneyKeepEditing;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get moneyDiscard;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category'**
+  String get moneyPickCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get moneyEditCategoriesShort;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Find a category, e.g. “coffee”'**
+  String get moneyCategorySearchHint;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'No category matches.'**
+  String get moneyCategoryNoMatch;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete one character'**
+  String get moneyKeyDelete;
+
+  /// No description provided for @moneyKeyBillion.
+  ///
+  /// In en, this message translates to:
+  /// **'billion'**
+  String get moneyKeyBillion;
+
+  /// No description provided for @moneyAmountTooBigFor.
+  ///
+  /// In en, this message translates to:
+  /// **'{max} max per entry.'**
+  String moneyAmountTooBigFor(String max);
+
+  /// No description provided for @moneyWalletTooBigFor.
+  ///
+  /// In en, this message translates to:
+  /// **'{max} max per wallet.'**
+  String moneyWalletTooBigFor(String max);
+
+  /// No description provided for @moneyAddSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Add source'**
+  String get moneyAddSource;
+
+  /// No description provided for @moneyCurrencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get moneyCurrencyTitle;
+
+  /// No description provided for @moneyTypeSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get moneyTypeSave;
+
+  /// No description provided for @moneySavedContribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Put {amount} into {fund}'**
+  String moneySavedContribution(String amount, String fund);
+
+  /// No description provided for @moneySaveInto.
+  ///
+  /// In en, this message translates to:
+  /// **'Into'**
+  String get moneySaveInto;
+
+  /// No description provided for @moneyPaidFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid from'**
+  String get moneyPaidFrom;
+
+  /// No description provided for @moneyMyMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'My own money'**
+  String get moneyMyMoney;
+
+  /// No description provided for @moneyGoalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings goals'**
+  String get moneyGoalsTitle;
+
+  /// No description provided for @moneyChTplNoCoffee7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without bubble tea or coffee'**
+  String get moneyChTplNoCoffee7;
+
+  /// No description provided for @moneyChTplNoSnack7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without snacks'**
+  String get moneyChTplNoSnack7;
+
+  /// No description provided for @moneyChTplNoGrab7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without ride-hailing'**
+  String get moneyChTplNoGrab7;
+
+  /// No description provided for @moneyChTplNoShop7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days without shopping'**
+  String get moneyChTplNoShop7;
+
+  /// No description provided for @moneyChTplNoClothes14.
+  ///
+  /// In en, this message translates to:
+  /// **'14 days without new clothes'**
+  String get moneyChTplNoClothes14;
+
+  /// No description provided for @moneyChTplCookHome14.
+  ///
+  /// In en, this message translates to:
+  /// **'14 days cooking at home'**
+  String get moneyChTplCookHome14;
+
+  /// No description provided for @moneyChTplNoTech30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days without gadgets'**
+  String get moneyChTplNoTech30;
+
+  /// No description provided for @moneyChTplEatOutCap7.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat out under {amount} this week'**
+  String moneyChTplEatOutCap7(String amount);
+
+  /// No description provided for @moneyChTplDateCap7.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates under {amount} this week'**
+  String moneyChTplDateCap7(String amount);
+
+  /// No description provided for @moneyChTplAllCap7.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend under {amount} this week'**
+  String moneyChTplAllCap7(String amount);
+
+  /// No description provided for @moneyChallengesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving challenges'**
+  String get moneyChallengesTitle;
+
+  /// No description provided for @moneyChallengeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New challenge'**
+  String get moneyChallengeNew;
+
+  /// No description provided for @moneyChallengeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Make your own'**
+  String get moneyChallengeCustom;
+
+  /// No description provided for @moneyChallengeDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days left'**
+  String moneyChallengeDaysLeft(String n);
+
+  /// No description provided for @moneyChallengeCleanDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} days'**
+  String moneyChallengeCleanDays(String done, String total);
+
+  /// No description provided for @moneyChallengeSpentOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {limit}'**
+  String moneyChallengeSpentOf(String spent, String limit);
+
+  /// No description provided for @moneyChallengeWon.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get moneyChallengeWon;
+
+  /// No description provided for @moneyChallengeLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again next time'**
+  String get moneyChallengeLost;
+
+  /// No description provided for @moneyChallengeStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop challenge'**
+  String get moneyChallengeStop;
+
+  /// No description provided for @moneyChallengeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get moneyChallengeStart;
+
+  /// No description provided for @moneyChallengeKindNoSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'No spending'**
+  String get moneyChallengeKindNoSpend;
+
+  /// No description provided for @moneyChallengeKindCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend under'**
+  String get moneyChallengeKindCap;
+
+  /// No description provided for @moneyChallengeLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit'**
+  String get moneyChallengeLimit;
+
+  /// No description provided for @moneyChallengeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All spending'**
+  String get moneyChallengeAll;
+
+  /// No description provided for @moneyChallengeDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days'**
+  String moneyChallengeDays(String n);
+
+  /// No description provided for @moneyChallengeMax.
+  ///
+  /// In en, this message translates to:
+  /// **'3 challenges are running'**
+  String get moneyChallengeMax;
+
+  /// No description provided for @moneyChallengeLastDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day of your challenge'**
+  String get moneyChallengeLastDayTitle;
+
+  /// No description provided for @moneyChallengeStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started: {title}'**
+  String moneyChallengeStarted(String title);
+
+  /// No description provided for @moneyRecapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{month} in review'**
+  String moneyRecapTitle(String month);
+
+  /// No description provided for @moneyRecapKeptBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Stayed within the monthly limit'**
+  String get moneyRecapKeptBudget;
+
+  /// No description provided for @moneyRecapSpentLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent {amount} less than {month}'**
+  String moneyRecapSpentLess(String amount, String month);
+
+  /// No description provided for @moneyRecapSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} into funds'**
+  String moneyRecapSaved(String amount);
+
+  /// No description provided for @moneyRecapChallenges.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished {n} challenges'**
+  String moneyRecapChallenges(String n);
+
+  /// No description provided for @moneyRecapLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged spending on {n} of {total} days'**
+  String moneyRecapLogged(String n, String total);
+
+  /// No description provided for @moneyRecapEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'A new month. Set a limit for it?'**
+  String get moneyRecapEmpty;
+
+  /// No description provided for @moneyChallengeLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get moneyChallengeLength;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'thousand'**
+  String get moneyKeyThousand;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'million'**
+  String get moneyKeyMillion;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'million (củ)'**
+  String get moneyKeyCu;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Show number pad'**
+  String get moneyShowKeypad;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Where\'s my money right now?'**
+  String get moneyFirstRunTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the wallets you use and enter today\'s balance. You can skip this: a Cash wallet is already set up.'**
+  String get moneyFirstRunBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Done, open my book'**
+  String get moneyFirstRunDone;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get moneySkip;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Built in'**
+  String get moneyBuiltIn;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get moneyWalletBank;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'E-wallet'**
+  String get moneyWalletEwallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card'**
+  String get moneyWalletCredit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get moneyWalletGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'How much you owe on it'**
+  String get moneyCreditOwed;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{name} balance'**
+  String moneyBalanceOf(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'100 billion max per wallet.'**
+  String get moneyWalletTooBig;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'WALLETS'**
+  String get moneyWalletsBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add wallet'**
+  String get moneyAddWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Adds up {n} wallets in use, with card debt taken off. Goal savings are counted separately below.'**
+  String moneyAssetsNote(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'In use'**
+  String get moneyInUse;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 wallet} other{{n} wallets}}'**
+  String moneyWalletCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get moneyGoals;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'not in the total'**
+  String get moneyNotInTotal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'About {amount} a month'**
+  String moneyGoalPerMonthShort(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get moneyArchivedSection;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archived {date}, history kept'**
+  String moneyArchived(String date);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archived, history kept'**
+  String get moneyArchivedPlain;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'card debt'**
+  String get moneyOwingCard;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get moneyCurrentBalance;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{type} · counts in total money'**
+  String moneyWalletInTotal(String type);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{type} · not in the total'**
+  String moneyWalletNotInTotal(String type);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'In · {month}'**
+  String moneyInMonth(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Out · {month}'**
+  String moneyOutMonth(String month);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Fix balance'**
+  String get moneyFixBalance;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 entry} other{{n} entries}}'**
+  String moneyEntryCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit wallet'**
+  String get moneyEditWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'No entries in this wallet this month.'**
+  String get moneyWalletNoEntries;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New wallet'**
+  String get moneyNewWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get moneyNewGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get moneyName;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Pick an icon'**
+  String get moneyPickEmoji;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Balance now'**
+  String get moneyBalanceNow;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Count in total money'**
+  String get moneyIncludeInTotal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Create wallet'**
+  String get moneyCreateWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Create goal'**
+  String get moneyCreateGoal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get moneyGoalTarget;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline (optional)'**
+  String get moneyGoalDeadline;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Save about {amount} a month for the next {n} months.'**
+  String moneyGoalPerMonth(String amount, int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get moneyNotSet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get moneySave;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archive wallet'**
+  String get moneyArchiveWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Archive this wallet?'**
+  String get moneyArchiveAskTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'It stops showing when you add entries and keeps its history. You can bring it back any time.'**
+  String get moneyArchiveAskBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Use this wallet again'**
+  String get moneyUnarchiveWallet;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add a name to save'**
+  String get moneyNameNeeded;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Match the real balance'**
+  String get moneyFixTitle;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} · the book says {amount}'**
+  String moneyFixInBook(String wallet, String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'What you actually have'**
+  String get moneyAdjustReal;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The app shows {amount} more than you really have. It adds one “balance fix” line to match, which doesn\'t count as spending.'**
+  String moneyFixMore(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'The app shows {amount} less than you really have. It adds one “balance fix” line to match, which doesn\'t count as income.'**
+  String moneyFixLess(String amount);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Already matches, nothing to fix.'**
+  String get moneyFixSame;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Update balance'**
+  String get moneyAdjustSave;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} balance fixed'**
+  String moneyFixedToast(String wallet);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Created {name}'**
+  String moneyWalletCreated(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'CATEGORIES'**
+  String get moneyCategoriesBadge;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'My book · each book has its own categories'**
+  String get moneyCategoryScope;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book · each book has its own categories'**
+  String get moneyCategoryScopeShared;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 subcategory} other{{n} subcategories}}'**
+  String moneySubCount(int n);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add subcategory'**
+  String get moneyAddSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed from “{name}”'**
+  String moneyRenamedFrom(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Added by you'**
+  String get moneyCustom;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get moneyHidden;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'not shown when adding'**
+  String get moneyHiddenNote;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Old entries keep the name'**
+  String get moneyHiddenSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Show again'**
+  String get moneyShowAgain;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Hide this category'**
+  String get moneyHideCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get moneyEditCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get moneyNewCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'New subcategory'**
+  String get moneyNewSub;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Original name: {name}. Renaming only changes this book.'**
+  String moneyOriginalName(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Under'**
+  String get moneyInGroup;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get moneyDeleteCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{name}”?'**
+  String moneyDeleteCategoryAsk(String name);
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Old entries in it move to “Other”.'**
+  String get moneyDeleteCategoryBody;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get moneyDelete;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get moneyAddCategory;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'This book already has 80 custom categories.'**
+  String get moneyCategoryLimit;
+
+  /// Sổ tiền (feature expenses)
+  ///
+  /// In en, this message translates to:
+  /// **'not spending'**
+  String get moneyNotSpending;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get moneyBudgets;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'BUDGETS'**
+  String get moneyBudgetsBadge;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get moneyReport;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'REPORT'**
+  String get moneyReportBadge;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'FIND ENTRIES'**
+  String get moneySearchBadge;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Find entries'**
+  String get moneySearchLabel;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get moneySeeAll;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get moneyBudgetSetLink;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Set a budget'**
+  String get moneyAddBudget;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} · whole shared book'**
+  String moneyBudgetScopeShared(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} · my whole book'**
+  String moneyBudgetScopeMine(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days left'**
+  String moneyBudgetDaysLeft(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{left} left, about {perDay} a day until month end.'**
+  String moneyBudgetDailyLeft(String left, String perDay);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'of {budget}'**
+  String moneyBudgetUsedOf(String budget);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By category'**
+  String get moneyBudgetByCategory;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over {budget}'**
+  String moneyBudgetOverOf(String amount, String budget);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left of {budget}'**
+  String moneyBudgetLeftOf(String amount, String budget);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No category has its own budget yet. Set one for a group you spend a lot on and the app will alert you at 80% and 100%.'**
+  String get moneyBudgetNoCategory;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No budget yet. Set one number for the month and the app will alert you at 80% and 100%.'**
+  String get moneyBudgetUnset;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Set monthly budget'**
+  String get moneySetBudget;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'At 80% and 100% of the total budget, the other person gets a notice with the percentage only, no amounts.'**
+  String get moneyBudgetPushNote;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly budget'**
+  String get moneyBudgetSheetTitle;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Whole book'**
+  String get moneyBudgetWholeBook;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly limit'**
+  String get moneyBudgetAmountLabel;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'It starts again from 0 every month.'**
+  String get moneyBudgetResets;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Save budget'**
+  String get moneyBudgetSave;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this budget'**
+  String get moneyBudgetRemove;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Budget set for {name}: {amount}'**
+  String moneyBudgetSaved(String name, String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Removed the {name} budget'**
+  String moneyBudgetRemoved(String name);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'up to {date}'**
+  String moneyReportUpTo(String date);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{category} was the biggest spend, {percent}% of the month.'**
+  String moneyReportTopCategory(String category, String percent);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{category} is {percent}% of shared spending.'**
+  String moneyReportTopShared(String category, String percent);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Most of it was {sub}, {amount}.'**
+  String moneyReportTopChild(String sub, String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By category'**
+  String get moneyReportByCategory;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'tap for subcategories'**
+  String get moneyReportTapHint;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Spending per month'**
+  String get moneyReportByMonth;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'6 months'**
+  String get moneyReport6;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'12 months'**
+  String get moneyReport12;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Budget {amount}'**
+  String moneyReportBudgetLine(String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} counts up to {date}. The dashed line is the current total budget.'**
+  String moneyReportPartial(String month, String date);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{month} counts up to {date}.'**
+  String moneyReportPartialNoBudget(String month, String date);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'The shared book started in {month}, so earlier months are empty.'**
+  String moneyReportNewBook(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'My book started in {month}, so earlier months are empty.'**
+  String moneyReportNewBookMine(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Some months didn\'t load, so their bars are empty. They\'ll come back once you\'re online.'**
+  String get moneyReportMissing;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Tết'**
+  String get moneyReportTet;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Spending per month, last {n} months: {values}'**
+  String moneyReportChartLabel(String n, String values);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'By wallet'**
+  String get moneyReportByWallet;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No spending in {month} yet.'**
+  String moneyReportNoSpend(String month);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes and categories'**
+  String get moneySearchHint;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Clear text'**
+  String get moneySearchClear;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Accents optional: “bun cha” finds “Bún chả”.'**
+  String get moneySearchAccent;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{n} entries'**
+  String moneySearchCount(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Last {n} months'**
+  String moneySearchRange(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches “{q}” in the last {n} months.'**
+  String moneySearchEmpty(String q, String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'No entries in the last {n} months with these filters.'**
+  String moneySearchEmptyAll(String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Search 12 months'**
+  String get moneySearch12;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Only the latest 2,000 entries in this range are searched. Narrow the dates to be sure.'**
+  String get moneySearchCap;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t search. Check your connection and try again.'**
+  String get moneySearchError;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get moneySearchAmount;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get moneySearchPerson;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get moneySearchFrom;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get moneySearchTo;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'From {amount}'**
+  String moneySearchFromOnly(String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount}'**
+  String moneySearchToOnly(String amount);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get moneySearchApply;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filter'**
+  String get moneySearchClearFilter;
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · {n}'**
+  String moneySearchPickedCount(String label, String n);
+
+  /// Sổ tiền (feature expenses) · stage 3A
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get moneySearchPeriod;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve saved'**
+  String get moneyGoalSaved;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get moneyGoalSavedMine;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Goal {amount}'**
+  String moneyGoalTargetOf(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go. To make {date}, we need about {perMonth} a month.'**
+  String moneyGoalLeft(String left, String date, String perMonth);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go. To make {date}, I need about {perMonth} a month.'**
+  String moneyGoalLeftMine(String left, String date, String perMonth);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{left} to go.'**
+  String moneyGoalLeftOnly(String left);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'No deadline yet. Add one to see how much to save each month.'**
+  String get moneyGoalNoDeadline;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Full on {date}'**
+  String moneyGoalReachedOn(String date);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Goal reached. Time to plan {trip}. Log trip costs straight from this fund.'**
+  String moneyGoalReached(String trip);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Contributions'**
+  String get moneyGoalHistory;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 time} other{{count} times}}'**
+  String moneyGoalTimes(int count);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing put in yet. Start with as little as 50k.'**
+  String get moneyGoalHistoryEmpty;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load older history. Showing recent contributions.'**
+  String get moneyGoalHistoryPartial;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Add to fund'**
+  String get moneyContribute;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Spend from fund'**
+  String get moneySpendFromFund;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Add to {wallet}'**
+  String moneyContributeTitle(String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'From wallet'**
+  String get moneyContributeFrom;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Put in {amount}'**
+  String moneyContributeSave(String amount);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Put {amount} into {wallet}'**
+  String moneyContributed(String amount, String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} is full'**
+  String moneyContributedFull(String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Amount to put in'**
+  String get moneyContributeHint;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Log the cost'**
+  String get moneyLogFromDecision;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Anything from today you haven\'t logged?'**
+  String get moneyReminderBody1;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Log the rest of today\'s spending. It takes under a minute.'**
+  String get moneyReminderBody2;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s evening. Take a look at what went out today'**
+  String get moneyReminderBody3;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Evening spending reminder'**
+  String get moneyReminderSettingTitle;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Once an evening. Skipped on days you\'ve already logged something.'**
+  String get moneyReminderSettingSubtitle;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Evening reminder'**
+  String get moneyMenuReminder;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets, spending and shared funds'**
+  String get moneyProfileSub;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{name} just chipped in. The fund is at {percent}%'**
+  String moneyNotifGoal(String name, String percent);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'{wallet} is full!'**
+  String moneyNotifGoalReached(String wallet);
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We hit the goal together. Time to make plans.'**
+  String get moneyNotifGoalReachedSub;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve used 80% of this month\'s budget'**
+  String get moneyNotifBudget80;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve used up this month\'s budget'**
+  String get moneyNotifBudget100;
+
+  /// Sổ tiền (feature expenses), stage 3B
+  ///
+  /// In en, this message translates to:
+  /// **'Shared book · {month}'**
+  String moneyNotifBudgetSub(String month);
+
+  /// Sổ tiền (feature expenses), sửa theo Tester 2026-10-22
+  ///
+  /// In en, this message translates to:
+  /// **'This one also came out of my wallet, so who paid can\'t change. To change it, delete it and log it again.'**
+  String get moneyLinkedPayerLocked;
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: Hoàn tác bấm sau khi đã xoá
+  ///
+  /// In en, this message translates to:
+  /// **'That one\'s already deleted.'**
+  String get moneyUndoTooLate;
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: chi tiết ví thẻ tín dụng âm
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s what you owe on this card. Pay it before the due date.'**
+  String get moneyOwingCardDetail;
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: nhãn đọc màn hình ô giờ nhắc tối
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time, {time}'**
+  String moneyReminderTimeA11y(String time);
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: số tiền đọc màn hình
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} dong'**
+  String moneyAmountSpoken(String amount);
+
+  /// Sổ tiền (feature expenses), vòng vá đợt 2: số tiền âm đọc màn hình
+  ///
+  /// In en, this message translates to:
+  /// **'minus {amount} dong'**
+  String moneyAmountSpokenNeg(String amount);
+
+  /// Feature arrival (đợt 2), vòng vá: chưa từng bật chia sẻ
+  ///
+  /// In en, this message translates to:
+  /// **'Turn it on to let {name} know when you arrive.'**
+  String arrivalShareFirstSub(String name);
+
+  /// Feature arrival (đợt 2), vòng vá: dòng phụ thẻ Vị trí khi chưa có địa chỉ
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to set the address'**
+  String get arrivalSetAddressCta;
+
+  /// No description provided for @rateAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How\'s Dear Embeiu treating you?'**
+  String get rateAppTitle;
+
+  /// No description provided for @rateAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It only takes a few seconds.'**
+  String get rateAppSubtitle;
+
+  /// No description provided for @rateAppStar1.
+  ///
+  /// In en, this message translates to:
+  /// **'Not great'**
+  String get rateAppStar1;
+
+  /// No description provided for @rateAppStar2.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get rateAppStar2;
+
+  /// No description provided for @rateAppStar3.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s okay'**
+  String get rateAppStar3;
+
+  /// No description provided for @rateAppStar4.
+  ///
+  /// In en, this message translates to:
+  /// **'Pretty good'**
+  String get rateAppStar4;
+
+  /// No description provided for @rateAppStar5.
+  ///
+  /// In en, this message translates to:
+  /// **'Love it'**
+  String get rateAppStar5;
+
+  /// No description provided for @rateAppCtaDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a rating'**
+  String get rateAppCtaDefault;
+
+  /// No description provided for @rateAppCtaIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate on the App Store'**
+  String get rateAppCtaIos;
+
+  /// No description provided for @rateAppCtaAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate on Google Play'**
+  String get rateAppCtaAndroid;
+
+  /// No description provided for @rateAppCtaLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Write feedback'**
+  String get rateAppCtaLow;
+
+  /// No description provided for @rateAppLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get rateAppLater;
+
+  /// No description provided for @rateAppStarSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stars'**
+  String rateAppStarSemantics(int count);
+
+  /// No description provided for @rateAppStarsGroupSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Dear Embeiu'**
+  String get rateAppStarsGroupSemantics;
+
+  /// No description provided for @settingsRateAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Dear Embeiu'**
+  String get settingsRateAppTitle;
+
+  /// No description provided for @settingsRateAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave a rating on the app store'**
+  String get settingsRateAppSubtitle;
+
+  /// No description provided for @settingsFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback & bug reports'**
+  String get settingsFeedbackTitle;
+
+  /// No description provided for @settingsFeedbackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s off, or what would you like to see?'**
+  String get settingsFeedbackSubtitle;
+
+  /// No description provided for @feedbackBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'FEEDBACK'**
+  String get feedbackBadge;
+
+  /// No description provided for @feedbackTypeSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion'**
+  String get feedbackTypeSuggestion;
+
+  /// No description provided for @feedbackTypeBug.
+  ///
+  /// In en, this message translates to:
+  /// **'Bug report'**
+  String get feedbackTypeBug;
+
+  /// No description provided for @feedbackFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get feedbackFieldLabel;
+
+  /// No description provided for @feedbackHintSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What should the app add, or make easier to use?'**
+  String get feedbackHintSuggestion;
+
+  /// No description provided for @feedbackHintBug.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened? What did you tap, on which screen, and what did you expect?'**
+  String get feedbackHintBug;
+
+  /// No description provided for @feedbackHintLowRating.
+  ///
+  /// In en, this message translates to:
+  /// **'What let you down? A single line is fine.'**
+  String get feedbackHintLowRating;
+
+  /// No description provided for @feedbackRatedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You rated {count}/5'**
+  String feedbackRatedLabel(int count);
+
+  /// No description provided for @feedbackCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/2000'**
+  String feedbackCounter(int count);
+
+  /// No description provided for @feedbackAttachCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach a screenshot'**
+  String get feedbackAttachCta;
+
+  /// No description provided for @feedbackPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached screenshot'**
+  String get feedbackPhotoLabel;
+
+  /// No description provided for @feedbackPhotoRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove screenshot'**
+  String get feedbackPhotoRemove;
+
+  /// No description provided for @feedbackPhotoError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open that image. Try another.'**
+  String get feedbackPhotoError;
+
+  /// No description provided for @feedbackPhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'That image is too large (10 MB max).'**
+  String get feedbackPhotoTooLarge;
+
+  /// No description provided for @feedbackDeviceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your app version, OS and device model are included to help track down issues faster.'**
+  String get feedbackDeviceNote;
+
+  /// No description provided for @feedbackSendCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get feedbackSendCta;
+
+  /// No description provided for @feedbackRetryCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get feedbackRetryCta;
+
+  /// No description provided for @feedbackErrorBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send. Check your connection and try again. Your message is still here.'**
+  String get feedbackErrorBanner;
+
+  /// No description provided for @feedbackSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get feedbackSuccessTitle;
+
+  /// No description provided for @feedbackSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback has been sent.'**
+  String get feedbackSuccessBody;
+
+  /// No description provided for @feedbackDoneCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get feedbackDoneCta;
 }
 
 class _AppLocalizationsDelegate

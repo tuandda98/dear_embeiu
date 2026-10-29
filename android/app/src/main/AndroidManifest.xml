@@ -20,6 +20,20 @@
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"
         android:maxSdkVersion="28" />
 
+    <!-- ── arrival (đợt 2) ── "Về đến nhà chưa?": OS geofences (plugin
+         native_geofence) + "Dùng vị trí hiện tại". Background location = the
+         one feature declared to Play (overview D13). Plan B if Play refuses:
+         add tools:node="remove" to ACCESS_BACKGROUND_LOCATION and set
+         kArrivalAutoAndroid = false (dev.md). No location foreground service
+         ever (D1): the _LOCATION type is removed in case a library pulls it.
+         FOREGROUND_SERVICE / WAKE_LOCK stay (WorkManager expedited work on
+         Android < 12, spike §6.5). -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"
+        tools:node="remove" />
+
     <!-- Backup rules (audit D6): sleep data stays on this phone — out of
          Google Auto Backup and device-to-device transfer. -->
     <application
@@ -121,6 +135,19 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+        <!-- ── arrival (đợt 2) ── native_geofence: Play services geofence events
+             (explicit PendingIntent, so not exported) and re-registering after
+             a reboot. Its NativeGeofenceForegroundService is NOT declared (D1). -->
+        <receiver
+            android:name="com.chunkytofustudios.native_geofence.receivers.NativeGeofenceBroadcastReceiver"
+            android:exported="false" />
+        <receiver
+            android:name="com.chunkytofustudios.native_geofence.receivers.NativeGeofenceRebootBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
         <!-- Don't delete the meta-data below.

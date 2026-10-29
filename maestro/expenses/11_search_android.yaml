@@ -1,0 +1,29 @@
+# Tìm khoản: gõ không phân biệt hoa thường, đếm "1 khoản", không khớp thì báo trống.
+appId: com.tony.dearembeiu.dev
+---
+- runScript: _run_id.js
+- launchApp
+- extendedWaitUntil:
+    visible: '.*Hôm nay của chúng mình.*'
+    timeout: 30000
+- runFlow: _open_money.yaml
+- tapOn: 'Của mình'
+- runFlow:
+    file: _add_expense_own.yaml
+    env:
+      NOTE: MTF${output.run}
+- tapOn: 'Tìm khoản'
+- extendedWaitUntil:
+    visible: '(?s).*TÌM KHOẢN.*'
+    timeout: 8000
+- tapOn: 'Tìm trong ghi chú và danh mục'
+- inputText: mtf${output.run}
+- extendedWaitUntil:
+    visible: 'MTF${output.run}, .*'
+    timeout: 8000
+- assertVisible: '(?s).*1 khoản.*'
+- eraseText: 30
+- inputText: zzzzqq
+- extendedWaitUntil:
+    visible: '(?s).*Không có khoản nào khớp .zzzzqq. trong .* tháng gần đây\..*'
+    timeout: 8000

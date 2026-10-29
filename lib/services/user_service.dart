@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import '../l10n/app_l10n.dart';
 import '../l10n/app_localizations.dart';
@@ -9,10 +10,17 @@ import '../models/account_invite.dart';
 import '../models/app_user.dart';
 
 class UserService {
-  UserService({FirebaseFirestore? firestore}) : _firestore = firestore;
+  UserService({FirebaseFirestore? firestore, DateTime Function()? clock})
+      : _firestore = firestore,
+        _clock = clock ?? DateTime.now;
 
   final FirebaseFirestore? _firestore;
+  final DateTime Function() _clock;
   final Random _random = Random.secure();
+
+  /// At most one lastSeenAt write per this long, per device (feature last-seen).
+  static const lastSeenInterval = Duration(hours: 1);
+  DateTime? _lastSeenTouchedAt;
 
   bool get isEnabled => Firebase.apps.isNotEmpty;
 
@@ -42,6 +50,28 @@ class UserService {
       'id': snapshot.id,
       ...snapshot.data()!,
     });
+  }
+
+  /// Marks [uid] as seen now: writes ONLY `lastSeenAt` (server time), never
+  /// updatedAt — that one means "profile changed". Throttled to one write per
+  /// [lastSeenInterval]; errors are swallowed (pure housekeeping, never blocks).
+  Future<void> touchLastSeen(String uid) async {
+    if (!isEnabled || uid.trim().isEmpty || !takeLastSeenSlot()) return;
+    try {
+      await _usersCollection.doc(uid).update({
+        'lastSeenAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {}
+  }
+
+  /// True (and claims the slot) when the last claim is [lastSeenInterval] old.
+  @visibleForTesting
+  bool takeLastSeenSlot() {
+    final now = _clock();
+    final last = _lastSeenTouchedAt;
+    if (last != null && now.difference(last) < lastSeenInterval) return false;
+    _lastSeenTouchedAt = now;
+    return true;
   }
 
   /// Look up a couple_codes entry and return the coupleId it maps to.

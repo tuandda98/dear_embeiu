@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cờ caro: các trạng thái của màn ván</title>
+<link rel="stylesheet" href="caro.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<h1 class="page-h1">Màn ván cờ caro: mọi trạng thái</h1>
+<p class="page-sub">Mỗi khung là phần đầu màn và thanh hành động; bàn cắt gọn quanh nước cuối. Bàn đầy đủ ở board.html.</p>
+<main id="app"></main>
+<script>
+const G = D.openGame, P = UI.P, I = UI.ICON;
+const after15 = [...G.cells, D.selected];                          // Tuấn đã đi nước 15 (10:20)
+const first = { ...G, cells: [] };
+const invite = { ...G, cells: [G.cells[0]] };                         // máy Thảo, 08:02
+const staleGame = { ...G, cells: after15.slice(0, 9), rule: 'free' }; // ván dừng từ 12/10
+const zoom = () => `<button class="round" aria-label="Xem toàn bàn">${I.zoomOut}</button>`;
+function frame(o) {
+  const g = o.game || G;
+  return `<h2 class="state-h">${o.title}</h2>${o.note ? `<p class="state-p">${o.note}</p>` : ''}
+  <section class="card status">${o.skeleton ? '<span class="bar" style="width:150px;height:24px"></span><span class="bar" style="width:240px;height:18px;margin-top:6px"></span>' : `<h2 style="font-size:20px;font-weight:700;line-height:1.3">${o.h1}</h2><p class="sub">${o.sub}</p>`}
+  ${UI.lanes(g, { ruleTap: !o.skeleton, ...(o.lanes || {}) })}</section>
+  <section class="card board crop"><div class="viewport" data-c="${o.center ?? (g.cells.at(-1) ?? 112)}">${UI.board(g, { selected: o.selected, pending: o.pending, noLast: o.noLast, cells: o.skeleton ? [] : undefined })}</div></section>
+  ${o.extra || ''}<div class="dock">${o.noZoom ? '' : zoom()}${o.dock}</div>${o.after || ''}`;
+}
+const frames = [
+  { title: 'Chờ Thảo, Thảo đang mở ván (10:21)', h1: 'Đang chờ Thảo', sub: `Bạn đi nước 15 lúc ${D.nudge.myMoveAt}. Thảo đang xem ván.`, game: { ...G, cells: after15 }, lanes: { turn: 'partner', watching: true, move: 15 },
+    dock: `<button class="btn ghost off" disabled>Nhắc được sau 29 phút</button>` },
+  { title: `Chờ Thảo, Thảo đã rời ván (${D.nudge.now})`, h1: 'Đang chờ Thảo', sub: `Bạn đi nước 15 lúc ${D.nudge.myMoveAt}. Cứ thoát app, Thảo đi xong sẽ báo bạn.`, game: { ...G, cells: after15 }, lanes: { turn: 'partner', move: 15 },
+    dock: `<button class="btn ghost off" disabled>Nhắc được sau ${D.nudge.leftMin} phút</button>` },
+  { title: 'Đủ 30 phút, nhắc được (10:51)', h1: 'Đang chờ Thảo', sub: `Bạn đi nước 15 lúc ${D.nudge.myMoveAt}. Đã 31 phút rồi.`, game: { ...G, cells: after15 }, lanes: { turn: 'partner', move: 15 },
+    dock: `<button class="btn ghost">Nhắc Thảo</button>` },
+  { title: 'Nhắc xong', h1: 'Đang chờ Thảo', sub: 'Đã nhắc Thảo lúc 10:51.', game: { ...G, cells: after15 }, lanes: { turn: 'partner', move: 15 },
+    dock: `<button class="btn ghost off" disabled>Nhắc được sau 30 phút</button>` },
+  { title: 'Máy Thảo: được rủ, bàn có 1 quân (08:02)', note: 'Người được rủ đi luôn, hoặc bấm Để sau (huỷ, không tính tỉ số).', h1: 'Tuấn rủ bạn chơi caro', sub: 'Tuấn đã đi nước đầu. Luật chặn hai đầu: năm quân bị chặn cả hai đầu thì chưa thắng.', game: invite, lanes: { turn: 'me', me: 'thao', move: 1 },
+    dock: `<button class="btn off" disabled>Chạm một ô để chọn</button>`, after: `<button class="text-btn" style="justify-self:center">Để sau</button>` },
+  { title: 'Chưa có ván: đặt quân đầu để rủ', note: 'Mở từ thẻ Home sau bước chọn luật (sheet.html).', h1: 'Đặt quân đầu tiên', sub: 'Bạn cầm X và đi trước. Thảo nhận lời rủ khi bạn đi xong.', game: first, selected: D.at(7, 7), center: D.at(7, 7), lanes: { turn: 'me', move: 0 },
+    dock: `<button class="btn">Rủ Thảo chơi</button>` },
+  { title: 'Đang gửi nước đi', note: 'Quân mờ hiện ngay khi bấm; đậm lên khi máy chủ nhận.', h1: 'Đến lượt bạn', sub: 'Thảo vừa đi nước 14 lúc 10:12.', selected: D.selected, pending: true, lanes: { turn: 'me', move: 14 },
+    dock: `<button class="btn" disabled style="background:#1A1A2E;color:#fff"><span class="spin"></span>Đang đi…</button>` },
+  { title: 'Gửi lỗi', note: 'Giữ ô đã chọn, cho thử lại.', h1: 'Đến lượt bạn', sub: 'Thảo vừa đi nước 14 lúc 10:12.', selected: D.selected, lanes: { turn: 'me', move: 14 },
+    extra: `<p class="alert" role="alert">${I.warn}Chưa đi được. Mạng đang chập chờn, ô bạn chọn vẫn giữ nguyên.</p>`, dock: `<button class="btn">Thử lại</button>` },
+  { title: 'Mất mạng', h1: 'Đến lượt bạn', sub: 'Thảo vừa đi nước 14 lúc 10:12.', lanes: { turn: 'me', move: 14 },
+    extra: `<p class="note" style="display:flex;gap:8px;align-items:center"><span style="width:18px;height:18px;display:inline-block">${I.wifi}</span>Đang mất mạng. Có mạng lại là đi tiếp được.</p>`, dock: `<button class="btn off" disabled>Chờ có mạng</button>` },
+  { title: 'Ván dừng 7 ngày trở lên (chờ Thảo)', note: 'Ai cũng kết thúc được; không tính tỉ số.', h1: `Ván dừng ${D.stale.days} ngày rồi`, sub: `Không ai đi từ ${D.stale.lastMoveOn}. Nhắc Thảo, hoặc kết thúc để rủ ván mới.`, game: staleGame, lanes: { turn: 'partner', move: 9 },
+    dock: `<button class="btn ghost">Nhắc Thảo</button>`, after: `<button class="text-btn" style="justify-self:center">Kết thúc ván</button>` },
+  { title: 'Người được rủ chưa vào sau 24 giờ', h1: 'Đang chờ Thảo', sub: 'Bạn rủ Thảo lúc 08:02 hôm qua.', game: invite, lanes: { turn: 'partner', move: 1 },
+    extra: `<p class="note">Nếu Thảo chưa thấy ván, có thể app của Thảo cần cập nhật.</p>`, dock: `<button class="btn ghost">Nhắc Thảo</button>` },
+  { title: 'Đang tải', note: 'Khung giữ nguyên vị trí, không nhảy khi dữ liệu về.', skeleton: true, lanes: { skeleton: true }, game: first, noLast: true,
+    dock: `<button class="btn off" disabled>Đang tải ván</button>` },
+  { title: 'Mở từ thông báo cũ: ván đã huỷ', h1: 'Ván này đã huỷ', sub: 'Thảo bấm Để sau lúc 08:15. Ván huỷ không tính vào tỉ số.', game: invite, lanes: { move: 1 }, noZoom: true,
+    dock: `<button class="btn">Rủ Thảo ván mới</button>` },
+];
+const dialog = (h, body, a, b) => `<section class="card" role="alertdialog"><h2 style="font-size:20px;font-weight:700">${h}</h2><p class="sub" style="margin-top:6px">${body}</p><div class="dock" style="margin-top:16px"><button class="btn ghost">${a}</button><button class="btn" style="background:#C4242A">${b}</button></div></section>`;
+const strip = () => { const S = 20; let x = ''; for (let i = 0; i < 7; i++) { x += `<rect x="${i * S}" y="0" width="${S}" height="${S}" fill="#fff" stroke="#1A1A2E" stroke-opacity=".14"/>` + UI.mark(i === 0 || i === 6 ? 'o' : 'x', i * S + 10, 10, S, i === 0 || i === 6 ? P.thao.hue : P.tuan.hue); } return `<svg width="140" height="20" viewBox="0 0 140 20" aria-hidden="true">${x}</svg>`; };
+const menu = `<h2 class="state-h">Chạm tên luật ở làn giữa: sheet luật của ván này</h2>
+  <section class="card"><h2 style="font-size:20px;font-weight:700">Chặn hai đầu</h2><p class="sub" style="margin-top:6px">Năm quân liền nhau là thắng, trừ khi cả hai đầu đều bị quân người kia chặn. Mép bàn không tính là chặn.</p>
+  <p style="display:flex;gap:10px;align-items:center;margin-top:10px;font-size:13px;font-weight:600">${strip()}Thế này chưa thắng</p></section>
+  <h2 class="state-h">Hỏi lại trước khi xin thua</h2>
+  ${dialog('Xin thua ván này?', `Thảo được tính thắng. Tỉ số thành Tuấn ${D.wins.tuan} – ${D.wins.thao + 1} Thảo.`, 'Chơi tiếp', 'Xin thua')}
+  <h2 class="state-h">Hỏi lại khi bấm Để sau (máy Thảo)</h2>
+  ${dialog('Bỏ ván này?', 'Ván huỷ không tính tỉ số. Tuấn sẽ thấy ván đã huỷ.', 'Chơi', 'Bỏ ván')}
+  <h2 class="state-h">Hỏi lại khi kết thúc ván treo</h2>
+  ${dialog('Kết thúc ván này?', 'Ván không tính tỉ số. Xong là rủ ván mới được.', 'Để đó', 'Kết thúc')}`;
+document.getElementById('app').innerHTML = frames.map(frame).join('') + menu;
+document.querySelectorAll('.board.crop .viewport').forEach((vp) => { const [r] = D.rc(+vp.dataset.c); const cell = vp.firstElementChild.width.baseVal.value / 15; vp.scrollTop = r * cell - 75 + cell / 2; });
+</script>
+</body>
+</html>

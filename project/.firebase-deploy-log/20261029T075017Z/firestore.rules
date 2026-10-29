@@ -1,0 +1,1652 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isNonEmptyString(value) {
+      return value is string && value.size() > 0;
+    }
+
+    function isNullableString(value) {
+      return value == null || value is string;
+    }
+
+    function isNullableTimestamp(value) {
+      return value == null || value is timestamp;
+    }
+
+    function isNullOrEmptyString(value) {
+      return value == null || (value is string && value.size() == 0);
+    }
+
+    function isValidStatus(value) {
+      return value in ['single', 'waiting_partner', 'in_couple'];
+    }
+
+    function isValidMemberIds(memberIds) {
+      return memberIds is list
+        && memberIds.size() >= 1
+        && memberIds.size() <= 2
+        && memberIds[0] is string
+        && (memberIds.size() == 1 || memberIds[1] is string);
+    }
+
+    function isValidUserDocument(data) {
+      return data.keys().hasAll([
+          'email',
+          'displayName',
+          'avatarUrl',
+          'coupleId',
+          'inviteCode',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'lastSeenAt',
+        ])
+        && isNonEmptyString(data.email)
+        && isNonEmptyString(data.displayName)
+        && isNullableString(data.avatarUrl)
+        && isNullableString(data.coupleId)
+        && isNonEmptyString(data.inviteCode)
+        && isValidStatus(data.status)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && isNullableTimestamp(data.lastSeenAt)
+        // sessionToken is optional: absent on CREATE (toFirestore omits it), only
+        // merge-written later by mintSessionToken. Use .get so an absent key
+        // returns null (→ valid) instead of erroring and denying the write.
+        && isNullableString(data.get('sessionToken', null));
+    }
+
+    function isStrictUserDocument(data) {
+      return data.keys().hasOnly([
+          'email',
+          'displayName',
+          'avatarUrl',
+          'coupleId',
+          'inviteCode',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'lastSeenAt',
+        ]);
+    }
+
+    function onlyAllowedUserFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'email',
+          'displayName',
+          'avatarUrl',
+          'coupleId',
+          'inviteCode',
+          'status',
+          'createdAt',
+          'updatedAt',
+          'lastSeenAt',
+          'sessionToken',
+        ]);
+    }
+
+    function canCreateOwnUser(userId) {
+      return isSignedIn()
+        && request.auth.uid == userId
+        && isStrictUserDocument(request.resource.data)
+        && isValidUserDocument(request.resource.data);
+    }
+
+    function canUpdateOwnUser(userId) {
+      return isSignedIn()
+        && request.auth.uid == userId
+        && isValidUserDocument(request.resource.data)
+        && onlyAllowedUserFieldsChanged()
+        && (resource.data.createdAt == null || request.resource.data.createdAt == resource.data.createdAt)
+        && (resource.data.email == null || request.resource.data.email == resource.data.email)
+        && (isNullOrEmptyString(resource.data.inviteCode)
+          || request.resource.data.inviteCode == resource.data.inviteCode);
+    }
+
+    function isValidDeviceDocument(data) {
+      return data.keys().hasOnly([
+          'token',
+          'platform',
+          'notificationsEnabled',
+          'languageCode',
+          'pushPhoto',
+          'pushReaction',
+          'pushDailyQuestion',
+          // ── arrival (đợt 2) ── "Khi người ấy đến nơi" (D16)
+          'pushArrival',
+          'updatedAt',
+        ])
+        && isNonEmptyString(data.token)
+        && data.platform in ['ios', 'android', 'unknown']
+        && data.notificationsEnabled is bool
+        // languageCode added in 1.1: the old (1.0) app omits it, so read via
+        // .get (absent → null → valid). A bare data.languageCode errors on an
+        // absent key and would deny an old-app device write (→ push breaks).
+        && isNullableString(data.get('languageCode', null))
+        // Per-type mute prefs (D-notif-4): optional bools, ADDITIVE. Read via
+        // .get(field, true) so a device doc that omits them (old build) stays
+        // valid and defaults to ON — mirrors the Cloud Function's default.
+        && data.get('pushPhoto', true) is bool
+        && data.get('pushReaction', true) is bool
+        && data.get('pushDailyQuestion', true) is bool
+        // ── arrival (đợt 2) ──
+        && data.get('pushArrival', true) is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidInviteCodeDocument(data) {
+      return data.keys().hasAll([
+          'userId',
+          'displayName',
+          'coupleId',
+          'createdAt',
+          'updatedAt',
+        ])
+        && isNonEmptyString(data.userId)
+        && isNonEmptyString(data.displayName)
+        && isNullableString(data.coupleId)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isStrictInviteCodeDocument(data) {
+      return data.keys().hasOnly([
+          'userId',
+          'displayName',
+          'coupleId',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function onlyAllowedInviteCodeFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'userId',
+          'displayName',
+          'coupleId',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function isValidCoupleDocument(data) {
+      return data.keys().hasAll([
+          'person1Name',
+          'person2Name',
+          'anniversaryDate',
+          'couplePhotoPath',
+          'couplePhotoUrl',
+          'couplePhotoStoragePath',
+          'inviteCode',
+          'memberIds',
+          'memberCount',
+          'createdByUserId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ])
+        && isNonEmptyString(data.person1Name)
+        && isNonEmptyString(data.person2Name)
+        && data.anniversaryDate is timestamp
+        && isNullableString(data.couplePhotoPath)
+        && isNullableString(data.couplePhotoUrl)
+        && isNullableString(data.couplePhotoStoragePath)
+        && isNonEmptyString(data.inviteCode)
+        // coupleCode added in 1.1: the old (1.0) app omits it, so read via .get
+        // (absent → null → valid). A bare data.coupleCode errors on an absent
+        // key and would deny an old-app couple write on the shared prod backend.
+        && isNullableString(data.get('coupleCode', null))
+        && isValidMemberIds(data.memberIds)
+        && data.memberCount is int
+        && data.memberCount == data.memberIds.size()
+        && isNonEmptyString(data.createdByUserId)
+        && data.status in ['waiting_partner', 'active']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isStrictCoupleDocument(data) {
+      return data.keys().hasOnly([
+          'person1Name',
+          'person2Name',
+          'anniversaryDate',
+          'couplePhotoPath',
+          'couplePhotoUrl',
+          'couplePhotoStoragePath',
+          'inviteCode',
+          'coupleCode',
+          'memberIds',
+          'memberCount',
+          'createdByUserId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function onlyAllowedCoupleFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'person1Name',
+          'person2Name',
+          'anniversaryDate',
+          'couplePhotoPath',
+          'couplePhotoUrl',
+          'couplePhotoStoragePath',
+          'inviteCode',
+          'coupleCode',
+          'memberIds',
+          'memberCount',
+          'createdByUserId',
+          'status',
+          'createdAt',
+          'updatedAt',
+        ]);
+    }
+
+    function coupleMetadataIsImmutable() {
+      return request.resource.data.inviteCode == resource.data.inviteCode
+        && request.resource.data.createdByUserId == resource.data.createdByUserId
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function isCoupleMember(coupleId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/couples/$(coupleId))
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+    }
+
+    function isSoleCoupleMember(coupleId) {
+      return isCoupleMember(coupleId)
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberCount == 1
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 1
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds[0] == request.auth.uid;
+    }
+
+    function isCoupleProfileEdit() {
+      return isSignedIn()
+        && isValidCoupleDocument(request.resource.data)
+        && onlyAllowedCoupleFieldsChanged()
+        && request.auth.uid in resource.data.memberIds
+        && request.resource.data.memberIds == resource.data.memberIds
+        && request.resource.data.memberCount == resource.data.memberCount
+        && request.resource.data.status == resource.data.status
+        && coupleMetadataIsImmutable();
+    }
+
+    function isCoupleJoinTransition() {
+      return isSignedIn()
+        && isValidCoupleDocument(request.resource.data)
+        && onlyAllowedCoupleFieldsChanged()
+        && resource.data.status == 'waiting_partner'
+        && resource.data.memberCount == 1
+        && request.resource.data.memberCount == 2
+        && request.resource.data.status == 'active'
+        && request.resource.data.memberIds.size() == 2
+        && request.auth.uid in request.resource.data.memberIds
+        // Only the NEWCOMER adds themselves (audit 2026-10-12, N4): the member
+        // already inside must not pull in some uid (read off an invite code)
+        // who never entered a code. Every app version joins as the newcomer
+        // and bails out first when it's already in memberIds.
+        && !(request.auth.uid in resource.data.memberIds)
+        && request.resource.data.memberIds.hasAll(resource.data.memberIds)
+        && coupleMetadataIsImmutable();
+    }
+
+    function isCoupleLeaveTransition() {
+      return isSignedIn()
+        && isValidCoupleDocument(request.resource.data)
+        && onlyAllowedCoupleFieldsChanged()
+        && request.auth.uid in resource.data.memberIds
+        && resource.data.memberCount == 2
+        && resource.data.memberIds.size() == 2
+        && request.resource.data.memberCount == 1
+        && request.resource.data.memberIds.size() == 1
+        && !(request.auth.uid in request.resource.data.memberIds)
+        && resource.data.memberIds.hasAll(request.resource.data.memberIds)
+        && coupleMetadataIsImmutable()
+        && request.resource.data.status == 'waiting_partner';
+    }
+
+    function isValidPhotoDocument(coupleId, data) {
+      return data.keys().hasOnly([
+          'path',
+          'remoteUrl',
+          'storagePath',
+          'coupleId',
+          'authorUserId',
+          'authorName',
+          'uploadDate',
+          'caption',
+          'updatedAt',
+        ])
+        && isNullableString(data.path)
+        && isNullableString(data.remoteUrl)
+        && isNullableString(data.storagePath)
+        && data.coupleId == coupleId
+        && isNonEmptyString(data.authorUserId)
+        && isNullableString(data.authorName)
+        && data.uploadDate is timestamp
+        && isNullableString(data.caption)
+        && isNullableTimestamp(data.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow create: if canCreateOwnUser(userId);
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow update: if canUpdateOwnUser(userId);
+      allow delete: if false;
+
+      match /devices/{deviceId} {
+        allow read, delete: if isSignedIn() && request.auth.uid == userId;
+        allow create, update: if isSignedIn()
+          && request.auth.uid == userId
+          && isValidDeviceDocument(request.resource.data);
+      }
+
+      // Notification inbox / center (feature notifications): durable records of
+      // the pushes a user receives, written ONLY by Cloud Functions through the
+      // Admin SDK (which bypasses these rules). The client may read its own,
+      // toggle the `read` flag (mark read), and delete (dismiss / clear) — but
+      // never CREATE or forge a notification, and never edit any field other
+      // than `read`. ADDITIVE: old app versions simply ignore this subcollection.
+      match /notifications/{notificationId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow update: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+          && request.resource.data.read is bool;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+        allow create: if false;
+      }
+    }
+
+    match /invite_codes/{inviteCode} {
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && isStrictInviteCodeDocument(request.resource.data)
+        && isValidInviteCodeDocument(request.resource.data);
+
+      // get only: joining looks a code up by id. No app version has ever
+      // listed or queried this collection, and a list handed every code +
+      // coupleId to anyone signed in (audit 2026-10-12, H1).
+      allow get: if isSignedIn();
+
+      allow update: if isSignedIn()
+        && isValidInviteCodeDocument(request.resource.data)
+        && onlyAllowedInviteCodeFieldsChanged()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && (resource.data.createdAt == null || request.resource.data.createdAt == resource.data.createdAt);
+
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId} {
+      allow create: if isSignedIn()
+        && isStrictCoupleDocument(request.resource.data)
+        && isValidCoupleDocument(request.resource.data)
+        && request.resource.data.createdByUserId == request.auth.uid
+        && request.resource.data.memberIds.size() == 1
+        && request.resource.data.memberIds[0] == request.auth.uid
+        && request.resource.data.memberCount == 1
+        && request.resource.data.status == 'waiting_partner';
+
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid in resource.data.memberIds
+          || (
+            resource.data.status == 'waiting_partner'
+            && resource.data.memberCount == 1
+          )
+        );
+
+      // A couple that no longer exists reads as "not found", not
+      // permission-denied, so a code still pointing at a deleted couple isn't
+      // reported as "already has 2 people" (PA-N1). Nothing to leak — there
+      // is no doc. get only, never list. Not for the user whose own profile
+      // still points here: released apps clear that stale pointer only on
+      // permission-denied (CoupleProvider → clearStaleCoupleRef).
+      allow get: if isSignedIn()
+        && resource == null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('coupleId', null) != coupleId;
+
+      allow update: if isCoupleProfileEdit()
+        || isCoupleJoinTransition()
+        || isCoupleLeaveTransition();
+
+      allow delete: if isSoleCoupleMember(coupleId);
+
+      // Shared Home preferences (feature home, 2026-06-10): one tiny doc the
+      // couple co-owns. Fields (ALL optional — writes merge, old app versions
+      // only ever send counterBgPhotoId, new fields are ADDITIVE):
+      //   • counterBgPhotoId — which photo backs the hero counter card.
+      //   • chatBgPhotoId — which photo backs the Chat tab (2026-06-18);
+      //     empty string '' = cleared (fall back to the gradient).
+      //   • dqReminderEnabled / dqReminderTimes — couple-shared daily-question
+      //     reminder (2026-06-14): both phones nudge at the same time(s). Times
+      //     are minutes-since-midnight ints; the client clamps each to 0–1439
+      //     and the list to ≤10 (the size cap here is the abuse guard).
+      match /prefs/{prefId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && prefId == 'home'
+          && request.resource.data.keys().hasOnly(
+              ['counterBgPhotoId', 'counterBgPhotoIds', 'chatBgPhotoId',
+               'dqReminderEnabled', 'dqReminderTimes', 'aiQuestionsEnabled'])
+          && (!('counterBgPhotoId' in request.resource.data)
+              || (request.resource.data.counterBgPhotoId is string
+                  && request.resource.data.counterBgPhotoId.size() <= 200))
+          // Chat-tab background (2026-06-18): one photo id (or '' to clear).
+          && (!('chatBgPhotoId' in request.resource.data)
+              || (request.resource.data.chatBgPhotoId is string
+                  && request.resource.data.chatBgPhotoId.size() <= 200))
+          // Whitelist of photo ids allowed as the hero-card background
+          // (2026-06-14). Empty/absent = use them all. Capped at 60 to bound
+          // the doc size; per-element type isn't checkable in rules (no list
+          // iteration) — the client only ever writes photo ids / 'couple'.
+          && (!('counterBgPhotoIds' in request.resource.data)
+              || (request.resource.data.counterBgPhotoIds is list
+                  && request.resource.data.counterBgPhotoIds.size() <= 60))
+          && (!('dqReminderEnabled' in request.resource.data)
+              || request.resource.data.dqReminderEnabled is bool)
+          && (!('dqReminderTimes' in request.resource.data)
+              || (request.resource.data.dqReminderTimes is list
+                  && request.resource.data.dqReminderTimes.size() <= 10))
+          // AI-personalised daily questions (feature endless-questions,
+          // 2026-09-05): OPT-IN, couple-shared so both phones agree on whether
+          // the callable may read their answers. Absent = off.
+          && (!('aiQuestionsEnabled' in request.resource.data)
+              || request.resource.data.aiQuestionsEnabled is bool);
+      }
+
+      // Love notes (feature #4): one short note per member, doc id == author uid.
+      // The author owns and overwrites their single note; both members can read.
+      match /notes/{noteId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && noteId == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 140;
+      }
+
+      // Love-note history (feature love-note-history): append-only archive of
+      // every note ever sent, so the couple keeps a timeline of their words.
+      // ADDITIVE — the latest-note surface above (notes/{uid}) is unchanged.
+      // Both members read; each member only creates their own entries; entries
+      // are immutable (no edit/delete) so the archive can't be rewritten.
+      match /noteHistory/{entryId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 140;
+        allow update, delete: if false;
+      }
+
+      // Couple chat (feature chat, D2/D3): append-only private conversation.
+      // Both members read; each member only creates their own messages
+      // (author == auth.uid, exact 3-field shape, text ≤1000, createdAt must
+      // be the request server-time, i.e. serverTimestamp()). Messages are
+      // immutable — no edit/delete in v1 ("tin nhắn là kỷ niệm"). ADDITIVE:
+      // a brand-new collection, old app versions never touch this path.
+      match /messages/{messageId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly(['authorUserId', 'text', 'createdAt'])
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+
+      // Scheduled reminder one partner sets FOR the other (feature
+      // partner-nudge, 2026-06-30): the custom-reminder "Cũng nhắc người ấy"
+      // toggle mirrors a reminder here → the partner's app watches this
+      // collection and arms a LOCAL notification (fires in the recipient's own
+      // timezone, free). The AUTHOR owns the doc: any member may create their
+      // own (authorUserId pinned to the writer); only the author may
+      // update/delete theirs. Both members read (B to arm; A to manage).
+      // minuteOfDay is wall-clock minutes-since-midnight (0..1439). ADDITIVE.
+      match /partnerReminders/{reminderId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 200
+          && request.resource.data.minuteOfDay is int
+          && request.resource.data.minuteOfDay >= 0
+          && request.resource.data.minuteOfDay <= 1439
+          && request.resource.data.recurrence is string
+          && request.resource.data.enabled is bool
+          && request.resource.data.createdAt == request.time;
+        allow update: if isCoupleMember(coupleId)
+          && resource.data.authorUserId == request.auth.uid
+          && request.resource.data.authorUserId == resource.data.authorUserId;
+        allow delete: if isCoupleMember(coupleId)
+          && resource.data.authorUserId == request.auth.uid;
+      }
+
+      // Chat read/delivery receipts (feature chat-status, 2026-06-18): one doc
+      // per member (id == uid) holding `deliveredAt`/`readAt` server timestamps.
+      // A member writes ONLY their own doc; both read each other's so the
+      // sender can show đang gửi / đã gửi / đã nhận / đã đọc. Both fields
+      // OPTIONAL (merge writes), additive. No delete.
+      match /receipts/{receiptId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && receiptId == request.auth.uid
+          && request.resource.data.keys().hasOnly(['deliveredAt', 'readAt', 'chatActiveAt', 'typingAt'])
+          && (!('deliveredAt' in request.resource.data)
+              || request.resource.data.deliveredAt is timestamp)
+          && (!('readAt' in request.resource.data)
+              || request.resource.data.readAt is timestamp)
+          // chatActiveAt (presence-suppress 2026-06-19): serverTimestamp while
+          // the member is viewing the chat, cleared (FieldValue.delete) on leave.
+          // notifyChatMessage skips a recipient whose chatActiveAt is fresh.
+          // Optional + timestamp-only — additive, backward-compatible.
+          && (!('chatActiveAt' in request.resource.data)
+              || request.resource.data.chatActiveAt is timestamp)
+          // typingAt (typing indicator 2026-06-21): serverTimestamp refreshed
+          // while the member types, cleared (FieldValue.delete) on stop/send/
+          // leave. The partner shows "đang soạn…" while it's fresh. Optional +
+          // timestamp-only — additive, backward-compatible.
+          && (!('typingAt' in request.resource.data)
+              || request.resource.data.typingAt is timestamp);
+        allow delete: if false;
+      }
+
+      // Daily mood (feature mood, 2026-06-19): one doc per member (id == uid)
+      // holding today's mood. Both members read each other's (the "how is your
+      // person today" card); each writes only their own. authorUserId optional
+      // (doc id is the source of truth) but pinned to the writer when present.
+      match /moods/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(
+              ['authorUserId', 'mood', 'note', 'date', 'updatedAt'])
+          && request.resource.data.mood is string
+          && request.resource.data.mood.size() <= 20
+          && (!('authorUserId' in request.resource.data)
+              || request.resource.data.authorUserId == request.auth.uid)
+          && (!('note' in request.resource.data)
+              || (request.resource.data.note is string
+                  && request.resource.data.note.size() <= 100))
+          && (!('date' in request.resource.data)
+              || (request.resource.data.date is string
+                  && request.resource.data.date.size() <= 10))
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp);
+        allow delete: if false;
+      }
+
+      // Sleep (feature sleep, 2026-10-10): one profile doc per member (id ==
+      // uid) holding `share` (may the partner see my nights?) and `color` (the
+      // palette id my nights are drawn in — stored as an id, never a hex). Both
+      // members read it (the partner needs the flag + colour); each writes only
+      // their own. Every field optional (merge writes). Brand-new collection ⇒
+      // fully ADDITIVE.
+      match /sleep/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['share', 'color', 'updatedAt'])
+          && (!('share' in request.resource.data)
+              || request.resource.data.share is bool)
+          && (!('color' in request.resource.data)
+              || request.resource.data.color in ['rose', 'purple', 'blue', 'teal',
+                  'orange', 'green', 'magenta', 'amber'])
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp)
+          // Sharing switches ON only while both members are in: an "on" queued
+          // offline must not land after the partner left (notifyPartnerLeft
+          // turned it off) and upload the history to a couple waiting for
+          // someone new. Already on → later writes (a colour) still pass.
+          // Released apps only offer the switch when there is a partner.
+          && (request.resource.data.get('share', false) != true
+              || (resource != null && resource.data.get('share', false) == true)
+              || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);
+        allow delete: if false;
+      }
+
+      // Nights live on Firestore ONLY while the owner shares (the client
+      // deletes them all when sharing goes off), and the partner may read them
+      // only while `share` is on — enforced here, not just hidden in the UI.
+      // NB: get() sees the state BEFORE a batch, so the client must write the
+      // profile flag and the nights in separate commits (flag first).
+      function sleepShared(coupleId, uid) {
+        return get(/databases/$(database)/documents/couples/$(coupleId)/sleep/$(uid)).data.get('share', false) == true;
+      }
+
+      // R3: only the 7 most recent nights may be edited/deleted while shared
+      // (+1 day of slack for timezone skew between wake date and server time).
+      function sleepEditable(wakeAt) {
+        return wakeAt is timestamp
+          && wakeAt >= request.time - duration.value(8, 'd');
+      }
+
+      // One night: final times + `source` only, never the originally recorded
+      // times (R2). wakeUps = minutes after bedAt of each wake-up. wakeAt is
+      // capped at now + 1 day so nobody plants far-future nights. `tz`
+      // (optional, 1.9.1+) = minutes east of UTC on the owner's clock.
+      function isValidSleepNight(date) {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['date', 'bedAt', 'wakeAt', 'wakeUps', 'source', 'updatedAt', 'tz'])
+          && d.keys().hasAll(['date', 'bedAt', 'wakeAt', 'source'])
+          && d.date == date
+          && date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && d.bedAt is timestamp
+          && d.wakeAt is timestamp
+          && d.wakeAt > d.bedAt
+          && d.wakeAt <= d.bedAt + duration.value(16, 'h')
+          && d.wakeAt <= request.time + duration.value(1, 'd')
+          && (!('wakeUps' in d) || (d.wakeUps is list && d.wakeUps.size() <= 60))
+          && d.source in ['auto', 'health', 'manual', 'edited']
+          && (!('updatedAt' in d) || d.updatedAt is timestamp)
+          && (!('tz' in d) || (d.tz is int && d.tz >= -840 && d.tz <= 840));
+      }
+
+      // The owner must still be in the couple: a member who left keeps their
+      // docs here (they can no longer delete them), and whoever joins next
+      // must not inherit them.
+      function sleepOwnerIsMember(coupleId, uid) {
+        return uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+      }
+
+      // Doc id == wake-up date 'YYYY-MM-DD'.
+      match /sleep/{uid}/nights/{date} {
+        allow read: if isCoupleMember(coupleId)
+          && (uid == request.auth.uid
+              || (sleepShared(coupleId, uid) && sleepOwnerIsMember(coupleId, uid)));
+        // Create is deliberately NOT limited to the last 8 days: turning
+        // sharing back on must re-upload the whole local history (turning it
+        // off deleted every night from Firestore).
+        allow create: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && sleepShared(coupleId, uid)
+          && isValidSleepNight(date);
+        // While shared, nights older than 8 days are frozen — on both the
+        // stored and the new wakeAt, so a recent night can't be moved back.
+        allow update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && sleepShared(coupleId, uid)
+          && isValidSleepNight(date)
+          && sleepEditable(resource.data.wakeAt)
+          && sleepEditable(request.resource.data.wakeAt);
+        // Once sharing is off the owner may wipe every night, old ones too.
+        allow delete: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && (sleepEditable(resource.data.wakeAt) || !sleepShared(coupleId, uid));
+      }
+
+      // ── weather (đợt 2) ──
+      // Weather city (feature weather, 2026-10-20): one doc per member (id ==
+      // uid) = { cityId, setBy, updatedAt }. Both members read. The owner
+      // always writes their own; the partner may pick one FOR them only while
+      // the owner hasn't picked it themselves (stored setBy != owner) — D6.
+      // cityId = a slug of the bundled city list (the app ignores ids it
+      // doesn't know). Brand-new collection ⇒ fully ADDITIVE. The CF cache
+      // weatherCache/{cityId} deliberately has no rule: Admin SDK only.
+      match /weather/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly(['cityId', 'setBy', 'updatedAt'])
+          && request.resource.data.cityId is string
+          && request.resource.data.cityId.matches('^[a-z]{2}-[a-z0-9-]{1,37}$')
+          && request.resource.data.setBy == request.auth.uid
+          && request.resource.data.updatedAt == request.time
+          && (uid == request.auth.uid
+              || (uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds
+                  && (resource == null || resource.data.get('setBy', '') != uid)));
+        allow delete: if isCoupleMember(coupleId) && uid == request.auth.uid;
+      }
+
+      // ── arrival (đợt 2) ── "Về đến nhà chưa?" (overview §5, D2/D3/D11/D14/D23).
+      // One doc per member (id == uid): `share`, `auto`, `last` (the ONE latest
+      // event — no history, no address, no coordinates, no list of places).
+      // Both members read; only the owner writes. Sharing off = the owner
+      // DELETES the doc, so it looks exactly like "never turned on" (no
+      // `share:false`, no time of switching off — D11). CF notifyArrival keeps
+      // its push bookkeeping in `arrivalPush/{uid}` (below), which no client
+      // reads: on this doc it would show the partner when each place was last
+      // reached (D3). Brand-new collections ⇒ fully ADDITIVE.
+      function isValidArrivalEvent(e) {
+        return e is map
+          && e.keys().hasOnly(['place', 'name', 'icon', 'type', 'at', 'battery', 'source', 'bounce'])
+          && e.keys().hasAll(['place', 'type', 'at', 'source'])
+          && e.place in ['home', 'p1', 'p2', 'p3', 'p4']
+          // Home: no name/icon (the app says "Nhà"/"Home"). A custom place
+          // carries its name (1..24 UTF-16 units, one line) + optional icon
+          // snapshot (D23).
+          && (e.place == 'home'
+              ? !('name' in e) && !('icon' in e)
+              : (e.get('name', null) is string
+                 && e.name.size() >= 1 && e.name.size() <= 24
+                 && e.name.trim().size() >= 1
+                 && !e.name.matches('(?s).*[\\r\\n].*')
+                 && (!('icon' in e)
+                     || e.icon in ['work', 'school', 'family', 'gym', 'cafe', 'shop', 'pin'])))
+          && e.type in ['enter', 'exit']
+          // Phone clock (a background write may sit in the offline queue):
+          // ≤ 5' ahead for clock skew, ≤ 12 h old.
+          && e.at is timestamp
+          && e.at <= request.time + duration.value(5, 'm')
+          && e.at >= request.time - duration.value(12, 'h')
+          && (!('battery' in e)
+              || (e.battery is int && e.battery >= 0 && e.battery <= 100))
+          && e.source in ['auto', 'manual']
+          && (!('bounce' in e) || e.bounce is bool);
+      }
+
+      function isValidArrivalDoc(d) {
+        return d.get('share', false) is bool
+          && (!('auto' in d) || d.auto is bool)
+          && (!('updatedAt' in d) || d.updatedAt is timestamp)
+          // Sharing off ⇒ no event left behind, in the same write (D11).
+          && (d.get('share', false) == true || !('last' in d));
+      }
+
+      match /arrival/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['share', 'auto', 'last', 'updatedAt'])
+          && isValidArrivalDoc(request.resource.data)
+          && (!('last' in request.resource.data)
+              || isValidArrivalEvent(request.resource.data.last))
+          // An automatic event never creates the doc: only the owner's own
+          // tap turns sharing on (D10 — after a partner change the doc is
+          // gone and a geofence must not share with the new partner).
+          && (!('last' in request.resource.data)
+              || request.resource.data.last.source != 'auto')
+          // Sharing ON only while both members are in (sleep lesson: an "on"
+          // queued offline must not land after the partner left).
+          && (request.resource.data.get('share', false) != true
+              || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);
+        allow update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['share', 'auto', 'last', 'updatedAt'])
+          && isValidArrivalDoc(request.resource.data)
+          // A new event is checked; an old one left untouched (e.g. flipping
+          // `auto` 13 h after the last arrival) is not re-dated.
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['last'])
+              || !('last' in request.resource.data)
+              || isValidArrivalEvent(request.resource.data.last))
+          // Same for an update: an automatic event only lands on a doc that
+          // is already sharing.
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['last'])
+              || !('last' in request.resource.data)
+              || request.resource.data.last.source != 'auto'
+              || resource.data.get('share', false) == true)
+          && (request.resource.data.get('share', false) != true
+              || resource.data.get('share', false) == true
+              || get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.size() == 2);
+        allow delete: if isCoupleMember(coupleId) && uid == request.auth.uid;
+      }
+
+      // ── arrival (đợt 2) ── CF-only push bookkeeping (lastPushAt.{slot},
+      // pushDay, pushCount: 30' cooldown + 6/day). Admin SDK only; it outlives
+      // a switch-off so turning sharing off/on doesn't reset the daily cap.
+      match /arrivalPush/{uid} {
+        allow read, write: if false;
+      }
+
+      // Care message (feature care-message): a one-shot "quan tâm" note one
+      // member sends to the other. The message text IS the push content (CF
+      // notifyCareMessage sends title/body verbatim), so the payload is pinned
+      // tight: author must be the writer, title/body non-empty and bounded,
+      // createdAt server-stamped. Write-once — the sent note is a fact, never
+      // edited or unsent. Both members read (sender sees their own history).
+      // Brand-new collection ⇒ fully ADDITIVE, no older client touches it.
+      match /careMessages/{messageId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly(
+              ['authorUserId', 'title', 'body', 'createdAt'])
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 60
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 200
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+
+      // Chọn giúp chúng mình (feature decision-wheel, 2026-10-19): one pick
+      // per doc. Food / plans use id '{date}_eat' / '{date}_go' (one per day,
+      // re-spinning bumps `spins`), custom questions an auto id. Members read;
+      // the creator writes the whole doc once, then any member may re-spin it
+      // (only result/resultId/spins/byUserId/updatedAt move, spins + 1 exactly).
+      // `lastPushAt` + `lastPushBy` (push cooldown per spinner) are written by
+      // CF notifyDecision only — no client path lists them (create `hasOnly`
+      // and update `affectedKeys().hasOnly` both leave them out). Optional
+      // keys go through `.get(..)` (backward compat). Brand-new collection ⇒
+      // fully ADDITIVE. No delete.
+      // One custom option: a 1..40-char string. Rules have no loops, so the
+      // create rule calls this for index 0..11 (past the end ⇒ true, `||`
+      // short-circuits before the out-of-range read).
+      function isDecisionOption(opts, i) {
+        return opts.size() <= i
+          || (opts[i] is string && opts[i].size() > 0 && opts[i].size() <= 40);
+      }
+
+      function isValidDecisionCreate(decisionId) {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['kind', 'date', 'question', 'options',
+              'filter', 'result', 'resultId', 'spins', 'byUserId',
+              'createdBy', 'createdAt', 'updatedAt'])
+          && d.keys().hasAll(['kind', 'date', 'result', 'spins', 'byUserId',
+              'createdBy', 'createdAt'])
+          && d.createdBy == request.auth.uid
+          && d.byUserId == request.auth.uid
+          && d.createdAt == request.time
+          && d.get('updatedAt', request.time) == request.time
+          && d.kind in ['eat', 'go', 'custom']
+          && d.date is string
+          && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && d.result is string
+          && d.result.size() > 0
+          && d.result.size() <= 40
+          && d.get('question', '') is string
+          && d.get('question', '').size() <= 60
+          && d.get('filter', '') is string
+          && d.get('filter', '').size() <= 20
+          && d.get('resultId', '') is string
+          && d.get('resultId', '').size() <= 40
+          && d.spins == 1
+          && d.get('options', []) is list
+          && (d.kind == 'custom'
+            ? (d.get('options', []).size() >= 2
+              && d.get('options', []).size() <= 12
+              && d.get('options', []).join('').size() <= 480
+              && isDecisionOption(d.get('options', []), 0)
+              && isDecisionOption(d.get('options', []), 1)
+              && isDecisionOption(d.get('options', []), 2)
+              && isDecisionOption(d.get('options', []), 3)
+              && isDecisionOption(d.get('options', []), 4)
+              && isDecisionOption(d.get('options', []), 5)
+              && isDecisionOption(d.get('options', []), 6)
+              && isDecisionOption(d.get('options', []), 7)
+              && isDecisionOption(d.get('options', []), 8)
+              && isDecisionOption(d.get('options', []), 9)
+              && isDecisionOption(d.get('options', []), 10)
+              && isDecisionOption(d.get('options', []), 11)
+              && d.result in d.get('options', [])
+              // A custom doc must not squat today's food / plan id.
+              && !decisionId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_(eat|go)$'))
+            : (decisionId == d.date + '_' + d.kind
+              && d.get('options', []).size() == 0));
+      }
+
+      function isValidDecisionRespin() {
+        let d = request.resource.data;
+        return d.diff(resource.data).affectedKeys()
+              .hasOnly(['result', 'resultId', 'spins', 'byUserId', 'updatedAt'])
+          && d.byUserId == request.auth.uid
+          && d.spins == resource.data.spins + 1
+          && d.get('updatedAt', null) == request.time
+          && d.result is string
+          && d.result.size() > 0
+          && d.result.size() <= 40
+          && d.get('resultId', '') is string
+          && d.get('resultId', '').size() <= 40
+          && (resource.data.kind != 'custom'
+            || d.result in resource.data.get('options', []));
+      }
+
+      match /decisions/{decisionId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && isValidDecisionCreate(decisionId);
+        allow update: if isCoupleMember(coupleId) && isValidDecisionRespin();
+        allow delete: if false;
+      }
+
+      // Oẳn tù tì (feature rps-game, 2026-09-13): one doc per game under the
+      // couple. Both members read; the client only ever drives the EARLY part
+      // of the state machine (invited → playing/cancelled/expired) and its own
+      // presence heartbeat — `finished`, `result`, `finishedAt`, `moved` (who
+      // has already thrown, never WHAT) and `lastNudgeAt` (nudge cooldown) are
+      // written by the Cloud Functions (resolveRpsGame / nudgeRpsPlayer) with
+      // the Admin SDK, so no client can forge an outcome, fake a throw or
+      // bypass the nudge cooldown. [2026-09-14] No "skip turn" any more: a
+      // `playing` game only ends once both moves exist. Every optional field is read
+      // through `.get('x', default)` (backward-compat convention). Brand-new
+      // collection ⇒ fully ADDITIVE.
+      //
+      // presence: map {uid: timestamp}. A member may only add/refresh/remove
+      // THEIR OWN key — `diff().affectedKeys()` pins that without iterating the
+      // map. Reading the field through `.get('presence', {})` on BOTH sides
+      // means dropping the whole map (deleteField / full overwrite) counts as
+      // touching the partner's key too ⇒ denied (no wiping their heartbeat).
+      // The value written for my key must be the server clock
+      // (`serverTimestamp()` ⇒ `== request.time`, rps-game RPS-11) — a client
+      // can't backdate or pre-date its own presence, which the start gate
+      // below relies on.
+      function rpsPresenceTouchesOnlyOwnKey() {
+        let before = resource == null ? {} : resource.data.get('presence', {});
+        let after = request.resource.data.get('presence', {});
+        return after is map
+          && after.diff(before).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in after.diff(before).affectedKeys())
+              || !(request.auth.uid in after)
+              || after[request.auth.uid] == request.time);
+      }
+
+      function rpsStartedAtUnchanged() {
+        return request.resource.data.get('startedAt', null)
+          == resource.data.get('startedAt', null);
+      }
+
+      // invited → playing needs the PARTNER on the game screen (RPS-5): the
+      // other member of the couple (memberIds minus me) must have a presence
+      // stamp younger than 10s on the CURRENT doc. Only the partner can write
+      // that key, and only with the server clock, so a player can't start a
+      // round alone and farm timeout wins. A 1-member (waiting) couple has no
+      // partner ⇒ can never start.
+      function rpsPartnerPresenceFresh() {
+        let others = get(/databases/$(database)/documents/couples/$(coupleId))
+          .data.memberIds.removeAll([request.auth.uid]);
+        let presence = resource.data.get('presence', {});
+        return others.size() == 1
+          && presence is map
+          && presence.get(others[0], null) is timestamp
+          && presence.get(others[0], null) > request.time - duration.value(10, 's');
+      }
+
+      // Client-driven transitions. `playing →` anything is CF-only.
+      function rpsStatusTransitionAllowed() {
+        return (request.resource.data.status == resource.data.status
+                && rpsStartedAtUnchanged())
+          || (resource.data.status == 'invited'
+              && request.resource.data.status == 'playing'
+              && !('startedAt' in resource.data)
+              && request.resource.data.startedAt == request.time
+              && rpsPartnerPresenceFresh())
+          || (resource.data.status == 'invited'
+              && request.resource.data.status == 'cancelled'
+              && resource.data.createdBy == request.auth.uid
+              && rpsStartedAtUnchanged())
+          || (resource.data.status == 'invited'
+              && request.resource.data.status == 'expired'
+              && resource.data.createdAt < request.time - duration.value(10, 'm')
+              && rpsStartedAtUnchanged());
+      }
+
+      // `cancelledBy` (RPS-10) may only appear in the creator's own
+      // invited → cancelled write (and then must be their uid — the transition
+      // above already requires the creator). Every other update must carry it
+      // through unchanged, so nobody can plant it to break the other player's
+      // heartbeats.
+      function rpsCancelledByAllowed() {
+        return (resource.data.status == 'invited'
+                && request.resource.data.status == 'cancelled')
+          ? (request.resource.data.get('cancelledBy', null) == null
+              || request.resource.data.get('cancelledBy', null) == request.auth.uid)
+          : request.resource.data.get('cancelledBy', null)
+              == resource.data.get('cancelledBy', null);
+      }
+
+      match /games/{gameId} {
+        allow read: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly(
+              ['type', 'createdBy', 'status', 'createdAt', 'presence',
+               'rematchOf', 'updatedAt'])
+          && request.resource.data.type == 'rps'
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.status == 'invited'
+          && request.resource.data.createdAt == request.time
+          && rpsPresenceTouchesOnlyOwnKey()
+          && (!('rematchOf' in request.resource.data)
+              || isNonEmptyString(request.resource.data.rematchOf))
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp);
+        allow update: if isCoupleMember(coupleId)
+          // caro-game (đợt 2): this branch is for rps docs only.
+          && resource.data.get('type', 'rps') == 'rps'
+          && request.resource.data.keys().hasOnly(
+              ['type', 'createdBy', 'status', 'createdAt', 'presence',
+               'rematchOf', 'updatedAt', 'startedAt', 'cancelledBy',
+               'result', 'finishedAt', 'moved', 'lastNudgeAt'])
+          // Immutable from clients.
+          && request.resource.data.type == resource.data.type
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.get('rematchOf', null)
+              == resource.data.get('rematchOf', null)
+          // CF-only fields: must survive the write untouched.
+          && request.resource.data.get('result', null)
+              == resource.data.get('result', null)
+          && request.resource.data.get('finishedAt', null)
+              == resource.data.get('finishedAt', null)
+          && request.resource.data.get('moved', null)
+              == resource.data.get('moved', null)
+          && request.resource.data.get('lastNudgeAt', null)
+              == resource.data.get('lastNudgeAt', null)
+          && rpsPresenceTouchesOnlyOwnKey()
+          && rpsStatusTransitionAllowed()
+          && rpsCancelledByAllowed()
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp);
+        // ── caro-game (đợt 2) ──
+        // Cờ caro (feature caro-game, overview §6.1): the whole game lives in
+        // this doc and only the `caroAction` callable (Admin SDK) creates or
+        // changes it. A member may only heartbeat THEIR OWN presence key —
+        // same helper as rps (server clock, no wiping the partner's key).
+        allow update: if isCoupleMember(coupleId)
+          && resource.data.get('type', '') == 'caro'
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['presence'])
+          && rpsPresenceTouchesOnlyOwnKey();
+        allow delete: if false;
+      }
+
+      // One move per member per game, doc id == uid. Create-only (a choice
+      // can't be changed), only while the parent is `playing`. [2026-09-14]
+      // No deadline any more (the old `startedAt + 7s` cut-off is gone — the
+      // round waits for both players; the 5s countdown is only the rhythm).
+      // The PARTNER's move is unreadable until the game is `finished` — this
+      // is the anti-cheat guarantee, enforced here rather than in the UI, and
+      // it holds even though the parent's `moved` map tells who has thrown.
+      // No collection-group query exists for moves.
+      match /games/{gameId}/moves/{uid} {
+        function rpsGame() {
+          return get(/databases/$(database)/documents/couples/$(coupleId)/games/$(gameId)).data;
+        }
+        allow read: if isCoupleMember(coupleId)
+          && (uid == request.auth.uid
+              || rpsGame().get('status', '') == 'finished');
+        allow create: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['choice', 'createdAt'])
+          && request.resource.data.choice in ['rock', 'paper', 'scissors']
+          && request.resource.data.createdAt == request.time
+          && rpsGame().get('status', '') == 'playing'
+          && rpsGame().get('startedAt', null) is timestamp
+          // caro-game (đợt 2): never a move doc under a non-rps game.
+          && rpsGame().get('type', 'rps') == 'rps';
+        allow update, delete: if false;
+      }
+
+      // ── caro-game (đợt 2) ──
+      // Caro open-game pointer + all-time score (`caroState/main`): both
+      // members read it, only the `caroAction` callable writes it.
+      match /caroState/{docId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if false;
+      }
+
+      // Question engine state (feature endless-questions, 2026-09-05): ONE doc
+      // per couple (`main`) remembering which bank questions have already been
+      // asked, which templates ran recently and which past days were revisited,
+      // so the engine can stop using `daysSinceEpoch % bankSize` (adding a
+      // question used to reshuffle every couple's permutation). Both members
+      // read AND write it — whichever phone opens today's card first advances
+      // the state, exactly like the marker doc below.
+      //
+      // Every field is optional (writes merge) and only the shapes/sizes are
+      // pinned: rules can't iterate lists, so the caps are the abuse guard that
+      // bounds the doc. Brand-new collection ⇒ fully ADDITIVE.
+      match /questionState/{docId} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && docId == 'main'
+          && request.resource.data.keys().hasOnly(
+              ['askedBankIds', 'recentTemplateKeys', 'recentRevisitDates',
+               'updatedAt'])
+          && (!('askedBankIds' in request.resource.data)
+              || (request.resource.data.askedBankIds is list
+                  && request.resource.data.askedBankIds.size() <= 2000))
+          && (!('recentTemplateKeys' in request.resource.data)
+              || (request.resource.data.recentTemplateKeys is list
+                  && request.resource.data.recentTemplateKeys.size() <= 60))
+          && (!('recentRevisitDates' in request.resource.data)
+              || (request.resource.data.recentRevisitDates is list
+                  && request.resource.data.recentRevisitDates.size() <= 60))
+          && (!('updatedAt' in request.resource.data)
+              || request.resource.data.updatedAt is timestamp);
+        allow delete: if false;
+      }
+
+      // Daily question marker doc (feature couple-journal): one parent doc per
+      // answered day so the journal can list days (the responses subcollection
+      // alone leaves this parent un-listable). Holds a question-text snapshot
+      // for the day. Either member may read/write; merge-written on answer.
+      match /dailyAnswers/{date} {
+        allow read: if isCoupleMember(coupleId);
+        // The marker is the SOURCE OF TRUTH for the day's question (feature
+        // endless-questions, 2026-09-05): once questionVi/En exist they are
+        // immutable from clients. Blocks an older client (≤1.5.0, which still
+        // re-derives the question from its bank on every answer) from
+        // overwriting a template/revisit/AI question the newer client
+        // published — its swallowed write fails, its answer still lands, and
+        // the Cloud Function stamps bothAnswered. Admin SDK is unaffected.
+        allow write: if isCoupleMember(coupleId)
+          && request.resource.data.date is string
+          && request.resource.data.questionVi is string
+          && request.resource.data.questionVi.size() <= 300
+          && request.resource.data.questionEn is string
+          && request.resource.data.questionEn.size() <= 300
+          && (resource == null
+              || resource.data.get('questionVi', '') == ''
+              || request.resource.data.questionVi == resource.data.questionVi)
+          && (resource == null
+              || resource.data.get('questionEn', '') == ''
+              || request.resource.data.questionEn == resource.data.questionEn);
+      }
+
+      // Daily question answers (feature #5): one answer per member per day, doc
+      // id == author uid. Both members read both answers (the "answer first to
+      // reveal" rule is client-side UI only); each member writes only their own.
+      match /dailyAnswers/{date}/responses/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow write: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 280;
+      }
+
+      // Reactions on a daily-question answer (feature: daily-question
+      // reactions). One doc per reactor per answer, doc id == reactor's uid, so
+      // each member owns and overwrites their single reaction; removing it
+      // deletes the doc. Both members read.
+      //
+      // Named `answerReactions`, NOT `reactions`: photo reactions stream
+      // through collectionGroup('reactions') filtered only by coupleId, so
+      // sharing the name would leak these docs into the photo reaction map on
+      // every already-shipped client. A separate group keeps the two features
+      // isolated.
+      //
+      // `coupleId` and `date` are denormalised onto the doc so ONE
+      // collection-group query can watch the couple's whole history; both are
+      // pinned to the path here so a stale or forged field can never widen what
+      // a member sees.
+      //
+      // reactorUid != answerAuthorUid: you react to your PARTNER's answer, not
+      // your own (product decision 2026-08-22). Relax this line if self-
+      // reactions are ever wanted — nothing else depends on it.
+      match /dailyAnswers/{date}/responses/{answerAuthorUid}/answerReactions/{reactorUid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && reactorUid == request.auth.uid
+          && reactorUid != answerAuthorUid
+          // The ANSWER AUTHOR segment must be a current member too (code-review
+          // 2026-09-12): the CF pushes/inboxes whoever sits in that segment, so
+          // without this pin a member could aim a notification at any uid (an
+          // ex-partner, a stranger). Same couple doc as isCoupleMember → no
+          // extra read.
+          && answerAuthorUid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds
+          && request.resource.data.keys().hasOnly(
+              ['reactorUserId', 'emoji', 'coupleId', 'date', 'reactedAt'])
+          && request.resource.data.reactorUserId == request.auth.uid
+          && request.resource.data.coupleId == coupleId
+          && request.resource.data.date == date
+          && request.resource.data.emoji is string
+          && request.resource.data.emoji in ['❤️', '😍', '😂', '🥹', '🔥', '👍']
+          && (!('reactedAt' in request.resource.data)
+              || request.resource.data.reactedAt is timestamp);
+        allow delete: if isCoupleMember(coupleId)
+          && reactorUid == request.auth.uid;
+      }
+    }
+
+    match /couples/{coupleId}/photos/{photoId} {
+      allow read: if isCoupleMember(coupleId);
+
+      allow create: if isCoupleMember(coupleId)
+        && isValidPhotoDocument(coupleId, request.resource.data)
+        && request.resource.data.authorUserId == request.auth.uid;
+
+      allow update: if isCoupleMember(coupleId)
+        && isValidPhotoDocument(coupleId, request.resource.data)
+        && request.resource.data.coupleId == resource.data.coupleId
+        && request.resource.data.authorUserId == resource.data.authorUserId
+        && request.resource.data.uploadDate == resource.data.uploadDate;
+
+      allow delete: if isCoupleMember(coupleId);
+
+      // Reactions (feature: reactions ❤️): one reaction per member per photo,
+      // doc id == author uid. Both members read; each member writes only their
+      // own reaction with one of the six allowed emoji. `coupleId` is
+      // denormalised onto the doc so a collection-group query can stream every
+      // reaction of the couple; it must match the path's coupleId.
+      match /reactions/{uid} {
+        allow read: if isCoupleMember(coupleId);
+        allow create, update: if isCoupleMember(coupleId)
+          && uid == request.auth.uid
+          && request.resource.data.authorUserId == request.auth.uid
+          && request.resource.data.coupleId == coupleId
+          && request.resource.data.emoji is string
+          && request.resource.data.emoji in ['❤️', '😍', '😂', '🥹', '🔥', '👍'];
+        allow delete: if isCoupleMember(coupleId)
+          && uid == request.auth.uid;
+      }
+    }
+
+    // Collection-group READ for reactions (feature: reactions ❤️).
+    // The app streams a couple's reactions with ONE query
+    // (reaction_service.dart): collectionGroup('reactions').where('coupleId','==',coupleId).
+    // The nested rule above secures the doc PATH (create/update/delete + a
+    // single-doc get) but a nested path rule does NOT authorise a
+    // collection-group query — so without this recursive-wildcard rule the
+    // partner's stream returns permission-denied and a reaction never appears
+    // on the other device (the reactor only keeps seeing their own optimistic
+    // heart, masking the failure). Read-only + member-scoped: every reaction
+    // doc carries its `coupleId`, so a member can only ever stream their own
+    // couple's reactions. ADDITIVE — grants the query, restricts nothing the
+    // nested rule already allowed.
+    match /{path=**}/reactions/{reactionId} {
+      allow read: if isCoupleMember(resource.data.coupleId);
+    }
+
+    // Collection-group READ for daily-answer reactions (feature:
+    // daily-question reactions). Same Firestore trap as the photo reactions
+    // above: the nested path rule secures single-doc access but does NOT
+    // authorise `collectionGroup('answerReactions').where('coupleId','==',...)`,
+    // which is exactly the query answer_reaction_service.dart runs — without
+    // this the partner's stream returns permission-denied and a reaction never
+    // crosses devices. Read-only + member-scoped: every doc carries its
+    // coupleId (pinned to the path on write), so a member can only ever stream
+    // their own couple. ADDITIVE — grants the query, restricts nothing.
+    match /{path=**}/answerReactions/{reactionId} {
+      allow read: if isCoupleMember(resource.data.coupleId);
+    }
+
+    // ── expenses (đợt 2) ──
+    // Sổ tiền (feature expenses, 2026-10-20). Two books, one schema
+    // (overview D1/D6, §5):
+    // - own book    users/{uid}/money*      — only the owner, no shared keys;
+    // - shared book couples/{id}/money*     — every wallet / entry pins
+    //   `memberUids` = the couple's memberIds when written (exactly 2). Read
+    //   needs membership AND a name in it, so whoever joins the couple later
+    //   never reads the previous pair's money (D3) while the one who stayed
+    //   still does (D4). Budgets + category meta: any member reads.
+    // Money is an int of đồng: entries 1..10 tỷ, wallets −10..100 tỷ. Wallets
+    // are never deleted (archived instead). `alerted` (budget) and
+    // `goalReachedAt` (shared wallet) are written only by CF notifyMoney.
+    // Brand-new collections ⇒ fully ADDITIVE; old app versions never touch
+    // them. moneyRecurring / moneyDebts (mốc B) get their rules then.
+    function moneyIsId(v) {
+      return v is string && v.size() <= 40;
+    }
+
+    function moneyIsDate(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function moneyIsAmount(v) {
+      return v is int && v >= 1 && v <= 10000000000;
+    }
+
+    function moneyUnchanged(keys) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(keys);
+    }
+
+    function moneyIsOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function moneyCoupleIds(coupleId) {
+      return get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+    }
+
+    // A shared doc's pair = the couple's current two members, in order.
+    function moneyPairOk(coupleId, d) {
+      return d.memberUids == moneyCoupleIds(coupleId)
+        && d.memberUids.size() == 2;
+    }
+
+    // Read / edit an existing shared doc: still a member and in its pair.
+    function moneyInPair(coupleId) {
+      return isCoupleMember(coupleId)
+        && request.auth.uid in resource.data.memberUids;
+    }
+
+    // Writes to the shared book's budgets / meta: an active (2-member) couple.
+    function moneyCoupleFull(coupleId) {
+      return isCoupleMember(coupleId) && moneyCoupleIds(coupleId).size() == 2;
+    }
+
+    function moneyCreateStamp(d) {
+      return d.createdBy == request.auth.uid
+        && d.createdAt == request.time
+        && d.get('updatedAt', request.time) == request.time;
+    }
+
+    // ---- wallets ----
+    function moneyWalletOk(d, shared) {
+      let base = ['name', 'type', 'emoji', 'color', 'openingBalance',
+        'includeInTotal', 'archived', 'order', 'createdBy', 'createdAt'];
+      let keys = shared ? base.concat(['memberUids']) : base;
+      return d.keys().hasAll(keys)
+        && d.keys().hasOnly(keys.concat(['currency', 'goalTarget',
+          'goalDeadline', 'goalReachedAt', 'updatedAt']))
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 30
+        && d.type in ['cash', 'bank', 'ewallet', 'credit', 'goal']
+        && d.emoji is string && d.emoji.size() <= 8
+        && d.color is string && d.color.size() <= 12
+        && d.get('currency', 'VND') == 'VND'
+        && d.openingBalance is int
+        && d.openingBalance >= -10000000000
+        && d.openingBalance <= 100000000000
+        && d.includeInTotal is bool
+        && d.archived is bool
+        && d.order is int
+        && (!('goalTarget' in d) || (d.type == 'goal'
+          && d.goalTarget is int
+          && d.goalTarget >= 1
+          && d.goalTarget <= 100000000000))
+        && (!('goalDeadline' in d) || (d.type == 'goal' && moneyIsDate(d.goalDeadline)))
+        && (!('goalReachedAt' in d) || d.goalReachedAt is timestamp);
+    }
+
+    match /users/{userId}/moneyWallets/{walletId} {
+      allow read: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && walletId.size() <= 40
+        && moneyWalletOk(request.resource.data, false)
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyIsOwner(userId)
+        && moneyWalletOk(request.resource.data, false)
+        && moneyUnchanged(['type', 'createdBy', 'createdAt'])
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId}/moneyWallets/{walletId} {
+      allow read: if moneyInPair(coupleId);
+      allow create: if isCoupleMember(coupleId)
+        && walletId.size() <= 40
+        && moneyWalletOk(request.resource.data, true)
+        && moneyCreateStamp(request.resource.data)
+        && moneyPairOk(coupleId, request.resource.data)
+        && !('goalReachedAt' in request.resource.data);
+      allow update: if moneyInPair(coupleId)
+        && moneyWalletOk(request.resource.data, true)
+        && moneyUnchanged(['type', 'memberUids', 'createdBy', 'createdAt', 'goalReachedAt'])
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    // ---- entries ----
+    function moneyTxOk(d, shared) {
+      let base = ['type', 'amount', 'outWalletId', 'inWalletId', 'date',
+        'categoryId', 'note', 'createdBy', 'createdAt'];
+      let keys = shared ? base.concat(['payer', 'memberUids']) : base;
+      let hasOut = d.outWalletId != '';
+      let hasIn = d.inWalletId != '';
+      let person = shared && d.payer in d.memberUids;
+      return d.keys().hasAll(keys)
+        && d.keys().hasOnly(keys.concat(['linkId', 'recurringId', 'source',
+          'updatedBy', 'updatedAt', 'editCount']))
+        // D34: no income, no settle.
+        && d.type in ['expense', 'transfer', 'adjust', 'contribution']
+        && moneyIsAmount(d.amount)
+        && moneyIsId(d.outWalletId)
+        && moneyIsId(d.inWalletId)
+        && moneyIsId(d.categoryId)
+        && moneyIsDate(d.date)
+        && d.note is string && d.note.size() <= 200
+        && (!('linkId' in d) || (d.linkId is string && d.linkId.size() >= 1 && d.linkId.size() <= 40))
+        && (!('recurringId' in d) || (d.recurringId is string && d.recurringId.size() >= 1 && d.recurringId.size() <= 40))
+        && d.get('source', 'manual') in ['manual', 'decision', 'recurring']
+        && d.get('editCount', 0) is int
+        && d.get('updatedBy', '') is string
+        && (!shared || (d.memberUids is list
+          && d.memberUids.size() == 2
+          // A person paid ⇒ from their own pocket, never also out of a shared
+          // wallet.
+          && ((person && !hasOut) || (d.payer == 'wallet' && hasOut))))
+        && ((d.type == 'expense' && !hasIn && (hasOut || person))
+          || (d.type == 'transfer' && hasIn && hasOut && d.inWalletId != d.outWalletId)
+          || (d.type == 'adjust' && hasIn != hasOut)
+          || (d.type == 'contribution'
+            && (shared ? (hasIn && !hasOut && person) : (hasOut && !hasIn))));
+    }
+
+    function moneyTxCreateOk(d) {
+      return moneyCreateStamp(d)
+        && d.get('editCount', 0) == 0
+        && d.get('updatedBy', request.auth.uid) == request.auth.uid;
+    }
+
+    // Every edit names its author and bumps editCount by exactly one, so the
+    // second of two concurrent edits is refused (overview §8).
+    function moneyTxEditOk() {
+      let d = request.resource.data;
+      return moneyUnchanged(['type', 'memberUids', 'createdBy', 'createdAt', 'linkId'])
+        && d.updatedBy == request.auth.uid
+        && d.updatedAt == request.time
+        && d.get('editCount', 0) == resource.data.get('editCount', 0) + 1;
+    }
+
+    match /users/{userId}/moneyTx/{txId} {
+      allow read, delete: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && moneyTxOk(request.resource.data, false)
+        && moneyTxCreateOk(request.resource.data);
+      allow update: if moneyIsOwner(userId)
+        && moneyTxOk(request.resource.data, false)
+        && moneyTxEditOk();
+    }
+
+    match /couples/{coupleId}/moneyTx/{txId} {
+      allow read: if moneyInPair(coupleId);
+      allow create: if isCoupleMember(coupleId)
+        && moneyTxOk(request.resource.data, true)
+        && moneyTxCreateOk(request.resource.data)
+        && moneyPairOk(coupleId, request.resource.data);
+      // A shared entry that also sits in its creator's own book (linkId):
+      // only the creator may change the money side or delete it (D13).
+      allow update: if moneyInPair(coupleId)
+        && moneyTxOk(request.resource.data, true)
+        && moneyTxEditOk()
+        && (!('linkId' in resource.data)
+          || resource.data.createdBy == request.auth.uid
+          || moneyUnchanged(['amount', 'outWalletId', 'inWalletId', 'payer']));
+      allow delete: if moneyInPair(coupleId)
+        && (!('linkId' in resource.data) || resource.data.createdBy == request.auth.uid);
+    }
+
+    // ---- budgets (monthly, '' = whole book) ----
+    // One doc per category, id = 'total' or the category id, so two phones
+    // setting the same budget write the same doc.
+    function moneyBudgetIdOk(budgetId, d) {
+      return budgetId == (d.categoryId == '' ? 'total' : d.categoryId);
+    }
+
+    function moneyBudgetOk(d) {
+      return d.keys().hasAll(['categoryId', 'amount', 'createdBy', 'createdAt'])
+        && d.keys().hasOnly(['categoryId', 'amount', 'createdBy', 'createdAt', 'updatedAt', 'alerted'])
+        && moneyIsId(d.categoryId)
+        && moneyIsAmount(d.amount);
+    }
+
+    match /users/{userId}/moneyBudgets/{budgetId} {
+      allow read, delete: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyBudgetIdOk(budgetId, request.resource.data)
+        && !('alerted' in request.resource.data)
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyIsOwner(userId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /couples/{coupleId}/moneyBudgets/{budgetId} {
+      allow read: if isCoupleMember(coupleId);
+      allow delete: if moneyCoupleFull(coupleId);
+      allow create: if moneyCoupleFull(coupleId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyBudgetIdOk(budgetId, request.resource.data)
+        && !('alerted' in request.resource.data)
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyCoupleFull(coupleId)
+        && moneyBudgetOk(request.resource.data)
+        && moneyUnchanged(['categoryId', 'createdBy', 'createdAt', 'alerted'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // ---- saving challenges (D34 §4): never deleted, only cancelled ----
+    function moneyChallengeOk(d) {
+      let keys = ['title', 'kind', 'categoryIds', 'limit', 'startDate', 'days',
+        'templateId', 'cancelled', 'createdBy', 'createdAt'];
+      return d.keys().hasAll(keys)
+        && d.keys().hasOnly(keys.concat(['updatedAt']))
+        && d.title is string && d.title.size() >= 1 && d.title.size() <= 40
+        && d.kind in ['noSpend', 'cap']
+        && d.categoryIds is list && d.categoryIds.size() <= 12
+        && d.limit is int
+        && (d.kind == 'cap' ? moneyIsAmount(d.limit) : d.limit == 0)
+        && moneyIsDate(d.startDate)
+        && d.days in [7, 14, 30]
+        && moneyIsId(d.templateId)
+        && d.cancelled is bool;
+    }
+
+    function moneyChallengeCancelOk() {
+      return moneyChallengeOk(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['cancelled', 'updatedAt'])
+        && request.resource.data.cancelled == true
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /users/{userId}/moneyChallenges/{challengeId} {
+      allow read: if moneyIsOwner(userId);
+      allow create: if moneyIsOwner(userId)
+        && moneyChallengeOk(request.resource.data)
+        && request.resource.data.cancelled == false
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyIsOwner(userId) && moneyChallengeCancelOk();
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId}/moneyChallenges/{challengeId} {
+      allow read: if isCoupleMember(coupleId);
+      allow create: if moneyCoupleFull(coupleId)
+        && moneyChallengeOk(request.resource.data)
+        && request.resource.data.cancelled == false
+        && moneyCreateStamp(request.resource.data);
+      allow update: if moneyCoupleFull(coupleId) && moneyChallengeCancelOk();
+      allow delete: if false;
+    }
+
+    // ---- category tweaks + default wallet: one doc `main` per book ----
+    function moneyMetaOk(metaId) {
+      let d = request.resource.data;
+      return metaId == 'main'
+        && d.keys().hasOnly(['customCategories', 'overrides', 'hiddenCategoryIds',
+          'defaultWalletId', 'currency', 'updatedAt'])
+        // D31: the book's currency (keep in step with MoneyCurrency.codes).
+        && d.get('currency', 'VND') in ['VND', 'USD', 'EUR', 'GBP', 'AUD',
+          'CAD', 'SGD', 'JPY', 'KRW', 'CNY', 'TWD', 'THB']
+        && d.get('customCategories', []) is list
+        && d.get('customCategories', []).size() <= 80
+        && d.get('overrides', {}) is map
+        && d.get('overrides', {}).size() <= 140
+        && d.get('hiddenCategoryIds', []) is list
+        && d.get('hiddenCategoryIds', []).size() <= 120
+        && moneyIsId(d.get('defaultWalletId', ''))
+        && d.updatedAt == request.time;
+    }
+
+    match /users/{userId}/moneyMeta/{metaId} {
+      allow read: if moneyIsOwner(userId);
+      allow create, update: if moneyIsOwner(userId) && moneyMetaOk(metaId);
+      allow delete: if false;
+    }
+
+    match /couples/{coupleId}/moneyMeta/{metaId} {
+      allow read: if isCoupleMember(coupleId);
+      allow create, update: if moneyCoupleFull(coupleId) && moneyMetaOk(metaId);
+      allow delete: if false;
+    }
+    // ── hết expenses (đợt 2) ──
+
+    // UGC moderation reports (Apple Guideline 1.2). Create-only for any
+    // signed-in user; admins review via the Firebase Console. Clients can
+    // never read, edit, or delete reports.
+    match /reports/{reportId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if false;
+    }
+
+    // Đánh giá / góp ý / báo lỗi (feature feedback). Create-only cho user đã
+    // đăng nhập; CF notifyFeedback gửi email, admin xem qua Console. App không
+    // bao giờ đọc/sửa/xoá lại. Mọi field ngoài các key dưới đây bị chặn.
+    function feedbackOk(uid) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['userId', 'type', 'message', 'appVersion', 'buildNumber', 'platform', 'createdAt'])
+        && d.keys().hasOnly(['userId', 'type', 'message', 'stars', 'screenshotPath',
+            'appVersion', 'buildNumber', 'platform', 'osVersion', 'deviceModel',
+            'locale', 'email', 'createdAt'])
+        && d.userId == uid
+        && d.createdAt == request.time
+        && d.type in ['idea', 'bug', 'rating']
+        && d.message is string && d.message.size() <= 2000
+        && (d.type == 'rating' || d.message.size() >= 1)
+        && (!('stars' in d) || (d.stars is int && d.stars >= 1 && d.stars <= 5))
+        && (!('screenshotPath' in d) || (d.screenshotPath is string
+            && d.screenshotPath.size() <= 300
+            && d.screenshotPath.matches('feedback/' + uid + '/.*')))
+        && d.appVersion is string && d.appVersion.size() <= 20
+        && d.buildNumber is int
+        && d.platform in ['ios', 'android']
+        && (!('osVersion' in d) || (d.osVersion is string && d.osVersion.size() <= 60))
+        && (!('deviceModel' in d) || (d.deviceModel is string && d.deviceModel.size() <= 80))
+        && (!('locale' in d) || (d.locale is string && d.locale.size() <= 10))
+        && (!('email' in d) || (d.email is string && d.email.size() <= 200));
+    }
+    match /feedback/{feedbackId} {
+      allow create: if isSignedIn() && feedbackOk(request.auth.uid);
+      allow read, update, delete: if false;
+    }
+
+    // Couple entry codes (feature couple-code). Each doc maps a 6-char code
+    // to a coupleId. Used by joinCoupleByCode as the primary lookup (before
+    // falling back to invite_codes for legacy couples). Created by the couple
+    // creator; deleted when the couple is cleaned up. No update path (codes
+    // are immutable once written — a new couple gets a new code).
+    match /couple_codes/{code} {
+      // get only, like invite_codes (H1).
+      allow get: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['coupleId', 'createdAt', 'updatedAt'])
+        && isNonEmptyString(request.resource.data.coupleId)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && isCoupleMember(request.resource.data.coupleId);
+      allow delete: if isSignedIn()
+        && exists(/databases/$(database)/documents/couples/$(resource.data.coupleId))
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(resource.data.coupleId)).data.memberIds;
+      allow update: if false;
+    }
+
+    // App config (force-update gate). PUBLIC-READ so the version check can run
+    // at cold start before any sign-in (a launching guest hits it too). Written
+    // ONLY from the Firebase Console (admin) — never from a client. Doc
+    // `config/app` fields: minBuildNumber (int), iosStoreUrl, androidStoreUrl.
+    match /config/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
+

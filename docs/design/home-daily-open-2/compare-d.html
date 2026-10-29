@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>So sánh Home bản C và bản D · Dear Embeiu</title>
+<link rel="stylesheet" href="home.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main>
+<div style="max-width:844px;margin:0 auto;padding:24px 16px 0"><h1 style="font-size:22px;line-height:28px;font-weight:700;margin:0 0 4px">Home đang chạy (C) và bản sắp xếp lại (D)</h1>
+<p style="font-size:14px;line-height:20px;margin:0 0 20px">Cùng máy Tuấn, thứ Ba 20/10/2026 lúc 19:05, cùng các thẻ, cả hai không có Sổ tiền (đang tắt trong app). C để bảy thẻ dưới một tiêu đề. D chia ba nhóm theo việc: hôm nay cần làm gì, Thảo thế nào rồi, lúc rảnh làm gì. Thanh điều hướng nổi ẩn đi để đọc trọn chiều dài.</p></div>
+<div class="cmp" id="cmp" style="--cols:2"></div>
+</main>
+<script>
+const col = (id, title, html) => `<section class="col" aria-labelledby="${id}"><div class="lab"><h2 id="${id}">${title}</h2><p class="len num" data-len="${id}">… px</p></div><div class="frame" data-frame="${id}">${html}</div></section>`;
+document.getElementById('cmp').innerHTML =
+  col('d', 'D · Sắp xếp lại', UI.homeD(D.S, { h1: false })) +
+  col('c', 'C · Đang chạy', UI.homeC(D.S, { h1: false, noMoney: true }));
+function measure() {
+  const out = {};
+  document.querySelectorAll('[data-frame]').forEach((f) => {
+    const sc = f.querySelector('.scroll'), last = f.querySelector('.cinema');
+    out[f.dataset.frame] = Math.round(last.getBoundingClientRect().bottom - sc.getBoundingClientRect().top);
+  });
+  for (const [k, v] of Object.entries(out)) document.querySelector(`[data-len="${k}"]`).innerHTML = `${v.toLocaleString('vi-VN')} px <span>cuộn</span>`;
+  const d = out.d - out.c;
+  document.querySelector('[data-len="d"]').innerHTML += ` <span>(${d >= 0 ? '+' : ''}${d.toLocaleString('vi-VN')} so với C)</span>`;
+  window.LENGTHS = out;
+}
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(measure);
+</script>
+</body>
+</html>

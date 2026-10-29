@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Công tắc báo khi người ấy chạm tim — Dear Embeiu</title>
+<link rel="stylesheet" href="poke.css">
+<script src="data.js"></script>
+<script src="ui.js"></script>
+</head>
+<body>
+<main class="doc" id="app"></main>
+<script>
+const { C, partner } = D;
+const P = partner.name;
+const I = UI.I;
+const nav = (cur) => `<nav class="pages" aria-label="Các màn của feature">${[['home.html', 'Home'], ['widget.html', 'Widget'], ['push.html', 'Thông báo'], ['settings.html', 'Cài đặt']]
+  .map(([h, t]) => `<a href="${h}"${h === cur ? ' aria-current="page"' : ''}>${t}</a>`).join('')}</nav>`;
+const row = (icon, title, sub, trail) => `<div class="srow"><span class="ibadge">${icon}</span><div><div class="tt">${title}</div>${sub ? `<div class="st">${sub}</div>` : ''}</div>${trail}</div>`;
+const sw = (on, id) => `<button class="sw" role="switch" aria-checked="${on}" aria-labelledby="${id}" type="button"></button>`;
+const card = (on) => `
+<div class="phone">
+  <div class="sub-head"><button class="back" type="button" aria-label="Quay lại">${I.back}</button><span class="eyechip">${I.bing}TUỲ CHỈNH ỨNG DỤNG</span></div>
+  <div class="sec-h">Thông báo</div>
+  <div class="ccard">
+    ${row(I.question, 'Nhắc trả lời câu hỏi', '21:00', sw(true, 'x1'))}
+    <div class="div"></div>
+    ${row(I.dice, 'Nhắc chọn món', 'Chưa ai chốt món hôm nay thì nhắc lúc này', sw(false, 'x2'))}
+    <div class="div"></div>
+    <div class="srow"><span class="ibadge">${on ? I.heartBold : I.heart}</span><div><div class="tt" id="poke-${on}">${C.settingTitle}</div><div class="st">${on ? C.settingOn(P) : C.settingOff(P)}</div></div>${sw(on, 'poke-' + on)}</div>
+    <div class="div"></div>
+    ${row(I.bing, 'Lời nhắc', 'Cột mốc, kỷ niệm và lời nhắc riêng của hai bạn', `<span class="chev">${I.chev}</span>`)}
+  </div>
+</div>`;
+const state = (title, desc, body) => `<section class="state"><h2>${title}</h2><p>${desc}</p>${body}</section>`;
+
+document.getElementById('app').innerHTML = `
+<header>
+  <h1>Báo khi người ấy chạm tim</h1>
+  <p>Một công tắc trong nhóm Thông báo, mặc định bật. Dòng phụ cho thấy trước thông báo trông thế nào, để biết tắt là mất gì.</p>
+  ${nav('settings.html')}
+</header>
+${state('Đang bật (mặc định)', 'Ví dụ lấy tên người ấy thật. Câu thứ hai trả lời nỗi lo “chạm nhiều có bị spam không”.', card(true))}
+${state('Đã tắt', 'Dòng phụ đổi theo: máy im, nhưng số vẫn đếm và mục trong trung tâm thông báo của app vẫn có.', card(false))}
+`;
+document.querySelectorAll('.sw').forEach((b) => b.addEventListener('click', () => b.setAttribute('aria-checked', b.getAttribute('aria-checked') !== 'true')));
+</script>
+</body>
+</html>
