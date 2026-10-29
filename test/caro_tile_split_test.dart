@@ -1,5 +1,6 @@
 import 'package:dear_embeiu/l10n/app_localizations.dart';
 import 'package:dear_embeiu/providers/decision_provider.dart';
+import 'package:dear_embeiu/services/analytics_service.dart';
 import 'package:dear_embeiu/widgets/decision_card.dart';
 import 'package:dear_embeiu/widgets/play_together_card.dart';
 import 'package:flutter/material.dart';
@@ -187,5 +188,44 @@ void main() {
       );
       expect(tester.getSize(button.first).height, greaterThanOrEqualTo(44));
     }
+  });
+
+  testWidgets('tapping a game tile logs home_entry_tap with its urgency', (
+    tester,
+  ) async {
+    final events = <(String, Map<String, Object?>?)>[];
+    AnalyticsService.debugOnEvent = (name, params) =>
+        events.add((name, params));
+    addTearDown(() => AnalyticsService.debugOnEvent = null);
+    await _pumpSmall(
+      tester,
+      // Bounded height, as on Home (the pair sits in IntrinsicHeight).
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: PlayTile(
+                view: const CaroEntryView(
+                  title: 'Caro',
+                  subtitle: 'Your turn. Thảo just played move 14.',
+                  cta: 'Your move',
+                  urgent: true,
+                ),
+                badge: const SizedBox(width: 36, height: 36),
+                // Same call the Home caro tile makes before opening the game.
+                onTap: () => AnalyticsService.instance.logHomeEntryTap(
+                  'caro',
+                  urgent: true,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.tap(find.byType(PlayTile));
+    expect(events.single.$1, 'home_entry_tap');
+    expect(events.single.$2, {'entry': 'caro', 'urgent': true});
   });
 }

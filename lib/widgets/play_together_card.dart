@@ -12,6 +12,7 @@ import '../screens/caro_game_screen.dart';
 import '../screens/caro_history_screen.dart';
 import '../screens/rps_history_screen.dart';
 import '../screens/rps_game_screen.dart';
+import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 import 'caro/caro_board.dart';
 import 'caro/caro_common.dart';
@@ -121,7 +122,9 @@ class PlayTogetherCard extends StatelessWidget {
 
 /// One game tile: 36 badge + name, the state's first sentence bold and the
 /// rest grey, CTA pinned to the bottom. The whole tile is the tap target (the
-/// CTA pill is visual only), read as one button like [CaroEntryRow].
+/// CTA pill is visual only), read as one button like [CaroEntryRow]. Needs a
+/// bounded height (the CTA is pushed down by a Spacer): Home wraps the pair in
+/// [IntrinsicHeight].
 class PlayTile extends StatelessWidget {
   const PlayTile({
     super.key,
@@ -252,6 +255,7 @@ class _CaroTile extends StatelessWidget {
     );
     void onTap() {
       HapticFeedback.selectionClick();
+      AnalyticsService.instance.logHomeEntryTap('caro', urgent: view.urgent);
       if (kind == CaroEntryKind.error) {
         context.read<CaroGameProvider>().retryState();
         return;
@@ -574,6 +578,7 @@ class _RpsTile extends StatelessWidget {
       ),
       onTap: () {
         HapticFeedback.selectionClick();
+        AnalyticsService.instance.logHomeEntryTap('rps', urgent: urgent);
         openRpsGame(
           context,
           gameId: state == RpsOpenState.none ? null : open?.id,

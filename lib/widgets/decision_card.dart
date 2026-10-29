@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
 import '../models/decision.dart';
 import '../providers/decision_provider.dart';
+import '../services/analytics_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_motion.dart';
 import '../theme/app_theme.dart';
@@ -183,6 +184,7 @@ class _PickRow extends StatelessWidget {
           borderRadius: 16,
           onTap: () {
             HapticFeedback.selectionClick();
+            AnalyticsService.instance.logHomeEntryTap('decide_pick');
             showDecisionResultSheet(context, d);
           },
           child: Padding(
@@ -283,6 +285,7 @@ class _SpinButton extends StatelessWidget {
     final d = decision;
     void onTap() {
       HapticFeedback.selectionClick();
+      AnalyticsService.instance.logHomeEntryTap('decide_${kind.name}');
       if (d != null) {
         showDecisionResultSheet(context, d);
       } else {
