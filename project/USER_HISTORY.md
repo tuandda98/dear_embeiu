@@ -1405,3 +1405,4 @@
 
 ---
 ## Phien moi - 2026-10-29 18:22:19 (source: compact)
+- [18:29] những bản trước vẫn lên đc , nên hãy để như vậy
