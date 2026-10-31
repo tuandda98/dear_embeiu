@@ -66,6 +66,16 @@ abstract final class ArrivalFormat {
     return '${DateFormat.Md(locale).format(local)} $time';
   }
 
+  /// "vừa xong" · "20 phút trước" · "3 giờ trước", then [when].
+  static String ago(BuildContext context, DateTime at, DateTime now) {
+    final l10n = AppLocalizations.of(context);
+    final age = now.difference(at);
+    if (age.inMinutes < 1) return l10n.loveNoteJustNow;
+    if (age.inHours < 1) return l10n.loveNoteMinutesAgo(age.inMinutes);
+    if (age.inHours < 24) return l10n.loveNoteHoursAgo(age.inHours);
+    return when(context, at, now);
+  }
+
   /// Day + month in the app's locale ("13/10" vi, "10/13" en — D3 i18n).
   static String shortDate(BuildContext context, DateTime d) =>
       DateFormat.Md(Localizations.localeOf(context).toString()).format(d);

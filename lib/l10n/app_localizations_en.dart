@@ -5614,12 +5614,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String arrivalBattery(int pct) {
-    return '$pct%';
+    return 'about $pct%';
   }
 
   @override
   String arrivalBatteryLow(int pct) {
-    return 'Battery at $pct%';
+    return 'Battery about $pct%';
   }
 
   @override

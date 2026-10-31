@@ -4,6 +4,7 @@
 // history (D3); sharing off = the owner deletes the doc (D11); the CF push
 // bookkeeping (couples/{c}/arrivalPush/{uid}) is Admin-only, nobody reads it.
 
+const assert = require('node:assert');
 const {
   doc,
   setDoc,
@@ -68,6 +69,45 @@ describe('firestore: arrival', () => {
   });
 
   // ---- create ----------------------------------------------------------------
+  describe('battery apart from events', () => {
+    const ref = (uid = 'alice', as = uid) => doc(authedDb(as), PATH(uid));
+    const at = (minutesAgo = 0) => Timestamp.fromMillis(Date.now() - minutesAgo * MIN);
+
+    beforeEach(() => write('alice', sharing(event())));
+
+    it('the owner refreshes battery + batteryAt; last stays untouched', async () => {
+      await assertSucceeds(updateDoc(ref(), { battery: 85, batteryAt: at() }));
+      const snap = await getDoc(ref());
+      assert.strictEqual(snap.data().last.battery, 12);
+    });
+
+    it('forbids the partner writing it', async () => {
+      await assertFails(updateDoc(ref('alice', 'bob'), { battery: 85, batteryAt: at() }));
+    });
+
+    it('needs both fields, a sane % and a recent time', async () => {
+      await assertFails(updateDoc(ref(), { battery: 85 }));
+      await assertFails(updateDoc(ref(), { batteryAt: at() }));
+      await assertFails(updateDoc(ref(), { battery: 101, batteryAt: at() }));
+      await assertFails(updateDoc(ref(), { battery: '85', batteryAt: at() }));
+      await assertFails(updateDoc(ref(), { battery: 85, batteryAt: at(13 * 60) }));
+      await assertFails(updateDoc(ref(), { battery: 85, batteryAt: at(-10) }));
+    });
+
+    it('forbids it while sharing is off', async () => {
+      await write('bob', { share: false });
+      await assertFails(updateDoc(ref('bob'), { battery: 85, batteryAt: at() }));
+    });
+
+    it('never recreates a doc deleted by switching off (D11)', async () => {
+      await assertFails(updateDoc(ref('bob'), { battery: 85, batteryAt: at() }));
+    });
+
+    it('create still cannot carry it', async () => {
+      await assertFails(write('bob', { share: true, battery: 85, batteryAt: at() }));
+    });
+  });
+
   it('accepts the minimal doc {share:false}', async () => {
     await assertSucceeds(write('alice', { share: false }));
   });

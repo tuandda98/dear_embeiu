@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/arrival.dart';
 import '../utils/arrival_edge_filter.dart';
+import 'arrival_platform.dart';
 import 'firebase_bootstrap_service.dart';
 import 'sleep_platform.dart';
 
@@ -249,13 +250,50 @@ class ArrivalService {
       final data = snap.data();
       if (data == null) return null;
       final share = data['share'] == true;
+      final battery = data['battery'];
       return ArrivalShare(
         share: share,
         auto: data['auto'] == true,
         last: share ? ArrivalEvent.fromMap(data['last'], _toDate) : null,
         pending: snap.metadata.hasPendingWrites,
+        battery: share && battery is int ? battery : null,
+        batteryAt: share ? _toDate(data['batteryAt']) : null,
       );
     });
+  }
+
+  /// My current battery, apart from events. `update` so a doc deleted by
+  /// switching off (D11) or by a partner change is never brought back.
+  /// [at] is the phone's clock: a queued write keeps its real age.
+  Future<void> putBattery(
+    String coupleId,
+    String uid,
+    int level,
+    DateTime at,
+  ) => _doc(coupleId, uid).update({
+    'battery': level.clamp(0, 100),
+    'batteryAt': Timestamp.fromDate(at),
+  });
+
+  /// [putBattery] from a background wake, where no provider holds my doc.
+  Future<void> refreshBatteryInBackground(
+    String coupleId,
+    String uid,
+    BatteryReader reader,
+  ) async {
+    if (!isUsingFirebase) return;
+    final data = (await _doc(coupleId, uid).get()).data();
+    if (data == null || data['share'] != true) return;
+    final level = (await reader.level())?.clamp(0, 100);
+    if (level == null) return;
+    final at = _toDate(data['batteryAt']);
+    final battery = data['battery'];
+    final now = DateTime.now();
+    final previous = at != null && battery is int
+        ? ArrivalBattery(level: battery, at: at)
+        : null;
+    if (!arrivalBatteryDue(previous, level: level, now: now)) return;
+    await putBattery(coupleId, uid, level, now);
   }
 
   static DateTime? _toDate(Object? v) => v is Timestamp ? v.toDate() : null;
@@ -280,11 +318,11 @@ class ArrivalService {
           'updatedAt': FieldValue.serverTimestamp(),
         })
       : _doc(coupleId, uid).set({
-    'share': true,
-    'auto': auto,
-    'last': event.toMap(Timestamp.fromDate),
-    'updatedAt': FieldValue.serverTimestamp(),
-  }, SetOptions(mergeFields: ['share', 'auto', 'last', 'updatedAt']));
+          'share': true,
+          'auto': auto,
+          'last': event.toMap(Timestamp.fromDate),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(mergeFields: ['share', 'auto', 'last', 'updatedAt']));
 
   /// Only the "tự báo" flag (sharing already on).
   Future<void> setAuto(String coupleId, String uid, bool auto) =>

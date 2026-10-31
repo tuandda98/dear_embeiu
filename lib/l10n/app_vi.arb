@@ -5028,7 +5028,7 @@
       }
     }
   },
-  "arrivalBattery": "{pct}%",
+  "arrivalBattery": "khoảng {pct}%",
   "@arrivalBattery": {
     "description": "Feature arrival (đợt 2)",
     "placeholders": {
@@ -5037,7 +5037,7 @@
       }
     }
   },
-  "arrivalBatteryLow": "Pin còn {pct}%",
+  "arrivalBatteryLow": "Pin còn khoảng {pct}%",
   "@arrivalBatteryLow": {
     "description": "Feature arrival (đợt 2)",
     "placeholders": {

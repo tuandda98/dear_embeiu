@@ -274,7 +274,7 @@ class _ArrivalCardState extends State<ArrivalCard> {
     } else if (last == null || ArrivalFormat.isStale(last, now)) {
       body.add(_smallLead(l10n.arrivalNoEventToday));
     } else {
-      body.add(_EventBlock(event: last, now: now));
+      body.add(_EventBlock(event: last, battery: arrival.myBattery, now: now));
       final detected = _firstDetected(arrival, last);
       if (detected != null) {
         body.add(_OkLine(text: l10n.arrivalFirstDetected(detected)));
@@ -390,6 +390,10 @@ class _ArrivalCardState extends State<ArrivalCard> {
           _smallLead(l10n.arrivalPartnerOn),
           const SizedBox(height: 2),
           _sub(l10n.arrivalPartnerOnSub(partnerName)),
+          if (arrival.partnerBattery != null) ...[
+            const SizedBox(height: 4),
+            _BatteryChip(battery: arrival.partnerBattery!, now: now),
+          ],
         ],
         fill: fill,
       );
@@ -407,6 +411,7 @@ class _ArrivalCardState extends State<ArrivalCard> {
           child: _EventBlock(
             key: ValueKey(last.at.millisecondsSinceEpoch),
             event: last,
+            battery: arrival.partnerBattery,
             now: now,
           ),
         ),
@@ -646,17 +651,21 @@ class _Lane extends StatelessWidget {
 
 /// Sentence 18 w700 (≤ 3 lines) + icon · time · battery (+ "bấm tay").
 class _EventBlock extends StatelessWidget {
-  const _EventBlock({super.key, required this.event, required this.now});
+  const _EventBlock({
+    super.key,
+    required this.event,
+    required this.battery,
+    required this.now,
+  });
 
   final ArrivalEvent event;
+  final ArrivalBattery? battery;
   final DateTime now;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final e = event;
-    final battery = e.battery;
-    final low = battery != null && battery <= 20;
     return MergeSemantics(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,54 +702,7 @@ class _EventBlock extends StatelessWidget {
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
-              if (battery != null && !low)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      IconsaxPlusLinear.battery_3full,
-                      size: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      l10n.arrivalBattery(battery),
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              if (low)
-                Container(
-                  height: 24,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        IconsaxPlusLinear.battery_empty,
-                        size: 14,
-                        color: AppColors.warningInk,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        l10n.arrivalBatteryLow(battery),
-                        style: const TextStyle(
-                          color: AppColors.warningInk,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              if (battery != null) _BatteryChip(battery: battery!, now: now),
             ],
           ),
           if (e.source == ArrivalEventSource.manual)
@@ -760,6 +722,81 @@ class _EventBlock extends StatelessWidget {
     );
   }
 }
+
+/// "khoảng 85%", a warning pill at ≤ 20 %; a reading newer than the event
+/// adds its age, since the event's time no longer dates it.
+class _BatteryChip extends StatelessWidget {
+  const _BatteryChip({required this.battery, required this.now});
+
+  final ArrivalBattery battery;
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final level = battery.level;
+    final low = level <= 20;
+    final age = battery.fromEvent
+        ? null
+        : ArrivalFormat.ago(context, battery.at, now);
+    final reading = low
+        ? Container(
+            height: 24,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  IconsaxPlusLinear.battery_empty,
+                  size: 14,
+                  color: AppColors.warningInk,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.arrivalBatteryLow(level),
+                  style: const TextStyle(
+                    color: AppColors.warningInk,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                IconsaxPlusLinear.battery_3full,
+                size: 14,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 4),
+              Text(l10n.arrivalBattery(level), style: _batteryText),
+            ],
+          );
+    if (age == null) return reading;
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        reading,
+        Text(age, style: _batteryText),
+      ],
+    );
+  }
+}
+
+const _batteryText = TextStyle(
+  color: AppColors.textSecondary,
+  fontSize: 13,
+  fontWeight: FontWeight.w600,
+);
 
 class _OkLine extends StatelessWidget {
   const _OkLine({required this.text, this.live = false});

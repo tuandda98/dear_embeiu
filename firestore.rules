@@ -752,7 +752,21 @@ service cloud.firestore {
           && (!('auto' in d) || d.auto is bool)
           && (!('updatedAt' in d) || d.updatedAt is timestamp)
           // Sharing off ⇒ no event left behind, in the same write (D11).
-          && (d.get('share', false) == true || !('last' in d));
+          && (d.get('share', false) == true || !('last' in d))
+          // Battery refreshed apart from events: only while sharing.
+          && (d.get('share', false) == true
+              || (!('battery' in d) && !('batteryAt' in d)));
+      }
+
+      // `battery` + `batteryAt` always land together, phone clock (a queued
+      // write keeps its real age): ≤ 5' ahead, ≤ 12 h old, like an event.
+      function isValidArrivalBattery(d) {
+        return d.get('share', false) == true
+          && d.get('battery', null) is int
+          && d.battery >= 0 && d.battery <= 100
+          && d.get('batteryAt', null) is timestamp
+          && d.batteryAt <= request.time + duration.value(5, 'm')
+          && d.batteryAt >= request.time - duration.value(12, 'h');
       }
 
       match /arrival/{uid} {
@@ -775,8 +789,11 @@ service cloud.firestore {
         allow update: if isCoupleMember(coupleId)
           && uid == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['share', 'auto', 'last', 'updatedAt'])
+              .hasOnly(['share', 'auto', 'last', 'updatedAt', 'battery', 'batteryAt'])
           && isValidArrivalDoc(request.resource.data)
+          && (!request.resource.data.diff(resource.data).affectedKeys()
+                  .hasAny(['battery', 'batteryAt'])
+              || isValidArrivalBattery(request.resource.data))
           // A new event is checked; an old one left untouched (e.g. flipping
           // `auto` 13 h after the last arrival) is not re-dated.
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['last'])

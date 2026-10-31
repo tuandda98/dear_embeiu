@@ -119,6 +119,9 @@ class ArrivalProvider extends ChangeNotifier {
 
   /// Null unless the partner shares (rules keep `last` off otherwise).
   ArrivalEvent? get partnerLast => partnerShares ? _partner?.last : null;
+  ArrivalBattery? get myBattery => myShare ? _mine?.batteryNow : null;
+  ArrivalBattery? get partnerBattery =>
+      partnerShares ? _partner?.batteryNow : null;
 
   /// The user switched "Tự báo khi mình đến nơi" on.
   bool get wantsAuto => _wantsAuto;
@@ -222,8 +225,10 @@ class ArrivalProvider extends ChangeNotifier {
     _mineSub = _service.watchShare(coupleId, myUid).handleError((_) {}).listen((
       s,
     ) {
+      final first = !_mineKnown;
       _mine = s;
       _mineKnown = true;
+      if (first) unawaited(_refreshBattery());
       if (s?.share == true && !_everShared) {
         _everShared = true;
         unawaited(_service.saveEverShared(myUid).catchError((_) {}));
@@ -291,6 +296,7 @@ class ArrivalProvider extends ChangeNotifier {
   /// cancels them).
   Future<void> onResume() async {
     if (!visible) return;
+    unawaited(_refreshBattery());
     final always = await _geofence.hasAlwaysPermission();
     final remote = await _service.readRemoteAutoEnabled();
     _hasAlways = always;
@@ -484,6 +490,23 @@ class ArrivalProvider extends ChangeNotifier {
       autoAvailable &&
       _hasAlways &&
       placesWithLocation.isNotEmpty;
+
+  /// Battery apart from events: only while sharing, throttled, best-effort.
+  Future<void> _refreshBattery() async {
+    final uid = _uid;
+    final coupleId = _coupleId;
+    final mine = _mine;
+    if (uid == null || coupleId == null || mine?.share != true) return;
+    final level = await _readBattery();
+    if (level == null || _uid != uid || _coupleId != coupleId) return;
+    final now = DateTime.now();
+    if (!arrivalBatteryDue(mine!.batteryNow, level: level, now: now)) return;
+    try {
+      await _service.putBattery(coupleId, uid, level, now);
+    } catch (e) {
+      debugPrint('arrival battery refresh failed: $e');
+    }
+  }
 
   Future<int?> _readBattery() async {
     try {

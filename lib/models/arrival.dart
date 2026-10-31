@@ -238,6 +238,35 @@ class ArrivalEvent {
   }
 }
 
+/// The freshest battery % known for a member. iOS only reports 5 % steps and
+/// the phone can't push it continuously, so the UI says "khoảng" + how old.
+class ArrivalBattery {
+  const ArrivalBattery({
+    required this.level,
+    required this.at,
+    this.fromEvent = false,
+  });
+
+  final int level;
+  final DateTime at;
+
+  /// Read with the event itself: the event's own time already dates it.
+  final bool fromEvent;
+}
+
+/// Whether a freshly read [level] is worth a Firestore write: not within 2'
+/// of the last one, then on a change or to keep "x phút trước" under 30'.
+bool arrivalBatteryDue(
+  ArrivalBattery? previous, {
+  required int level,
+  required DateTime now,
+}) {
+  if (previous == null) return true;
+  final age = now.difference(previous.at);
+  if (age < const Duration(minutes: 2)) return false;
+  return level != previous.level || age >= const Duration(minutes: 30);
+}
+
 /// A member's doc `couples/{c}/arrival/{uid}` as the app sees it.
 class ArrivalShare {
   const ArrivalShare({
@@ -245,6 +274,8 @@ class ArrivalShare {
     this.auto = false,
     this.last,
     this.pending = false,
+    this.battery,
+    this.batteryAt,
   });
 
   final bool share;
@@ -258,4 +289,22 @@ class ArrivalShare {
   /// The snapshot still holds a local write the server hasn't acked (only
   /// meaningful on my own doc): "Sẽ báo khi có mạng" stays while true.
   final bool pending;
+
+  /// Refreshed apart from events, on app open and background wakes. Never
+  /// merged into `last`: the CF only pushes when `last` changes.
+  final int? battery;
+  final DateTime? batteryAt;
+
+  /// Whichever is newer: the refreshed reading or the event's.
+  ArrivalBattery? get batteryNow {
+    final level = battery;
+    final at = batteryAt;
+    final e = last;
+    final fromEvent = e?.battery == null
+        ? null
+        : ArrivalBattery(level: e!.battery!, at: e.at, fromEvent: true);
+    if (level == null || at == null) return fromEvent;
+    if (fromEvent != null && !at.isAfter(fromEvent.at)) return fromEvent;
+    return ArrivalBattery(level: level, at: at);
+  }
 }

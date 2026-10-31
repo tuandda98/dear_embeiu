@@ -8962,13 +8962,13 @@ abstract class AppLocalizations {
   /// Feature arrival (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'{pct}%'**
+  /// **'about {pct}%'**
   String arrivalBattery(int pct);
 
   /// Feature arrival (đợt 2)
   ///
   /// In en, this message translates to:
-  /// **'Battery at {pct}%'**
+  /// **'Battery about {pct}%'**
   String arrivalBatteryLow(int pct);
 
   /// Feature arrival (đợt 2)

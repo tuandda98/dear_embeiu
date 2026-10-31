@@ -49,6 +49,16 @@ class FakeArrivalService extends ArrivalService {
     return _write('put ${event.place} auto=$auto');
   }
 
+  final batteries = <int>[];
+
+  @override
+  Future<void> putBattery(
+    String coupleId,
+    String uid,
+    int level,
+    DateTime at,
+  ) async => batteries.add(level);
+
   @override
   Future<void> turnOn(String coupleId, String uid, {required bool auto}) =>
       _write('on auto=$auto');
@@ -186,6 +196,52 @@ void main() {
     });
   });
 
+  group('battery', () {
+    final now = DateTime(2026, 10, 31, 12);
+    ArrivalBattery was(int level, int minutes) => ArrivalBattery(
+      level: level,
+      at: now.subtract(Duration(minutes: minutes)),
+    );
+
+    test('due: first read, a change after 2\', or 30\' old', () {
+      expect(arrivalBatteryDue(null, level: 50, now: now), isTrue);
+      expect(arrivalBatteryDue(was(55, 1), level: 50, now: now), isFalse);
+      expect(arrivalBatteryDue(was(55, 3), level: 50, now: now), isTrue);
+      expect(arrivalBatteryDue(was(50, 29), level: 50, now: now), isFalse);
+      expect(arrivalBatteryDue(was(50, 30), level: 50, now: now), isTrue);
+    });
+
+    test('batteryNow takes the newer of event and refresh', () {
+      final event = ArrivalEvent(
+        place: kArrivalHome,
+        type: ArrivalEventType.enter,
+        at: now,
+        source: ArrivalEventSource.auto,
+        battery: 40,
+      );
+      expect(
+        ArrivalShare(share: true, last: event).batteryNow!.fromEvent,
+        true,
+      );
+      final older = ArrivalShare(
+        share: true,
+        last: event,
+        battery: 90,
+        batteryAt: now.subtract(const Duration(hours: 1)),
+      );
+      expect(older.batteryNow!.level, 40);
+      final newer = ArrivalShare(
+        share: true,
+        last: event,
+        battery: 35,
+        batteryAt: now.add(const Duration(hours: 1)),
+      );
+      expect(newer.batteryNow!.level, 35);
+      expect(newer.batteryNow!.fromEvent, isFalse);
+      expect(const ArrivalShare(share: true).batteryNow, isNull);
+    });
+  });
+
   group('edge filter (D6)', () {
     final t0 = DateTime(2026, 10, 20, 22);
 
@@ -284,35 +340,38 @@ void main() {
       expect(s.calls.length, 4);
     });
 
-    test('a failed / denied auto event leaves the in/out state alone', () async {
-      final s = FakeArrivalService();
-      await s.savePlaces('u', [ArrivalPlace.home(location: _loc())]);
-      Future<ArrivalSendResult> enter() => s.reportEvent(
-        uid: 'u',
-        coupleId: 'c',
-        slot: 'home',
-        type: ArrivalEventType.enter,
-        source: ArrivalEventSource.auto,
-        auto: true,
-      );
-      s.writeError = StateError('offline-ish');
-      expect(await enter(), ArrivalSendResult.failed);
-      expect((await s.loadEdge('u', 'home')).inside, isNull);
-      s.writeError = FirebaseException(
-        plugin: 'cloud_firestore',
-        code: 'permission-denied',
-      );
-      expect(await enter(), ArrivalSendResult.denied);
-      expect((await s.loadEdge('u', 'home')).inside, isNull);
-      s.writeError = null;
-      expect(await enter(), ArrivalSendResult.sent);
-      expect((await s.loadEdge('u', 'home')).inside, isTrue);
-      s.holdWrite = Completer<void>();
-      await s.saveEdge('u', 'home', const ArrivalEdgeState(inside: false));
-      expect(await enter(), ArrivalSendResult.queued);
-      expect((await s.loadEdge('u', 'home')).inside, isTrue);
-      s.holdWrite!.complete();
-    });
+    test(
+      'a failed / denied auto event leaves the in/out state alone',
+      () async {
+        final s = FakeArrivalService();
+        await s.savePlaces('u', [ArrivalPlace.home(location: _loc())]);
+        Future<ArrivalSendResult> enter() => s.reportEvent(
+          uid: 'u',
+          coupleId: 'c',
+          slot: 'home',
+          type: ArrivalEventType.enter,
+          source: ArrivalEventSource.auto,
+          auto: true,
+        );
+        s.writeError = StateError('offline-ish');
+        expect(await enter(), ArrivalSendResult.failed);
+        expect((await s.loadEdge('u', 'home')).inside, isNull);
+        s.writeError = FirebaseException(
+          plugin: 'cloud_firestore',
+          code: 'permission-denied',
+        );
+        expect(await enter(), ArrivalSendResult.denied);
+        expect((await s.loadEdge('u', 'home')).inside, isNull);
+        s.writeError = null;
+        expect(await enter(), ArrivalSendResult.sent);
+        expect((await s.loadEdge('u', 'home')).inside, isTrue);
+        s.holdWrite = Completer<void>();
+        await s.saveEdge('u', 'home', const ArrivalEdgeState(inside: false));
+        expect(await enter(), ArrivalSendResult.queued);
+        expect((await s.loadEdge('u', 'home')).inside, isTrue);
+        s.holdWrite!.complete();
+      },
+    );
 
     test('an unknown slot writes nothing', () async {
       final s = FakeArrivalService();
@@ -378,6 +437,36 @@ void main() {
     setUp(() {
       service = FakeArrivalService();
       geofence = FakeGeofence();
+    });
+
+    test('refreshes the battery only while sharing, throttled', () async {
+      final p = make(battery: 80);
+      await p.watchForCouple('c', 'me', 'them');
+      service.share('me').add(const ArrivalShare(share: false));
+      await pumpEventQueue();
+      expect(service.batteries, isEmpty);
+
+      await p.watchForCouple('c2', 'me', 'them');
+      service
+          .share('me')
+          .add(
+            ArrivalShare(share: true, battery: 80, batteryAt: DateTime.now()),
+          );
+      await pumpEventQueue();
+      expect(service.batteries, isEmpty); // fresh reading: no write
+
+      await p.watchForCouple('c3', 'me', 'them');
+      service
+          .share('me')
+          .add(
+            ArrivalShare(
+              share: true,
+              battery: 75,
+              batteryAt: DateTime.now().subtract(const Duration(minutes: 5)),
+            ),
+          );
+      await pumpEventQueue();
+      expect(service.batteries, [80]);
     });
 
     test('hidden while the couple waits for a partner (D9)', () async {

@@ -5370,12 +5370,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String arrivalBattery(int pct) {
-    return '$pct%';
+    return 'khoảng $pct%';
   }
 
   @override
   String arrivalBatteryLow(int pct) {
-    return 'Pin còn $pct%';
+    return 'Pin còn khoảng $pct%';
   }
 
   @override

@@ -167,6 +167,7 @@ class _ArrivalManageScreenState extends State<ArrivalManageScreen>
         color: myColor,
         share: arrival.myShare,
         event: arrival.myLast,
+        battery: arrival.myBattery,
         now: now,
       ),
       const SizedBox(height: 16),
@@ -311,6 +312,7 @@ class _SeesLane extends StatelessWidget {
     required this.color,
     required this.share,
     required this.event,
+    required this.battery,
     required this.now,
   });
 
@@ -318,6 +320,7 @@ class _SeesLane extends StatelessWidget {
   final Color color;
   final bool share;
   final ArrivalEvent? event;
+  final ArrivalBattery? battery;
   final DateTime now;
 
   @override
@@ -334,7 +337,9 @@ class _SeesLane extends StatelessWidget {
       lead = ArrivalFormat.sentence(l10n, e);
       meta = [
         ArrivalFormat.when(context, e.at, now),
-        if (e.battery != null) l10n.arrivalBattery(e.battery!),
+        if (battery != null) l10n.arrivalBattery(battery!.level),
+        if (battery != null && !battery!.fromEvent)
+          ArrivalFormat.ago(context, battery!.at, now),
       ].join(' · ');
     }
     return MergeSemantics(

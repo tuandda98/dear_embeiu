@@ -6194,7 +6194,7 @@
       }
     }
   },
-  "arrivalBattery": "{pct}%",
+  "arrivalBattery": "about {pct}%",
   "@arrivalBattery": {
     "description": "Feature arrival (đợt 2)",
     "placeholders": {
@@ -6203,7 +6203,7 @@
       }
     }
   },
-  "arrivalBatteryLow": "Battery at {pct}%",
+  "arrivalBatteryLow": "Battery about {pct}%",
   "@arrivalBatteryLow": {
     "description": "Feature arrival (đợt 2)",
     "placeholders": {

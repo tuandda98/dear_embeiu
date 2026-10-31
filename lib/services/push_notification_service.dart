@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui' show DartPluginRegistrant, Locale;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +17,8 @@ import '../l10n/app_l10n.dart';
 import '../l10n/app_localizations.dart';
 import '../models/app_user.dart';
 import 'analytics_service.dart';
+import 'arrival_platform_native.dart';
+import 'arrival_service.dart';
 import 'daily_question_service.dart';
 import 'firebase_bootstrap_service.dart';
 import 'home_widget_bridge.dart';
@@ -42,6 +46,34 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await _cancelWeatherNoticeIfPartnerLeft(message);
   await _updateWidgetStatus(message);
   await _cancelMealReminderIfDecided(message);
+  await _refreshArrivalBattery(message);
+}
+
+/// Any wake is a chance to refresh my battery for the partner's arrival card.
+/// iOS gives no other background trigger; force-quit apps get no wake at all.
+Future<void> _refreshArrivalBattery(RemoteMessage message) async {
+  try {
+    final uid = (await FirebaseAuth.instance.authStateChanges().first)?.uid;
+    if (uid == null) return;
+    var coupleId = message.data['coupleId'] as String?;
+    if (coupleId == null || coupleId.isEmpty) {
+      final user = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      coupleId = user.data()?['coupleId'] as String?;
+    }
+    if (coupleId == null || coupleId.isEmpty) return;
+    await ArrivalService()
+        .refreshBatteryInBackground(
+          coupleId,
+          uid,
+          const PluginBatteryReader(),
+        )
+        .timeout(const Duration(seconds: 10));
+  } catch (e) {
+    debugPrint('arrival battery wake failed: $e');
+  }
 }
 
 /// "Người ấy vừa…" on the home-screen widget while the app is not on screen

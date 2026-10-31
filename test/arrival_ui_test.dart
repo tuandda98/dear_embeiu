@@ -361,14 +361,31 @@ void main() {
       final labels = tester.widgetList<PersonLabel>(find.byType(PersonLabel));
       expect(labels.map((l) => l.name), ['Bạn', 'Thảo']);
       expect(find.text('Đã đến Công ty'), findsOneWidget);
-      expect(find.text('64%'), findsOneWidget);
+      expect(find.text('khoảng 64%'), findsOneWidget);
       expect(find.text('Đã về đến nhà'), findsOneWidget);
-      expect(find.text('Pin còn 12%'), findsOneWidget);
+      expect(find.text('Pin còn khoảng 12%'), findsOneWidget);
       expect(find.text('Hỏi thăm'), findsOneWidget);
       expect(find.text('Tự báo: Nhà'), findsOneWidget);
       // Sharing: no enable button, both manual buttons.
       expect(find.text('Bật báo về nhà'), findsNothing);
       expect(find.text('Đến nơi rồi'), findsOneWidget);
+
+      // A reading newer than the event replaces its % and says how old.
+      rig.share(
+        'her',
+        ArrivalShare(
+          share: true,
+          auto: true,
+          last: _event(battery: 12, at: _today(0, 10)),
+          battery: 75,
+          batteryAt: DateTime.now().subtract(const Duration(minutes: 20)),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Pin còn khoảng 12%'), findsNothing);
+      expect(find.text('khoảng 75%'), findsOneWidget);
+      expect(find.text('20 phút trước'), findsOneWidget);
     });
 
     testWidgets('partner off → neutral; partner on but quiet → "Đang bật"', (
