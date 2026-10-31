@@ -1437,3 +1437,17 @@
 - [14:24] code mới nhất chưa ?
 - [14:26] tại sao lại có foler 1.12.0 ?
 - [14:26] chuyển sang release/1.12.0 đi
+
+
+---
+## Phien moi - 2026-10-30 13:47:15 (source: startup)
+- [13:47] event tracking user mở app lần cuối có phải là lastseen at ở trong firestore ko ?
+
+
+---
+## Phien moi - 2026-10-31 20:03:51 (source: startup)
+- [20:04] tôi đã có tổng cộng bao nhiêu user rồi và trong 1 tháng trở lại đây có bao nhiêu user active
+- [20:05] những tính năng nào mà user hay sử dụng
+- [20:13] trên ios số pin đang không sync với số pin hiện tại, tìm hiểu xem tại sao
+- [20:15] có cách nào  sync luôn với pin của máy ko ?
+- [20:17] làm theo đề xuất đó đi
