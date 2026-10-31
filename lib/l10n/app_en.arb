@@ -3139,6 +3139,14 @@
   "@sleepNoAwakenings": {
     "description": "Sleep: no wake-up"
   },
+  "sleepWakeUpsInfo": "See wake-up times",
+  "@sleepWakeUpsInfo": {
+    "description": "Sleep: screen-reader label of the ! icon beside a night's duration"
+  },
+  "sleepWakeUpsNote": "Your sleep time includes these wake-ups.",
+  "@sleepWakeUpsNote": {
+    "description": "Sleep: one line under the wake-up times"
+  },
   "sleepSourceEdited": "Edited",
   "@sleepSourceEdited": {
     "description": "Sleep label: night edited by its owner (everyone sees it)"

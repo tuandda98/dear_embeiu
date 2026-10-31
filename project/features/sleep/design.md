@@ -441,3 +441,6 @@ ICU: chuỗi có `*…*` là chữ in đậm do code render, không phải place
 - Thẻ "Đêm qua": pill "Đã sửa"/"Giờ bên ấy" ra hàng riêng dưới trăng, rộng hết cột, tự thu nhỏ (tối thiểu ×0,75 — vi 320dp chữ 200% đo được ×0,78, chữ vẫn đọc đủ; Tester vòng 9 N2b) khi cột quá hẹp.
 - Trục làn 18:00 → 14:00 (trước dừng 12:00 trong khi cửa sổ tính đêm tới 14:00).
 - Đêm hiện theo đồng hồ nơi nó diễn ra; đêm người ấy ở múi khác có pill "Giờ bên ấy" (D2).
+
+## Giờ thức giấc sau icon `!` (2026-10-31)
+Hàng người: `tên · thời lượng · (!) · ✎`. Icon chỉ hiện khi đêm có lần thức. Bấm mở sheet: "Thức giấc 2 lần" · "3:10 · 5:40" · "Số giờ ngủ gồm cả những lần thức này." · nút Đã hiểu. Không thêm chữ giải thích trên màn chính.

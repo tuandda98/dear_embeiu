@@ -3680,6 +3680,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepNoAwakenings => 'Slept straight through';
 
   @override
+  String get sleepWakeUpsInfo => 'See wake-up times';
+
+  @override
+  String get sleepWakeUpsNote => 'Your sleep time includes these wake-ups.';
+
+  @override
   String get sleepSourceEdited => 'Edited';
 
   @override

@@ -1500,6 +1500,17 @@ class _PersonRow extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
+                  if (n.wakeUps.isNotEmpty)
+                    Semantics(
+                      container: true,
+                      child: HeaderIconButton(
+                        icon: IconsaxPlusLinear.info_circle,
+                        iconSize: 18,
+                        iconColor: AppColors.textSecondary,
+                        semanticsLabel: l10n.sleepWakeUpsInfo,
+                        onTap: () => showSleepWakeUpsSheet(context, n),
+                      ),
+                    ),
                 ],
                 if (isMe)
                   onEdit != null

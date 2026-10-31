@@ -2357,6 +2357,8 @@
     }
   },
   "sleepNoAwakenings": "Ngủ một mạch",
+  "sleepWakeUpsInfo": "Xem giờ thức giấc",
+  "sleepWakeUpsNote": "Số giờ ngủ gồm cả những lần thức này.",
   "@sleepNoAwakenings": {
     "description": "Sleep: no wake-up"
   },

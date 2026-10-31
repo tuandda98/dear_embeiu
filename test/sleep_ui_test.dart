@@ -718,6 +718,42 @@ void main() {
     semantics.dispose();
   });
 
+  group('wake-up times behind the ! icon', () {
+    final key = SleepProvider.lastNightKey();
+    final d = sleepDateFromKey(key)!;
+    final bed = DateTime(d.year, d.month, d.day - 1, 23, 30);
+    final night = _local(key, bed, DateTime(d.year, d.month, d.day, 7));
+
+    testWidgets('tap shows every time, on the night\'s clock', (tester) async {
+      _phone(tester, 390, height: 2000);
+      await tester.pumpWidget(
+        _app(
+          const SleepScreen(),
+          _Sleep(
+            mine: {
+              key: night.copyWith(wakeUps: const [220, 370]),
+            },
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('3:10 · 5:40'), findsNothing);
+      await tester.tap(find.bySemanticsLabel('Xem giờ thức giấc'));
+      await tester.pumpAndSettle();
+      expect(find.text('3:10 · 5:40'), findsOneWidget);
+      expect(find.text('Số giờ ngủ gồm cả những lần thức này.'), findsOneWidget);
+    });
+
+    testWidgets('no icon on a night slept straight through', (tester) async {
+      _phone(tester, 390, height: 2000);
+      await tester.pumpWidget(
+        _app(const SleepScreen(), _Sleep(mine: {key: night})),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.bySemanticsLabel('Xem giờ thức giấc'), findsNothing);
+    });
+  });
+
   group('N1: the "asleep together" band is where the two bars meet', () {
     final key = SleepProvider.lastNightKey();
     final day = sleepDateFromKey(key)!;

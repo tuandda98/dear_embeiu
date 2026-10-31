@@ -39,6 +39,11 @@ Future<void> showSleepHowItWorksSheet(BuildContext context) {
   return _show(context, const _HowItWorksSheet(), 'SleepHowItWorksSheet');
 }
 
+Future<void> showSleepWakeUpsSheet(BuildContext context, SleepNight night) {
+  HapticFeedback.selectionClick();
+  return _show(context, _WakeUpsSheet(night: night), 'SleepWakeUpsSheet');
+}
+
 Future<void> _show(BuildContext context, Widget sheet, String name) {
   final sleep = context.read<SleepProvider>();
   return showModalBottomSheet<void>(
@@ -885,6 +890,53 @@ class _TimeTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Wake-up times (the ! icon beside a night's duration) ────────────────────
+
+class _WakeUpsSheet extends StatelessWidget {
+  const _WakeUpsSheet({required this.night});
+
+  final SleepNight night;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return _SheetFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _SheetTitle(SleepFormat.awakenings(l10n, night)),
+          const SizedBox(height: 12),
+          Text(
+            SleepFormat.wakeTimes(context, night),
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.sleepWakeUpsNote,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 52,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              child: Text(l10n.sleepGotIt),
+            ),
+          ),
+        ],
       ),
     );
   }

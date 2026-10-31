@@ -3471,6 +3471,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get sleepNoAwakenings => 'Ngủ một mạch';
 
   @override
+  String get sleepWakeUpsInfo => 'Xem giờ thức giấc';
+
+  @override
+  String get sleepWakeUpsNote => 'Số giờ ngủ gồm cả những lần thức này.';
+
+  @override
   String get sleepSourceEdited => 'Đã sửa';
 
   @override

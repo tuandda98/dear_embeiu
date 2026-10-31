@@ -78,6 +78,11 @@ class SleepFormat {
       ? l10n.sleepNoAwakenings
       : l10n.sleepAwakenings(n.wakeUps.length);
 
+  /// "3:10 · 5:40": each wake-up on the night's own clock.
+  static String wakeTimes(BuildContext context, SleepNight n) => n.wakeUps
+      .map((m) => time(context, n.bedClock.add(Duration(minutes: m))))
+      .join(' · ');
+
   /// "Đêm 9 → sáng 10/10" for the night that ended on [wakeKey].
   static String nightTitle(AppLocalizations l10n, String wakeKey) {
     final wake = sleepDateFromKey(wakeKey) ?? DateTime.now();

@@ -5911,6 +5911,18 @@ abstract class AppLocalizations {
   /// **'Slept straight through'**
   String get sleepNoAwakenings;
 
+  /// Sleep: screen-reader label of the ! icon beside a night's duration
+  ///
+  /// In en, this message translates to:
+  /// **'See wake-up times'**
+  String get sleepWakeUpsInfo;
+
+  /// Sleep: one line under the wake-up times
+  ///
+  /// In en, this message translates to:
+  /// **'Your sleep time includes these wake-ups.'**
+  String get sleepWakeUpsNote;
+
   /// Sleep label: night edited by its owner (everyone sees it)
   ///
   /// In en, this message translates to:
